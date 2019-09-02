@@ -6,6 +6,14 @@ const { JSDOM } = require('jsdom');
 
 export default describeModule('popup-notification/content',
   () => ({
+    'platform/content/globals': {
+      chrome: {},
+      window: {
+        console: {
+          error: () => {},
+        },
+      },
+    },
   }),
   () => {
     describe('integration-like tests for popup notification', function () {
@@ -27,17 +35,13 @@ export default describeModule('popup-notification/content',
 
       function makeMessage(extraConfig) {
         return {
-          action: 'push',
-          module: 'popup-notification',
           url: 'http://cliqz.com/index.html',
-          data: {
-            back: { },
-            preShow: 'try-to-find-coupon',
-            onApply: 'insert-coupon-form',
-            config: {
-              code: '1234-5678',
-              ...extraConfig
-            }
+          back: { },
+          preShow: 'try-to-find-coupon',
+          onApply: 'insert-coupon-form',
+          config: {
+            code: '1234-5678',
+            ...extraConfig
           }
         };
       }
@@ -74,13 +78,12 @@ export default describeModule('popup-notification/content',
         //
         // Act: display popup notification
         //
-        const onMessage = popnot(jsdom.window, chrome, CLIQZ, render);
         const msg = makeMessage({
           inputID: 'iid',
           submitID: 'sid',
           clickEvent: 'mouseup'
         });
-        await onMessage(msg);
+        await popnot(jsdom.window, chrome, CLIQZ, render, msg);
 
         //
         // Assert: check "Apply" button appeared
@@ -129,11 +132,10 @@ export default describeModule('popup-notification/content',
         //
         // Act: display popup notification
         //
-        const onMessage = popnot(jsdom.window, chrome, CLIQZ, render);
         const msg = makeMessage({
           isDynamicPage: true
         });
-        await onMessage(msg);
+        await popnot(jsdom.window, chrome, CLIQZ, render, msg);
 
         //
         // Assert: check "Apply" button appeared

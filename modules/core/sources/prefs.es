@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   getPref,
   setPref,
@@ -18,7 +26,7 @@ export default {
    */
   get(pref, defaultValue, prefix) {
     let value = defaultValue;
-    if (!prefix) {
+    if (!prefix && config.default_prefs) {
       value = typeof config.default_prefs[pref] === 'undefined' ? defaultValue : config.default_prefs[pref];
     }
     return getPref(pref, value, prefix);

@@ -1,20 +1,28 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
-import createSpananWrapper from '../../../core/helpers/spanan-module-wrapper';
+import createModuleWrapper from '../../../core/helpers/action-module-wrapper';
 import cliqz from '../../cliqz';
+import tabs from '../../../platform/tabs';
 
 import Antitracking from './antitracking';
 import Adblocking from './adblocking';
 import Antiphishing from './antiphishing';
-import ImportData from './import-data';
 import Dots from './dots';
+import Final from './final';
+import ImportData from './import-data';
 import PopupConfirmation from './popup-confirmation';
 import PopupControlCenter from './popup-control-center';
 import Welcome from './welcome';
-import Final from './final';
 
 import * as telemetry from '../services/telemetry/telemetry';
 
-import config from '../../../core/config';
 import t from '../../i18n';
 
 export default class App extends React.Component {
@@ -65,36 +73,42 @@ export default class App extends React.Component {
     });
   }
 
-  addBlurListener = () => {
-    window.addEventListener('blur', this.showSkipPopup);
+  addOnTabChangedListener = () => {
+    tabs.getCurrent((tab) => { this.onboardingId = tab.id; });
+    tabs.onActivated.addListener(this.handleTabChange);
   }
 
-  removeBlurListener = () => {
-    window.removeEventListener('blur', this.showSkipPopup);
+  removeOnTabChangedListener = () => {
+    tabs.onActivated.removeListener(this.handleTabChange);
   }
 
-  addFocusListener = () => {
-    window.addEventListener('focus', this.addBlurListener);
-  }
+  handleTabChange = (activeInfo) => {
+    tabs.get(activeInfo.tabId, (tab) => {
+      // don't show skip popup if active tab is onboarding page
+      if (tab.id && tab.id === this.onboardingId) {
+        return;
+      }
 
-  removeFocusListener = () => {
-    window.removeEventListener('focus', this.addBlurListener);
+      // don't show skip popup if active tab is 'about antitracking' page
+      if (tab.url && tab.url === 'https://cliqz.com/whycliqz/anti-tracking') {
+        return;
+      }
+      this.showSkipPopup();
+    });
   }
 
   componentDidMount() {
-    this.background = createSpananWrapper('onboarding-v4').createProxy();
+    this.background = createModuleWrapper('onboarding-v4');
     cliqz.onboarding.setOnboardingAsShown();
 
     const beforeUnloadListener = () => {
-      this.removeBlurListener();
-      this.removeFocusListener();
+      this.removeOnTabChangedListener();
       window.removeEventListener('beforeunload', beforeUnloadListener);
     };
 
     window.addEventListener('beforeunload', beforeUnloadListener);
 
-    this.addBlurListener();
-    this.addFocusListener();
+    this.addOnTabChangedListener();
 
     setTimeout(() => {
       this.setState({ currentStep: 0 });
@@ -120,16 +134,7 @@ export default class App extends React.Component {
 
   handleImportBtnClicked = () => {
     telemetry.importData();
-    this.removeBlurListener();
     chrome.cliqz.openImportDialog();
-  }
-
-  finishOnboarding = () => {
-    // change tab name
-    parent.document.title = config.settings.FRESHTAB_TITLE;
-    // remove iframe with onboarding
-    const iframe = parent.document.querySelector('iframe#onboarding');
-    iframe.parentNode.removeChild(iframe);
   }
 
   navigateToLastStep = () => {
@@ -162,9 +167,6 @@ export default class App extends React.Component {
       telemetry.popupProtectionShow();
       this.setState({ popupProtection: true });
     } else {
-      // remove listeners for skip functionality before moving to the last step
-      this.removeBlurListener();
-      this.removeFocusListener();
       this.setState(prevState => ({ currentStep: prevState.currentStep + 1 }));
     }
   }
@@ -200,9 +202,23 @@ export default class App extends React.Component {
   skipOnSkipClick = () => {
     telemetry.popupSkipSkip();
     telemetry.popupSkipHide();
-    this.removeBlurListener();
-    this.removeFocusListener();
-    this.finishOnboarding();
+    this.setState(prevState => (
+      {
+        steps: prevState.steps.map((step, ind) => {
+          if (ind < 3) {
+            return (
+              {
+                ...step,
+                enabled: true,
+              }
+            );
+          }
+          return step;
+        }),
+        currentStep: 4,
+        popupSkip: false,
+      }
+    ));
   }
 
   skipOnCloseClick = () => {
@@ -222,9 +238,6 @@ export default class App extends React.Component {
   }
 
   protectionOnActivateClick = () => {
-    // remove listeners for skip functionality before moving to the last step
-    this.removeBlurListener();
-    this.removeFocusListener();
     telemetry.popupProtectionActivate();
     telemetry.popupProtectionHide();
     this.setState(prevState => (
@@ -247,9 +260,6 @@ export default class App extends React.Component {
   }
 
   protectionOnProceedClick = () => {
-    // remove listeners for skip functionality before moving to the last step
-    this.removeBlurListener();
-    this.removeFocusListener();
     telemetry.popupProtectionProceed();
     telemetry.popupProtectionHide();
     this.setState(prevState => (
@@ -288,7 +298,6 @@ export default class App extends React.Component {
             visible={currentStep === 0}
             stepState={steps[0]}
             onToggle={this.onToggle}
-            removeBlurListener={this.removeBlurListener}
           />
 
           <Adblocking
@@ -315,10 +324,10 @@ export default class App extends React.Component {
             stepsState={this.state.steps.slice(0, 3)}
             updateStep={this.navigateToLastStep}
             visible={currentStep === 4}
+            removeOnTabChangedListener={this.removeOnTabChangedListener}
           />
 
           <PopupControlCenter
-            finishOnboarding={this.finishOnboarding}
             visible={currentStep === 5}
           />
 

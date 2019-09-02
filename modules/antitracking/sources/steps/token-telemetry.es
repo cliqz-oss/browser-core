@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { Subject, interval, timer, of, merge } from 'rxjs';
 import { groupBy, flatMap, filter, map, delay, distinct, buffer, auditTime } from 'rxjs/operators';
 import md5 from '../../core/helpers/md5';
@@ -5,6 +13,7 @@ import DefaultMap from '../../core/helpers/default-map';
 import { TELEMETRY } from '../config';
 import { getConfigTs } from '../time';
 import inject from '../../core/kord/inject';
+import { truncatedHash } from '../utils';
 
 const DEFAULT_CONFIG = {
   // token batchs, max 720 messages/hour
@@ -532,8 +541,8 @@ export default class TokenTelemetry {
     if (keyTokens.length > 0) {
       // const truncatedDomain = truncateDomain(state.urlParts.host, this.config.tpDomainDepth);
       // const domain = md5(truncatedDomain).substr(0, 16);
-      const firstParty = state.tabUrlParts.generalDomainHash;
-      const generalDomain = state.urlParts.generalDomainHash;
+      const firstParty = truncatedHash(state.tabUrlParts.generalDomain);
+      const generalDomain = truncatedHash(state.urlParts.generalDomain);
       this._saveKeyTokens({
         // thirdParty: truncatedDomain,
         kv: keyTokens,

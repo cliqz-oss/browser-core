@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   blurUrlBar,
   $cliqzResults,
@@ -9,7 +17,6 @@ import {
   press,
   sleep,
   testServer,
-  unmockGetSearchEngines,
   urlbar,
   waitFor,
   waitForPopup,
@@ -25,12 +32,12 @@ export default function () {
     context('for "Search with"', function () {
       const url = 'https://url_test.com';
       const query = 'test';
-      let getSearchEngines;
+      let unmockGetSearchEngines;
 
       beforeEach(async function () {
         await testServer.registerPathHandler('/search', { result: '<html><body><p>success</p></body></html>' });
 
-        getSearchEngines = mockGetSearchEngines([
+        unmockGetSearchEngines = mockGetSearchEngines([
           {
             alias: '#te',
             default: true,
@@ -64,7 +71,7 @@ export default function () {
       });
 
       afterEach(function () {
-        unmockGetSearchEngines(getSearchEngines);
+        unmockGetSearchEngines();
       });
 
       it('on Enter renders last query box with the query', async function () {

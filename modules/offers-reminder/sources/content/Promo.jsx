@@ -13,20 +13,29 @@ export default class Promo extends React.Component {
         ? i18n('offers_hub_get_code_btn')
         : i18n('offers_hub_copy_btn'),
       isCodeHidden,
+      isOpenCTAurl: false,
     };
   }
 
   onClickCopyCode() {
+    const { ctaurl: url, offerId, landing } = this.props.voucher;
+    const { isOpenCTAurl } = this.state;
     this.setState({
       buttonText: i18n('offers_hub_code_copy'),
       isCodeHidden: false,
       copied: true,
+      isOpenCTAurl: true,
     });
     send('sendOfferActionSignal', {
       signal_type: 'offer-action-signal',
       element_id: 'code_copied',
-      offer_id: this.props.voucher.offerId,
+      offer_id: offerId,
     });
+
+    if (!isOpenCTAurl) {
+      send('openAndClosePinnedURL', { url, matchPatterns: landing || [] });
+    }
+
     send('sendTelemetry', { target: 'copy_code' });
   }
 

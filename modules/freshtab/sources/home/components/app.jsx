@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window */
 /* global document */
 
@@ -161,7 +169,7 @@ class App extends React.Component {
   }
 
   onMessageClicked(message) {
-    const url = message.cta_url || message.link_button_url;
+    const url = message.cta_url;
     let action;
     if (url.startsWith('home-action')) {
       action = url.split(':')[1];
@@ -171,10 +179,6 @@ class App extends React.Component {
 
       if (action === 'openImportDialog') {
         this.freshtab.openImportDialog();
-      }
-
-      if (action === 'openPrivacySettings') {
-        this.freshtab.openPrivacySettings();
       }
     } else {
       window.location = url;
@@ -607,7 +611,6 @@ class App extends React.Component {
               )}
               {hasMessage && (
                 <MessageCenter
-                  handleLinkClick={msg => this.onMessageClicked(msg)}
                   messages={this.state.messages}
                   positioning={freshtabConfig.cliqzPostPosition}
                   position="post"

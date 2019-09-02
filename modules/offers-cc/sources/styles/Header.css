@@ -13,6 +13,13 @@
   display: flex;
 }
 
+.header__label.header__chip-label {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: #9F9E9E;
+}
+
 .header__label {
   font-size: 15px;
   color: #494949;
@@ -21,8 +28,8 @@
 .header__chip-logo {
   background: url('../images/chip-icon-logo.svg') no-repeat right;
   background-size: contain;
-  width: 80px;
-  height: 19px;
+  width: 106px;
+  height: 26px;
   margin-left: 2px;
 }
 

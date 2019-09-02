@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 /* global describeModule */
 
@@ -176,6 +184,13 @@ async function generateAnalysisResults({
 module.exports = ({ name, metrics, currentDate, mock, tests }) => describeModule('anolysis/telemetry-schemas',
   () => ({
     ...mockDexie,
+    'platform/globals': {
+      chrome: {
+      },
+    },
+    'platform/runtime': {
+      default: {},
+    },
     'core/http': {
       httpPost: async (url, callback, payload) => {
         // Keep track of `url`/`payload`

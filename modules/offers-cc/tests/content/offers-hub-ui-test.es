@@ -219,8 +219,8 @@ describe('Offers Hub UI tests', function () {
     });
 
     it('with labels', function () {
-      const exclusiveSelector = '.card-header__exclusive';
-      const bestSelector = '.card-header__best_offer';
+      const exclusiveSelector = '.card__exclusive';
+      const bestSelector = '.card__best_offer';
 
       expect(subject.query(exclusiveSelector)).to.exist;
       expect(subject.query(exclusiveSelector)).to.have.text('offers_exclusive');
@@ -235,7 +235,7 @@ describe('Offers Hub UI tests', function () {
 
     it('with picture', function () {
       expect(subject.query('.card__image')).to.exist;
-      expect(subject.getComputedStyle('.card__image').backgroundImage)
+      expect(subject.query('.card__image').src)
         .to.contain(data.vouchers[0].template_data.picture_dataurl);
     });
 

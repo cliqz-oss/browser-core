@@ -1,4 +1,13 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import config from '../../core/config';
+import DefaultMap from '../../core/helpers/default-map';
 import { clone, expect, wait, waitFor } from './test-helpers';
 
 function range(i) {
@@ -194,51 +203,49 @@ const allElements = [
 
 export class Subject {
   constructor({ waitForFirstMessage = false, injectTestUtils = false } = {}) {
-    this.messagesByAction = new Map();
+    this.messagesByAction = new DefaultMap(() => []);
+    this.areWeListening = false;
+
     this.waitForFirstMessage = waitForFirstMessage;
     this.modules = {};
-    this.messages = [];
     this.injectTestUtils = injectTestUtils;
-    this.listeners = new Set();
     this.messages = [];
-    this.chrome = {
-      runtime: {
-        onMessage: {
-          addListener: (listener) => {
-            this.listeners.add(listener);
-          },
-          removeListener: (listener) => {
-            this.listeners.delete(listener);
-          }
-        },
-        sendMessage: ({ module, action, requestId, args }) => {
-          this.messages.push({
-            module, action, requestId, args,
-          });
-          const response = this.modules[module].actions[action];
 
-          this.listeners.forEach((l) => {
-            l({
-              action,
-              response,
-              type: 'response',
-              requestId,
-              source: 'cliqz-content-script',
-              args
-            });
-          });
+    const runtime = {
+      onMessage: {
+        addListener: () => {
+        },
+        removeListener: () => {
         }
       },
+      sendMessage: async ({ module, action, args }) => {
+        this.messages.push({ module, action, args });
+
+        if (this.areWeListening === true) {
+          this.messagesByAction.get(action).push({
+            module,
+            action,
+            args,
+          });
+        }
+
+        return this.modules[module].actions[action];
+      },
+    };
+
+    this.browser = {
+      runtime,
       i18n: {
         getMessage: k => k,
-      }
+      },
     };
-  }
 
-  sendMessage(message) {
-    this.listeners.forEach((l) => {
-      l(message);
-    });
+    this.chrome = {
+      runtime,
+      i18n: {
+        getMessage: k => k,
+      },
+    };
   }
 
   async _injectTestUtils() {
@@ -256,17 +263,8 @@ export class Subject {
   }
 
   startListening() {
-    this.messagesByAction = new Map();
-
     if (!this.areWeListening) {
-      this.chrome.runtime.onMessage.addListener((msg) => {
-        if (!this.messagesByAction.has(msg.action)) {
-          this.messagesByAction.set(msg.action, []);
-        }
-
-        this.messagesByAction.get(msg.action).push(msg);
-      });
-
+      this.messagesByAction = new DefaultMap(() => []);
       this.areWeListening = true;
     }
   }
@@ -282,6 +280,7 @@ export class Subject {
     document.body.appendChild(this.iframe);
 
     this.iframe.contentWindow.chrome = this.chrome;
+    this.iframe.contentWindow.browser = this.browser;
 
     let testsUtilsInjected = false;
     let iframeLoaded = false;
@@ -315,6 +314,8 @@ export class Subject {
 
   unload() {
     this.messages = [];
+    this.messagesByAction = new DefaultMap(() => []);
+    this.areWeListening = false;
     document.body.removeChild(this.iframe);
   }
 
@@ -878,7 +879,6 @@ export function checkTelemetry({
   action,
   expectedCount = 1,
   element = '',
-  index,
   subject,
   target,
   type,
@@ -890,23 +890,14 @@ export function checkTelemetry({
 
   expect(telemetrySignals.length).to.be.above(0);
 
-  if (index && element && view) {
+  if (element && view) {
     count = telemetrySignals.filter(({ args: [arg] }) => (
       arg !== undefined
       && arg.action === action
       && arg.element === element
-      && arg.index === index
       && arg.target === target
       && arg.type === type
       && arg.view === view
-    )).length;
-  } else if (index) {
-    count = telemetrySignals.filter(({ args: [arg] }) => (
-      arg !== undefined
-      && arg.action === action
-      && arg.index === index
-      && arg.target === target
-      && arg.type === type
     )).length;
   } else if (view) {
     count = telemetrySignals.filter(({ args: [arg] }) => (

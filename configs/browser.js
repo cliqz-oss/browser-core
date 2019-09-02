@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const base = require('./common/system');
 const urls = require('./common/urls-cliqz');
 const settings = require('./common/amo-settings');
@@ -23,7 +31,7 @@ module.exports = {
   testsBasePath: './build/modules',
   updateURL: updateUrl,
   updateURLbeta: updateUrl,
-  versionInfix: '.',
+  versionDistance: true,
   artifactUrl,
   settings: Object.assign({}, urls, settings, {
     id,
@@ -59,7 +67,6 @@ module.exports = {
     'modules.context-search.enabled': false,
     'modules.history.enabled': true,
     'modules.type-filter.enabled': false,
-    'modules.history-analyzer.enabled': false,
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,
     'modules.offers-reminder.enabled': false,
@@ -86,7 +93,6 @@ module.exports = {
     'offers-banner',
     'popup-notification',
     'history-search',
-    'history-analyzer',
     'browser-panel',
     'message-center',
     'anolysis',
@@ -96,7 +102,6 @@ module.exports = {
     'adblocker',
     'https-everywhere',
     'onboarding-v3',
-    'onboarding-v4',
     'type-filter',
     'history',
     'offers-cc',

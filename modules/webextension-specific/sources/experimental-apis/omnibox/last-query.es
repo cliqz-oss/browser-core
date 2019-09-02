@@ -1,5 +1,16 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* globals ChromeUtils, windowTracker, tabTracker */
-import { PASSIVE_LISTENER_OPTIONS } from '../../../dropdown/managers/utils';
+import {
+  TAB_CHANGE_EVENTS,
+  PASSIVE_LISTENER_OPTIONS,
+} from '../../../dropdown/managers/utils';
 
 const { EventEmitter } = ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
 const LAST_QUERY_BOX_ID = 'cliqzLastQueryBox';
@@ -80,7 +91,7 @@ export default class LastQuery extends EventEmitter {
   }
 
   addEventListeners() {
-    ['TabClose', 'TabSelect'].forEach((event) => {
+    TAB_CHANGE_EVENTS.forEach((event) => {
       this.window.gBrowser.tabContainer.addEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
     this.window.gBrowser.addEventListener('TabPrivateModeChanged', this);
@@ -91,7 +102,7 @@ export default class LastQuery extends EventEmitter {
   }
 
   removeEventListeners() {
-    ['TabOpen', 'TabClose', 'TabSelect'].forEach((event) => {
+    TAB_CHANGE_EVENTS.forEach((event) => {
       this.window.gBrowser.tabContainer.removeEventListener(event, this, PASSIVE_LISTENER_OPTIONS);
     });
     this.window.gBrowser.removeEventListener('TabPrivateModeChanged', this);
@@ -130,7 +141,7 @@ export default class LastQuery extends EventEmitter {
   update(tabId, text) {
     const { id, active } = this.getTab(tabId);
     this.showingQueries.set(id, text);
-    if (active) {
+    if (active && text.length > 0) {
       this.show(text);
     }
   }

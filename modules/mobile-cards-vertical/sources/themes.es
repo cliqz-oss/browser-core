@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 export const snippetTitleFontSize = 17;
 export const snippetTitleLineHeight = 20;
 export const snippetSubtitleFontSize = 14.5;
@@ -14,6 +22,7 @@ export default {
     },
     card: {
       bgColor: 'rgba(255, 255, 255, 0.12)',
+      borderRadius: 9,
     },
     snippet: {
       titleColor: '#fff',
@@ -37,6 +46,31 @@ export default {
     },
     card: {
       bgColor: '#fff',
+      borderRadius: 9
+    },
+    snippet: {
+      titleColor: '#003172',
+      urlColor: '#4FB359',
+      descriptionColor: 'rgba(0, 0, 0, 0.61)',
+      visitedTitleColor: '#610072',
+      iconColor: 'rgba(0, 0, 0, 0.61)',
+      iconColorARGB: '#9B000000',
+      separatorColor: '#D9D9D9'
+    },
+    searchEngine: {
+      textColor: 'rgba(0, 0, 0, 0.54)',
+      buttonBgColor: 'rgba(0, 0, 0, 0.08)',
+      buttonColor: '#000',
+      ghostyColorARGB: '#AAFFFFFF'
+    }
+  },
+  'lumen-light': {
+    container: {
+      bgColor: 'rgba(243, 244, 245, 0.93)'
+    },
+    card: {
+      bgColor: '#fff',
+      borderRadius: 0
     },
     snippet: {
       titleColor: '#003172',

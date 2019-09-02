@@ -1,17 +1,20 @@
 /* global describeModule */
 /* global chai */
-const tldts = require('tldts');
+const tldts = require('tldts-experimental');
 const punycode = require('punycode');
 
 const URL_TO_CHANNEL = {
-  'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test': 'external-test',
-  'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip': 'external-chip',
-  'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus': 'external-focus',
-  'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test': 'external-test',
-  'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-chip': 'external-chip',
-  'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus': 'external-focus',
-  'https://chrome.random.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus': null,
-  'https://myoffrz.net': null
+  'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test': { channel: 'external-test', subchannel: null },
+  'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip': { channel: 'external-chip', subchannel: null },
+  'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus': { channel: 'external-focus', subchannel: null },
+  'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test': { channel: 'external-test', subchannel: null },
+  'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-chip': { channel: 'external-chip', subchannel: null },
+  'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus': { channel: 'external-focus', subchannel: null },
+  'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus&subchannel=MKTG1': { channel: 'external-focus', subchannel: 'MKTG1' },
+  'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-chip&subchannel=MKTG22': { channel: 'external-chip', subchannel: 'MKTG22' },
+  'https://chrome.random.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus': { channel: null, subchannel: null },
+  'https://chrome.random.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-chip&subchannel=MKTG22': { channel: null, subchannel: null },
+  'https://myoffrz.net': { channel: null, subchannel: null }
 };
 
 // used to have expected returns
@@ -49,7 +52,8 @@ export default describeModule('offers-banner/attribution',
 
       it('should translate urls to right channels', async () => {
         Object.keys(URL_TO_CHANNEL).forEach((k) => {
-          chai.expect(getChannelFromURLs([k])).to.eql(URL_TO_CHANNEL[k]);
+          chai.expect(getChannelFromURLs([k]).channel).to.eql(URL_TO_CHANNEL[k].channel);
+          chai.expect(getChannelFromURLs([k]).subchannel).to.eql(URL_TO_CHANNEL[k].subchannel);
         });
       });
     });
@@ -65,35 +69,35 @@ export default describeModule('offers-banner/attribution',
       describe('Complex States', async () => {
         it('no matches', async () => {
           STATES.getCurrentTab = { url: 'https://myoffrz.com/' };
-          chai.expect(await guessDistributionChannel()).to.eql('');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('');
         });
 
         it('all matches', async () => {
           STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' };
           STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus' }];
           STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' }];
-          chai.expect(await guessDistributionChannel()).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
         });
 
         it('unknown source first match', async () => {
           STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' };
           STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus' }];
           STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' }];
-          chai.expect(await guessDistributionChannel()).to.eql('');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('');
         });
 
         it('not secure url -> fallback to next', async () => {
           STATES.getCurrentTab = { url: 'http://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' };
           STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus' }];
           STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' }];
-          chai.expect(await guessDistributionChannel()).to.eql('focus');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
         });
 
         it('all not secure url', async () => {
           STATES.getCurrentTab = { url: 'http://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' };
           STATES.query = [{ url: 'http://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus' }];
           STATES.history = [{ url: 'http://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' }];
-          chai.expect(await guessDistributionChannel()).to.eql('');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('');
         });
 
         it('multiple open tabs - prio first', async () => {
@@ -102,7 +106,7 @@ export default describeModule('offers-banner/attribution',
             { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus' },
             { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' }
           ];
-          chai.expect(await guessDistributionChannel()).to.eql('focus');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
         });
 
         it('multiple open tabs - unknown first', async () => {
@@ -111,7 +115,7 @@ export default describeModule('offers-banner/attribution',
             { url: 'http://myoffrz.com' },
             { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' }
           ];
-          chai.expect(await guessDistributionChannel()).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
         });
 
         it('multiple history - unknown first', async () => {
@@ -121,7 +125,7 @@ export default describeModule('offers-banner/attribution',
             { url: 'http://myoffrz.com' },
             { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' },
           ];
-          chai.expect(await guessDistributionChannel()).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
         });
 
         it('multiple history - priority', async () => {
@@ -131,7 +135,23 @@ export default describeModule('offers-banner/attribution',
             { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus' },
             { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' },
           ];
-          chai.expect(await guessDistributionChannel()).to.eql('focus');
+          chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
+        });
+
+        it('subchannel matches first', async () => {
+          STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip&subchannel=BF1' };
+          STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus' }];
+          STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' }];
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('BF1');
+        });
+
+        it('subchannel matches second', async () => {
+          STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' };
+          STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-focus&subchannel=BF1' }];
+          STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-random' }];
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('');
         });
       });
 
@@ -139,44 +159,44 @@ export default describeModule('offers-banner/attribution',
         describe('/AMO', async () => {
           it('/known url with known channel', async () => {
             STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' };
-            chai.expect(await guessDistributionChannel()).to.eql('chip');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
           });
 
           it('/known url with unknown channel', async () => {
             STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test' };
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with known channel', async () => {
             STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/cliqz/?src=external-chip' };
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with unknown channel', async () => {
             STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/cliqz/?src=external-test' };
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });
 
         describe('/Chrome', async () => {
           it('/known url with known channel', async () => {
             STATES.getCurrentTab = { url: 'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus' };
-            chai.expect(await guessDistributionChannel()).to.eql('focus');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
           });
 
           it('/known url with unknown channel', async () => {
             STATES.getCurrentTab = { url: 'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test' };
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with known channel', async () => {
             STATES.getCurrentTab = { url: 'https://chrome.google.com/webstore/detail/cliqz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus' };
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with unknown channel', async () => {
             STATES.getCurrentTab = { url: 'https://chrome.google.com/webstore/detail/cliqz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test' };
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });
       });
@@ -188,44 +208,44 @@ export default describeModule('offers-banner/attribution',
         describe('/AMO', async () => {
           it('/known url with known channel', async () => {
             STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' }];
-            chai.expect(await guessDistributionChannel()).to.eql('chip');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
           });
 
           it('/known url with unknown channel', async () => {
             STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with known channel', async () => {
             STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/cliqz/?src=external-chip' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with unknown channel', async () => {
             STATES.query = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/cliqz/?src=external-test' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });
 
         describe('/Chrome', async () => {
           it('/known url with known channel', async () => {
             STATES.query = [{ url: 'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus' }];
-            chai.expect(await guessDistributionChannel()).to.eql('focus');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
           });
 
           it('/known url with unknown channel', async () => {
             STATES.query = [{ url: 'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with known channel', async () => {
             STATES.query = [{ url: 'https://chrome.google.com/webstore/detail/cliqz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with unknown channel', async () => {
             STATES.query = [{ url: 'https://chrome.google.com/webstore/detail/cliqz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });
       });
@@ -238,44 +258,44 @@ export default describeModule('offers-banner/attribution',
         describe('/AMO', async () => {
           it('/known url with known channel', async () => {
             STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' }];
-            chai.expect(await guessDistributionChannel()).to.eql('chip');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
           });
 
           it('/known url with unknown channel', async () => {
             STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with known channel', async () => {
             STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/cliqz/?src=external-chip' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with unknown channel', async () => {
             STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/cliqz/?src=external-test' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });
 
         describe('/Chrome', async () => {
           it('/known url with known channel', async () => {
             STATES.history = [{ url: 'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus' }];
-            chai.expect(await guessDistributionChannel()).to.eql('focus');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
           });
 
           it('/known url with unknown channel', async () => {
             STATES.history = [{ url: 'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with known channel', async () => {
             STATES.history = [{ url: 'https://chrome.google.com/webstore/detail/cliqz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
 
           it('/unknown url with unknown channel', async () => {
             STATES.history = [{ url: 'https://chrome.google.com/webstore/detail/cliqz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test' }];
-            chai.expect(await guessDistributionChannel()).to.eql('');
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });
       });

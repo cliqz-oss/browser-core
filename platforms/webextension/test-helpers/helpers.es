@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* globals chai */
 import { chrome } from '../globals';
 import { waitFor } from '../../core/helpers/wait';
@@ -325,14 +333,24 @@ export function focusOnTab(tabId) {
   }));
 }
 
-export function mockGetSearchEngines(engines) {
-  const getSearchEngines = bgWindow.browser.cliqz.getSearchEngines;
-  bgWindow.browser.cliqz.getSearchEngines = function mockedGetSearchEngines() {
-    return Promise.resolve(engines);
+export function mockBackgroundProp(propStringPath, newProp) {
+  const propPath = propStringPath.split('.');
+  const lastProp = propPath.pop();
+  const original = propPath.reduce((obj, prop, i) => {
+    if (typeof obj[prop] === 'undefined') {
+      throw new Error(`Can't mock ${propStringPath}: ${propPath.slice(0, i + 1).join('.')} is undefined.`);
+    }
+    return obj[prop];
+  }, bgWindow);
+
+  const oldProp = original[lastProp];
+  original[lastProp] = newProp;
+
+  return function unmock() {
+    original[lastProp] = oldProp;
   };
-  return getSearchEngines;
 }
 
-export function unmockGetSearchEngines(realFunction) {
-  bgWindow.browser.cliqz.getSearchEngines = realFunction;
+export function mockGetSearchEngines(engines) {
+  return mockBackgroundProp('browser.cliqz.getSearchEngines', () => Promise.resolve(engines));
 }

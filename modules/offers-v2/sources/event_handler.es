@@ -123,6 +123,10 @@ export default class EventHandler {
     return this.httpReqCbs.has(domainName) && this.httpReqCbs.get(domainName).has(cb);
   }
 
+  getWebrequestPipeline() {
+    return this.webRequestPipeline;
+  }
+
   // ///////////////////////////////////////////////////////////////////////////
   //                          PRIVATE METHODS
   // ///////////////////////////////////////////////////////////////////////////

@@ -1,9 +1,16 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 /* global describeModule */
 
-const tldts = require('tldts');
 const URL = require('url').URL;
-const punycode = require('punycode');
+const urlImports = require('./utils/url-parser');
 
 if (!global.URL) {
   // node version less than 10
@@ -163,7 +170,6 @@ const QUERIES = [
 export default describeModule('core/url',
   function () {
     return {
-      'platform/lib/tldts': tldts,
       'core/platform': {
       },
       'core/LRU': {
@@ -173,9 +179,7 @@ export default describeModule('core/url',
           set() {}
         },
       },
-      'platform/lib/punycode': {
-        default: punycode,
-      },
+      ...urlImports,
     };
   },
   function () {

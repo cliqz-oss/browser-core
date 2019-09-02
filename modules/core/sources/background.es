@@ -1,16 +1,23 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 
 import events from './events';
 import telemetry from './services/telemetry';
-import console from './console';
 import language from './language';
 import config from './config';
-import ProcessScriptManager from '../platform/process-script-manager';
+import LocationChangeObserver from '../platform/location-change-observer';
+import ContentCommunicationManager from '../platform/content-communication-manager';
+import FastContentAppStateInjecter from '../platform/fast-content-app-state-injection';
 import background from './base/background';
-import { getCookies } from './browser';
 import resourceManager from './resource-manager';
 import logger from './logger';
-import inject from './kord/inject';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
 import { httpHandler } from './http';
@@ -18,11 +25,6 @@ import { updateTab, closeTab, query, getCurrentTab } from './tabs';
 import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
 import ResourceLoader from './resource-loader';
 import { getResourceUrl } from './platform';
-import pacemaker from './services/pacemaker';
-import { ModuleDisabledError } from './app/module-errors';
-
-let lastRequestId = 1;
-const callbacks = {};
 
 /**
  * @module core
@@ -39,10 +41,14 @@ export default background({
     this.settings = settings;
     this.app = app;
 
-    this.dispatchMessage = this.dispatchMessage.bind(this);
+    this.bm = new ContentCommunicationManager();
+    this.bm.init();
 
-    this.mm = new ProcessScriptManager(this.dispatchMessage);
-    this.mm.init(this.app);
+    this.mm = new LocationChangeObserver();
+    this.mm.init();
+
+    this.appStateInjecter = new FastContentAppStateInjecter();
+    this.appStateInjecter.init(this.app);
 
     resourceManager.init();
     logger.init();
@@ -51,48 +57,11 @@ export default background({
   unload() {
     disableRequestSanitizer();
 
+    this.bm.unload();
     this.mm.unload();
+    this.appStateInjecter.unload();
     resourceManager.unload();
     logger.unload();
-  },
-
-  dispatchMessage(message, sender, sendResponse) {
-    if (typeof message.requestId === 'number') {
-      if (message.requestId in callbacks) {
-        this.handleResponse(message);
-      }
-      return false;
-    }
-
-    this.handleRequest(message, sender, sendResponse);
-    return true;
-  },
-
-  handleRequest(message, sender, sendResponse) {
-    const { action, module, args } = message;
-    if (!module || !action) {
-      // no module or action provided, probably not from cliqz
-      return Promise.resolve();
-    }
-
-    // inject the required module, then call the requested action
-    return inject
-      .module(module)
-      .action(action, ...[...(args || []), sender])
-      .catch((e) => {
-        if (e instanceof ModuleDisabledError) {
-          return {
-            moduleDisabled: true,
-          };
-        }
-        console.error(`Process Script ${module}/${action}`, e);
-        throw e;
-      })
-      .then(sendResponse);
-  },
-
-  handleResponse(msg) {
-    callbacks[msg.requestId].apply(null, [msg.response]);
   },
 
   getWindowStatusFromModules(win) {
@@ -106,31 +75,6 @@ export default background({
         status = await backgroundModule.status();
       }
       return { module, status };
-    });
-  },
-
-  callContentAction(action, url, ...args) {
-    const requestId = lastRequestId;
-    lastRequestId += 1;
-
-    this.mm.broadcast('cliqz:core', {
-      module: 'core',
-      action,
-      url,
-      args,
-      requestId
-    });
-
-    return new Promise((resolve, reject) => {
-      callbacks[requestId] = (attributeValues) => {
-        delete callbacks[requestId];
-        resolve(attributeValues);
-      };
-
-      pacemaker.setTimeout(() => {
-        delete callbacks[requestId];
-        reject(new Error(`${action} timeout`));
-      }, 1000);
     });
   },
 
@@ -149,13 +93,10 @@ export default background({
   },
 
   actions: {
-    notifyProcessInit(processId) {
-      events.pub('process:init', processId);
-      this.mm.onNewProcess(processId);
-    },
     recordMouseDown(...args) {
       events.pub('core:mouse-down', ...args);
     },
+
     /**
      * publish an event using events.pub
      * @param  {String}    evtChannel channel name
@@ -164,34 +105,23 @@ export default background({
     publishEvent(evtChannel, ...args) {
       events.pub(evtChannel, ...args);
     },
+
     restart() {
       return this.app.extensionRestart();
     },
+
     status() {
       return this.app.status();
     },
+
     broadcast(target, payload) {
       if (!payload && typeof target === 'object') {
         payload = target;
         target = null;
       }
-      this.mm.broadcast(target, payload);
+      return this.bm.broadcast(target, payload);
     },
-    broadcastActionToWindow(windowId, module, action, ...args) {
-      this.mm.broadcast(`window-${windowId}`, {
-        action,
-        args,
-        module,
-        windowId,
-      });
-    },
-    // TODO: should be replaced with a function that sends message to given tabId
-    broadcastMessage(url, message) {
-      this.mm.broadcast('cliqz:core', {
-        url,
-        ...message,
-      });
-    },
+
     getWindowStatus(win) {
       return Promise
         .all(this.getWindowStatusFromModules(win))
@@ -205,6 +135,7 @@ export default background({
           return result;
         });
     },
+
     sendTelemetry(signal, instant, schema) {
       return telemetry.push(signal, schema, instant);
     },
@@ -254,6 +185,7 @@ export default background({
     getReminders(domain) {
       return getReminders(domain);
     },
+
     recordMeta(url, meta, sender) {
       // TODO: there is not need for two events doing almost the same
       // also the tabId, windowId, should be propagated with the event
@@ -263,51 +195,35 @@ export default background({
         language.addLocale(url, meta.lang);
       }
     },
+
     enableModule(moduleName) {
       return this.app.enableModule(moduleName);
     },
+
     disableModule(moduleName) {
       this.app.disableModule(moduleName);
     },
+
+    callContentAction(module, action, target, ...args) {
+      return this.bm.callContentAction(module, action, target, ...args);
+    },
+
     click(url, selector) {
-      return this.callContentAction('click', url, selector);
+      return this.bm.callContentAction('core', 'click', { url }, selector);
     },
+
     queryHTML(url, selector, attribute, options = {}) {
-      return this.callContentAction('queryHTML', url, selector, attribute, options);
+      return this.bm.callContentAction('core', 'queryHTML', { url }, selector, attribute, options);
     },
 
-    getHTML(url, timeout = 1000) {
-      const requestId = lastRequestId;
-      lastRequestId += 1;
-      const documents = [];
-
-      this.mm.broadcast('cliqz:core', {
-        module: 'core',
-        action: 'getHTML',
-        url,
-        args: [],
-        requestId
-      });
-
-      callbacks[requestId] = (doc) => {
-        documents.push(doc);
-      };
-
-      return new Promise((resolve) => {
-        pacemaker.setTimeout(() => {
-          delete callbacks[requestId];
-          resolve(documents);
-        }, timeout);
-      });
+    getHTML(url) {
+      return this.bm.callContentAction('core', 'getHTML', { url });
     },
 
-    getCookie(url) {
-      return getCookies(url)
-        .catch(() => this.callContentAction('getCookie', url));
-    },
     queryComputedStyle(url, selector) {
-      return this.callContentAction('queryComputedStyle', url, selector);
+      return this.bm.callContentAction('core', 'queryComputedStyle', { url }, selector);
     },
+
     sendUserFeedback(data) {
       data._type = 'user_feedback';
       // Params: method, url, resolve, reject, timeout, data
@@ -315,7 +231,7 @@ export default background({
     },
 
     refreshAppState() {
-      this.mm.shareAppState(this.app);
+      this.appStateInjecter.shareAppState(this.app);
     },
 
     reportResourceLoaders() {

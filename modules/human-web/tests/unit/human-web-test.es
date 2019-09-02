@@ -1,9 +1,16 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 
 const expect = chai.expect;
-const tldts = require('tldts');
 const crypto = require('crypto');
-const punycode = require('punycode');
+const urlImports = require('../../core/unit/utils/url-parser');
 
 const MOCK = {
   'core/services/pacemaker': {
@@ -125,10 +132,7 @@ const MOCK = {
       flushExpiredCacheEntries() {}
     }
   },
-  'platform/lib/tldts': tldts,
-  'platform/lib/punycode': {
-    default: punycode,
-  },
+  ...urlImports,
 };
 
 export default describeModule('human-web/human-web',

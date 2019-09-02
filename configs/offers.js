@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const base = require('./common/system');
 const urls = require('./common/urls-myoffrz');
 const publish = require('./common/publish');
@@ -24,13 +32,11 @@ module.exports = {
     ONBOARDING_URL: 'https://myoffrz.com/on-boarding/',
     OFFBOARDING_URL: 'https://myoffrz.com/off-boarding/',
   }),
-  versionInfix: '.',
   versionPrefix: '11',
   default_prefs: {
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,
     'modules.offers-reminder.enabled': false,
-    'modules.history-analyzer.enabled': false,
     'dynamic-offers.enabled': true,
   },
   modules: [
@@ -41,7 +47,6 @@ module.exports = {
     'human-web',
     'webrequest-pipeline',
     'browser-panel',
-    'history-analyzer',
     'hpnv2',
     'myoffrz-helper',
     'offers-banner',

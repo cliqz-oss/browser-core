@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import BaseDropdownManager from './base';
 
 export default class ContentDropdownManager extends BaseDropdownManager {
@@ -40,7 +48,9 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   }
 
   _isUrlbarFocused() {
-    return this.textInput === document.activeElement;
+    // Both page and urlbar input should be focused
+    return document.visibilityState === 'visible'
+      && this.textInput === document.activeElement;
   }
 
   _setUrlbarValue(value) {
@@ -98,8 +108,8 @@ export default class ContentDropdownManager extends BaseDropdownManager {
   }
 
   close() {
+    super.close();
     this.view.setState({
-      iframeHeight: 0,
       focused: false,
     });
   }

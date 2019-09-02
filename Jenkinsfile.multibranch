@@ -276,8 +276,7 @@ def build(Map m) {
         node('master') {
             docker.image(getImageName()).inside() {
                 def isIntegrationBranch = getIsIntegrationBranch();
-                def environment = isIntegrationBranch ? 'development' : 'production'
-                def version = sh(returnStdout: true, script: "cd /app && ./fern.js version ./configs/${config} --environment ${environment}").trim()
+                def version = sh(returnStdout: true, script: "cd /app && ./fern.js version ./configs/${config}").trim()
                 echo "version: $version"
 
                 withEnv([

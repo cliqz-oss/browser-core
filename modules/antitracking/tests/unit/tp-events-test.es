@@ -1,9 +1,16 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 /* global describeModule */
 /* eslint no-param-reassign: off */
 
-const tldts = require('tldts');
-const punycode = require('punycode');
+const urlImports = require('../../core/unit/utils/url-parser');
 
 const url = {
   toString: () => 'https://test.com/path?ref=cliqz.com/tracking',
@@ -27,8 +34,10 @@ function mockMd5(s) {
 
 export default describeModule('antitracking/tp_events',
   () => ({
+    'platform/globals': {
+      chrome: {},
+    },
     'platform/browser': {},
-    'platform/lib/tldts': tldts,
     'core/console': {
       isLoggingEnabled() { return false; },
       default: {
@@ -61,9 +70,7 @@ export default describeModule('antitracking/tp_events',
     'core/http': {
       fetch: () => Promise.reject(),
     },
-    'platform/lib/punycode': {
-      default: punycode,
-    },
+    ...urlImports,
   }),
   function () {
     describe('tp events log placeHolder in url', function () {

@@ -1,10 +1,17 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 /* global describeModule */
 /* eslint camelcase: off */
+const urlImports = require('../../core/unit/utils/url-parser');
 
 const expect = chai.expect;
-const punycode = require('punycode');
-const tldts = require('tldts');
 
 /**
  * Dumped out "page" message.
@@ -68,10 +75,7 @@ export default describeModule('human-web/network',
         error() {},
       }
     },
-    'platform/lib/punycode': {
-      default: punycode,
-    },
-    'platform/lib/tldts': tldts,
+    ...urlImports,
   }),
   () => {
     describe('parseHostname', function () {

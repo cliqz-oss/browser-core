@@ -1,7 +1,15 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule, sinon */
 /* eslint new-cap: off */
 
-const tldts = require('tldts');
+const urlImports = require('../../core/unit/utils/url-parser');
 
 export default describeModule('dropdown/dropdown',
   function () {
@@ -11,9 +19,11 @@ export default describeModule('dropdown/dropdown',
       '../core/url': {},
       '../core/events': {},
       './context-menu': {},
+      'platform/globals': {
+        chrome: {},
+      },
       '../platform/browser': {},
-      '../platform/lib/punycode': {},
-      'platform/lib/tldts': tldts,
+      ...urlImports,
     };
   },
   function () {

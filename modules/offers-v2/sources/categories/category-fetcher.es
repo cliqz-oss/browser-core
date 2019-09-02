@@ -104,7 +104,7 @@ export default class CategoryFetcher {
 
       if (!categories || !revision) {
         logger.error('We got an invalid response from the BE, skipping this.', payload);
-        return Promise.resolve(false);
+        return false;
       }
 
       // #EX-7061 - filter all the categories that dont belong to us
@@ -124,7 +124,10 @@ export default class CategoryFetcher {
 
       this.categoryHandler.doDailyAccounting();
 
-      return Promise.resolve(true);
+      return true;
+    }).catch((err) => {
+      logger.error(`Can't load categories: ${err}`);
+      return false;
     });
   }
 

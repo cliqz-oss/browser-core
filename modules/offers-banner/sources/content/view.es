@@ -16,7 +16,6 @@ export default class View {
 
   unload() {
     if (this.config.type === 'browser-panel') { afterIframeRemoved(this.window); }
-    if (this.shadowRoot) { this.shadowRoot.remove(); }
     this.iframe.remove();
     this.wrapper.remove();
     this.iframe = null;
@@ -26,6 +25,11 @@ export default class View {
   }
 
   makeVisible() {
+    const waitMapper = {
+      'offers-cc': 200,
+      'browser-panel': 200,
+      'offers-reminder': 350,
+    };
     setTimeout(() => {
       const isBrowserPanel = this.config.type === 'browser-panel';
       if (isBrowserPanel) { beforeIframeShown(this.window); }
@@ -36,7 +40,7 @@ export default class View {
         this.onaction({ handler: 'offersFirstAppearance', data: {} });
       }
       styles.animate(this.config.type, this.wrapper, this.config.styles);
-    }, this.config.waitBeforeShowing || WAIT_BEFORE_SHOWING);
+    }, waitMapper[this.config.type] || WAIT_BEFORE_SHOWING);
   }
 
   resize({ width, height }) {
@@ -72,30 +76,22 @@ export default class View {
   render(bannerId) {
     if (this.window.document.getElementById(bannerId)) { return; }
 
-    const wrapper = createElement(this.window, { tag: 'div' });
+    let wrapper = createElement(this.window, { tag: 'div', id: bannerId });
     const iframe = createElement(this.window, { tag: 'iframe' });
     Object.assign(wrapper.style, styles.wrapper(this.config.type, this.config.styles));
     Object.assign(iframe.style, styles.banner(this.config.type, this.config.styles));
 
+    this.window.document.body.appendChild(wrapper);
+    this.wrapper = wrapper;
+    this.iframe = iframe;
+
+    const head = this.window.document.head;
+    if (head.createShadowRoot || head.attachShadow) {
+      wrapper = wrapper.attachShadow({ mode: DEBUG ? 'open' : 'closed' });
+    }
+
     iframe.frameBorder = 0;
     wrapper.appendChild(iframe);
     iframe.src = this.config.url;
-
-    const head = this.window.document.head;
-    const isShadow = head.createShadowRoot || head.attachShadow;
-    let shadowRoot = null;
-    if (isShadow) {
-      shadowRoot = createElement(this.window, { tag: 'span', id: bannerId });
-      const shadow = shadowRoot.attachShadow({ mode: DEBUG ? 'open' : 'closed' });
-      shadow.appendChild(wrapper);
-      this.window.document.body.appendChild(shadowRoot);
-    } else {
-      wrapper.setAttribute('id', bannerId);
-      this.window.document.body.appendChild(wrapper);
-    }
-
-    this.iframe = iframe;
-    this.wrapper = wrapper;
-    this.shadowRoot = shadowRoot;
   }
 }

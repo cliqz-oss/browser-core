@@ -3,34 +3,28 @@
  * basically the { input, button } + some handy functions
  */
 export default class CouponForm {
-  constructor({ input, button, onClick }) {
+  constructor({ input, button, clickEvent, onClick }) {
     this.input = input;
     this.button = button;
     this.onClick = onClick;
+    this.clickEvent = clickEvent || 'click';
 
     if (this.button) {
-      this.button.addEventListener('click', this._clickCb);
+      this.button.addEventListener(this.clickEvent, this._clickCb);
     }
   }
 
   unload() {
     if (this.button) {
-      this.button.removeEventListener('click', this._clickCb);
+      this.button.removeEventListener(this.clickEvent, this._clickCb);
     }
     this.button = null;
     this.input = null;
     this.onClick = null;
-    this._clickCb = null;
-  }
-
-  fillCode(code) {
-    if (this.input && this.input.value.length === 0 && code) {
-      this.input.value = code;
-    }
   }
 
   _clickCb = (event) => {
-    if (!event || event.type !== 'click') { return; }
+    if (!event || event.type !== this.clickEvent) { return; }
     // now we perform the real callback
     const couponCode = this.input ? this.input.value : '';
     if (this.onClick) { this.onClick(couponCode); }

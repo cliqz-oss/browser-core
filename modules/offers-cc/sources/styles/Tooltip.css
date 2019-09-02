@@ -16,8 +16,10 @@
 .tooltip__myoffrz-image {
   background: url(../images/myoffrz-tooltip-logo.svg) no-repeat center;
 }
-.tooltip__chip-image {
+.tooltip__chip-image.tooltip__image-base {
   background: url(../images/chip-tooltip-logo.svg) no-repeat center;
+  background-size: contain;
+  border-radius: 25%;
 }
 .tooltip__freundin-image {
   background: url(../images/freundin-tooltip-logo.svg) no-repeat center;

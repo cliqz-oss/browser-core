@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { fromByteArray, sha256, encryptStringAES, decryptStringAES, toByteArray, deriveAESKey, randomBytes, generateRSAKeypair } from '../core/crypto/utils';
 import { encryptPairedMessage, decryptPairedMessage, ERRORS, VERSION } from './shared';
 import CliqzPeer from '../p2p/cliqz-peer';
@@ -73,6 +81,14 @@ export default class CliqzPairing {
     this.data.set('deviceID', id);
   }
 
+  /**
+   * Best-effort attempt to unpair. If we can reach the master, let it
+   * know that we are disconnecting. Otherwise, disconnect anyway.
+   *
+   * Note that if the master has already disconnected while we were offline,
+   * it will reject all messages. In that case, all attempts to cleanly
+   * disconnect would be futile and we would have no way to recover.
+   */
   async unpair() {
     logger.info('Trying to unpair...');
     if (this.status !== CliqzPairing.STATUS_PAIRED) {
@@ -92,9 +108,10 @@ export default class CliqzPairing {
       });
 
       logger.info('"remove_peer" message successfully sent to master');
-      this.setUnpaired();
     } catch (e) {
-      logger.error('Failed to unpair', e);
+      logger.warn(`Could not send unpair event to the master (details: ${e}). Still, proceed with removing the connection...`);
+    } finally {
+      this.setUnpaired();
     }
   }
 

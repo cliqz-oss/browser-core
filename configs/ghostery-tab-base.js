@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const urls = require('./common/urls-ghostery');
 const base = require('./common/system');
 
@@ -8,7 +16,6 @@ module.exports = {
   specific: 'ghostery-tab',
   baseURL: '/modules/',
   pack: 'web-ext build -s build -a .',
-  versionInfix: '.',
   versionPrefix: '10',
   settings: Object.assign({}, urls, {
     id,

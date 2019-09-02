@@ -1,6 +1,14 @@
-import { registerContentScript } from '../core/content/helpers';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
-registerContentScript('history', 'https://cliqz.com/search?q=*', (window, chrome, CLIQZ) => {
+import { registerContentScript } from '../core/content/register';
+
+function contentScript(window, chrome, CLIQZ) {
   const URLSearchParams = window.URLSearchParams;
   const searchParams = new URLSearchParams(window.location.search);
   const queries = searchParams.getAll('q');
@@ -44,4 +52,12 @@ registerContentScript('history', 'https://cliqz.com/search?q=*', (window, chrome
       content.appendChild(rowContainer);
     }
   });
+}
+
+registerContentScript({
+  module: 'history',
+  matches: [
+    'https://cliqz.com/search?q=*',
+  ],
+  js: [contentScript],
 });

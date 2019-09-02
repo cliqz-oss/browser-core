@@ -1,17 +1,27 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 
-const tldts = require('tldts');
+const urlImports = require('../../../core/unit/utils/url-parser');
 
 export default describeModule('dropdown/results/generic',
   function () {
     return {
-      '../../core/events': {},
-      '../../core/url': {
+      'core/events': {},
+      'core/url': {
         urlStripProtocol() { return 'STRIPPED_URL'; }
       },
       '../../core/console': {},
-      '../../platform/lib/punycode': {},
-      'platform/lib/tldts': tldts,
+      ...urlImports,
+      'platform/globals': {
+        chrome: {},
+      },
     };
   },
   function () {

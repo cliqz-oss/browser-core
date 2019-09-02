@@ -151,6 +151,7 @@ function getImageSrc(node) {
   return node.getAttribute('data-original')
   || node.getAttribute('data-echo')
   || node.getAttribute('data-src')
+  || node.getAttribute('data-srcset')
   || node.getAttribute('src');
 }
 
@@ -166,12 +167,25 @@ function groupImagesByStyle(dom) {
     const image = getImageSrc(node);
     if (!(key in groups)) {
       // Explicitely keep track of the first image because its the one we are really interested in
-      groups[key] = { count: 0, firstImage: image, images: new Set() };
+      groups[key] = { count: 0, firstImage: image, images: new Set(), hasAlt: { y: 0, n: 0 } };
     }
     groups[key].count += 1;
     groups[key].images.add(image);
+    groups[key].hasAlt[(node.alt ? 'y' : 'n')] += 1;
   });
   return groups;
+}
+
+/**
+ * Basic normalization for urls as they may be from a srcset or have
+ * characters for rezising
+ *
+ * @param url
+ */
+function normalizeImageUrl(url) {
+  const nUrl = url.split('$')[0];
+  const parts = nUrl.split(',');
+  return parts[0] ? parts[0].trim() : url;
 }
 
 /**
@@ -187,6 +201,7 @@ function getImageFromSERP(dom) {
   // Filter out images that repeat multiple times
   Object.keys(styleGroups).filter(key =>
     (styleGroups[key].count / styleGroups[key].images.size) < 2)
+    .filter(key => (styleGroups[key].hasAlt.y / styleGroups[key].hasAlt.n) > 1)
     .forEach((key) => {
       if (styleGroups[key].count > maxValue) {
         maxValue = styleGroups[key].count;
@@ -195,7 +210,7 @@ function getImageFromSERP(dom) {
     });
   // Website use this pattern to resize images
   // Safe for the specific cases enabled here but should be rethought
-  image = image.split('$')[0];
+  image = normalizeImageUrl(image);
   return image;
 }
 

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai */
 /* global sinon */
 /* global describeModule */
@@ -20,6 +28,9 @@ function getCurrentDate() {
 export default describeModule('anolysis/internals/anolysis',
   () => ({
     ...mockDexie,
+    'platform/globals': {
+      chrome: {},
+    },
     'platform/lib/moment': {
       default: moment,
     },

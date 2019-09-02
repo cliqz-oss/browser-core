@@ -30,8 +30,16 @@ export default class Main extends React.Component {
     const beforeWasOpen = view === 'open';
     const newView = beforeWasOpen ? 'minimize' : 'open';
     const newDelta = beforeWasOpen ? -329 : 300;
-    const duration = beforeWasOpen ? 300 : undefined; // use default one
-    this.setState({ view: newView });
+    const duration = beforeWasOpen ? 300 : 450;
+
+    if (newView === 'minimize') {
+      // during animation by side effect system fires event on-mouse-leave
+      // this could produce strange effects with minimaze
+      // so lets set state in the end of transition
+      setTimeout(() => this.setState({ view: newView }), duration);
+    } else {
+      this.setState({ view: newView });
+    }
     send('changePositionWithAnimation', { deltaRight: newDelta, duration });
     send('remindersAction', { action: newView, domain: this.props.domain });
     send('sendTelemetry', { target: newView });

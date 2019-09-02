@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import tabs from '../platform/tabs';
 import webNavigation from '../platform/webnavigation';
 import logger from './logger';
@@ -92,12 +100,16 @@ export default class PageStore {
     if (frameId === 0 && (tabContext !== undefined && tabContext.url !== url)) {
       this.onMainFrame({ tabId, url, requestId: 0 }, 'onBeforeRequest');
     }
-    if (tabContext) {
+    if (frameId === 0 && tabContext) {
       tabContext.navigating = null;
     }
   }
 
   onMainFrame({ tabId, url, requestId }, event) {
+    // main frame from tabId -1 is from service worker and should not be saved
+    if (tabId === -1) {
+      return;
+    }
     // Update last request id from the tab
     let tabContext = this.tabs.get(tabId);
     if (tabContext === undefined) {
@@ -107,6 +119,7 @@ export default class PageStore {
 
     if (event === 'onBeforeRequest') {
       tabContext.frames.clear();
+      tabContext.navigating = null;
       // Detect redirect: if the last request on this tab had the same id and
       // this was from the same `onBeforeRequest` hook, we can assume this is a
       // redirection.
@@ -166,6 +179,22 @@ export default class PageStore {
       let currentFrameId = parentFrameId;
       while (currentFrameId !== -1) {
         const frame = tab.frames.get(currentFrameId);
+
+        // If `frame` if undefined, this means we do not have any information
+        // about the frame associated with `currentFrameId`. This can happen if
+        // the event for `main_frame` or `sub_frame` was not emitted from the
+        // webRequest API for this frame; this can happen when Service Workers
+        // are used. In this case, we consider that the parent frame is the main
+        // frame (which is very likely the case).
+        if (frame === undefined) {
+          ancestors.push({
+            frameId: 0,
+            url: tab.url,
+          });
+          break;
+        }
+
+        // Continue going up the ancestors chain
         ancestors.push({
           frameId: currentFrameId,
           url: frame.url,

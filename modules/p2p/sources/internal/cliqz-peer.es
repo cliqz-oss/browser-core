@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { nextTick } from '../../core/decorators';
 import CliqzPeerConnection from './cliqz-peer-connection';
 import logger from './logger';
@@ -260,7 +268,7 @@ export default class CliqzPeer {
     };
   }
 
-  applySignalingMessage(data) {
+  async applySignalingMessage(data) {
     if (this.closed) {
       return;
     }
@@ -272,62 +280,63 @@ export default class CliqzPeer {
       this.log('Dropping signaling message from peer not in whitelist:', from);
       return;
     }
-    const pr = this.decryptSignaling
-      ? this.decryptSignaling(_message, from) : Promise.resolve(_message);
-    pr.then((message) => {
-      const type = message.type;
-      if (type === 'ice') { // Receive ICE candidates
-        const candidate = JSON.parse(message.candidate);
-        const conn = this._getPendingConnection(from);
-        if (!conn) {
-          this.logDebug('Setting ICE candidates for unexisting pending connection');
-        } else if (conn.status === 'initial' || conn.status === 'signaling') {
-          conn.status = 'signaling';
-          conn.receiveICECandidate(candidate, id);
-        } else {
-          this.logDebug('Received ICE for connection with status', conn.status);
-        }
-      } else if (type === 'offer') { // Receive offer description
-        let conn = this._createConnection(from, false);
-        if (!conn) {
-          // Connection already exists: we need to handle the case where both peers want
-          // to initiate the connection with each other at the same time. Solution: the peer
-          // with biggest ID wins.
-          conn = this._getPendingConnection(from);
-          if (!conn.isLocal || from > this.peerID) {
-            this.logDebug('INFO: connection collision -> I lose', this.peerID);
-            conn.close(true); // Close without propagating onclose event
-            delete this.pendingConnections[from];
-            this.connectionRetries[from] = 0;
-            conn = this._createConnection(from, false); // Replace with new non-local connection
-          } else {
-            this.logDebug('INFO: connection collision -> I win', this.peerID);
-            conn = null;
-          }
-        }
-        if (conn) {
-          if (conn.status === 'initial' || conn.status === 'signaling') {
-            conn.status = 'signaling';
-            conn.receiveOffer(message, id);
-          } else {
-            this.logDebug('Received offer for connection with status', conn.status);
-          }
-        }
-      } else if (type === 'answer') {
-        const conn = this._getPendingConnection(from);
-        if (!conn) {
-          this.logDebug('WARNING: received answer for unexisting pending connection');
-        } else if (conn.status === 'initial' || conn.status === 'signaling') {
-          conn.status = 'signaling';
-          conn.receiveAnswer(message, id);
-        } else {
-          this.logDebug('Received answer for connection with status', conn.status);
-        }
+
+    let message = _message;
+    if (this.decryptSignaling) {
+      message = await this.decryptSignaling(_message, from);
+    }
+
+    const type = message.type;
+    if (type === 'ice') { // Receive ICE candidates
+      const candidate = JSON.parse(message.candidate);
+      const conn = this._getPendingConnection(from);
+      if (!conn) {
+        this.logDebug('Setting ICE candidates for unexisting pending connection');
+      } else if (conn.status === 'initial' || conn.status === 'signaling') {
+        conn.status = 'signaling';
+        await conn.receiveICECandidate(candidate, id);
       } else {
-        this.log(message, 'Unknown message');
+        this.logDebug('Received ICE for connection with status', conn.status);
       }
-    })
-      .catch(e => this.logError('Error decrypting signaling', e));
+    } else if (type === 'offer') { // Receive offer description
+      let conn = this._createConnection(from, false);
+      if (!conn) {
+        // Connection already exists: we need to handle the case where both peers want
+        // to initiate the connection with each other at the same time. Solution: the peer
+        // with biggest ID wins.
+        conn = this._getPendingConnection(from);
+        if (!conn.isLocal || from > this.peerID) {
+          this.logDebug('INFO: connection collision -> I lose', this.peerID);
+          conn.close(true); // Close without propagating onclose event
+          delete this.pendingConnections[from];
+          this.connectionRetries[from] = 0;
+          conn = this._createConnection(from, false); // Replace with new non-local connection
+        } else {
+          this.logDebug('INFO: connection collision -> I win', this.peerID);
+          conn = null;
+        }
+      }
+      if (conn) {
+        if (conn.status === 'initial' || conn.status === 'signaling') {
+          conn.status = 'signaling';
+          await conn.receiveOffer(message, id);
+        } else {
+          this.logDebug('Received offer for connection with status', conn.status);
+        }
+      }
+    } else if (type === 'answer') {
+      const conn = this._getPendingConnection(from);
+      if (!conn) {
+        this.logDebug('WARNING: received answer for unexisting pending connection');
+      } else if (conn.status === 'initial' || conn.status === 'signaling') {
+        conn.status = 'signaling';
+        await conn.receiveAnswer(message, id);
+      } else {
+        this.logDebug('Received answer for connection with status', conn.status);
+      }
+    } else {
+      this.log(message, 'Unknown message');
+    }
   }
 
   enableSignaling() {
@@ -755,7 +764,7 @@ export default class CliqzPeer {
       const connection = new CliqzPeerConnection(this, this.peerOptions, peer, isLocal);
       this.pendingConnections[peer] = connection;
       if (isLocal) {
-        connection.createOffer();
+        connection.createOffer().catch(e => this.logError('Failed to create offer', e));
       }
       connection.onopen = () => {
         this.logDebug('Connected to', peer);

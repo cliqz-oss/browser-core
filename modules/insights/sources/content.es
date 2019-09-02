@@ -1,42 +1,50 @@
-import {
-  registerContentScript,
-} from '../core/content/helpers';
-import config from '../core/config';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import { registerContentScript } from '../core/content/register';
 import { setTimeout } from '../core/timers';
 
-registerContentScript('insights', 'http*', (window, chrome, CLIQZ) => {
-  if (config.platform !== 'firefox' && !CLIQZ.app.modules.insights.isEnabled) {
-    return;
-  }
-  // only run in main document
-  if (window.self !== window.top) {
-    return;
-  }
+function analyzePageInfo(CLIQZ) {
+  const { host, hostname, pathname, protocol } = document.location;
+  const pTime = (performance.timing.domContentLoadedEventStart - performance.timing.requestStart);
+  const pageLatency = pTime || 0;
 
-  function analyzePageInfo() {
-    const { host, hostname, pathname, protocol } = document.location;
-    const pTime = (performance.timing.domContentLoadedEventStart - performance.timing.requestStart);
-    const pageLatency = pTime || 0;
-
-    CLIQZ.app.modules.insights.action('recordPageInfo', {
-      domain: `${protocol}//${host}${pathname}`,
-      host: hostname,
-      timestamp: performance.timing.navigationStart,
-      latency: pageLatency,
-      pageTiming: {
-        timing: {
-          navigationStart: performance.timing.navigationStart,
-          loadEventEnd: performance.timing.loadEventEnd
-        }
+  CLIQZ.app.modules.insights.action('recordPageInfo', {
+    domain: `${protocol}//${host}${pathname}`,
+    host: hostname,
+    timestamp: performance.timing.navigationStart,
+    latency: pageLatency,
+    pageTiming: {
+      timing: {
+        navigationStart: performance.timing.navigationStart,
+        loadEventEnd: performance.timing.loadEventEnd
       }
-    });
-  }
+    }
+  });
+}
 
+function contentScript(window, chrome, CLIQZ) {
   if (document.readyState !== 'complete') {
     window.addEventListener('load', () => {
-      setTimeout(analyzePageInfo, 1);
+      setTimeout(() => {
+        analyzePageInfo(CLIQZ);
+      }, 1);
     });
   } else {
-    analyzePageInfo();
+    analyzePageInfo(CLIQZ);
   }
+}
+
+registerContentScript({
+  module: 'insights',
+  matches: [
+    'http://*/*',
+    'https://*/*',
+  ],
+  js: [contentScript],
 });

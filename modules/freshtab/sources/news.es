@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 
 import hash from '../core/helpers/hash';
@@ -6,7 +14,7 @@ import console from '../core/console';
 import prefs from '../core/prefs';
 import i18n from '../core/i18n';
 import inject from '../core/kord/inject';
-import { extractSimpleURI } from '../core/url';
+import { extractSimpleURI, getCleanHost } from '../core/url';
 import { getDomains, isURLVisited } from '../platform/freshtab/history';
 import BloomFilter from '../core/bloom-filter';
 import NewsCache from './news-cache';
@@ -155,7 +163,7 @@ export function mergeToGlobalVisitCount(urlDesc, visitCount, globalVisitCount) {
   }
 
   let urlPathList = urlDesc.path.split('/');
-  const domain = urlDesc.cleanHost;
+  const domain = getCleanHost(urlDesc);
 
   if (!(globalVisitCount[domain] && 'count' in globalVisitCount[domain])) {
     globalVisitCount[domain] = { count: 0, sub: {} };
@@ -419,7 +427,7 @@ export function getHistoryBasedRecommendations(oldCacheData) {
 
   function addHRecordToGlobalVisitCount(record, globalVisitCount) {
     const urlData = extractSimpleURI(record.url);
-    if (checkIfDomainForCounting(urlData.cleanHost)) {
+    if (checkIfDomainForCounting(getCleanHost(urlData))) {
       let domainVisitCount;
       if (pathHasIndex(urlData.path)) {
         domainVisitCount = record.visit_count;

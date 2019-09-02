@@ -9,6 +9,8 @@ export const IS_POPUP = SEARCH_PARAMS.get('popup') !== null;
 export function css(prefix) {
   return (...args) => [...args].filter(Boolean).map(cls => prefix + cls).join(' ');
 }
+// chrome.i18n.getUILanguage is undefined in content tests
+export const getUILanguage = () => chrome.i18n.getUILanguage && chrome.i18n.getUILanguage();
 export const i18n = (key, params = []) => chrome.i18n.getMessage(key, params);
 
 /** **************************************************************** */
@@ -31,8 +33,6 @@ function getHeight(type = 'card') {
   const heightMapper = {
     tooltip: tooltipHeight,
     card: popupHeight,
-    lodgev1: tooltipHeight,
-    lodgev2: tooltipHeight,
   };
   const height = heightMapper[type]() || 0;
   return Math.min(height, MAX_WINDOW_HEIGHT);
@@ -42,8 +42,6 @@ function getWidth(type = 'card') {
   const widthMapper = {
     tooltip: 260,
     card: 264,
-    lodgev1: 294,
-    lodgev2: 294,
   };
   return widthMapper[type] || 0;
 }

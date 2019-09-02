@@ -114,6 +114,7 @@ body.chip .form-message {
 
 body.chip .logo {
   content: url(./images/chip-logo.svg);
+  width: 200px;
 }
 
 body.chip .form-title {
@@ -122,6 +123,11 @@ body.chip .form-title {
 
 body.chip .form-button {
   background: #eb443f;
+}
+
+body.chip a {
+  color: #eb443f;
+  text-decoration: none;
 }
 
 body.freundin {

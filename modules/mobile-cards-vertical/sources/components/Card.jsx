@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import Snippet from './partials/Snippet';
@@ -14,7 +22,7 @@ const cardStyle = (theme, themeDetails) => StyleSheet.create({
     paddingLeft: cardSidePadding,
     paddingRight: cardSidePadding,
     backgroundColor: themeDetails[theme].card.bgColor,
-    borderRadius: 9,
+    borderRadius: themeDetails[theme].card.borderRadius,
   },
 });
 
@@ -33,7 +41,8 @@ function getDeepResults(deepResults, mainUrl, openLink) {
           type={result.type}
         />
       ))}
-    />));
+    />
+  ));
 }
 
 function getHistoryResults(urls, mainUrl, openLink) {

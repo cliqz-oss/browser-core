@@ -1,8 +1,14 @@
-/* eslint import/prefer-default-export: 'off' */
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
-import {
-  registerContentScript,
-} from '../core/content/helpers';
+import runtime from '../platform/runtime';
+
+import { registerContentScript } from '../core/content/register';
 import { throttle } from '../core/decorators';
 
 import { normalizeAclkUrl } from './ad-detection';
@@ -11,6 +17,7 @@ function logException(e) {
   window.console.error('[human-web] Exception caught:', e);
 }
 
+// eslint-disable-next-line import/prefer-default-export
 export function parseDom(url, window, hw) {
   const document = window.document;
 
@@ -20,7 +27,11 @@ export function parseDom(url, window, hw) {
     jsRef = document.querySelector('script');
     if (jsRef && jsRef.innerHTML.indexOf('location.replace') > -1) {
       const location = document.querySelector('title').textContent;
-      chrome.runtime.sendMessage({
+      // NOTE: this should be migrated to use:
+      // CLIQZ.modules['human-web'].action('jsRedirect', {
+      //   message: { ... }
+      // })
+      runtime.sendMessage({
         module: 'human-web',
         action: 'jsRedirect',
         args: [{
@@ -67,7 +78,7 @@ export function parseDom(url, window, hw) {
     let noAdsOnThisPage = 0;
     const detectAdRules = {
       query: {
-        element: '#ires',
+        element: '#rso',
         attribute: 'data-async-context'
       },
       adSections: ['.ads-ad', '.pla-unit-container', '.pla-hovercard-content-ellip', '.cu-container tr'],
@@ -139,7 +150,7 @@ export function parseDom(url, window, hw) {
   }
 }
 
-registerContentScript('human-web', 'http*', (window, chrome, CLIQZ) => {
+function contentScript(window, chrome, CLIQZ) {
   const url = window.location.href;
   const hw = CLIQZ.app.modules['human-web'];
 
@@ -190,4 +201,14 @@ registerContentScript('human-web', 'http*', (window, chrome, CLIQZ) => {
   }
 
   window.addEventListener('unload', stop);
+}
+
+registerContentScript({
+  module: 'human-web',
+  matches: [
+    'http://*/*',
+    'https://*/*',
+  ],
+  js: [contentScript],
+  allFrames: true,
 });

@@ -1,5 +1,14 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global ChromeUtils, Components */
 import { URLInfo } from '../../../core/url-info';
+import { getCleanHost } from '../../../core/url';
 import Defer from '../../../core/helpers/defer';
 
 export { default } from './history-firefox';
@@ -26,6 +35,23 @@ function cleanMozillaActions(url = '') {
     }
   }
   return href;
+}
+
+let adultDomainsBF = null;
+function isAdultDomain(domain) {
+  if (adultDomainsBF === null) {
+    try {
+      adultDomainsBF = Components.classes['@cliqz.com/browser/auto_forget_tabs_service;1']
+        .getService(Components.interfaces.nsISupports).wrappedJSObject
+        ._adultDomainsBF;
+    } catch (e) {
+      adultDomainsBF = {
+        test: () => false,
+      };
+    }
+  }
+
+  return adultDomainsBF.test(domain);
 }
 
 function today() {
@@ -146,10 +172,13 @@ export async function topDomains() {
   const history = await topHistory();
 
   return history.reduce((acc, curr) => {
-    const host = URLInfo.get(curr.url).cleanHost;
+    const host = getCleanHost(URLInfo.get(curr.url));
     // we only want to show one url per host
     if (!Object.prototype.hasOwnProperty.call(acc.domains, host)) {
-      acc.result.push(curr);
+      acc.result.push({
+        ...curr,
+        isAdult: isAdultDomain(host),
+      });
       acc.domains[host] = true;
     }
     return acc;

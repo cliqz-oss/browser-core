@@ -125,12 +125,6 @@
     "control_center_location": {
         "message": "Share location"
     },
-    "control_center_offers_location": {
-        "message": "Show local MyOffrz"
-    },
-    "control_center_offers_location_info": {
-        "message": "Don’t miss any local offers! Your location is used on a city or district level. It is not stored on any server, and is only used locally on your computer."
-    },
     "control_center_offers_options": {
         "message": "MyOffrz Options"
     },

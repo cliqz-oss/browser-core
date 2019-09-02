@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 /* eslint no-param-reassign: off */
 
@@ -5,8 +13,7 @@
 // "url" specifies the input url
 // "url_parts" specifies the expected output values
 
-const tldts = require('tldts');
-const punycode = require('punycode');
+const urlImports = require('./utils/url-parser');
 
 const plainUrls = [
   {
@@ -488,10 +495,7 @@ function fillInSpec(spec) {
 export default describeModule('core/url-info',
   () => ({
     'core/helpers/md5': {},
-    'platform/lib/tldts': tldts,
-    'platform/lib/punycode': {
-      default: punycode,
-    },
+    ...urlImports,
   }),
   () => {
     describe('URLInfo', () => {

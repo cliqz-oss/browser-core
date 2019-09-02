@@ -197,17 +197,14 @@
     "freshtab_cliqz_post_adblock_title": {
         "message": "Wusstest du, dass Cliqz einen integrierten Werbeblocker hat?"
     },
-    "freshtab_cliqz_post_privacy_description": {
-        "message": "Cliqz nutzt anonymisierte Nutzungsdaten um den Browser für dich besser zu machen."
-    },
-    "freshtab_cliqz_post_privacy_link": {
-        "message": "Datenübermittlung verwalten"
-    },
     "freshtab_cliqz_post_remind_later": {
         "message": "Später erinnern"
     },
     "freshtab_cliqz_tab_button": {
         "message": "$1 Tab"
+    },
+    "freshtab_cliqz_tab_settings_all_prefs_link": {
+        "message": "Alle Browsereinstellungen"
     },
     "freshtab_cliqz_tab_settings_button": {
         "message": "$1 Tab Einstellungen"
@@ -283,5 +280,14 @@
     },
     "promo_data_description_2": {
         "message": "Blockiere Werbung, stoppe Tracker und beschleunige Websites."
+    },
+    "time_saved_hours": {
+        "message": "Std"
+    },
+    "time_saved_minutes": {
+        "message": "Min"
+    },
+    "time_saved_seconds": {
+        "message": "S"
     }
 }

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global $, Handlebars */
 /* eslint-disable no-console */
 import QRCode from 'qrcodejs';
@@ -19,15 +27,6 @@ export default class PairingUI {
 
     this.TEMPLATE_NAMES = ['template'];
     this.TEMPLATE_CACHE = {};
-    this.start();
-
-    this.connectionChecker = setInterval(() => {
-      console.log('PairingUI: connectionChecker -> startPairing...');
-      this.startPairing();
-      PeerComm.checkMasterConnection().catch((e) => {
-        console.error('PairingUI error:', e);
-      });
-    }, PairingUI.checkInterval);
 
     // Pairing events
     this.oninit = (info) => {
@@ -61,7 +60,17 @@ export default class PairingUI {
       }
     }).catch((e) => {
       console.error(e);
+    }).then(() => {
+      this.start();
     });
+
+    this.connectionChecker = setInterval(() => {
+      console.log('PairingUI: connectionChecker -> startPairing...');
+      this.startPairing();
+      PeerComm.checkMasterConnection().catch((e) => {
+        console.error('PairingUI error:', e);
+      });
+    }, PairingUI.checkInterval);
   }
 
   async startPairing() {
@@ -117,6 +126,14 @@ export default class PairingUI {
 
   renderPaired({ isPaired, masterName, deviceName, isMasterConnected }) {
     if (!isPaired) return;
+
+    try {
+      const iframe = parent.document.querySelector('iframe#connect-iframe');
+      iframe.classList.add('hidden');
+    } catch (e) {
+      // Permission denied to access property "document", due to browser scope
+    }
+
     this.updateConnectionInfo(isMasterConnected, deviceName, masterName);
   }
 

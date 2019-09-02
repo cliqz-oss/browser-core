@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 function markChanges() {
   const node = document.querySelector('.form-message');
   if (!node) { return; }
@@ -28,7 +36,7 @@ function restoreOptions() {
     module: 'offers-banner',
     args: [['telemetry', 'humanWebOptOut']],
     action: 'getPref'
-  }, ({ response: prefs = {} }) =>
+  }, (prefs = {}) =>
     Object.keys(prefs).forEach((key) => {
       const node = document.getElementById(key);
       if (!node) { return; }

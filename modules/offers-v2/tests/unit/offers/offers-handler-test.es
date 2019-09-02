@@ -949,9 +949,8 @@ export default describeModule('offers-v2/offers/offers-handler',
 
           it('/send signal for filter-out by competition', async () => {
             sigHandlerMock.clear();
-            const offerWinner = buildOffer('oidWinner', 'cid', 'client', 1);
+            const offerWinner = buildOffer('oidWinner', 'cid', 'client', 2);
             const offerLoser = buildOffer('oidLoser', 'cid', 'client', 1);
-            offerWinner.categories.push('YetAnotherCat');
             prepareTriggerOffers([offerLoser, offerWinner]);
 
             // Actually triggers the both offers, but without activating

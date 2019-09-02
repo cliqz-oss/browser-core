@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /**
  * Privacy config:
  * Privacy components (anti-tracking, adblocker etc) as a webextension for the Geckoview platform.
@@ -14,7 +22,6 @@ module.exports = {
   pack: 'web-ext build -s build -a .',
   publish: publish.toPrerelease('cliqz_privacy', 'cliqz_privacy', 'zip'),
   sourceMaps: false,
-  versionInfix: '.',
   versionPrefix: '12',
   settings: Object.assign({}, urls, {
     channel: 'MA60',

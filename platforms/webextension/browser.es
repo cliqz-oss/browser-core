@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { window, chrome } from './globals';
 import windows from './windows';
 import events from '../core/events';
@@ -152,7 +160,7 @@ export function getUrlForTab(tabId) {
 export function getActiveTab() {
   return new Promise((resolve, reject) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (result) => {
-      if (result && result[0]) {
+      if (result.length !== 0) {
         const tab = result[0];
         resolve({
           id: tab.id,

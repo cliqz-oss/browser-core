@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import Spanan from 'spanan';
 import Defer from '../../core/helpers/defer';
 
@@ -15,6 +23,10 @@ export default class BaseDropdownManager {
 
   get entryPoint() {
     throw new Error('Not implemented');
+  }
+
+  get targetModule() {
+    return 'dropdown';
   }
 
   get iframeWrapperReady() {
@@ -108,6 +120,7 @@ export default class BaseDropdownManager {
         isPrivate: incognito,
         isTyped,
         keyCode,
+        targetModule: this.targetModule,
       }, {
         urlbarAttributes: this._getUrlbarAttributes(),
       });
@@ -431,6 +444,7 @@ export default class BaseDropdownManager {
       && query[selectionStart] === String.fromCharCode(charCode)
     ) {
       this._setSelectionRange(selectionStart + 1, query.length);
+      this._syncQueryWithUrlbar();
       this._queryCliqz();
       preventDefault = true;
     }

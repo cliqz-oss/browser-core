@@ -1,6 +1,4 @@
-import {
-  registerContentScript,
-} from '../core/content/helpers';
+import { registerContentScript } from '../core/content/register';
 import config from '../core/config';
 import couponsHandlingScript from './content/coupon/script';
 import amazonPrimeDetection from './content/profile/amazon-prime';
@@ -46,12 +44,33 @@ function logPurchaseButtonScript(window, chrome, CLIQZ) {
   window.addEventListener('unload', onUnload);
 }
 
+registerContentScript({
+  module: 'offers-v2',
+  matches: [
+    'https://*/*',
+    'http://*/*',
+  ],
+  js: [
+    logPurchaseButtonScript,
+    couponsHandlingScript,
+    // Optional scripts enabled by 'user-journey'
+    ...(
+      config.settings['offers.user-journey.enabled']
+        ? [
+          serpPageDetection,
+          shopPageDetection,
+          classifyByOutgoingLinks,
+        ] : []
+    ),
+  ],
+});
 
-registerContentScript('offers-v2', 'http*', logPurchaseButtonScript);
-registerContentScript('offers-v2', 'http*', couponsHandlingScript);
-registerContentScript('offers-v2', 'https://*.amazon.*', amazonPrimeDetection);
-if (config.settings['offers.user-journey.enabled']) {
-  registerContentScript('offers-v2', 'http*', serpPageDetection);
-  registerContentScript('offers-v2', 'http*', shopPageDetection);
-  registerContentScript('offers-v2', 'http*', classifyByOutgoingLinks);
-}
+registerContentScript({
+  module: 'offers-v2',
+  // NOTE: here we do not pre-filter for likely amazon domains as there is no
+  // easy way to do this in a robust way with the match pattern syntax. But this
+  // should not have any performance impact because `amazonPrimeDetection`
+  // already performs a quick check before doing anything else.
+  matches: ['https://*/*'],
+  js: [amazonPrimeDetection],
+});

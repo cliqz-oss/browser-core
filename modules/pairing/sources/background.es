@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { openLink, getWindow } from '../core/browser';
 import telemetry from '../core/services/telemetry';
 import PeerSlave from './peer-slave';
@@ -14,7 +22,8 @@ import console from '../core/console';
 import contextmenuapi from '../platform/context-menu';
 import { getTabsWithUrl } from '../platform/tabs';
 import { getMessage } from '../core/i18n';
-import { chrome } from '../platform/globals';
+import { browser } from '../platform/globals';
+import runtime from '../platform/runtime';
 
 function isValidURL(url) {
   return url.indexOf('https:') === 0 || url.indexOf('http:') === 0;
@@ -57,7 +66,7 @@ export default background({
     const sendToPreferenceTab = (obj) => {
       getTabsWithUrl('about:preferences#connect').then((tabs) => {
         for (const t of tabs) {
-          chrome.tabs.sendMessage(t.id, obj);
+          browser.tabs.sendMessage(t.id, obj);
         }
       }).catch((e) => {
         console.log('something went wrong', e);
@@ -67,13 +76,15 @@ export default background({
     function sendUI(action) {
       // since migration to webext iframe do not receive runtime message.
       sendToPreferenceTab({
+        module: 'pairing',
         action,
-        message: this.peerSlave.pairingInfo,
+        args: [this.peerSlave.pairingInfo],
       });
 
-      chrome.runtime.sendMessage({
+      runtime.sendMessage({
+        module: 'pairing',
         action,
-        message: this.peerSlave.pairingInfo,
+        args: [this.peerSlave.pairingInfo],
       });
       events.pub(`pairing.${action}`, this.peerSlave.pairingInfo);
     }

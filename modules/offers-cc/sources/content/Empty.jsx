@@ -39,6 +39,9 @@ export default function Empty(props) {
     incent: renderWhiteLabelHeader,
     myoffrz: renderMyOffrzHeader,
   };
+  const url = prefix === 'chip'
+    ? 'https://sparalarm.chip.de/onboarding/'
+    : 'https://myoffrz.com/on-boarding/';
   return (
     <div className={_css('wrapper')}>
       <div className={_css('container')}>
@@ -46,7 +49,7 @@ export default function Empty(props) {
         <p className={_css('text')}>{i18n('offers_hub_welcome_text')}</p>
         <p
           onClick={() => {
-            send('openURL', { url: 'https://myoffrz.com/on-boarding/' });
+            send('openURL', { url });
             if (props.autoTrigger) {
               send('hideBanner');
             } else {

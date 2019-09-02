@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
   $cliqzResults,
   blurUrlBar,
@@ -5,7 +13,6 @@ import {
   fillIn,
   mockSearch,
   mockGetSearchEngines,
-  unmockGetSearchEngines,
   waitForPopup,
   win,
   withHistory,
@@ -17,15 +24,15 @@ export default function () {
   const results = [];
   describe('default search engine tests', function () {
     context('changing search engines with queries', function () {
-      let getSearchEngines;
+      let unmockGetSearchEngines;
       before(function () {
         win.preventRestarts = true;
-        getSearchEngines = mockGetSearchEngines(searchEngines);
+        unmockGetSearchEngines = mockGetSearchEngines(searchEngines);
       });
 
       after(function () {
         win.preventRestarts = false;
-        unmockGetSearchEngines(getSearchEngines);
+        unmockGetSearchEngines();
       });
 
       searchEngines.forEach(function (engine) {

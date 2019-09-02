@@ -81,7 +81,7 @@ export default class Content extends React.Component {
   onCloseWhyDoIsee = () => this.props.onChangeView('cards');
 
   renderActiveCard = (voucher, activeIndex) => {
-    const { products, autoTrigger } = this.props;
+    const { products, autoTrigger, abtestInfo = {} } = this.props;
     const { activeCard, cards } = this.state;
     const cardStatus = cards[activeCard].status;
     return (
@@ -97,6 +97,7 @@ export default class Content extends React.Component {
         {cardStatus === 'active' && (
         <Card
           products={products}
+          abtestInfo={abtestInfo}
           onRemove={this.onRemoveCard(activeCard)}
           onChangeCodeStatus={this.onChangeCodeStatus(activeCard)}
           key={activeCard + String(cardStatus)}

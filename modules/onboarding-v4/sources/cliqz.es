@@ -1,38 +1,18 @@
-/* global window */
-import checkIfChromeReady from '../core/content/ready-promise';
-import createSpananForModule from '../core/helpers/spanan-module-wrapper';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import createModuleWrapper from '../core/helpers/action-module-wrapper';
 
 class Cliqz {
   constructor() {
-    const onboarding = createSpananForModule('onboarding-v4');
-    const core = createSpananForModule('core');
+    this.onboarding = createModuleWrapper('onboarding-v4');
+    this.core = createModuleWrapper('core');
     this.state = {};
-
-    const onMessage = (message) => {
-      const msg = {
-        ...message,
-        uuid: message.requestId,
-      };
-
-      core.handleMessage(msg);
-      onboarding.handleMessage(msg);
-    };
-
-    checkIfChromeReady().then(() => {
-      const unloadListener = () => {
-        chrome.runtime.onMessage.removeListener(onMessage);
-        window.removeEventListener('unload', unloadListener);
-      };
-
-      window.addEventListener('unload', unloadListener);
-      chrome.runtime.onMessage.addListener(onMessage);
-    }).catch((ex) => {
-      // eslint-disable-next-line no-console
-      console.error('Chrome was never ready', ex);
-    });
-
-    this.onboarding = onboarding.createProxy();
-    this.core = core.createProxy();
   }
 
   setStorage(storage) {

@@ -57,11 +57,11 @@ export default background({
       transportDispatcher(type, offerId, msg, autoTrigger);
     },
 
-    async getOffers(preferredOffer, banner = 'offers-cc') {
+    async getOffers(banner = 'offers-cc') {
       const args = { filters: { by_rs_dest: banner } };
       const tab = await getActiveTab();
       const offers = await this.offersV2.action('getStoredOffers', args, tab ? tab.url : undefined);
-      return transformMany(banner, { offers, preferredOffer });
+      return transformMany(banner, { offers });
     },
 
     setPref(preferences = {}) {
@@ -88,8 +88,15 @@ export default background({
       const banner = REAL_ESTATE_IDS.find(estate => dest.includes(estate));
       if (banner) { this._dispatcher(banner, data); }
     },
-    'offers-notification:unreaded-offers-count': function onMessage({ count, tabId }) {
+    'offers-notification:unread-offers-count': function onMessage({ count, tabId }) {
       if (tabId !== undefined) { setIconBadge(chooseProduct(products()), { tabId, count }); }
+    },
+    'popup-notification:open-and-close-pinned-URL': function onMsg({ url, matchPatterns = [] }) {
+      // module popup-notification (in the future) will be part of banners system
+      const data = { url, matchPatterns };
+      const msg = { action: 'openAndClosePinnedURL', data };
+      const [type, offerId, autoTrigger] = ['offers-cc', null, false];
+      transportDispatcher(type, offerId, msg, autoTrigger);
     },
 
     // dropdown
@@ -115,7 +122,7 @@ export default background({
     }
     const { display_rule: { url } = {} } = data;
     const exactMatch = banner === 'offers-reminder';
-    const [ok, payload] = transform(banner, data, { abtestPopupsType: true });
+    const [ok, payload] = transform(banner, data);
     if (ok) { this._renderBanner({ ...payload, autoTrigger: true }, { url, exactMatch }); }
   },
 
@@ -140,10 +147,10 @@ export default background({
     if (tabs.length === 0 && exactMatch) { return; }
     const tab = tabs.length === 0 ? await getActiveTab() : tabs.pop();
     this.core.action(
-      'broadcastActionToWindow',
-      tab.id,
+      'callContentAction',
       'offers-banner',
       action,
+      { windowId: tab.id },
       data
     );
   },

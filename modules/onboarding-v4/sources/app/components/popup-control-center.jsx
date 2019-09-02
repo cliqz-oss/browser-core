@@ -1,8 +1,17 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import cliqz from '../../cliqz';
 import t from '../../i18n';
 
 import * as telemetry from '../services/telemetry/telemetry';
+import config from '../../../core/config';
 
 import {
   showUITour,
@@ -64,7 +73,11 @@ export default class PopupControlCenter extends React.Component {
 
   finishOnboarding = () => {
     hideUITour();
-    this.props.finishOnboarding();
+    // change tab name
+    parent.document.title = config.settings.FRESHTAB_TITLE;
+    // remove iframe with onboarding
+    const iframe = parent.document.querySelector('iframe#onboarding');
+    iframe.parentNode.removeChild(iframe);
   }
 
   render() {

@@ -532,6 +532,21 @@ class OfferDB {
   }
 
   /**
+   * Store prices from shopping cart
+   *
+   * @method setShoppingCartDescribedPrices
+   * @param {string} offerID
+   * @param {string[]} prices
+   */
+  setShoppingCartDescribedPrices(offerID, prices) {
+    return this.addOfferAttribute(offerID, 'shopping-card-prices', prices);
+  }
+
+  getShoppingCartDescribedPrices(offerID) {
+    return this.getOfferAttribute(offerID, 'shopping-card-prices');
+  }
+
+  /**
    * will return the metadata of a display id for a particular actionID and displayID.
    *
    * @method getOfferisplayActionMera

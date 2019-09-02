@@ -1,16 +1,20 @@
 import config from '../../core/config';
 import { getGeneralDomain } from '../../core/tlds';
+import Offer from '../offers/offer';
 import UrlData from '../common/url_data';
 import logger from '../common/offers_v2_logger';
+import { LANDING_MONITOR_TYPE } from '../common/constant';
 
 const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
 export default class CouponHandler {
-  constructor({ offersHandler, core, popupNotification }) {
+  constructor({ offersHandler, core, popupNotification, offersDB }) {
     this.offersHandler = offersHandler;
     this.core = core;
     this.popupNotification = popupNotification;
+    this.offersDB = offersDB;
     this._lastPopupNotificationMs = 0;
+    this._encodeCouponAction = this._encodeCouponAction.bind(this);
   }
 
   // ------------------------------------------------------
@@ -36,27 +40,25 @@ export default class CouponHandler {
     }
   }
 
-  _publishPopupPushEvent({ templateData = {}, offerInfo = {}, products = {} }) {
+  _publishPopupPushEvent({ url, templateData = {}, offerInfo = {}, products = {}, attrs = {} }) {
     const msg = {
       target: 'offers-v2',
       data: {
         back: offerInfo,
-        config: { ...offerInfo, ...templateData, products },
+        config: { ...offerInfo, ...templateData, products, attrs },
         preShow: 'try-to-find-coupon',
-        onApply: 'insert-coupon-form'
+        onApply: 'insert-coupon-form',
+        url,
       }
     };
     this.popupNotification.action('push', msg);
   }
 
   _publishDetectCouponActions(url, offerInfo) {
-    const msg = {
-      target: 'offers-v2',
-      action: 'detect-coupon-actions',
+    this.core.action('callContentAction', 'offers-v2', 'detect-coupon-actions', { url }, {
       url,
       offerInfo,
-    };
-    this.core.action('broadcastMessage', url, msg);
+    });
   }
 
   // Throttle popup notifications in addition to setup from backend
@@ -70,6 +72,60 @@ export default class CouponHandler {
       }
     }
     return false;
+  }
+
+  // ------------------------------------------------------
+  // Coupon activity detection
+  // couponMsg is { type, couponValue, offerInfo }
+  _onCouponActivity(couponMsg) {
+    this.offersHandler.onCouponActivity(couponMsg, this._encodeCouponAction);
+  }
+
+  _encodeCouponAction({ type, couponValue }, { offerID }) {
+    const handlers = {
+      coupon_form_not_found: 'N',
+      coupon_form_found: 'F',
+      coupon_fail_minimal_basket_value: 'M',
+      coupon_form_prices: () => this._onCouponPrices(couponValue, offerID),
+      coupon_own_used: 'Y',
+      coupon_other_used: 'C',
+      coupon_empty: 'C',
+      popnot_pre_show: () => (couponValue ? 'f' : 'n'),
+      coupon_autofill_field_apply_action: 'y',
+    };
+    const code = handlers[type];
+    return code.call ? code() : code;
+  }
+
+  /**
+   * For prices:
+   *
+   * - generate delta from the last stored prices
+   * - store the current prices
+   * - serialize delta
+   *
+   * In the ideal world this function should be called from `_onCouponActivity`,
+   * but here it is a part of `_encodeCouponAction`. The reason is that
+   * the function needs `offerID`, which is revealed only inside monitor
+   * signal processing.
+   *
+   * @param {string[]} prices
+   * @param {string} offerID
+   */
+  _onCouponPrices(prices, offerID) {
+    const { total, base } = prices;
+    const oldPrices = this.offersDB.getShoppingCartDescribedPrices(offerID) || {};
+    const { total: oldTotal, base: oldBase } = oldPrices;
+    if ((total === oldTotal) && (base === oldBase)) {
+      return 'Z'; // Zero delta: prices have not been changed
+    }
+    this.offersDB.setShoppingCartDescribedPrices(offerID, prices);
+    const totalDelta = (total || 0) - (oldTotal || 0);
+    const baseDelta = (base || 0) - (oldBase || 0);
+    const baseDeltaStr = base === oldBase
+      ? ''
+      : `/${baseDelta.toFixed(2)}`;
+    return `{D${totalDelta.toFixed(2)}${baseDeltaStr}}`;
   }
 
   // ------------------------------------------------------
@@ -88,12 +144,20 @@ export default class CouponHandler {
     const { url, offerID, offerInfo } = monitorCheck;
 
     //
+    // Always detect coupon actions
+    //
+    if (offerInfo) {
+      this._publishDetectCouponActions(url, offerInfo);
+    }
+
+    //
     // If we can show popup notification, show it
     //
     if (!this._touchIfToPopupNotification(monitorCheck)) {
       return false;
     }
     const offer = this.offersHandler.getOfferObject(offerID);
+
     if (!offer) { return false; }
 
     const { ui_info: { template_data: templateData = {} } = {} } = offer;
@@ -109,8 +173,12 @@ export default class CouponHandler {
         incent: config.settings['incent-standalone.enabled'],
       },
       key: getGeneralDomain(url),
+      url,
       templateData,
       offerInfo,
+      attrs: {
+        landing: new Offer(offer).getMonitorPatterns(LANDING_MONITOR_TYPE)
+      }
     });
 
     return true;
@@ -132,6 +200,9 @@ export default class CouponHandler {
       offerInfo: back,
       couponValue,
     });
+    if (couponValue === 'coupon_autofill_field_apply_action') {
+      this._onCouponActivity({ type: couponValue, url, offerInfo: back });
+    }
   }
 
   onPopupLog(msg) {
@@ -143,15 +214,19 @@ export default class CouponHandler {
       show: ['coupon_autofill_field_show', true],
     };
     const [couponValue, expectedResult] = m[type] || ['coupon_autofill_field_unknown', true];
-    if (expectedResult !== ok) { return; }
-    this._couponFormUsed({
-      url,
-      offerInfo: back,
-      couponValue,
-    });
+    if (expectedResult === ok) {
+      this._couponFormUsed({
+        url,
+        offerInfo: back,
+        couponValue,
+      });
+    }
+    if (type === 'pre-show') {
+      this._onCouponActivity({ type: 'popnot_pre_show', url, couponValue: ok, offerInfo: back });
+    }
   }
 
   couponFormUsed(args) {
-    this._couponFormUsed(args);
+    return this._onCouponActivity(args);
   }
 }

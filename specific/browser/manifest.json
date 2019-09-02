@@ -127,9 +127,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*/*"],
+      "matches": ["<all_urls>"],
       "run_at": "document_start",
       "match_about_blank": true,
+      "all_frames": true,
       "js": ["modules/core/content-script.bundle.js"]
     }
   ],

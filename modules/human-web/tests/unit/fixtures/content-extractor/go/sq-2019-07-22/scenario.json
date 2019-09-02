@@ -1,0 +1,65 @@
+{
+  "url": "https://www.google.com/search?hl=en&ei=7OV_W-SnIYe0sAfUsKOoBg&q=ungeheuer+von+loch+ns&oq=ungeheuer+von+loch+nss",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "query",
+    "payload": {
+      "r": {
+        "0": {
+          "t": "Ungeheuer von Loch Ness – Wikipedia",
+          "u": "https://de.wikipedia.org/wiki/Ungeheuer_von_Loch_Ness",
+          "age": null
+        },
+        "1": {
+          "t": "Britische Schauergestalten: Nessie – das Ungeheuer von Loch Ness ...",
+          "u": "https://www.planet-wissen.de/kultur/fabelwesen/britische_schauergestalten/pwienessiedasungeheuervonlochness100.html",
+          "age": null
+        },
+        "2": {
+          "t": "Ungeheuer von Loch Ness – Klexikon - Das Freie Kinderlexikon",
+          "u": "https://klexikon.zum.de/wiki/Ungeheuer_von_Loch_Ness",
+          "age": "10.05.2019 - "
+        },
+        "3": {
+          "t": "Das machen die Schotten, sollten sie das Loch-Ness-Ungeheuer fangen",
+          "u": "https://www.stern.de/neon/feierabend/reise/loch-ness--das-machen-die-schotten--sollten-sie-das-ungeheuer-fangen-8159668.html",
+          "age": "08.07.2018 - "
+        },
+        "4": {
+          "t": "Loch Ness: Wissenschaftler wollen Geheimnis um Nessie endgültig ...",
+          "u": "https://www.tagesspiegel.de/gesellschaft/panorama/loch-ness-wissenschaftler-wollen-geheimnis-um-nessie-endgueltig-loesen/22611984.html",
+          "age": "29.05.2018 - "
+        },
+        "5": {
+          "t": "Das Monster von Loch Ness - England.de",
+          "u": "https://www.england.de/schottland/monster-von-loch-ness",
+          "age": null
+        },
+        "6": {
+          "t": "Gibt es das Monster von Loch Ness wirklich? - T-Online",
+          "u": "https://www.t-online.de/leben/reisen/europa/id_74748924/gibt-es-das-monster-von-loch-ness-wirklich-.html",
+          "age": "31.05.2018 - "
+        },
+        "7": {
+          "t": "\"Monster von Loch Ness\" doch mehr als nur Legende? Forscher ...",
+          "u": "https://www.tag24.de/nachrichten/monster-von-loch-ness-nessie-schottland-untersuchungen-dna-dinosaurier-stoer-riesenwels-raetsel-1085856",
+          "age": "03.06.2019 - "
+        }
+      },
+      "q": "ungeheuer von loch ness",
+      "qurl": "https://www.google.com/search?hl=en&ei=7OV_W-SnIYe0sAfUsKOoBg&q=ungeheuer+von+loch+ns&oq=ungeheuer+von+loch+nss",
+      "ctry": "de"
+    }
+  }, {
+    "type": "humanweb",
+    "action": "sq",
+    "payload": {
+      "oq": "ungeheuer von loch nss",
+      "sq": "ungeheuer von loch ness",
+      "ctry": "de"
+    }
+  }],
+
+  "mustNotContain": [{ "action": "ads_*" }, { "action": "top-stories" }]
+}

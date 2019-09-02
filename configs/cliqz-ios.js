@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const publish = require('./common/publish');
 const urls = require('./common/urls-cliqz');
 
@@ -9,7 +17,6 @@ module.exports = {
   testem_launchers: ['unit-node'],
   testem_launchers_ci: ['unit-node'],
   versionPrefix: '3',
-  versionInfix: '.',
   pack: [
     "(jq '.name=\\\"browser-core-cliqz-ios\\\"' package.json > package-new.json)",
     'mv package.json package-old.json',
@@ -20,7 +27,6 @@ module.exports = {
   publish: publish.toEdge('browser-core-cliqz-ios', 'cliqz-ios'),
   isMobile: true,
   settings: Object.assign({}, urls, {
-    RESULTS_TIMEOUT: 3000,
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     RESULTS_PROVIDER_ORDER: ['calculator', 'history', 'cliqz', 'querySuggestions', 'instant'],
     CLEAR_RESULTS_AT_SESSION_START: false,

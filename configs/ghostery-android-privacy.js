@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const urls = require('./common/urls-ghostery');
 const publish = require('./common/publish');
 const base = require('./common/system');
@@ -21,7 +29,6 @@ module.exports = {
     antitrackingPlaceholder: 'ghostery',
     antitrackingHeader: 'Ghostery-AntiTracking',
     // mobile cards
-    RESULTS_TIMEOUT: 3000,
     RESULTS_PROVIDER_ORDER: ['calculator', 'history', 'cliqz', 'querySuggestions', 'instant'],
     CLEAR_RESULTS_AT_SESSION_START: false,
     THROTTLE_QUERIES: 50

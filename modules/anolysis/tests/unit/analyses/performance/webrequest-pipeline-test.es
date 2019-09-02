@@ -1,6 +1,14 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* globals describeModule, chai */
-const punycode = require('punycode');
-const tldts = require('tldts');
+const urlImports = require('../../../../core/unit/utils/url-parser');
+
 require('../../telemetry-schemas-test-helpers')({
   name: 'analysis.performance.webrequest-pipeline.timings',
   metrics: [
@@ -39,6 +47,9 @@ let telemetrySignals = [];
 
 describeModule('webrequest-pipeline/latency-metrics',
   () => ({
+    'platform/globals': {
+      chrome: {},
+    },
     'core/kord/inject': {
       default: {
         service() {
@@ -56,10 +67,7 @@ describeModule('webrequest-pipeline/latency-metrics',
         stop() {},
       }),
     },
-    'platform/lib/tldts': tldts,
-    'platform/lib/punycode': {
-      default: punycode,
-    },
+    ...urlImports,
   }),
   () => {
     let latency = null;

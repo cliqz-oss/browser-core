@@ -1,0 +1,84 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=angela%20merkel",
+
+  "mustContain": [
+    {
+      "type": "humanweb",
+      "action": "query",
+      "payload": {
+        "r": {
+          "0": {
+            "t": "Angela Merkel",
+            "u": "https://www.angela-merkel.de/",
+            "age": null
+          },
+          "1": {
+            "t": "Angela Merkel – Wikipedia",
+            "u": "https://de.wikipedia.org/wiki/Angela_Merkel",
+            "age": null
+          },
+          "2": {
+            "t": "Angela Merkel: Große Sorge nach Zitteranfällen - Wagenknecht ehrt ...",
+            "u": "https://www.merkur.de/politik/angela-merkel-grosse-sorge-nach-zitteranfaellen-wagenknecht-ehrt-merkel-aber-irgendwann-zr-12842249.html",
+            "age": "vor 3 Stunden - "
+          },
+          "3": {
+            "t": "Angela Merkel - Bundeskanzlerin",
+            "u": "https://www.bundeskanzlerin.de/bkin-de/angela-merkel",
+            "age": null
+          },
+          "4": {
+            "t": "Bundeskanzlerin | Bundeskanzlerin |",
+            "u": "https://www.bundeskanzlerin.de/",
+            "age": null
+          },
+          "5": {
+            "t": "LeMO Biografie Angela Merkel",
+            "u": "https://www.hdg.de/lemo/biografie/angela-merkel.html",
+            "age": null
+          },
+          "6": {
+            "t": "Angela Merkel - SPIEGEL ONLINE",
+            "u": "https://www.spiegel.de/thema/angela_merkel/",
+            "age": null
+          },
+          "7": {
+            "t": "Angela Merkel aktuell: News von heute zur Bundeskanzlerin - FAZ",
+            "u": "https://www.faz.net/aktuell/politik/thema/angela-merkel",
+            "age": null
+          }
+        },
+        "q": "angela merkel",
+        "qurl": "https://www.google.com/search?hl=en&q=angela%20merkel",
+        "ctry": "de"
+      }
+    },
+    {
+      "type": "humanweb",
+      "action": "top-stories",
+      "payload": {
+        "r": {
+          "0": {
+            "u": "https://www.merkur.de/politik/angela-merkel-grosse-sorge-nach-zitteranfaellen-wagenknecht-ehrt-merkel-aber-irgendwann-zr-12842249.html",
+            "lu": "vor 3 Stunden",
+            "h": "Angela Merkel: Große Sorge nach Zitteranfällen - Wagenknecht ehrt Merkel: \n„Aber irgendwann ...“ | Politik"
+          },
+          "1": {
+            "u": "https://www.sueddeutsche.de/politik/angela-merkel-trump-news-1.4531480",
+            "lu": "vor 2 Tagen",
+            "h": "Merkel und Trump - Schluss mit der Schöntuerei"
+          },
+          "2": {
+            "u": "https://www.tz.de/leben/geld/angela-merkel-viel-verdient-deutsche-bundeskanzlerin-zr-8805999.html",
+            "lu": "vor 58 Minuten",
+            "h": "Angela Merkel: So viel verdient die deutsche Bundeskanzlerin | Geld"
+          }
+        },
+        "q": "angela merkel",
+        "qurl": "https://www.google.com/search?hl=en&q=angela%20merkel",
+        "ctry": "de"
+      }
+    }],
+
+  "mustNotContain": [{ "action": "ads_*" }]
+}

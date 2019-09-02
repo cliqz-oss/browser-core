@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import Eyes from './eyes';
 import Tooltip from './tooltip';
@@ -75,7 +83,6 @@ export default class Antitracking extends React.Component {
   }
 
   openLearnMoreLink = () => {
-    this.props.removeBlurListener();
     trackingInfoClick();
     cliqz.onboarding.openLink('https://cliqz.com/whycliqz/anti-tracking');
   }

@@ -17,11 +17,12 @@
  * (i.e. we remove it from the DB) there are no more monitoring associated.
  */
 
+import moment from '../../platform/lib/moment';
 import logger from '../common/offers_v2_logger';
 import MonitorDBHandler from './monitor/monitor-db';
 import { buildMultiPatternIndexPatternAsID } from '../common/pattern-utils';
 import sendMonitorSignal from './monitor/utils';
-import moment from '../../platform/lib/moment';
+import ActionID from './actions-defs';
 
 const URLCHANGE_TYPE = 'urlchange';
 const WEBREQUEST_TYPE = 'webrequest';
@@ -281,6 +282,55 @@ export default class OffersMonitorHandler {
     // now we detect if the coupon has being used or not here and we send the
     // the according data here
     const activeMonitors = this.monitors[COUPON_TYPE].patterns[couponInfo.pattern];
+    if (!activeMonitors) {
+      return;
+    }
+    const monitor = selectActiveMonitors(activeMonitors)[0];
+    if (!monitor) {
+      return;
+    }
+    monitor.signalID = this._getSignalNameForCouponByMonitors(
+      args.couponValue, activeMonitors
+    );
+    sendMonitorSignal(monitor, this.handlers, args.urlData);
+  }
+
+  addCouponSignal(couponMsg, serializer) {
+    const { offerInfo: couponInfo = {} } = couponMsg;
+    const activeMonitors = this.monitors[COUPON_TYPE].patterns[couponInfo.pattern];
+    if (!activeMonitors) {
+      return;
+    }
+    const monitor = selectActiveMonitors(activeMonitors)[0];
+    if (!monitor) {
+      return;
+    }
+    // Having a coupon, find out if it ours or not
+    let rewrittenMsg = couponMsg;
+    if (couponMsg.type === 'coupon_submitted') {
+      const newType = this._getSignalNameForCouponByMonitors(
+        couponMsg.couponValue, activeMonitors
+      );
+      rewrittenMsg = { ...couponMsg, type: newType };
+      // Send a legacy signal until the backend switches to use of journeys
+      monitor.signalID = newType;
+      sendMonitorSignal(monitor, this.handlers);
+    }
+    // Add to the journey
+    const appendJourney = {
+      offerID: monitor.offerID,
+      params: undefined, // no throttling for coupon journey
+      signalID: ActionID.AID_COUPON_JOURNEY,
+      signalValue: serializer(rewrittenMsg, monitor)
+    };
+    // We don't have `urlData` and can't pass it as third parameter.
+    // It is not a problem because the parameter is used to avoid
+    // signal duplication in case of page reload. Not relevant for
+    // coupon journeys.
+    sendMonitorSignal(appendJourney, this.handlers);
+  }
+
+  _getSignalNameForCouponByMonitors(couponValue, activeMonitors) {
     const couponValues = activeMonitors.map((monitor) => {
       if (monitor.couponInfo && monitor.couponInfo.code) {
         return monitor.couponInfo.code;
@@ -288,12 +338,8 @@ export default class OffersMonitorHandler {
       return undefined;
     }).filter(x => x !== undefined);
 
-    const signalName = getSignalNameForCoupon(couponValues, args.couponValue);
-    const monitor = selectActiveMonitors(activeMonitors)[0];
-    monitor.signalID = signalName;
-    sendMonitorSignal(monitor, this.handlers, args.urlData);
+    return getSignalNameForCoupon(couponValues, couponValue);
   }
-
 
   // ///////////////////////////////////////////////////////////////////////////
   //                             PRIVATE METHODS

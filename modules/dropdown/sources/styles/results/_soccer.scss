@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 $cliqz-blue: #00AEF0;
 $cliqz-dark-blue: #0078CA;
 
@@ -299,7 +307,6 @@ $cliqz-dark-blue: #0078CA;
                                         right: 0;
                                         width: 20%;
                                         height: 1.3em;
-                                        background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 50%);
                                     }
                                 }
 
@@ -355,6 +362,3 @@ $cliqz-dark-blue: #0078CA;
         }
     }
 }
-
-
-

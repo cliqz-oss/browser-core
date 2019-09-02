@@ -34,12 +34,7 @@ export default class Promo extends React.Component {
     const { call_to_action: { url } = {} } = templateData;
     onCopyCode();
     if (!isOpenCTAurl) {
-      send('openURL', {
-        offerId,
-        url,
-        closePopup: false,
-        isBackgroundTab: true,
-      });
+      send('openAndClosePinnedURL', { url, matchPatterns: voucher.landing || [] });
     }
     this.setState({
       buttonText: i18n('offers_hub_code_copy'),
@@ -59,6 +54,8 @@ export default class Promo extends React.Component {
   render() {
     const { products } = this.props;
     const { code, buttonText, copied, isCodeHidden } = this.state;
+    if (!code) { return null; }
+
     const prefix = chooseProduct(products);
     return (
       <div className={_css('wrapper')}>

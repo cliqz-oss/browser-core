@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import telemetry from './base';
 import config from '../../../config';
 
@@ -42,6 +50,15 @@ export function settingsComponentsToggleSignal(component, oldState) {
     state,
   });
 }
+
+export function settingsViewBrowserPrefsSignal() {
+  telemetry({
+    ...settingsBaseSignal,
+    action: 'click',
+    target: 'view_browser_prefs',
+  });
+}
+
 
 export function newsSelectionChangeSignal(country) {
   const state = country || 'automatic';

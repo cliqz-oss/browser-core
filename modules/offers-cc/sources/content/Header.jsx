@@ -28,7 +28,7 @@ export default class Header extends React.Component {
   render() {
     const { products, onClickMenu, activeMenu } = this.props;
     const prefix = chooseProduct(products, { cliqz: true });
-    const labels = { cliqz: 'Cliqz Offers', myoffrz: 'MyOffrz' };
+    const labels = { cliqz: 'Cliqz Offers', myoffrz: 'MyOffrz', chip: 'Sparalarm' };
 
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
@@ -36,7 +36,7 @@ export default class Header extends React.Component {
         <div className={_css('left-item')}>
           <div className={_css(`${prefix}-logo`)} />
           <div className={_css('space')} />
-          <div className={_css('label')}>{labels[prefix] || ''}</div>
+          <div className={_css('label', `${prefix}-label`)}>{labels[prefix] || ''}</div>
         </div>
         <div className={_css('right-item')}>
           <div

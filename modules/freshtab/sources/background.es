@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 /* eslint func-names: 'off' */
 
@@ -13,7 +21,6 @@ import openImportDialog from '../platform/freshtab/browser-import-dialog';
 import logos from '../core/services/logos';
 import events from '../core/events';
 import SpeedDial from './speed-dial';
-import AdultDomain from './adult-domain';
 import background from '../core/base/background';
 import {
   forEachWindow,
@@ -41,11 +48,13 @@ import {
   stripTrailingSlash,
   tryEncodeURIComponent,
   tryDecodeURIComponent,
+  getCleanHost,
 } from '../core/url';
 import { URLInfo } from '../core/url-info';
 import extChannel from '../platform/ext-messaging';
 import { isBetaVersion } from '../platform/platform';
 import moment from '../platform/lib/moment';
+import formatTime from './utils';
 
 const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
@@ -140,7 +149,6 @@ export default background({
 
     this.newTabPage.startup();
 
-    this.adultDomainChecker = new AdultDomain();
     this.settings = settings;
     this.messages = {};
     this.onVisitRemoved = this._onVisitRemoved.bind(this);
@@ -169,18 +177,13 @@ export default background({
     }
     historyWhitelist.forEach((url) => {
       this.core.action(
-        'broadcastMessage',
-        url,
-        {
-          action: 'updateHistoryUrls',
-          message: { urls: removed.urls },
-        }
+        'callContentAction',
+        'history',
+        'updateHistoryUrls',
+        { url },
+        { urls: removed.urls }
       );
     });
-  },
-
-  isAdult(url) {
-    return this.adultDomainChecker.isAdult(URLInfo.get(url).generalDomain);
   },
 
   get blueTheme() {
@@ -207,6 +210,10 @@ export default background({
 
   get isBrowserThemeSupported() {
     return isCliqzBrowser || prefs.get(DEVELOPER_FLAG_PREF, false);
+  },
+
+  get isAllPreferencesLinkSupported() {
+    return isCliqzBrowser;
   },
 
   get tooltip() {
@@ -408,10 +415,8 @@ export default background({
         // hash history urls
         results = results.map(r =>
           ({
-            title: r.title,
-            url: r.url,
+            ...r,
             hashedUrl: hash(r.url),
-            total_count: r.total_count,
             custom: false
           }));
 
@@ -449,7 +454,7 @@ export default background({
         results = results
           .filter(history =>
             !isDeleted(history.hashedUrl) && !isCustom(history.url)
-                    && !this.isAdult(history.url) && !isCliqz(history.url)
+                    && !history.isAdult && !isCliqz(history.url)
                     && !isMozUrl(history.url))
           .map((r) => {
             const dialSpecs = {
@@ -707,7 +712,7 @@ export default background({
           news: newsList.map(r => ({
             title: r.title_hyphenated || r.title,
             description: r.description,
-            displayUrl: URLInfo.get(r.url).cleanHost || r.title,
+            displayUrl: getCleanHost(URLInfo.get(r.url)) || r.title,
             logo: logos.getLogoDetails(r.url),
             url: r.url,
             type: r.type,
@@ -732,23 +737,7 @@ export default background({
           .toLocaleString();
       };
 
-      const formatTime = (ms) => {
-        if (!ms) {
-          return '0 s';
-        }
-
-        const seconds = Math.floor(ms / 1000);
-
-        if (seconds >= 3600) {
-          const hours = Math.floor(seconds / 3600);
-          return `${hours} h`;
-        }
-        if (seconds >= 60) {
-          const minutes = Math.floor(seconds / 60);
-          return `${minutes} min`;
-        }
-        return `${seconds} s`;
-      };
+      const locale = getLanguageFromLocale(i18n.PLATFORM_LOCALE);
 
       let data = [];
       let promoData = {};
@@ -783,7 +772,7 @@ export default background({
           {
             title: `${getMessage('freshtab_stats_time_saved')}`,
             icon: 'images/cliqz-time.svg',
-            val: formatTime((summary.timeSaved || 0) + searchTimeSaved),
+            val: formatTime((summary.timeSaved || 0) + searchTimeSaved, locale),
             description: `${getMessage('freshtab_stats_time_saved_desc')}`,
             link: 'https://cliqz.com/support/privacy-statistics#time-saved',
             disabled: false, // Always active
@@ -792,10 +781,7 @@ export default background({
       } else if (product === 'GHOSTERY') {
         const ghosteryExtId = isChromium
           ? 'mlomiejdfkolichcflejclcbmpeaniij' : 'firefox@ghostery.com';
-        const summary = await new Promise((resolve) => {
-          extChannel.sendMessage(ghosteryExtId, { name: 'getStatsAndSettings' },
-            ({ historicalDataAndSettings } = {}) => resolve(historicalDataAndSettings));
-        });
+        const summary = await extChannel.sendMessage(ghosteryExtId, { name: 'getStatsAndSettings' });
 
         if (summary) {
           // TODO: update links
@@ -885,6 +871,7 @@ export default background({
         browserTheme: await this.browserTheme(),
         isBlueThemeSupported: this.isBlueThemeSupported,
         isBrowserThemeSupported: this.isBrowserThemeSupported,
+        isAllPrefsLinkSupported: this.isAllPreferencesLinkSupported,
         wallpapers: getWallpapers(product),
         product,
         tabIndex,
@@ -977,8 +964,8 @@ export default background({
 
     openImportDialog,
 
-    openPrivacySettings() {
-      chrome.omnibox2.navigateTo('about:preferences#privacy-reports', { target: 'tab' });
+    openBrowserSettings() {
+      chrome.omnibox2.navigateTo('about:preferences', { target: 'tab' });
     },
 
     // The following three actions are used to emit Anolysis metrics about
@@ -1017,12 +1004,11 @@ export default background({
       if (!(id in this.messages)) {
         this.messages[id] = message;
         this.core.action(
-          'broadcastMessage',
-          NEW_TAB_URL,
-          {
-            action: 'addMessage',
-            message,
-          }
+          'callContentAction',
+          'freshtab',
+          'addMessage',
+          { url: NEW_TAB_URL },
+          message,
         );
       }
     },
@@ -1030,12 +1016,11 @@ export default background({
       const id = message.id;
       delete this.messages[id];
       this.core.action(
-        'broadcastMessage',
-        NEW_TAB_URL,
-        {
-          action: 'closeNotification',
-          messageId: id,
-        }
+        'callContentAction',
+        'freshtab',
+        'closeNotification',
+        { url: NEW_TAB_URL },
+        id,
       );
     },
     'geolocation:wake-notification': function onWake() {

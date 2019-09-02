@@ -113,6 +113,7 @@ const ActionID = {
   AID_SUCCESS: 'success',
   AID_PAYMENT: 'payment',
   AID_CART: 'cart',
+  AID_COUPON_JOURNEY: 'coupon_journey',
   AID_COUPON_EMPTY: 'coupon_empty',
   AID_COUPON_OWN_USED: 'coupon_own_used',
   AID_COUPON_OTHER_USED: 'coupon_other_used',
@@ -142,6 +143,7 @@ const ActionID = {
 
   AID_OFFER_FILTERED_GLOBAL_BLACKLIST: 'filtered_by_global_blacklist',
   AID_OFFER_FILTERED_OFFER_BLACKLIST: 'filtered_by_offer_blacklist',
+  AID_OFFER_FILTERED_CHIPDE_SUSPEND_LIST: 'filtered_by_chipde_suspend_list',
   AID_OFFER_FILTERED_COMPETE: 'filtered_by_compete',
 
   AID_OFFER_CC_HIDDEN: 'reward_box_missing_button', // Button hidden by user

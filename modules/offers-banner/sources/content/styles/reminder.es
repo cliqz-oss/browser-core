@@ -40,7 +40,7 @@ export function animate(node, {
     { right: `${last}px` },
   ], {
     duration,
-    easing: 'ease-out'
+    easing: 'ease-out',
   });
   nodeAnimation.onfinish = () => {
     /* eslint-disable-next-line no-param-reassign */

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 html, body {
     margin: 0;
     padding: 0;
@@ -647,6 +655,11 @@ $basic-line-height: (16 / 14) + 0em;
         }
     }
 
+    .history > .weather {
+        overflow-x: scroll;
+        scrollbar-width: thin;
+    }
+
     .history > .result,
     .history > .news-story > .result,
     .result.search,
@@ -895,8 +908,12 @@ $basic-line-height: (16 / 14) + 0em;
                     background: none;
                 }
                 .abstract {
-                    .divider, .url[data-extra="url"] {
-                        visibility: hidden;
+                    .content{
+                        margin-left: 10px;
+
+                        .divider, .url[data-extra="url"] {
+                            visibility: hidden;
+                        }
                     }
                 }
             }

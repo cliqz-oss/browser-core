@@ -1,8 +1,15 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global chai, describeModule */
 /* eslint no-param-reassign: off */
 
-const tldts = require('tldts');
-const punycode = require('punycode');
+const urlImports = require('./utils/url-parser');
 
 class MockPersistantObject {
   load() {
@@ -23,15 +30,15 @@ export default describeModule('core/url-whitelist',
       LazyPersistentObject: MockPersistantObject,
     },
     'platform/environment': {},
-    'platform/lib/tldts': tldts,
-    'platform/lib/punycode': {
-      default: punycode,
+    'platform/globals': {
+      chrome: {},
     },
     'platform/platform': {
       default: {},
       isBetaVersion: () => false,
       isOnionModeFactory: () => (() => false),
-    }
+    },
+    ...urlImports,
   }), function () {
     let urlWhitelist;
 

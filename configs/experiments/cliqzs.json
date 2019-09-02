@@ -8,7 +8,6 @@
     "ATTRACK_TELEMETRY_PROVIDER": "platform",
     "RESULTS_PROVIDER": "https://api.cliqz.com/api/v2/results?q=",
     "RICH_HEADER": "https://api.cliqz.com/api/v2/rich-header?path=/v2/map",
-    "RESULTS_TIMEOUT": 3000,
     "freshTabNews": true,
     "CDN_BASEURL": "https://cdn.cliqz.com",
     "ALLOWED_COUNTRY_CODES": ["de", "at", "ch", "es", "us", "fr", "nl", "gb", "it", "se"],

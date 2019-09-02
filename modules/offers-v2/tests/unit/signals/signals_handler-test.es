@@ -6,6 +6,7 @@
 const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const waitFor = require('../utils/waitfor');
+const EventEmitterMock = require('../utils/event-emitter');
 
 class SenderMock {
   constructor() {
@@ -78,8 +79,9 @@ export default describeModule('offers-v2/signals/signals_handler',
       let SignalHandler;
       let OffersConfigs;
       let PatternsStat;
+      let reemitter;
       const mkPatternsStat = () => {
-        const ps = new PatternsStat(() => ['pattern']);
+        const ps = new PatternsStat(() => ({ getReason: () => ['pattern'] }), reemitter);
         ps.init();
         return ps;
       };
@@ -211,15 +213,28 @@ export default describeModule('offers-v2/signals/signals_handler',
 
       context('basic tests', function () {
         let sm;
-        beforeEach(function () {
+        let sh;
+        let shArgs;
+        beforeEach(async function () {
           sm = new SenderMock();
+          reemitter = new EventEmitterMock();
+          shArgs = {
+            db: {},
+            sender: sm,
+            patternsStat: mkPatternsStat(),
+            journeySignals,
+            signalReEmitter: reemitter,
+            trustedClock: {
+              getMinutesSinceEpochAsync: async () => Date.now() / 1000 / 60
+            },
+          };
+          sh = new SignalHandler(shArgs);
+          await sh.init();
         });
 
         // to test that signals are being properly added we will check when sending
         // to the backend that we get on the mock the proper signal
         it('add campaign signal works', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh._sendSignalsToBE();
@@ -227,8 +242,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('add campaign signal with different counters works', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w0')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh._sendSignalsToBE();
@@ -251,8 +264,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('add action signal works', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh._sendSignalsToBE();
@@ -260,8 +271,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('add action signal with different counters works', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setActionSignal('x', 'y')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh._sendSignalsToBE();
@@ -277,8 +286,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('signal are properly sent when modified', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh._sendSignalsToBE();
@@ -301,8 +308,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('signal are not sent if not modified', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh._sendSignalsToBE();
@@ -324,8 +329,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('proper format is sent for simple campaign signal', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           await sh._sendSignalsToBE();
           chai.expect(sm.signals.length).to.be.equal(1);
@@ -341,7 +344,8 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('signals are persistent', async function () {
           const db = {};
-          let sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          // eslint-disable-next-line no-shadow
+          let sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           await sh._sendSignalsToBE();
@@ -349,7 +353,7 @@ export default describeModule('offers-v2/signals/signals_handler',
           checkCampaignVal(sm.signals[0], 1, 'x', 'y', 'z', 'w');
           sm.clear();
           await sh.destroy();
-          sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           await sh._sendSignalsToBE();
           chai.expect(sm.signals.length, 'signals length is 0?').to.be.equal(0);
@@ -362,12 +366,13 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('signals are sent if werent after loading', async function () {
           const db = {};
-          let sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          // eslint-disable-next-line no-shadow
+          let sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh.destroy();
-          sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh._sendSignalsToBE();
@@ -377,7 +382,8 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('signals are not sent twice after loading', async function () {
           const db = {};
-          const sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          // eslint-disable-next-line no-shadow
+          const sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           await sh.destroy();
@@ -385,7 +391,7 @@ export default describeModule('offers-v2/signals/signals_handler',
           chai.expect(sm.signals.length).to.be.equal(1);
           sm.clear();
           await sh.destroy();
-          const sh2 = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          const sh2 = new SignalHandler({ ...shArgs, db });
           await sh2.init();
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh2._sendSignalsToBE();
@@ -398,7 +404,8 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('seq number is properly sent', async function () {
           const db = {};
-          const sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          // eslint-disable-next-line no-shadow
+          const sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           let expectedSeq = 0;
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
@@ -429,7 +436,8 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('seq number is properly stored (persistence)', async function () {
           const db = {};
-          let sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          // eslint-disable-next-line no-shadow
+          let sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           let expectedSeq = 0;
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
@@ -438,7 +446,7 @@ export default describeModule('offers-v2/signals/signals_handler',
           checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
           sm.clear();
           await sh.destroy();
-          sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           await sh._sendSignalsToBE();
@@ -449,7 +457,8 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('seq number is properly stored (after sent and save)', async function () {
           const db = {};
-          const sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          // eslint-disable-next-line no-shadow
+          const sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           let expectedSeq = 0;
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
@@ -459,7 +468,7 @@ export default describeModule('offers-v2/signals/signals_handler',
           checkCampaignSeq(sm.signals[0], expectedSeq, 'x');
           sm.clear();
           await sh.destroy();
-          const sh2 = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          const sh2 = new SignalHandler({ ...shArgs, db });
           await sh2.init();
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh2._sendSignalsToBE();
@@ -473,8 +482,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('multiple campaigns signals are sent separately', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x2', 'y2', 'z2', 'w2')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x3', 'y3', 'z3', 'w3')).to.be.equal(true);
@@ -491,8 +498,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('multiple campaigns signals have unique ucid', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           const totSigs = 100;
           for (let i = 0; i < totSigs; i += 1) {
             const cid = `cid_${i}`;
@@ -530,8 +535,6 @@ export default describeModule('offers-v2/signals/signals_handler',
 
 
         it('removeCampaignSignals: generates a new ucid after erasing', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           await sh._sendSignalsToBE();
           const ucid1 = getCampaignUCID(sm.signals[0], 'x');
@@ -545,8 +548,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('removeCampaignSignals: force send signal works', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           await sh.sendCampaignSignalNow('x');
           sh.removeCampaignSignals('x');
@@ -558,8 +559,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('removeCampaignSignals: same signal after removal starts again', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
           await sh._sendSignalsToBE();
@@ -574,8 +573,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('removeCampaignSignals: removing a campaign doesnt affects others', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           chai.expect(sh.setCampaignSignal('x', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sh.setCampaignSignal('x2', 'y', 'z', 'w')).to.be.equal(true);
           chai.expect(sm.signals.length).to.be.equal(0);
@@ -594,19 +591,18 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('/Forward signals to pattern statistics', async () => {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
-          const fwdSignal = sinon.mock();
-          sh.patternsStat.reinterpretCampaignSignalAsync = fwdSignal;
+          const ps = new PatternsStat(() => ({ getReason: () => ['pattern'] }), reemitter);
+          const fwdSignal = sinon.spy(ps, 'reinterpretCampaignSignalAsync');
+          ps.init();
+          const sh2 = new SignalHandler({ ...shArgs, patternsStat: ps });
+          await sh2.init();
 
-          sh.setCampaignSignal('x', 'y', 'z', 'w');
+          sh2.setCampaignSignal('cid', 'oid', 'origin', 'sid');
 
-          chai.expect(fwdSignal).calledWithExactly('x', 'y', 'w');
+          await waitFor(() => chai.expect(fwdSignal).calledWithExactly('sid', 'cid', 'oid'));
         });
 
         it('Send pattern statistics signals to backend', async () => {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           sh.patternsStat.offerIdToReason = () => ({
             getReason: () => [{ pattern: 'samplePattern', domainHash: 'fa14' }]
           });
@@ -632,19 +628,67 @@ export default describeModule('offers-v2/signals/signals_handler',
           chai.expect(requests).to.deep.contain(sampleRequest('landing'));
           chai.expect(requests).to.deep.contain(sampleRequest('offer_triggered'));
         });
+
+        context('/reinterpret signals', () => {
+          let saveMock;
+          let sendMock;
+
+          beforeEach(function () {
+            saveMock = sinon.spy(sh, '_savePersistenceData');
+            sendMock = sinon.spy(sh, '_sendSignalsToBE');
+          });
+
+          afterEach(function () {
+            sendMock.restore();
+            saveMock.restore();
+          });
+
+          it('/ persist immediately for important signals', async () => {
+            sh.setCampaignSignal('cid', 'oid', 'z', 'not-important');
+            sh.setCampaignSignal('cid', 'oid', 'z', 'cart');
+            sh.setCampaignSignal('cid', 'oid', 'z', 'landing');
+            sh.setCampaignSignal('cid', 'oid', 'z', 'payment');
+            sh.setCampaignSignal('cid', 'oid', 'z', 'success');
+
+            await waitFor(() => chai.expect(saveMock.callCount).to.eq(4));
+          });
+
+          it('/ send immediately on conversion', async () => {
+            sh.setCampaignSignal('cid', 'oid', 'z', 'cart');
+            sh.setCampaignSignal('cid', 'oid', 'z', 'payment');
+            await waitFor(() => chai.expect(saveMock.callCount).to.eq(2));
+            chai.expect(sendMock).not.to.be.called;
+
+            sh.setCampaignSignal('cid', 'oid', 'z', 'success');
+
+            await waitFor(() => chai.expect(sendMock).to.be.calledOnce);
+          });
+        });
       });
 
       context('retry sending signals', function () {
         let sm;
-        beforeEach(function () {
+        let sh;
+        let shArgs;
+        beforeEach(async function () {
           sm = new SenderMock();
           sm.makeSentFail(true);
           sm.makeAsync(true);
+          shArgs = {
+            db: {},
+            sender: sm,
+            patternsStat: mkPatternsStat(),
+            journeySignals,
+            signalReEmitter: reemitter,
+            trustedClock: {
+              getMinutesSinceEpochAsync: async () => Date.now() / 1000 / 60
+            },
+          };
+          sh = new SignalHandler(shArgs);
+          await sh.init();
         });
 
         it('retry sending a signal no more than 3 times', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
 
           await sh._sendSignalsToBE();
@@ -666,8 +710,6 @@ export default describeModule('offers-v2/signals/signals_handler',
 
 
         it('2 failed attempts followed by 1 success attempt. Then nothing will be sent', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           await sh._sendSignalsToBE();
 
@@ -691,8 +733,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('2 signals - retry sending each signal no more than 3 times', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           sh.setCampaignSignal('x2', 'y2', 'z2', 'w2');
 
@@ -719,7 +759,8 @@ export default describeModule('offers-v2/signals/signals_handler',
 
         it('fail, close, save , load, sending success, sending nothing', async function () {
           const db = {};
-          let sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          // eslint-disable-next-line no-shadow
+          let sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           await sh._sendSignalsToBE();
@@ -728,7 +769,7 @@ export default describeModule('offers-v2/signals/signals_handler',
           checkCampaignVal(sm.errSignals[0], 1, 'x', 'y', 'z', 'w');
           sh.destroy();
 
-          sh = new SignalHandler(db, sm, mkPatternsStat(), journeySignals);
+          sh = new SignalHandler({ ...shArgs, db });
           await sh.init();
           sm.makeSentFail(false);
           await sh._sendSignalsToBE();
@@ -737,8 +778,6 @@ export default describeModule('offers-v2/signals/signals_handler',
         });
 
         it('3 failed attempts, modify, failed attempts, send success', async function () {
-          const sh = new SignalHandler({}, sm, mkPatternsStat(), journeySignals);
-          await sh.init();
           sh.setCampaignSignal('x', 'y', 'z', 'w');
           await sh._sendSignalsToBE();
           chai.expect(sm.errSignals.length).eql(1);

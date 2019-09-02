@@ -1,29 +1,35 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window */
-import Spanan from 'spanan';
-import checkIfChromeReady from '../../core/content/ready-promise';
-import createSpananForModule from '../../core/helpers/spanan-module-wrapper';
+
+import RemoteActionProvider from '../../core/helpers/remote-action-provider';
+import createModuleWrapper from '../../core/helpers/action-module-wrapper';
 
 class Cliqz {
   constructor() {
-    const freshtab = createSpananForModule('freshtab');
-    const core = createSpananForModule('core');
-    const search = createSpananForModule('search');
-    const controlCenter = createSpananForModule('control-center');
-    const antiPhishing = createSpananForModule('anti-phishing');
-    const api = new Spanan();
-    const cliqz = this;
     this.state = {};
 
-    this.export = api.export;
+    // Bridge this context with background
+    this.freshtab = createModuleWrapper('freshtab');
+    this.core = createModuleWrapper('core');
+    this.search = createModuleWrapper('search');
+    this.controlCenter = createModuleWrapper('control-center');
+    this.antiPhishing = createModuleWrapper('anti-phishing');
 
-    api.export({
-      renderResults(response) {
-        cliqz.storage.setState(() => ({
+    this.actions = new RemoteActionProvider('freshtab', {
+      renderResults: (response) => {
+        this.storage.setState(() => ({
           results: response.results,
         }));
       },
-      closeNotification(messageId) {
-        cliqz.storage.setState((prevState) => {
+      closeNotification: (messageId) => {
+        this.storage.setState((prevState) => {
           const messages = Object.assign({}, prevState.messages);
           delete messages[messageId];
           return {
@@ -31,65 +37,21 @@ class Cliqz {
           };
         });
       },
-      addMessage(message) {
-        cliqz.storage.setState(prevState => ({
+      addMessage: (message) => {
+        this.storage.setState(prevState => ({
           messages: {
             ...prevState.messages,
             [message.id]: message,
           }
         }));
       }
-    }, {
-      filter(message) {
-        return Object.keys(this.actions).indexOf(message.action) >= 0;
-      },
-      transform: (message) => {
-        if (message.action === 'closeNotification') {
-          return {
-            action: message.action,
-            args: [message.messageId],
-          };
-        }
-        if (message.action === 'addMessage') {
-          return {
-            action: message.action,
-            args: [message.message],
-          };
-        }
-        return message;
-      }
     });
 
-    const onMessage = (message) => {
-      const msg = {
-        ...message,
-        uuid: message.requestId,
-      };
+    this.actions.init();
 
-      core.handleMessage(msg);
-      freshtab.handleMessage(msg);
-      controlCenter.handleMessage(msg);
-      search.handleMessage(msg);
-      api.handleMessage(msg);
-      antiPhishing.handleMessage(msg);
-    };
-
-    checkIfChromeReady().then(() => {
-      chrome.runtime.onMessage.addListener(onMessage);
-
-      window.addEventListener('unload', () => {
-        chrome.runtime.onMessage.removeListener(onMessage);
-      });
-    }).catch((ex) => {
-      // eslint-disable-next-line no-console
-      console.error('Chrome was never ready', ex);
-    });
-
-    this.freshtab = freshtab.createProxy();
-    this.core = core.createProxy();
-    this.search = search.createProxy();
-    this.controlCenter = controlCenter.createProxy();
-    this.antiPhishing = antiPhishing.createProxy();
+    window.addEventListener('unload', () => {
+      this.actions.unload();
+    }, { once: true });
   }
 
   setStorage(storage) {
