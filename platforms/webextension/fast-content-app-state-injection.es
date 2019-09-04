@@ -116,7 +116,10 @@ class FirefoxInjection {
         code: generateContentScript(cliqz),
       }],
       runAt: 'document_start',
-      matches: ['<all_urls>'],
+      matches: [
+        'http://*/*',
+        'https://*/*',
+      ],
     });
   }
 }
