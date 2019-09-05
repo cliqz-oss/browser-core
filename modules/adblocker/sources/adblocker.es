@@ -147,7 +147,7 @@ export default class Adblocker {
       return false;
     }
 
-    // Make sure page is not white-listed
+    // Make sure page is not whitelisted
     if (
       context.tabUrl
       && context.tabUrlParts !== null
@@ -169,12 +169,12 @@ export default class Adblocker {
    * engine decides.
    */
   onBeforeRequest(context, response) {
-    if (context.isMainFrame) {
-      this.stats.addNewPage(context);
+    if (this.shouldProcessRequest(context, response) === false) {
       return false;
     }
 
-    if (this.shouldProcessRequest(context, response) === false) {
+    if (context.isMainFrame) {
+      this.stats.addNewPage(context);
       return false;
     }
 
