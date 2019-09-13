@@ -593,7 +593,7 @@ export default class App {
       prefs.set(prefName, false);
     }
 
-    if (module.isDisabled || !this.isRunning) {
+    if (module.isNotInitialized || module.isDisabled || !this.isRunning) {
       return Promise.resolve();
     }
 
