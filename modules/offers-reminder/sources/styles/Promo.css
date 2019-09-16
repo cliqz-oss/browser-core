@@ -13,7 +13,7 @@
 
 .promo__input {
   border: none;
-  width: 103px;
+  width: 98px;
   color: #464646;
   text-shadow: 0 0 0 #000;
   background-color: transparent;
@@ -35,7 +35,7 @@
   display: inline-block;
   margin-right: 8px;
   cursor: pointer;
-  white-space: nowrap;
+  text-align: right;
 }
 
 .promo__myoffrz-copy-code:hover {

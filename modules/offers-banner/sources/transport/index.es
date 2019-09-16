@@ -61,6 +61,7 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
       rewardBox.callToAction(payload);
       openLink(window, payload.url, true, !payload.isBackgroundTab);
     },
+    openAndClosePinnedURL: rewardBox.openAndClosePinnedURL,
     openOptions: () => openLink(window, `/options.html#${chooseProduct(products())}`, true, true),
   };
 
@@ -68,6 +69,7 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
     sendTelemetry: payload => commonTelemetry(payload, 'reminder'),
     remindersAction: reminder.actions,
     sendOfferActionSignal: rewardBox.actions,
+    openAndClosePinnedURL: rewardBox.openAndClosePinnedURL,
   };
   const mapper = {
     'offers-cc': mapperRewardBox,

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 @import 'variables';
 
 .cliqz-post {
@@ -132,15 +140,6 @@
 		}
 	}
 
-	.link-button {
-		margin-top: 5px;
-		border: none;
-		background: none;
-		color: #00AEF0;
-		font-size: 13.5px;
-		cursor: pointer;
-	}
-
 	.footer {
 		padding: 0 18px 14px 18px;
 		height: 29px;
@@ -261,6 +260,3 @@
 	bottom: 30px;
 	right: 60px;
 }
-
-
-

@@ -1,6 +1,5 @@
 /* eslint no-param-reassign: off */
 
-import moment from '../../platform/lib/moment';
 import prefs from '../../core/prefs';
 import inject from '../../core/kord/inject';
 import ActionID from '../offers/actions-defs';
@@ -9,20 +8,15 @@ import logger from '../common/offers_v2_logger';
 import { isDeveloper } from '../utils';
 
 const addOrCreate = (d, field, value = 1) => {
-  const newValue = d[field] ? d[field] + value : value;
+  let newValue = d[field] ? d[field] + value : value;
+  if (newValue.length > 512) {
+    newValue = `*CUT*${newValue.substring(newValue.length - 128)}`;
+  }
   d[field] = newValue;
 };
 
 // (EX-4191) Fix hpn-ts format to "yyyyMMdd"
 const getHpnTimeStamp = () => prefs.get('config_ts', '19700101');
-
-const getMinuteTimestamp = () => {
-  const today = +moment(getHpnTimeStamp(), 'YYYYMMDD');
-  const todayInMinutes = Math.floor(today / 1000 / 60);
-  const now = new Date();
-  const result = todayInMinutes + now.getHours() * 60 + now.getMinutes();
-  return result;
-};
 
 const _modifyOriginDataInplace = (originData) => {
   const m = new Set(Object.values(ActionID));
@@ -48,7 +42,7 @@ const _modifySignalDataInplace = (data) => {
   });
 };
 
-const constructSignal = (signalID, signalType, signalData, gid) => {
+const constructSignal = (signalID, signalType, signalData, gid, timestamp) => {
   const tmp = JSON.parse(JSON.stringify(signalData || {})); // deep copy
   _modifySignalDataInplace(tmp);
   return {
@@ -61,9 +55,14 @@ const constructSignal = (signalID, signalType, signalData, gid) => {
       is_developer: isDeveloper(),
       gid,
       type: signalType,
-      sent_ts: getMinuteTimestamp(),
-      abtest_popups_tmpl: prefs.get('offers-popup.type', 'card'),
+      sent_ts: timestamp,
       data: tmp,
+
+      // with-image | with-no-image
+      abtest_popups_tmpl: prefs.get('offers-popup.image', 'with-image'),
+
+      // current | one-step | two-step
+      abtest_popups_copy_code: prefs.get('offers-popup.copy-code', 'current'),
     },
   };
 };
@@ -71,6 +70,5 @@ const constructSignal = (signalID, signalType, signalData, gid) => {
 export {
   addOrCreate,
   constructSignal,
-  getHpnTimeStamp,
-  getMinuteTimestamp
+  getHpnTimeStamp
 };

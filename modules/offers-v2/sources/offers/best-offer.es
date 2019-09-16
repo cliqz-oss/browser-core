@@ -25,8 +25,8 @@ function getWeightedReward(offer, envCategoryWeighter) {
     envCategoryWeighter.weightsIter(cats),
     item => item[1]
   );
-  const totalWeight = envCatWeights.reduce((a, b) => a + b, 0);
-  return offer.getReward() * totalWeight;
+  const reducedWeight = Math.max.apply(null, envCatWeights);
+  return offer.getReward() * reducedWeight;
 }
 
 /**

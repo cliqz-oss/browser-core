@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 'use strict';
 
 const fs = require('fs');
@@ -68,7 +76,7 @@ function createBuildWatcher(port) {
 
   // maybe we can run watcher without server
   // but then we will have to copy build artifacts to 'output' folder
-  const server = broccoli.server.serve(watcher, '0.0.0.0', port || 4300);
+  const server = broccoli.server.serve(watcher, '127.0.0.1', port || 4300);
 
   return server.watcher;
 }

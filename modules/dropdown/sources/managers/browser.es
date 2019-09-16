@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* globals Components */
 import Spanan from 'spanan';
 import BaseDropdownManager from './base';
@@ -5,6 +13,7 @@ import { isUrl } from '../../core/url';
 import {
   PASSIVE_EVENTS,
   PREVENTABLE_EVENTS,
+  TAB_CHANGE_EVENTS,
   PASSIVE_LISTENER_OPTIONS,
   PREVENTABLE_LISTENER_OPTIONS,
   stopEvent,
@@ -32,6 +41,9 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     PREVENTABLE_EVENTS.forEach(eventName =>
       this.urlbar.addEventListener(eventName, this, PREVENTABLE_LISTENER_OPTIONS));
     this.window.gURLBar.goButton.addEventListener('click', stopEvent, true);
+    const tabContainer = this.window.gBrowser.tabContainer;
+    TAB_CHANGE_EVENTS.forEach(eventName =>
+      tabContainer.addEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
 
     this.shortcutAPI.on('click', this._onShortcutClicked);
   }
@@ -45,6 +57,9 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       this.urlbar.removeEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
     PREVENTABLE_EVENTS.forEach(eventName =>
       this.urlbar.removeEventListener(eventName, this, PREVENTABLE_LISTENER_OPTIONS));
+    const tabContainer = this.window.gBrowser.tabContainer;
+    TAB_CHANGE_EVENTS.forEach(eventName =>
+      tabContainer.removeEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
   }
 
   createIframeWrapper() {
@@ -295,6 +310,13 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
           // Update completion
           mInputField.setSelectionRange(start + 1, mInputField.value.length);
         }
+        break;
+      }
+      // EX-9184: Opening, closing or switching tab should collapse the dropdown
+      // (but don't reset search session as long as the urlbar is in focus)
+      case 'TabClose':
+      case 'TabSelect': {
+        this.collapse();
         break;
       }
       default:

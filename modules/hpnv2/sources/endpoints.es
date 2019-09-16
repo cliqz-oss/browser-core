@@ -1,8 +1,16 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import config from '../core/config';
-import { fetch, Headers, Response } from '../core/http';
+import { fetch, Headers, Response, AbortController } from '../core/http';
 import random, { randomInt } from '../core/crypto/random';
 import logger from './logger';
-import { TransportError, ServerError, NotReadyError } from './errors';
+import { TransportError, ServerError, NotReadyError, MsgTimeoutError } from './errors';
 import { VERSION, ECDH_P256_AES_128_GCM } from './constants';
 import { inflate } from '../core/zlib';
 import { fromUTF8, toUTF8, toByteArray, toBase64, fromBase64 } from '../core/encoding';
@@ -11,6 +19,7 @@ import LRU from '../core/LRU';
 import pacemaker from '../core/services/pacemaker';
 
 const MAX_PROXY_BUCKETS = 10;
+const SECOND = 1000;
 
 const { subtle } = crypto;
 
@@ -69,9 +78,29 @@ async function encrypt(data, serverPublicKey) {
   return { iv, encrypted, clientPublicKey: await exportKey(clientPublicKey), aesKey };
 }
 
-async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs = 10000 } = {}) {
+function toRelativeTimeout(absoluteTimeout) {
+  if (!absoluteTimeout) {
+    return { timeoutInMs: undefined, isExpired: false };
+  }
+
+  const timeoutInMs = absoluteTimeout - Date.now();
+  return { timeoutInMs, isExpired: timeoutInMs <= 0 };
+}
+
+async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs } = {}) {
+  // eslint-disable-next-line no-param-reassign
+  timeoutInMs = timeoutInMs || (60 * SECOND);
+
+  const abortController = new AbortController();
   const headers = new Headers({ Version: VERSION.toString() });
-  const options = { method, headers, credentials: 'omit', cache: 'no-store', redirect: 'manual' };
+  const options = {
+    method,
+    headers,
+    credentials: 'omit',
+    cache: 'no-store',
+    redirect: 'manual',
+    signal: abortController.signal
+  };
 
   if (body instanceof ArrayBuffer || ArrayBuffer.isView(body)) {
     options.headers.append('Content-Type', 'application/octet-stream');
@@ -97,7 +126,10 @@ async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs 
   }
 
   return new Promise(async (resolve, reject) => {
-    const timer = pacemaker.setTimeout(() => reject(new TransportError('timeout')), timeoutInMs);
+    const timer = pacemaker.setTimeout(() => {
+      reject(new MsgTimeoutError(`Exceeded timeout of ${timeoutInMs / 1000} sec`));
+      abortController.abort();
+    }, timeoutInMs);
     try {
       let response;
       try {
@@ -178,12 +210,28 @@ export default class Endpoints {
     }
     this.sendTimer = pacemaker.setTimeout(() => {
       const n = Math.floor(random() * this.messages.length);
-      const { url, msg, cnt, publicKey, resolve, reject } = this.messages.splice(n, 1)[0];
+      const {
+        url,
+        msg,
+        cnt,
+        publicKey,
+        resolve,
+        reject,
+        absoluteTimeout
+      } = this.messages.splice(n, 1)[0];
       myfetch(url, { method: 'POST', body: msg, publicKey })
         .then(resolve, (e) => {
           if (cnt < this.maxRetries) {
             logger.log('Will retry sending msg after error', e);
-            this.messages.push({ url, msg, cnt: cnt + 1, publicKey, resolve, reject });
+            this.messages.push({
+              url,
+              msg,
+              cnt: cnt + 1,
+              publicKey,
+              resolve,
+              reject,
+              absoluteTimeout
+            });
           } else {
             logger.warn('_scheduleSend failed (gave up after', this.maxRetries,
               'retry attempts)', e);
@@ -201,7 +249,7 @@ export default class Endpoints {
 
   // When defined, proxyBucket is random string or number, "big enough" to avoid collisions
   // Same proxyBucket will be routed via same proxy (e.g. for search queries)
-  async send(msg, { instant, proxyBucket, publicKey } = {}) {
+  async send(msg, { instant, proxyBucket, publicKey, absoluteTimeout } = {}) {
     const MIN_PROXY_NUM = 1;
     const MAX_PROXY_NUM = 100;
     const NUM_PROXIES = MAX_PROXY_NUM - MIN_PROXY_NUM + 1;
@@ -214,7 +262,12 @@ export default class Endpoints {
 
     if (instant) {
       try {
-        const response = await myfetch(url, { method: 'POST', body: msg, publicKey });
+        const { timeoutInMs, isExpired } = toRelativeTimeout(absoluteTimeout);
+        if (isExpired) {
+          throw new MsgTimeoutError('dropping request because the absolute timeout expired');
+        }
+
+        const response = await myfetch(url, { method: 'POST', body: msg, publicKey, timeoutInMs });
         let data = new Uint8Array(await response.arrayBuffer());
         if (data[0] !== 0x7B) {
           const size = (new DataView(data.buffer)).getUint32();
@@ -232,7 +285,7 @@ export default class Endpoints {
 
     // non-instance message
     const pendingSend = new Promise((resolve, reject) => {
-      this.messages.push({ url, msg, cnt: 0, publicKey, resolve, reject });
+      this.messages.push({ url, msg, cnt: 0, publicKey, resolve, reject, absoluteTimeout });
     });
     this._scheduleSend();
 
@@ -249,8 +302,8 @@ export default class Endpoints {
     return response.json();
   }
 
-  async getConfig({ timeoutInMs = 15000 } = {}) {
-    return (await myfetch(this.ENDPOINT_HPNV2_CONFIG, { timeoutInMs })).json();
+  async getConfig() {
+    return (await myfetch(this.ENDPOINT_HPNV2_CONFIG)).json();
   }
 
   unload() {

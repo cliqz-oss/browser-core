@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import cliqz from '../cliqz';
@@ -26,7 +34,6 @@ export default class TopMessages extends React.Component {
   handleLaterClick(message) {
     messageSkipSignal(message.id);
     cliqz.freshtab.skipMessage(message);
-    this.container.remove();
   }
 
   handleCloseClick(message) {
@@ -86,11 +93,13 @@ export default class TopMessages extends React.Component {
                           className="later-btn"
                           label={message.later_text}
                           onClick={() => this.handleLaterClick(message)}
-                        />)
+                        />
+                      )
                     }
                   </div>
                 </div>
-              </div>))
+              </div>
+            ))
         }
       </div>
     );

@@ -6,55 +6,55 @@
         "message": "Toujours demander"
     },
     "control_center_adblock_advertisers": {
-        "message": "List of advertisers on this page"
+        "message": "Liste des régies publicitaires sur cette page"
     },
     "control_center_adblock_description": {
-        "message": "ads have been blocked on this website"
+        "message": "publicités ont été bloquées sur ce site"
     },
     "control_center_adblock_description_off_all": {
-        "message": "Turned off for all websites"
+        "message": "Désactivé partout"
     },
     "control_center_adblock_description_off_domain": {
-        "message": "Turned off for this domain"
+        "message": "Désactivé sur ce site"
     },
     "control_center_adblock_description_off_website": {
-        "message": "Turned off for this page"
+        "message": "Désactivé sur cette page"
     },
     "control_center_adblock_title": {
         "message": "Ad-block"
     },
     "control_center_all_sites": {
-        "message": "All websites"
+        "message": "Tous les sites"
     },
     "control_center_backend_country": {
-        "message": "Search results for"
+        "message": "Obtenir des résultats pour"
     },
     "control_center_check_hideMyIP": {
-        "message": "Hide My IP"
+        "message": "Masquer mon IP"
     },
     "control_center_check_strict": {
         "message": "Strict"
     },
     "control_center_clear_trCache": {
-        "message": "Clear Tracking Cache"
+        "message": "Vider le cache"
     },
     "control_center_datapoints": {
-        "message": "private data points have been removed"
+        "message": "données personnelles ont été protégées"
     },
     "control_center_datapoints_inactive": {
-        "message": "Turned off for this domain"
+        "message": "Désactivé pour ce site"
     },
     "control_center_datapoints_off": {
-        "message": "Turned off for all websites"
+        "message": "Désactivé partout"
     },
     "control_center_disabled": {
-        "message": "Disabled"
+        "message": "Désactivé"
     },
     "control_center_enabled": {
-        "message": "Enabled"
+        "message": "Activé"
     },
     "control_center_explicit": {
-        "message": "Block adult websites"
+        "message": "Bloquer les sites au contenu explicite"
     },
     "control_center_footer": {
         "message": "POWERED BY CLIQZ"
@@ -63,73 +63,67 @@
         "message": "Human Web"
     },
     "control_center_icon_tooltip": {
-        "message": "Cliqz Control Center"
+        "message": "Centre de Contrôle Cliqz"
     },
     "control_center_info_ads": {
-        "message": "You can choose to block or show advertisements on all or selected websites."
+        "message": "Vous pouvez choisir debloquer ou autoriser les publicités sur tous ou un selection de sites"
     },
     "control_center_info_ads_title": {
         "message": "Ad-block"
     },
     "control_center_info_cliqz_tab": {
-        "message": "Cliqz Tab enhances new tabs with short-cuts to your most visited and favorite websites, and curated top news to keep you up to speed."
+        "message": "Cliqz Tab améliore votre page d'accueil avec des raccourcis vers vos sites favoris et des actualités continuellement mises à jour."
     },
     "control_center_info_explicit": {
-        "message": "Would you like to block websites with explicit content from the search results?"
+        "message": "Voulez-vous retirer les sites au contenu explicite de vos résultats de recherche ?"
     },
     "control_center_info_explicit_title": {
-        "message": "Block adult websites"
+        "message": "Bloquer les sites au contenu explicite"
     },
     "control_center_info_forget_mode": {
-        "message": "Websites that contain explicit content are automatically opened in Forget tabs. Visits to such sites are therefore not saved to your history."
+        "message": "Les sites au contenu explicite sont automatiquement ouverts en mode Forget tabs. Les pages visitées sur ces sites ne sont donc pas enregistrées dans votre historique de navigation."
     },
     "control_center_info_forget_mode_title": {
         "message": "Automatic Forget Mode"
     },
     "control_center_info_hpn": {
-        "message": "If you wish to hide your IP address while searching the web, you can send your search queries through a network of proxy servers."
+        "message": "Si vous souhaitez masquer votre addresse IP lorsque vous effectuez des recherches, vous pouvez relayer vos requêtes au travers d'un réseau de serveurs proxy."
     },
     "control_center_info_hpn_title": {
         "message": "Search via proxy"
     },
     "control_center_info_https": {
-        "message": "This function is provided by the open-source service HTTPS Everywhere. It improves the level of security by forcing encrypted HTTPS connections to websites whenever possible."
+        "message": "Cette fonctionnalité est fournie par le service open-source HTTPS Everywhere. Elle permet d'augmenter le niveau de sécurité en forcant les connexions à être chiffrées grâce à HTTPS."
     },
     "control_center_info_https_title": {
-        "message": "Prefer HTTPS"
+        "message": "Préférer HTTPS"
     },
     "control_center_info_hw": {
-        "message": "The Human Web technology collects anonymized data of search queries and website visits by the community of users. It uses this data to build the web index that feeds the search function."
+        "message": "La technologie Human Web collecte des données anonymes sur les sites visités par la communauté d'utilisateurs. Ces données sont utilisées afin d'améliorer le moteur de recherche accessible depuis le navigateur."
     },
     "control_center_info_hw_title": {
         "message": "Human Web"
     },
     "control_center_info_phishing": {
-        "message": "This technology identifies and blocks deceptive websites that try to get your passwords or account data."
+        "message": "Cette technologie identifie et bloque les sites malveillants qui essaieraient de voler vos identifiants et mots de passe."
     },
     "control_center_info_phishing_title": {
         "message": "Anti-Phishing"
     },
     "control_center_info_share_location": {
-        "message": "You will see the most relevant search results by setting \"Share location\" to <strong>\"Always\"</strong>. Location data is used solely to automatically enhance search results."
+        "message": "Vous obtiendrez les résultats de recherche les plus pertinents en sélectionnant <strong>« Toujours »</strong>"
     },
     "control_center_info_share_location_link": {
-        "message": "Learn more"
+        "message": "En savoir plus"
     },
     "control_center_info_share_location_title": {
-        "message": "Share location"
+        "message": "Partager votre localisation"
     },
     "control_center_info_trackers": {
-        "message": "Integrated trackers record user activities on and across most websites. Anti-Tracking removes all data that could be used to identify you before it can be collected by these trackers. The figure shows how many data points have been removed on the active site."
+        "message": "Les traqueurs enregistrent votre activié sur les sites visités. Anti-Tracking retire toutes les données personnelles avant qu'elles ne puissent être collectées par les traqueurs. Le nombre correspond à la quantité de données personnelles ayant été protégées sur ce site."
     },
     "control_center_location": {
-        "message": "Share location"
-    },
-    "control_center_offers_location": {
-        "message": "Show local MyOffrz"
-    },
-    "control_center_offers_location_info": {
-        "message": "Don’t miss any local offers! Your location is used on a city or district level. It is not stored on any server, and is only used locally on your computer."
+        "message": "Partager votre localisation"
     },
     "control_center_offers_options": {
         "message": "MyOffrz Options"
@@ -141,19 +135,19 @@
         "message": "Receive attractive discounts and bargains! MyOffrz only shows relevant content to you. It is developed according to the most stringent data privacy standards. None of your personal data is stored on any server."
     },
     "control_center_open": {
-        "message": "Open"
+        "message": "Ouvrir"
     },
     "control_center_othersettings": {
-        "message": "Settings"
+        "message": "Paramètres"
     },
     "control_center_phishing_deceptive_not": {
-        "message": "Not reported as deceptive"
+        "message": "Ce site n'est pas malfaisant"
     },
     "control_center_phishing_report": {
-        "message": "Report phishing Site"
+        "message": "Reporter ce site"
     },
     "control_center_privacy_policy": {
-        "message": "Privacy Policy"
+        "message": "Politique de confidentialité"
     },
     "control_center_proxy": {
         "message": "Search via proxy"
@@ -162,16 +156,16 @@
         "message": "Safe Ghost-Search"
     },
     "control_center_report_url": {
-        "message": "Report URL"
+        "message": "Reporter URL"
     },
     "control_center_search_engine": {
-        "message": "Alternative search engine"
+        "message": "Autres moteurs de recherche"
     },
     "control_center_searchoptions": {
-        "message": "Search Options"
+        "message": "Options de recherche"
     },
     "control_center_support": {
-        "message": "Support"
+        "message": "Aide"
     },
     "control_center_switch_off": {
         "message": "OFF"
@@ -180,28 +174,28 @@
         "message": "ON"
     },
     "control_center_telemetry": {
-        "message": "Share anonymous data"
+        "message": "Partager des statistiques anonymes"
     },
     "control_center_telemetry_info": {
-        "message": "Strictly anonymous technical and interaction data is collected. Personally identifiable information (“PII”) is never transferred."
+        "message": "Seules les données techniques et d'intéraction strictement anonymes seront collectées. Les informations permettant une identification personnelle se sont jamais transférées."
     },
     "control_center_this_domain": {
-        "message": "This domain"
+        "message": "Ce site"
     },
     "control_center_this_site": {
-        "message": "This page"
+        "message": "Cette page"
     },
     "control_center_trackers": {
-        "message": "Tracking companies on this page"
+        "message": "Traqueurs sur cette page"
     },
     "control_center_transparency": {
-        "message": "Transparency Monitor"
+        "message": "Cockpit de transparence"
     },
     "control_center_txt_header": {
-        "message": "Your data is protected"
+        "message": "Vos données sont protégées"
     },
     "control_center_txt_header_not": {
-        "message": "Your data is not protected"
+        "message": "Vos données ne sont pas protégées"
     },
     "never": {
         "message": "Jamais"

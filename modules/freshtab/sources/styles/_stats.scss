@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 @import 'variables';
 
 @mixin stats (
@@ -153,6 +161,7 @@
             font-size: map-get($stats-font-size, value);
             font-weight: 500;
             color: $news-title-color;
+            letter-spacing: -0.7px;
         }
 
         .stats-mask {
@@ -274,5 +283,3 @@
         }
     }
 }
-
-

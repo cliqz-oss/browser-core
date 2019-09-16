@@ -1,4 +1,10 @@
 {
+    "affiliate_link": {
+      "message": "affiliatelink"
+    },
+    "copy_and_go": {
+      "message": "copy & go"
+    },
     "feedback_skip": {
         "message": "Überspringen"
     },
@@ -6,7 +12,7 @@
         "message": "Hilfe"
     },
     "hot_deal": {
-      "message": "Heißer Deal"
+        "message": "Heißer Deal"
     },
     "offers_best_offer": {
         "message": "Top Angebot"

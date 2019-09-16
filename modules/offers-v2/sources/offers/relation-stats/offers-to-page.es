@@ -1,10 +1,10 @@
 import LRU from '../../../core/LRU';
 import { matchHostname, matchUrl } from './offers-to-page-utils';
+import { LANDING_MONITOR_TYPE } from '../../common/constant';
 
 const MAX_PAGES = 128;
 const CACHE_TIME_MINUTES = 45;
 const PAGE_IMPRESSION_MONITOR_TYPE = 'page_imp';
-const LANDING_MONITOR_TYPE = 'landing';
 const RELEVANT_TIME_HOURS = 24;
 
 export default class OffersToPage {

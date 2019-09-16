@@ -11,7 +11,7 @@ import logger from '../logger';
  *  This library provides wrapper around offers model.
 */
 
-export function transform(type, data, options = {}) {
+export function transform(type, data) {
   const mapper = {
     'offers-cc': rewardBox.transform,
     'browser-panel': browserPanel.transform,
@@ -19,7 +19,7 @@ export function transform(type, data, options = {}) {
   };
   if (!mapper[type]) { logger.warn('receive wrong type of real estate: ', type); }
   const noop = () => {};
-  return (mapper[type] || noop)(data, options);
+  return (mapper[type] || noop)(data);
 }
 
 export function transformMany(type, data) {

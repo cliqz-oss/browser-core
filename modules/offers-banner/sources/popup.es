@@ -20,7 +20,8 @@ export default class Popup {
 
   onMessage(msg, sender, sendResponse) {
     const { message: { action, data } = {}, target } = msg;
-    if (target !== 'cliqz-offers-cc') { return false; }
+    if (target !== 'cliqz-offers-cc') { return undefined; }
+
     this._dispatcher(action, sendResponse);
     const offerId = null; // transport layer will get offerId from the data
     const autoTrigger = false;

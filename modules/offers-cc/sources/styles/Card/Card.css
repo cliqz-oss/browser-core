@@ -12,6 +12,8 @@
   background-position: center;
   height: 120px;
   cursor: pointer;
+  display: block;
+  margin: auto;
 }
 
 .card__benefit {
@@ -92,3 +94,37 @@
   position: absolute;
   top: 0;
 }
+
+.card__text.card__cursor-default {
+  cursor: default;
+}
+
+.card__label {
+  padding-left: 16px;
+  color: #B2B2B2;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 8.5px;
+  font-weight: 400;
+  white-space: nowrap;
+  display: inline-block;
+  padding-right: 10px;
+}
+
+.card__labels {
+  margin: 2px 0px 2px 11px;
+  line-height: 14px;
+}
+
+.card__exclusive {
+  background: url('../images/exclusive.svg') no-repeat left;
+}
+
+.card__best_offer {
+  background: url('../images/best-offer.svg') no-repeat left;
+}
+
+.card__offer_of_the_week {
+  background: url('../images/offer-of-the-week.svg') no-repeat left;
+}
+

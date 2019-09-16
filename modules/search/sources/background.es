@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { share } from 'rxjs/operators';
 import background from '../core/base/background';
 import telemetry from '../core/services/telemetry';
@@ -205,7 +213,7 @@ export default background({
         keyCode,
         forceUpdate = !config.isMobile,
       } = {},
-      { contextId, tab: { id: tabId } = {} } = { tab: {} },
+      { contextId, frameId, tab: { id: tabId } = {} } = { tab: {} },
     ) {
       const sessionId = tabId || contextId;
       const now = Date.now();
@@ -320,28 +328,28 @@ export default background({
 
         if (config.isMobile) {
           this.core.action(
-            'broadcast',
-            {
-              action: 'renderResults',
-              args: [JSON.stringify(response)],
-              contextId,
-            },
-          );
-        } else if (tabId) {
-          this.core.action(
-            'broadcastActionToWindow',
-            tabId,
-            'dropdown',
+            'callContentAction',
+            'mobile-cards',
             'renderResults',
-            response
+            { windowId: tabId },
+            JSON.stringify(response),
           );
-        } else {
+        } else if (!tabId) {
           this.core.action('broadcast', '', {
             module: 'dropdown',
             action: 'renderResults',
             contextId,
             args: [response],
           });
+        } else {
+          this.core.action(
+            'callContentAction',
+            'dropdown',
+            // targetModule,
+            'renderResults',
+            { windowId: tabId, frameId },
+            response
+          );
         }
 
         events.pub('search:results', response);

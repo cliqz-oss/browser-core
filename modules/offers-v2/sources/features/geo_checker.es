@@ -4,7 +4,6 @@ import Feature from './feature';
 
 const GEO_COUNTRY_PREF_NAME = 'config_location';
 const GEO_CITY_PREF_NAME = 'config_location.city';
-const GEO_ALLOWED = 'offers_location';
 
 export default class GeoChecker extends Feature {
   constructor() {
@@ -45,7 +44,7 @@ export default class GeoChecker extends Feature {
   //                            GEO API
 
   isLocAvailable() {
-    return prefs.get(GEO_ALLOWED, 1) === 1 && this._checkLoc(this.loc) && this.loc.country !== '--';
+    return this._checkLoc(this.loc) && this.loc.country !== '--';
   }
 
   /**
@@ -64,11 +63,7 @@ export default class GeoChecker extends Feature {
    * @return {[type]}      [description]
    */
   updateLocation(data) {
-    if (prefs.get(GEO_ALLOWED, 1) === 1) { // 0 = off, 1 = IP based
-      this.loc = data ? data.loc : null;
-    } else {
-      this.loc = null;
-    }
+    this.loc = data ? data.loc : null;
   }
 
   /**

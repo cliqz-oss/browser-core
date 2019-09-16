@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const Plugin = require('broccoli-plugin');
 const path = require('path');
 const glob = require('glob');
@@ -68,7 +76,6 @@ module.exports = class BroccoliWebpack extends Plugin {
             'react-dom/unstable-native-dependencies': 'react-dom/unstable-native-dependencies.js',
             'react-tooltip': 'react-tooltip/standalone/react-tooltip.js',
             'rxjs/operators': 'rxjs/operators/index',
-            tldts: 'tldts/dist/tldts-experimental.esm.js',
           }
         },
         node: {

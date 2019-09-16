@@ -21,7 +21,7 @@ function popup(uiInfo, {
   lastUpdateTs,
   expirationMs,
   relevant,
-  attrs: { state: offerState = 'new', isCodeHidden },
+  attrs: { state: offerState = 'new', isCodeHidden, landing },
 }) {
   const { template_data: templateData = {}, template_name: templateName = {} } = uiInfo;
   const backgroundColor = getTitleColor(templateData);
@@ -50,6 +50,7 @@ function popup(uiInfo, {
     validity,
     notif_type: uiInfo.notif_type || 'tooltip',
     isCodeHidden,
+    landing,
   };
 }
 
@@ -93,7 +94,7 @@ function tooltip(uiInfo) {
   };
 }
 
-function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }, options = {}) {
+function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
   const offer = popup(uiInfo, {
     offerId,
     expirationMs,
@@ -112,9 +113,8 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }, optio
       ...commonData(),
       vouchers: [offer],
       showExpandButton: false,
-      popupsType: options.abtestPopupsType
-        ? prefs.get('offers-popup.type', 'card')
-        : 'card',
+      popupsImage: prefs.get('offers-popup.image', 'with-image'),
+      popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
     }
   };
   return [true, payload];
@@ -125,7 +125,7 @@ function tooltipWrapper(offerId, {
   expirationMs,
   createdTs,
   attrs,
-}, options = {}) {
+}) {
   const payload = {
     data: {
       isPair: true,
@@ -134,9 +134,8 @@ function tooltipWrapper(offerId, {
         ...commonData(),
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
         showExpandButton: false,
-        popupsType: options.abtestPopupsType
-          ? prefs.get('offers-popup.type', 'card')
-          : 'card',
+        popupsImage: prefs.get('offers-popup.image', 'with-image'),
+        popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
       },
     },
     offerId,
@@ -149,7 +148,7 @@ function tooltipWrapper(offerId, {
   return [true, payload];
 }
 
-export function transform(data = {}, options = {}) {
+export function transform(data = {}) {
   const {
     createdTs,
     offer_data: { ui_info: uiInfo, expirationMs } = {},
@@ -158,12 +157,11 @@ export function transform(data = {}, options = {}) {
   } = data;
   const { notif_type: notifType } = uiInfo;
   return notifType === 'pop-up'
-    ? popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }, options)
-    : tooltipWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }, options);
+    ? popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs })
+    : tooltipWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs });
 }
 
-export function transformMany({ offers, preferredOffer } = {}) {
-  const preferredOfferId = (preferredOffer || {}).offer_id;
+export function transformMany({ offers = [] } = {}) {
   const newOffers = offers.map((elem) => {
     const {
       last_update_ts: lastUpdateTs,
@@ -189,22 +187,8 @@ export function transformMany({ offers, preferredOffer } = {}) {
   const offersConfig = {
     url: getResourceUrl('offers-cc/index.html?cross-origin'),
     type: 'offers-cc',
-    waitBeforeShowing: 15,
     products: products(),
   };
-  const newPreferredOffer = newOffers.find(elem => elem.offer_id === preferredOfferId);
-  if (newPreferredOffer) {
-    newPreferredOffer.preferred = true;
-    const withoutPreferred = newOffers.filter(elem => elem.offer_id !== preferredOfferId);
-    return {
-      config: offersConfig,
-      data: {
-        ...commonData(),
-        vouchers: [newPreferredOffer].concat(withoutPreferred),
-        showExpandButton: withoutPreferred.length > 0,
-      }
-    };
-  }
 
   return {
     config: offersConfig,
@@ -213,6 +197,8 @@ export function transformMany({ offers, preferredOffer } = {}) {
       vouchers: newOffers,
       noVoucher: newOffers.length === 0,
       showExpandButton: false,
+      popupsImage: prefs.get('offers-popup.image', 'with-image'),
+      popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
     }
   };
 }

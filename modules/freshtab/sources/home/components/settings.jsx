@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import Switch from './partials/switch';
@@ -7,7 +15,7 @@ import BackgroundImage from './background-image';
 import AppContext from './app-context';
 import cliqz from '../cliqz';
 import t from '../i18n';
-import { settingsCloseSignal, settingsBackgroundSelectSignal } from '../services/telemetry/settings';
+import { settingsCloseSignal, settingsBackgroundSelectSignal, settingsViewBrowserPrefsSignal } from '../services/telemetry/settings';
 import config from '../../config';
 
 const newsEditions = [
@@ -58,6 +66,11 @@ export default class Settings extends React.Component {
   onCloseButtonClick() {
     settingsCloseSignal();
     this.props.toggle();
+  }
+
+  onViewBrowserSettingsClick() {
+    settingsViewBrowserPrefsSignal();
+    cliqz.freshtab.openBrowserSettings();
   }
 
   async handleThemeChange(ev) {
@@ -248,6 +261,19 @@ export default class Settings extends React.Component {
                   )
                   }
                 </div>
+
+                {this.props.isAllPrefsLinkSupported
+                  && (
+                    <div className="settings-row">
+                      <Button
+                        className="browser-settings"
+                        disabled={false}
+                        label={t('cliqz_tab_settings_all_prefs_link')}
+                        onClick={this.onViewBrowserSettingsClick}
+                      />
+                    </div>
+                  )
+                }
               </div>
             </div>
           )
@@ -263,6 +289,7 @@ Settings.propTypes = {
   hasHistorySpeedDialsToRestore: PropTypes.bool,
   isBlueThemeSupported: PropTypes.bool,
   isBrowserThemeSupported: PropTypes.bool,
+  isAllPrefsLinkSupported: PropTypes.bool,
   isStatsSupported: PropTypes.bool,
   onBackgroundImageChanged: PropTypes.func,
   onNewsSelectionChanged: PropTypes.func,

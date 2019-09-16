@@ -5,8 +5,11 @@
 .main__myoffrz-floating-button {
   background: url('../images/myoffrz-floating-button.svg') no-repeat center;
 }
-.main__chip-floating-button {
+.main__chip-floating-button.main__floating-button-base {
+  border-radius: 25%;
   background: url('../images/chip-floating-button.svg') no-repeat center;
+  width: 52px;
+  height: 52px;
 }
 .main__freundin-floating-button {
   background: url('../images/freundin-floating-button.svg') no-repeat center;

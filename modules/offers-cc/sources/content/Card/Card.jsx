@@ -2,8 +2,9 @@ import React from 'react';
 import send from '../transport';
 import Header from './Header';
 import Promo from './Promo';
+import PromoAB from './PromoAB';
 import Conditions from './Conditions';
-import { css, resize, chooseProduct } from '../common/utils';
+import { css, i18n, resize, chooseProduct } from '../common/utils';
 
 const _css = css('card__');
 export default class Card extends React.Component {
@@ -37,19 +38,34 @@ export default class Card extends React.Component {
   }
 
   renderImage() {
-    const { voucher = {} } = this.props;
+    const { voucher = {}, abtestInfo: { popupsImage } } = this.props;
     const { template_data: templateData = {}, offer_id: offerId } = voucher;
     const { call_to_action: { url } = {} } = templateData;
-    /* eslint-disable  jsx-a11y/no-static-element-interactions */
-    if (!templateData.picture_dataurl) { return null; }
+    /* eslint-disable  jsx-a11y/no-noninteractive-element-interactions */
+    if (!templateData.picture_dataurl || popupsImage === 'with-no-image') { return null; }
     return (
-      <div
+      <img
+        alt=""
+        key={offerId}
         onClick={this.onCtaElementClick(offerId, 'picture', url)}
-        style={{ backgroundImage: `url(${templateData.picture_dataurl})` }}
+        src={templateData.picture_dataurl}
         className={_css('image')}
       />
     );
-    /* eslint-enable jsx-a11y/no-static-element-interactions */
+    /* eslint-enable jsx-a11y/no-noninteractive-element-interactions */
+  }
+
+  renderLabels() {
+    const { voucher = {} } = this.props;
+    const { template_data: { labels = [] } = {} } = voucher;
+    if (labels.length === 0) { return null; }
+    return (
+      <div className={_css('labels')}>
+        {labels.map(label => (
+          <div key={label} className={_css(label, 'label')}>{i18n(`offers_${label}`)}</div>
+        ))}
+      </div>
+    );
   }
 
   renderText() {
@@ -124,6 +140,7 @@ export default class Card extends React.Component {
       >
         {this.renderImage()}
         <div style={{ height: '2px' }} />
+        {this.renderLabels()}
         {this.renderText()}
       </div>
     );
@@ -139,7 +156,7 @@ export default class Card extends React.Component {
         className={_css('screen-secondary')}
         style={{ display }}
       >
-        <div className={_css('text')}>
+        <div className={_css('text', 'cursor-default')}>
           <div className={_css('benefit')}>{templateData.benefit}</div>
           <div style={{ height: '11px' }} />
           <div className={_css('conditions')}>{templateData.conditions}</div>
@@ -148,20 +165,31 @@ export default class Card extends React.Component {
     );
   }
 
-  renderPromoIfNeeded() {
+  renderPromo() {
     const { isConditionsShown } = this.state;
-    const { voucher = {}, onChangeCodeStatus, isCodeHidden, products } = this.props;
-    const { template_data: templateData = {} } = voucher;
+    const {
+      onChangeCodeStatus,
+      isCodeHidden,
+      products,
+      voucher = {},
+      abtestInfo: {
+        popupsCopyCode
+      } = {},
+    } = this.props;
+    const NewPromo = {
+      current: Promo,
+      'one-step': PromoAB,
+      'two-step': PromoAB,
+    }[popupsCopyCode] || Promo;
     return (
       <React.Fragment>
-        {templateData.code && (
-        <Promo
+        <NewPromo
+          abtestInfo={{ popupsCopyCode }}
           products={products}
           isCodeHidden={isCodeHidden}
           onCopyCode={onChangeCodeStatus}
           voucher={voucher}
         />
-        ) }
         <div style={{ height: '4px' }} />
         <Conditions
           products={products}
@@ -169,13 +197,14 @@ export default class Card extends React.Component {
           voucher={voucher}
           onClick={this.onConditionsClick}
         />
-        <div style={{ height: '13px' }} />
+        <div style={{ height: '11px' }} />
       </React.Fragment>
     );
   }
 
   render() {
-    const { voucher = {}, onRemove, autoTrigger } = this.props;
+    const { voucher = {}, onRemove, autoTrigger, abtestInfo = {} } = this.props;
+    const { popupsCopyCode } = abtestInfo;
     return (
       <div className={_css('wrapper')}>
         <Header
@@ -189,8 +218,8 @@ export default class Card extends React.Component {
           {this.renderOfferWithConditionsIfVisible()}
         </div>
         <div style={{ height: '20px' }} />
-        {this.renderPromoIfNeeded()}
-        {this.renderButton()}
+        {this.renderPromo()}
+        {popupsCopyCode === 'current' && this.renderButton()}
       </div>
     );
   }

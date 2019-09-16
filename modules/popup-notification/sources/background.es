@@ -14,18 +14,20 @@ export default background({
   beforeBrowserShutdown() { },
   actions: {
     push({target, data}) {
-      const module = 'popup-notification';
-      const action = 'push';
-      const newData = {
-        ...data,
-        config: {
-          ...data.config,
-          baseUrl: getResourceUrl('popup-notification/')
+      getActiveTab().then(({ id }) => this.core.action(
+        'callContentAction',
+        'popup-notification',
+        'renderBanner',
+        { windowId: id },
+        {
+          ...data,
+          config: {
+            ...data.config,
+            baseUrl: getResourceUrl('popup-notification/')
+          },
+          target
         }
-      };
-      const msg = {data: newData, target, module, action};
-      getActiveTab()
-        .then(tab => this.core.action('broadcastMessage', tab.url, msg));
+      ));
     },
     pop({target, data}) {
       events.pub('popup-notification:pop', {target, data});
@@ -34,6 +36,9 @@ export default background({
     log({target, data}) {
       events.pub('popup-notification:log', {target, data});
       return {target, data};
+    },
+    openAndClosePinnedURL(data) {
+      events.pub('popup-notification:open-and-close-pinned-URL', data);
     },
   },
 });

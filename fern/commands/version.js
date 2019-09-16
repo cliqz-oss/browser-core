@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint-disable strict, no-console */
 
 'use strict';
@@ -11,37 +19,26 @@ const getExtensionVersion = common.getExtensionVersion;
 const gitDescribeSync = gitDescribe.gitDescribeSync;
 
 program.command(`version ${common.configParameter}`)
-  .option('--environment <environment>', 'development')
-  .option('--infix <infix>', '', '.1b')
-  .option('--prefix <prefix>', '')
+  .option('--prefix <prefix>', 'replace major version with <prefix>')
+  .option('--distance', 'include git distance in version')
   .action((configPath, options) => {
-    process.env.CLIQZ_ENVIRONMENT = options.environment;
-
     const cfg = setConfigPath(configPath, options.toSubdir);
     const config = cfg.CONFIG;
-    const infix = config.versionInfix || options.infix;
-    const prefix = config.versionPrefix || options.prefix;
+    const prefix = options.prefix || config.versionPrefix;
+    const distance = options.distance || config.versionDistance;
 
     getExtensionVersion('package').then((version) => {
+      const versionParts = version.split('.');
       if (prefix) {
-        const versionParts = version.split('.');
         versionParts[0] = prefix;
-        version = versionParts.join('.');
-      }
-      // config infix implies we want to have long version number
-      if (!config.infix && options.environment === 'production') {
-        console.log(version);
-        return;
       }
 
-      const gitInfo = gitDescribeSync();
-      const betaVersion = [
-        version,
-        infix,
-        gitInfo.distance || '0'
-      ].join('');
+      if (distance) {
+        const gitInfo = gitDescribeSync();
+        versionParts.push(gitInfo.distance || 0);
+      }
 
-      console.log(betaVersion);
+      console.log(versionParts.join('.'));
     });
   });
 

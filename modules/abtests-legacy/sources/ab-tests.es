@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-restricted-syntax: 'off' */
 
 /*
@@ -347,12 +355,6 @@ const CliqzABTests = {
       case '1108_B':
         prefs.set('extOnboardNewSearchUI', true);
         break;
-      case '1111_A':
-        prefs.set('modules.history-analyzer.enabled', false);
-        break;
-      case '1111_B':
-        prefs.set('modules.history-analyzer.enabled', true);
-        break;
       case '1112_A':
         prefs.set('experiment_svm', false);
         break;
@@ -462,6 +464,21 @@ const CliqzABTests = {
       case '1126_A':
       case '1126_B':
         prefs.clear('browser.privatebrowsing.apt', '');
+        break;
+      case '1127_A':
+        prefs.set('offers-popup.image', 'with-image');
+        break;
+      case '1127_B':
+        prefs.set('offers-popup.image', 'with-no-image');
+        break;
+      case '1128_A':
+        prefs.set('offers-popup.copy-code', 'current');
+        break;
+      case '1128_B':
+        prefs.set('offers-popup.copy-code', 'one-step');
+        break;
+      case '1128_C':
+        prefs.set('offers-popup.copy-code', 'two-step');
         break;
       default:
         ruleExecuted = false;
@@ -750,10 +767,6 @@ const CliqzABTests = {
       case '1110_B':
         prefs.clear('cliqzTabOffersNotification');
         break;
-      case '1111_A':
-      case '1111_B':
-        prefs.set('modules.history-analyzer.enabled', false);
-        break;
       case '1112_A':
       case '1112_B':
         prefs.clear('experiment_svm');
@@ -817,6 +830,15 @@ const CliqzABTests = {
       case '1125_A':
       case '1125_B':
         prefs.set('network.cookie.cookieBehavior', 4, '');
+        break;
+      case '1127_A':
+      case '1127_B':
+        prefs.clear('offers-popup.image');
+        break;
+      case '1128_A':
+      case '1128_B':
+      case '1128_C':
+        prefs.clear('offers-popup.copy-code');
         break;
       default:
         ruleExecuted = false;

@@ -8,12 +8,14 @@ export const DISTRIBUTION_STORES = [
     // eg: https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test
     host: 'addons.mozilla.org',
     queryUtmSource: 'src',
+    queryUtmSubChannel: 'subchannel',
     addonMatcher: `/firefox/addon/${config.settings.storeName || 'myoffrz'}/`
   },
   {
     // eg: https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=chrome-ntp-icon
     host: 'chrome.google.com',
     queryUtmSource: 'utm_source',
+    queryUtmSubChannel: 'subchannel',
     addonMatcher: `/webstore/detail/${config.settings.storeName || 'myoffrz/eoofgbeobdepdoihpmogabekjddpcbei'}`
   }
 ];

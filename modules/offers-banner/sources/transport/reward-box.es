@@ -1,6 +1,10 @@
+import { chrome } from '../../platform/globals';
+import { setTimeout as coreSetTimeout } from '../../core/timers';
 import { send } from './index';
+import { matchPatternsByUrl } from '../utils';
 
 const REAL_ESTATE_ID = 'offers-cc';
+const MAX_TMP_PINNED_TAB_LIVE = 5 * 1000;
 
 export function actions(data = {}) {
   const { element_id: elementId, signal_type: signalType, offer_id: offerId } = data;
@@ -73,4 +77,25 @@ export function hideTooltipIfShould(data = {}) {
       send(msg, 'offers');
     });
   }
+}
+
+const _removeTabIfNeeded = (tab, patterns) => (_, __, tabInfo) => {
+  if (tab.id !== tabInfo.id) { return; }
+  if (tabInfo.status === 'complete' && matchPatternsByUrl(patterns, tabInfo.url || '')) {
+    chrome.tabs.remove(tab.id);
+  }
+};
+
+export function openAndClosePinnedURL({ url, matchPatterns = [] } = {}) {
+  if (!url) { return; }
+  chrome.tabs.create({ url, pinned: true, active: false }, (createdTab) => {
+    const callback = _removeTabIfNeeded(createdTab, matchPatterns);
+    chrome.tabs.onUpdated.addListener(callback);
+    coreSetTimeout(() => {
+      chrome.tabs.remove(createdTab.id, () => {
+        if (chrome.runtime.lastError) { /* tab has been already removed */ }
+      });
+      chrome.tabs.onUpdated.removeListener(callback);
+    }, MAX_TMP_PINNED_TAB_LIVE);
+  });
 }

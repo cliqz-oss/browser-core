@@ -12,6 +12,7 @@
  */
 import events from '../../core/events';
 import logger from '../common/offers_v2_logger';
+import { LANDING_MONITOR_TYPE } from '../common/constant';
 import { ImageDownloaderForBatch } from './image-downloader';
 import ActionID from './actions-defs';
 import Offer from './offer';
@@ -142,7 +143,10 @@ export default class OffersAPI {
       display_rule: displayRule,
       offer_data: offer.offerObj,
       createdTs: offerMeta.c_ts,
-      attrs: { isCodeHidden },
+      attrs: {
+        isCodeHidden,
+        landing: offer.getMonitorPatterns(LANDING_MONITOR_TYPE),
+      },
     };
     const realStatesDest = offer.destinationRealEstates;
     this._publishMessage(MessageType.MT_PUSH_OFFER, realStatesDest, msgData);
@@ -260,6 +264,7 @@ export default class OffersAPI {
       attrs: {
         state: this.offersDB.getOfferAttribute(offer_id, 'state'),
         isCodeHidden: this.offersDB.getOfferAttribute(offer_id, 'isCodeHidden') || false,
+        landing: new Offer(offer).getMonitorPatterns(LANDING_MONITOR_TYPE),
       },
       offer_id
     };

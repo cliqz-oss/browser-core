@@ -197,17 +197,14 @@
     "freshtab_cliqz_post_adblock_title": {
         "message": "Did you know that Cliqz can remove ads from websites?"
     },
-    "freshtab_cliqz_post_privacy_description": {
-        "message": "By sending anonymized usage statistics to Cliqz, you help us improve your browsing experience."
-    },
-    "freshtab_cliqz_post_privacy_link": {
-        "message": "Choose what to share"
-    },
     "freshtab_cliqz_post_remind_later": {
         "message": "Remind me later"
     },
     "freshtab_cliqz_tab_button": {
         "message": "$1 Tab"
+    },
+    "freshtab_cliqz_tab_settings_all_prefs_link": {
+        "message": "All browser settings"
     },
     "freshtab_cliqz_tab_settings_button": {
         "message": "$1 Tab Settings"
@@ -283,5 +280,14 @@
     },
     "promo_data_description_2": {
         "message": "Block ads, stop trackers and speed up websites."
+    },
+    "time_saved_hours": {
+        "message": "h"
+    },
+    "time_saved_minutes": {
+        "message": "min"
+    },
+    "time_saved_seconds": {
+        "message": "s"
     }
 }

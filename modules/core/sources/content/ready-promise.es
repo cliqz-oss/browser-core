@@ -1,6 +1,15 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* global window chrome */
 
 import { waitFor } from '../helpers/wait';
+import runtime from '../../platform/runtime';
 
 const isChromeReady = async () => {
   const isWebextension = chrome.extension;
@@ -16,11 +25,13 @@ const isChromeReady = async () => {
   }
 
   return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({ name: 'appReady' }, (response) => {
-      if (response && response.ready === true) {
+    runtime.sendMessage({ name: 'appReady' }).then(({ ready }) => {
+      if (ready) {
         resolve(true);
+      } else {
+        reject();
       }
-    });
+    }).catch(reject);
     setTimeout(reject, 300);
   });
 };

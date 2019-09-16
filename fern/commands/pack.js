@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 'use strict';
 
 const program = require('commander');
@@ -18,29 +26,6 @@ function getCommit() {
     return id;
   });
 }
-
-/* eslint-disable quotes, no-control-regex */
-// source: https://stackoverflow.com/questions/1986121/match-all-urls-in-string-and-return-in-array-in-javascript
-const urlRegex = new RegExp(
-  "(^|[ \t\r\n])((s3|ftp|http|https|gopher|mailto|news|nntp|telnet|wais|file|prospero|aim|webcal):(([A-Za-z0-9$_.+!*(),;/?:@&~=-])|%[A-Fa-f0-9]{2}){2,}(#([a-zA-Z0-9][a-zA-Z0-9$_.+!*(),;/?:@&~=%-]*))?([A-Za-z0-9$_+!*();/?:~-]))"
-  , 'g'
-);
-/* eslint-enable quotes, no-control-regexp */
-
-const rewrite = (url) => {
-  const prefix = 's3://cdncliqz';
-
-  if (url.indexOf(prefix) !== 0) {
-    return url;
-  }
-
-  return [
-    'https://s3.amazonaws.com/cdncliqz',
-    url.slice(prefix.length),
-  ].join('');
-};
-
-const noFileUrls = url => url.indexOf('file:') !== 0;
 
 program.command(`pack ${common.configParameter}`)
   .action((configPath) => {
@@ -128,7 +113,7 @@ program.command('publish [file]')
         output.stdout.on('data', (buf) => {
           console.log('[STR] stdout %s',String(buf));
           stdout += buf;
-        }); 
+        });
         output.stderr.on('data', (buf) => {
           console.log('[STR] stderr %s',String(buf));
           stderr += buf;
@@ -139,5 +124,5 @@ program.command('publish [file]')
             process.exit(code);
           }
         });
-      })  
+      })
   });

@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint-disable jsx-a11y/no-autofocus */
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -58,12 +66,6 @@ export default class CliqzPost extends React.Component {
     this.setState({ displayTooltip: false });
   }
 
-  handleLinkButtonClick = (msg) => {
-    messageClickSignal(this.props.messages[0].id);
-    this.props.handleLinkClick(msg);
-    this.handleCloseCliqzPost(msg);
-  }
-
   handleCTAClick = (msg) => {
     messageClickSignal(this.props.messages[0].id);
     this.handleCloseCliqzPost(msg);
@@ -109,15 +111,6 @@ export default class CliqzPost extends React.Component {
                 </div>
               )
             }
-            {msg.link_button_url && (
-              <button
-                className="link-button"
-                type="button"
-                onClick={() => this.handleLinkButtonClick(msg)}
-              >
-                {msg.link_button_text}
-              </button>
-            )}
             {msg.cta_url
               && (
                 <Link

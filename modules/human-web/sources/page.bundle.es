@@ -1,11 +1,18 @@
-import createSpananForModule from '../core/helpers/spanan-module-wrapper';
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import createModuleWrapper from '../core/helpers/action-module-wrapper';
 import checkIfChromeReady from '../core/content/ready-promise';
 
 (async () => {
   await checkIfChromeReady();
 
-  const humanWebWrapper = createSpananForModule('human-web');
-  const humanWeb = humanWebWrapper.createProxy();
+  const humanWeb = createModuleWrapper('human-web');
 
   const cb = document.getElementById('enableHumanWeb');
   const locale = document.getElementsByClassName('cliqz-locale');

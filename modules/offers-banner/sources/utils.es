@@ -1,5 +1,6 @@
 import { chrome } from '../platform/globals';
 import { getTab } from '../platform/tabs';
+import adblocker from '../platform/lib/adblocker';
 import { getActiveTab } from '../core/browser';
 import logos from '../core/services/logos';
 import { isCliqzBrowser, isAMO } from '../core/platform';
@@ -83,4 +84,12 @@ export function products() {
 
 export function chooseProduct(options = {}) {
   return ALLOWED_PRODUCTS.find(product => options[product]) || 'myoffrz';
+}
+
+export function matchPatternsByUrl(patterns, url) {
+  const request = adblocker.Request.fromRawDetails({ url, type: 'script' });
+  return (patterns).reduce((acc, pattern) => {
+    const filter = adblocker.NetworkFilter.parse(pattern);
+    return acc || filter.match(request);
+  }, false);
 }

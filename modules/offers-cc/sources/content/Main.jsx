@@ -4,7 +4,7 @@ import Header from './Header';
 import Menu from './Menu';
 import Content from './Content';
 import Footer from './Footer';
-import { css, resize } from './common/utils';
+import { css, resize, chooseProduct } from './common/utils';
 
 const _css = css('main__');
 export default class Main extends React.Component {
@@ -33,6 +33,11 @@ export default class Main extends React.Component {
 
   onClickMenuOption = (option) => {
     const { currentView } = this.state;
+    const { data: { products = {} } = {} } = this.props;
+    const prefix = chooseProduct(products);
+    const url = prefix === 'chip'
+      ? 'https://sparalarm.chip.de/kontakt/'
+      : 'https://myoffrz.com/kontakt/';
     const mapper = {
       'why-do-i-see': {
         view: 'why-do-i-see',
@@ -40,10 +45,7 @@ export default class Main extends React.Component {
       },
       help: {
         telemetry: 'help',
-        action: () => send('openURL', {
-          url: 'https://myoffrz.com/kontakt/',
-          closePopup: false,
-        }),
+        action: () => send('openURL', { url, closePopup: false }),
       },
       settings: {
         telemetry: 'settings',
@@ -74,7 +76,14 @@ export default class Main extends React.Component {
 
   render() {
     const { isMenuOpen, currentView } = this.state;
-    const { data: { vouchers = [], products = {}, autoTrigger = false } = {} } = this.props;
+    const {
+      data: {
+        abtestInfo = {},
+        vouchers = [],
+        products = {},
+        autoTrigger = false,
+      } = {}
+    } = this.props;
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
       <div onClick={this.onOutsideClick} className={_css('container')}>
@@ -90,6 +99,7 @@ export default class Main extends React.Component {
         {isMenuOpen && <Menu products={products} onClick={this.onClickMenuOption} />}
         <div className={_css('content')}>
           <Content
+            abtestInfo={abtestInfo}
             products={products}
             onChangeView={this.onChangeView}
             currentView={currentView}

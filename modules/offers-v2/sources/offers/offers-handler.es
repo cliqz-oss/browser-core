@@ -113,6 +113,7 @@ export default class OffersHandler {
     eventHandler,
     categoryHandler,
     offersDB,
+    chipdeHandler,
     offersImageDownloader = new ImageDownloaderForPush(),
   }) {
     this.intentHandler = intentHandler;
@@ -175,6 +176,11 @@ export default class OffersHandler {
       new SoftFilters(),
       ShuffleFilter, // for competing offers, avoid first-offer-from-backend bias
     ];
+    if (chipdeHandler) {
+      // Add after `DBReplacer`, so that offers in `OffersDB` can be
+      // updated to new versions from the backend.
+      this.jobsPipeline.splice(2, 0, chipdeHandler.getOffersJobFilter());
+    }
 
     this.nEventsProcessed = 0; // Used as a wait marker by tests
   }
@@ -215,6 +221,10 @@ export default class OffersHandler {
 
   couponFormUsed(args) {
     this.offersMonitorHandler.couponFormUsed(args);
+  }
+
+  onCouponActivity(couponMsg, serializer) {
+    this.offersMonitorHandler.addCouponSignal(couponMsg, serializer);
   }
 
   getOfferObject(offerId) {
@@ -326,7 +336,7 @@ export default class OffersHandler {
     // we need notify before process a new offer,
     // otherwise from user point of view we notify her twice:
     // new offer and reddot in the icon
-    this._notifyAboutUnreadedOffers(catMatches, urlData);
+    this._notifyAboutUnreadOffers(catMatches, urlData);
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
       logger.debug('we should not show any offer now');
@@ -439,12 +449,12 @@ export default class OffersHandler {
     });
   }
 
-  _notifyAboutUnreadedOffers(catMatches, urlData) {
+  _notifyAboutUnreadOffers(catMatches, urlData) {
     const url = urlData.getRawUrl();
     const offers = isGhostery ? [] : this.offersDB.getOffers();
     const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, url);
     const count = stats.related.filter(oid => !stats.touched.includes(oid)).length;
     const tabId = urlData.getTabId();
-    if (count) { events.pub('offers-notification:unreaded-offers-count', { count, tabId }); }
+    if (count) { events.pub('offers-notification:unread-offers-count', { count, tabId }); }
   }
 }

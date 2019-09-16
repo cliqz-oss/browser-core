@@ -351,6 +351,12 @@ export default class Offer {
     this.offerObj.ui_info.template_data.picture_dataurl = dataurl;
   }
 
+  getMonitorPatterns(monitorType) {
+    const monitor = (this.monitorData || [])
+      .find(m => m.signalID === monitorType) || {};
+    return monitor.patterns || [];
+  }
+
   setDynamicContent(productPictureUrl, productCtaUrl) {
     this.offerObj.ui_info.template_data.picture_url = productPictureUrl;
     this.offerObj.ui_info.template_data.picture_dataurl = undefined;

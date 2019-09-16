@@ -1,4 +1,10 @@
 {
+    "affiliate_link": {
+      "message": "affiliate link"
+    },
+    "copy_and_go": {
+      "message": "copy & go"
+    },
     "feedback_skip": {
         "message": "Skip"
     },

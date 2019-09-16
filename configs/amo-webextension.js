@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 const base = require('./common/system');
 const urls = require('./common/urls-cliqz');
 const settings = require('./common/amo-settings');
@@ -16,7 +24,6 @@ module.exports = {
   }),
   default_prefs: {
     'freshtab.search.mode': 'search',
-    'modules.history-analyzer.enabled': false,
     'modules.anolysis.enabled': false,
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,
@@ -40,7 +47,6 @@ module.exports = {
     'offers-reminder',
     'offers-v2',
     'popup-notification',
-    'history-analyzer',
     'browser-panel',
     'control-center',
     'message-center',

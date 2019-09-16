@@ -27,7 +27,7 @@ const getLatestUpdatedOfferFromCampaign = (offerID, offersDB) => {
   return { oid: latestUpdatedOffers[0].offer_id, cid: campaignID };
 };
 
-const sendSignal = (offersDB, sigHandler, offerId, key) => {
+const sendSignal = (offersDB, sigHandler, offerId, key, value) => {
   if (!offerId || !key || !offersDB) {
     return false;
   }
@@ -40,7 +40,7 @@ const sendSignal = (offersDB, sigHandler, offerId, key) => {
 
   // send the signal associated to the campaign using the origin trigger
   const originID = 'trigger';
-  return sigHandler.setCampaignSignal(campaignId, offerId, originID, key);
+  return sigHandler.setCampaignSignal(campaignId, offerId, originID, key, value);
 };
 
 
@@ -71,7 +71,7 @@ export default function sendMonitorSignal(monitor, handlers, urlData) {
   let sigToSend = monitor.signalID;
   let shouldFilterSignal = false;
   if (monitor.params) {
-    const currUrl = urlData.getNormalizedUrl();
+    const currUrl = urlData && urlData.getNormalizedUrl();
     if (monitor.params.store && currUrl) {
       // we need to check on the DB the current url
       const sendSignalDb = handlers.urlSignalDB;
@@ -127,6 +127,7 @@ export default function sendMonitorSignal(monitor, handlers, urlData) {
       handlers.sigHandler,
       offerIDToUse,
       sigToSend,
+      monitor.signalValue
     );
   }
 

@@ -14,13 +14,14 @@ import NewPage from './features/new-page';
  *
  */
 export default class JourneyHandler {
-  constructor({ eventHandler }) {
+  constructor({ eventHandler, signalReEmitter }) {
     this.eventHandler = eventHandler;
+    this.signalReEmitter = signalReEmitter;
   }
 
   async init() {
     this.journeyCollector = new JourneyCollector();
-    this.journeySignals = new JourneySignals(this.journeyCollector);
+    this.journeySignals = new JourneySignals(this.journeyCollector, this.signalReEmitter);
     await this.journeySignals.init();
 
     this.newPageFeature = new NewPage(

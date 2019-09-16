@@ -2,9 +2,11 @@ import telemetry from '../core/services/telemetry';
 import { query, getCurrentTab } from '../platform/tabs';
 import { chrome } from '../platform/globals';
 import prefs from '../core/prefs';
-import { DISTRIBUTION_STORES, DISTRIBUTION_CHANNELS } from './common/constant';
+import { DISTRIBUTION_STORES, DISTRIBUTION_CHANNELS, DISTROS_TO_SESSION } from './common/constant';
 import logger from './logger';
 
+// TODO 19.08.2019
+// should we remove this and rely on the environment.offers?
 const sendInstallSignal = (referrerUrl, advertId, error) => {
   telemetry.push({
     type: 'activity',
@@ -61,12 +63,18 @@ export const getChannelFromURLs = (urls) => {
         // check if the addon is known
         && url.pathname.includes(store.addonMatcher)
       ) {
-        return url.searchParams.get(store.queryUtmSource);
+        return {
+          channel: url.searchParams.get(store.queryUtmSource),
+          subchannel: url.searchParams.get(store.queryUtmSubChannel)
+        };
       }
     }
   }
 
-  return null;
+  return {
+    channel: null,
+    subchannel: null
+  };
 };
 
 
@@ -85,6 +93,12 @@ const PRIORITY = [
   getHistoryWithStoreUrls
 ];
 
+const EMPTY_CHANNEL = {
+  clean: '',
+  ID: '',
+  sub: ''
+};
+
 // using the priority list above we try to guess
 // the distribution channel. The valid store url with the highest priority
 // will win even if there is an invalid/unknown url source parameter
@@ -93,16 +107,21 @@ async function _guessDistributionChannel() {
     for (let i = 0; i < PRIORITY.length; i += 1) {
       // eslint-disable-next-line no-await-in-loop
       const target = await PRIORITY[i]();
-      const channel = getChannelFromURLs(target);
-      if (channel) {
-        logger.log(`found channel "${channel}" for url "${target}"`);
+      const channelDetails = getChannelFromURLs(target);
+      if (channelDetails.channel) {
+        logger.log(`found channel "${channelDetails.channel}" for url "${target}"`);
         // 'channel' comes from an external URL and it can cause some damage
         // if its value will be something like 'constructor' or 'toString' or related
         // the URL is something like:
         //      -> https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test
         // and 'source' would be 'external-test'
         // to mittigate this typeof DISTRIBUTION_CHANNELS is a Map
-        return DISTRIBUTION_CHANNELS.get(channel) || '';
+        const cleanChannel = DISTRIBUTION_CHANNELS.get(channelDetails.channel) || '';
+        return {
+          clean: cleanChannel,
+          ID: DISTROS_TO_SESSION[cleanChannel] || '',
+          sub: channelDetails.subchannel || ''
+        };
       }
     }
   } catch (e) {
@@ -111,13 +130,13 @@ async function _guessDistributionChannel() {
     logger.log(`something went wrong in guessDistributionChannel: ${e.message}`);
   }
 
-  return '';
+  return EMPTY_CHANNEL;
 }
 
 export async function guessDistributionChannel() {
   // we only wait for 2 seconds for this guess detection because the whole
   // app waits for it to finish
-  return Promise.race([_guessDistributionChannel(), wait(2000, '')]);
+  return Promise.race([_guessDistributionChannel(), wait(2000, EMPTY_CHANNEL)]);
 }
 
 export default async function guessDistributionDetails() {

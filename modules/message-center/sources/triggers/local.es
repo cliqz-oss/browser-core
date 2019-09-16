@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { getMessage } from '../../core/i18n';
 
 export default function getLocalMessages() {
@@ -53,31 +61,6 @@ export default function getLocalMessages() {
           fn: 'installDaysSinceEpochLessThan',
           value: 18052, // Tue, Jun 05, 2019 - 1.37.0 released date
         },
-      ],
-    },
-    {
-      id: 'data-banner',
-      active: true,
-      version: 1,
-      type: 'notification',
-      title: '',
-      description: getMessage('freshtab_cliqz_post_privacy_description'),
-      icon: '',
-      supplementary_link_text: '',
-      supplementary_link_url: '',
-      cta_text: '',
-      cta_url: '',
-      cta_tooltip: '',
-      link_button_text: getMessage('freshtab_cliqz_post_privacy_link'),
-      link_button_url: 'home-action:openPrivacySettings',
-      handler: 'MESSAGE_HANDLER_FRESHTAB_CLIQZPOST',
-      position: 'post',
-      show_later: false,
-      rules: [
-        {
-          fn: 'onboardingVersion',
-          value: 4,
-        }
       ],
     },
   ];

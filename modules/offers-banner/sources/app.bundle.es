@@ -1,3 +1,4 @@
+import runtime from '../platform/runtime';
 import App from '../core/app';
 import { newTab } from '../platform/tabs';
 import { chrome, window } from '../platform/globals';
@@ -5,7 +6,7 @@ import telemetry from '../core/services/telemetry';
 import config from '../core/config';
 import prefs from '../core/prefs';
 import Defer from '../core/helpers/defer';
-import { ONBOARDING_URL, ONBOARDING_URL_DEBUG, OFFBOARDING_URL, DISTROS_TO_SESSION } from './common/constant';
+import { ONBOARDING_URL, ONBOARDING_URL_DEBUG, OFFBOARDING_URL } from './common/constant';
 import { guessDistributionDetails, guessDistributionChannel } from './attribution';
 
 const CLIQZ = {};
@@ -15,9 +16,10 @@ const appCreated = new Defer();
 (async () => {
   await prefs.init();
   if (!prefs.has('offers.distribution.channel')) {
-    const rawChannel = await guessDistributionChannel();
-    prefs.set('offers.distribution.channel', rawChannel);
-    prefs.set('offers.distribution.channel.ID', DISTROS_TO_SESSION[rawChannel] || '');
+    const channel = await guessDistributionChannel();
+    prefs.set('offers.distribution.channel', channel.clean);
+    prefs.set('offers.distribution.channel.ID', channel.ID);
+    prefs.set('offers.distribution.channel.sub', channel.sub);
   }
 
   CLIQZ.app = new App({
@@ -31,11 +33,25 @@ const appCreated = new Defer();
       const url = new URL(OFFBOARDING_URL);
       url.searchParams.append('session', session);
       chrome.runtime.setUninstallURL(url.href);
-      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      runtime.onMessage.addListener((message) => {
         if (message.name === 'appReady') {
-          sendResponse({ ready: true });
+          return Promise.resolve({ ready: true });
         }
+
+        return undefined;
       });
+
+      // distribution details are stored in
+      // offers.distribution.channel and *.sub
+      // but we need to fallback to referrer_url
+      // for older users
+      telemetry.push({
+        type: 'environment.offers',
+        channel: prefs.get('offers.distribution.channel',
+          prefs.get('offers.distribution.referrer_url', '')),
+        subchannel: prefs.get('offers.distribution.channel.sub',
+          prefs.get('offers.distribution.advert_id', ''))
+      }, undefined, true);
     });
 
   window.CLIQZ = CLIQZ;

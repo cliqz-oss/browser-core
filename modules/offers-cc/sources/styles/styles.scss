@@ -2,7 +2,7 @@ body, html {
   margin: 0;
   padding: 0;
   overflow-y: hidden;
-  overflow-x: auto;
+  overflow-x: hidden;
   height: 100%;
   background-color: #f2f2f2;
 }
@@ -40,10 +40,5 @@ body, html {
 @import "Card/Conditions";
 @import "Card/Card";
 @import "Card/Promo";
+@import "Card/PromoAB";
 @import "Card/Header";
-@import "Lodge/Conditions";
-@import "Lodge/Lodge";
-@import "Lodge/Promo";
-@import "Lodge/PromoV2";
-@import "Lodge/Header";
-@import "Lodge/Button";

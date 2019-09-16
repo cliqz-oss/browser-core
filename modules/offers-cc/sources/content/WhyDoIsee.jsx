@@ -1,7 +1,6 @@
 import React from 'react';
-import { chrome } from '../../platform/content/globals';
 import send from './transport';
-import { css, i18n, chooseProduct } from './common/utils';
+import { css, i18n, chooseProduct, getUILanguage } from './common/utils';
 
 const _css = css('why-do-i-see__');
 export default function WhyDoIsee(props) {
@@ -25,18 +24,15 @@ export default function WhyDoIsee(props) {
         <span
           onClick={() => {
             send('sendTelemetry', { target: 'learn_more' });
-            const lang = chrome.i18n.getUILanguage() !== 'de' ? 'en/' : '';
+            const lang = getUILanguage() !== 'de' ? 'en/' : '';
             send('openURL', {
-              url: products.cliqz
-                ? `https://cliqz.com/${lang}myoffrz`
-                : `https://myoffrz.com/${lang}fuer-nutzer`,
+              url: (products.cliqz && `https://cliqz.com/${lang}myoffrz`)
+                   || (products.chip && 'https://sparalarm.chip.de/fuer-nutzer')
+                   || `https://myoffrz.com/${lang}fuer-nutzer`,
               closePopup: false,
             });
           }}
           className={_css('link')}
-          href="https://myoffrz.com/fuer-nutzer"
-          target="_blank"
-          rel="noopener noreferrer"
         >
           {i18n('learn_more')}
         </span>

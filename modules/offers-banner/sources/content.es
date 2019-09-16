@@ -1,4 +1,4 @@
-import { registerContentScript } from '../core/content/helpers';
+import { registerContentScript } from '../core/content/register';
 import Handler from './content/handler';
 
 const onAction = (CLIQZ, { type, offerId, autoTrigger }) => (msg) => {
@@ -15,7 +15,7 @@ function renderBanner(payload, CLIQZ, handler) {
   handler.showBanner({ config, onaction, payload: newPayload });
 }
 
-registerContentScript('offers-banner', 'http*', function contentScript(window, chrome, CLIQZ) {
+function contentScript(window, chrome, CLIQZ) {
   if (window.top !== window) { return {}; }
   const handler = new Handler({ window });
   const onMessage = (data) => {
@@ -25,8 +25,19 @@ registerContentScript('offers-banner', 'http*', function contentScript(window, c
       window.addEventListener('DOMContentLoaded', () => renderBanner(data, CLIQZ, handler));
     }
   };
+
   return {
     renderBanner: onMessage.bind(this),
     closeBanner: () => handler.removeBanner(),
   };
+}
+
+registerContentScript({
+  module: 'offers-banner',
+  matches: [
+    'http://*/*',
+    'https://*/*',
+  ],
+  allFrames: true,
+  js: [contentScript],
 });

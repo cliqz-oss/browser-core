@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint-disable no-param-reassign */
 import * as persist from '../core/persistent-state';
 import UrlWhitelist from '../core/url-whitelist';
@@ -19,11 +27,12 @@ import md5 from '../core/helpers/md5';
 import telemetry from './telemetry';
 import { HashProb, shouldCheckToken } from './hash';
 import { getDefaultTrackerTxtRule } from './tracker-txt';
-import { isPrivateIP } from '../core/url';
+import { isPrivateIP, getGeneralDomainMinusTLD } from '../core/url';
 import { URLInfo, shuffle } from '../core/url-info';
 import { VERSION, TELEMETRY, COOKIE_MODE } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
-import { compressionAvailable, compressJSONToBase64, generateAttrackPayload } from './utils';
+import { compressionAvailable, compressJSONToBase64 } from './compression';
+import { generateAttrackPayload, truncatedHash } from './utils';
 import AttrackDatabase from './database';
 import getTrackingStatus from './dnt';
 import TrackerCounter from '../core/helpers/tracker-counter';
@@ -367,7 +376,7 @@ export default class CliqzAttrack {
           name: 'logIsTracker',
           spec: 'collect',
           fn: (state) => {
-            if (this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+            if (this.qs_whitelist.isTrackerDomain(truncatedHash(state.urlParts.generalDomain))) {
               const annotations = state.getPageAnnotations();
               annotations.counter = annotations.counter || new TrackerCounter();
               annotations.counter.addTrackerSeen(state.ghosteryBug, state.urlParts.hostname);
@@ -516,7 +525,7 @@ export default class CliqzAttrack {
           spec: 'blocking',
           fn: (state, response) => {
             if (this.config.overrideUserAgent === true) {
-              const domainHash = state.urlParts.generalDomainHash;
+              const domainHash = truncatedHash(state.urlParts.generalDomain);
               if (this.qs_whitelist.isTrackerDomain(domainHash)) {
                 response.modifyHeader('User-Agent', 'CLIQZ');
                 state.incrementStat('override_user_agent');
@@ -702,7 +711,7 @@ export default class CliqzAttrack {
               state.incrementStat('content_length', parseInt(state.getResponseHeader('Content-Length'), 10) || 0);
               state.incrementStat(`status_${state.statusCode}`);
 
-              if (this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+              if (this.qs_whitelist.isTrackerDomain(truncatedHash(state.urlParts.generalDomain))) {
                 const trackingStatus = getTrackingStatus(state);
                 if (trackingStatus) {
                   state.incrementStat(`tsv_${trackingStatus.value}`);
@@ -1017,12 +1026,12 @@ export default class CliqzAttrack {
   checkCookieBlockingMode(state) {
     const mode = this.config.cookieMode;
     if (mode === COOKIE_MODE.TRACKERS
-        && !this.qs_whitelist.isTrackerDomain(state.urlParts.generalDomainHash)) {
+        && !this.qs_whitelist.isTrackerDomain(truncatedHash(state.urlParts.generalDomain))) {
       state.incrementStat('cookie_allow_nottracker');
       return false;
     }
     if (mode === COOKIE_MODE.GHOSTERY && !this.ghosteryDomains[state.urlParts.generalDomain]
-        && !state.urlParts.generalDomainMinusTLD !== 'google') {
+        && !getGeneralDomainMinusTLD(state.urlParts) !== 'google') {
       // in Ghostery mode: if the domain did not match a ghostery bug we allow it. One exception
       // are third-party google.tld cookies, which we do not allow with this mechanism.
       state.incrementStat('cookie_allow_ghostery');

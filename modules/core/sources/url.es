@@ -1,3 +1,11 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 /* eslint no-param-reassign: 'off' */
 /* eslint camelcase: 'off'  */
 /* eslint no-multi-spaces: 'off'  */
@@ -160,6 +168,54 @@ export function stripTrailingSlash(str) {
   return str;
 }
 
+export function getCleanHost(url) {
+  if (!url) {
+    return null;
+  }
+  let cleanHost = url.domain;
+  if (cleanHost.toLowerCase().indexOf('www.') === 0) {
+    cleanHost = cleanHost.slice(4);
+  }
+  return cleanHost;
+}
+
+/**
+ * URL with `https?://www.` and trailing slash on the path removed.
+ * For non `http` and `https` URLs, the protocol is included.
+ */
+export function getFriendlyUrl(url) {
+  if (!url) {
+    return null;
+  }
+  let friendlyUrl = `${getCleanHost(url)}${url.pathname}${url.search}`;
+  if (url.protocol && ['http:', 'https:'].indexOf(url.protocol) === -1) {
+    friendlyUrl = `${url.protocol}${url.slashes}${friendlyUrl}`;
+  }
+  if (friendlyUrl.slice(-1) === '/') {
+    return friendlyUrl.slice(0, friendlyUrl.length - 1);
+  }
+  return friendlyUrl;
+}
+
+/**
+* Legacy 'name' from getDetailsFromUrl:
+*  * If host is an IP address, returns "IP"
+*  * If host does not match a public TLD, returns the URL hostname
+*  * Else, returns the eTLD+1 with suffix removed.
+*/
+export function getGeneralDomainMinusTLD(url) {
+  if (url.hostIsIp) {
+    return 'IP';
+  }
+  // when domainInfo.domain is null, the hostname does not match a known public suffix (e.g. a
+  // local network hostname).
+  if (!url.domainInfo.domain) {
+    return url.domain;
+  }
+  return url.generalDomain.substring(0,
+    url.generalDomain.length - url.domainInfo.publicSuffix.length - 1);
+}
+
 /**
  * Thinking about using this function? Use URLInfo instead!
  * @param _originalUrl
@@ -170,9 +226,9 @@ export function getDetailsFromUrl(_originalUrl) {
   const url = URLInfo.get(originalUrl) || URLInfo.get(`://${originalUrl}`);
   // remove trailing `.` from hostname - https://github.com/cliqz/navigation-extension/pull/6768
   url.hostname = url.hostname.replace(/\.$/, '');
-  const cleanHost = url.cleanHost;
+  const cleanHost = getCleanHost(url);
   const extra = url.pathname + url.search;
-  const friendly_url = url.friendlyUrl;
+  const friendly_url = getFriendlyUrl(url);
 
   let domainDetails;
   if (url.hostIsIp) {
@@ -201,7 +257,7 @@ export function getDetailsFromUrl(_originalUrl) {
     };
   } else {
     domainDetails = {
-      name: url.generalDomainMinusTLD,
+      name: getGeneralDomainMinusTLD(url),
       domain: url.generalDomain,
       host: url.domain,
       subdomains: url.domainInfo.subdomain ? url.domainInfo.subdomain.split('.') : [],
@@ -325,7 +381,7 @@ export function getUrlVariations(url, {
     /* eslint-disable no-unused-vars, no-shadow */
     for (const _ of filpWWW(u, www)) {
       for (const _ of flipTrailingSlash(u, trailingSlash)) {
-        urlSet.add(u.stringify());
+        urlSet.add(u.href);
       }
     }
     /* eslint-enable */
