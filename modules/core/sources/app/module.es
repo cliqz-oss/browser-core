@@ -158,23 +158,15 @@ export default class Module extends EventEmitter {
       });
   }
 
-  disable({ quick } = { quick: false }) {
+  disable() {
     console.log('Module', this.name, 'start unloading');
     const background = this.background;
-
-    // TODO: remove quick disable because it's not needed anymore
-    // TODO: remove quick disable usages
-    if (quick) {
-      // background does not need to have beforeBrowserShutdown defined
-      const quickShutdown = background.beforeBrowserShutdown
-        || function beforeBrowserShutdown() {};
-      quickShutdown.call(background);
-    } else {
+    if (background) {
       background.unload();
-      this._state = AppStates.DISABLED;
-      this.loadingTime = null;
-      this._bgReadyDefer = new Defer();
     }
+    this._state = AppStates.DISABLED;
+    this.loadingTime = null;
+    this._bgReadyDefer = new Defer();
     console.log('Module', this.name, 'unloading finished');
     this.emit(lifecycleEvents.disabled);
   }

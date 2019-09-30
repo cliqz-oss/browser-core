@@ -12,10 +12,9 @@ import getWindowApi from '../core/window-api';
 const core = inject.module('core');
 
 function getHTML(originalURL) {
-  return core.action('getHTML', originalURL).then((docs) => {
-    const doc = docs[0];
-    if (doc) {
-      return doc;
+  return core.action('getHTML', originalURL).then((html) => {
+    if (html) {
+      return html;
     }
     throw new Error(`Failed to get content for tab with url=${originalURL}`);
   });
