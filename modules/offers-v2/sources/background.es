@@ -207,8 +207,7 @@ export default background({
     );
     await this.categoryFetcher.init();
 
-    const activateChipde = config.settings['chip-standalone.enabled'];
-    if (activateChipde) {
+    if (config.settings.OFFERS_BRAND === 'chip') {
       this.chipdeHandler = new ChipdeHandler(
         this.db,
         this.eventHandler.getWebrequestPipeline()

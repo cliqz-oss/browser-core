@@ -28,42 +28,36 @@ describe('Promo bar', function () {
   const sizes = {
     450: {
       hasHeadline: false,
-      hasFlags: false,
       hasDescription: false,
       hasConditionHeader: false,
       hasPicture: false
     },
     600: {
       hasHeadline: true,
-      hasFlags: false,
       hasDescription: false,
       hasConditionHeader: false,
       hasPicture: false
     },
     700: {
       hasHeadline: true,
-      hasFlags: true,
       hasDescription: false,
       hasConditionHeader: false,
       hasPicture: false
     },
     900: {
       hasHeadline: true,
-      hasFlags: true,
       hasDescription: true,
       hasConditionHeader: false,
       hasPicture: false
     },
     1000: {
       hasHeadline: true,
-      hasFlags: true,
       hasDescription: true,
       hasConditionHeader: false,
       hasPicture: true
     },
     1700: {
       hasHeadline: true,
-      hasFlags: true,
       hasDescription: true,
       hasConditionHeader: true,
       hasPicture: true
@@ -155,40 +149,6 @@ describe('Promo bar', function () {
       });
 
       context('the promo bar body', function () {
-        const flagsAreaSelector = '.special-flags';
-        const flagSelector = '.vertical-txt';
-        let $flagsArea;
-        let $flags;
-
-        before(function () {
-          $flagsArea = $promoBody.querySelector(flagsAreaSelector);
-          $flags = $flagsArea.querySelectorAll(flagSelector);
-        });
-
-        it(sizes[frameWidth].hasFlags
-          ? 'has an existing flags area'
-          : 'does not have a visible flags area', function () {
-          expect($flagsArea).to.exist;
-          if (sizes[frameWidth].hasFlags) {
-            expect(subject.getComputedStyle($flagsArea).display).to.not.equal('none');
-          } else {
-            expect(subject.getComputedStyle($flagsArea).display).to.equal('none');
-          }
-        });
-
-        if (sizes[frameWidth].hasFlags) {
-          it('has a flags area with correct amount of flags', function () {
-            expect($flags.length).to.equal(data.template_data.labels.length);
-          });
-
-          it('has a flags area with correct flags', function () {
-            expect($flags.length).to.be.above(0);
-            [...$flags].forEach(function (flag, i) {
-              expect(flag).to.contain.text(data.template_data.labels[i]);
-            });
-          });
-        }
-
         it('has an existing and correct logo', function () {
           const logoSelector = '.logo img';
           const $logo = $promoBody.querySelector(logoSelector);

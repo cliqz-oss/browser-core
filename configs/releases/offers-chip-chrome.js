@@ -20,7 +20,7 @@ module.exports = Object.assign({}, configBase, {
     storeName: `chip-sparalarm/${id}`,
     channel: 'MC10', // CHIP Sparalarm Chrome Release
     OFFERS_CHANNEL: 'chip',
-    'chip-standalone.enabled': true,
+    OFFERS_BRAND: 'chip',
     ONBOARDING_URL: 'https://sparalarm.chip.de/onboarding',
     OFFBOARDING_URL: 'https://sparalarm.chip.de/offboarding',
     SUPPORTED_LANGS: ['de'],

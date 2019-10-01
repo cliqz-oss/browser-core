@@ -39,7 +39,6 @@ describe('Promo bar interactions', function () {
   });
 
   const promoBodyElements = [
-    { name: 'flags area', selector: '.special-flags', isClickable: false },
     { name: 'logo', selector: '.logo img', isClickable: true },
     { name: 'benefit value', selector: '.benefit', isClickable: true },
     { name: 'headline', selector: '.headline-container .headline', isClickable: true },

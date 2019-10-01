@@ -29,7 +29,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
           bg = (await this.system.import('offers-v2/background')).default;
           Category = (await this.system.import('offers-v2/categories/category')).default;
           Intent = (await this.system.import('offers-v2/intent/intent')).default;
-          config.set('chip-standalone.enabled', true);
+          config.set('OFFERS_BRAND', 'chip');
           await bg.init();
           bg.actions.registerRealEstate({ realEstateID: 'offers-cc' });
         });

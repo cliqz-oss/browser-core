@@ -27,6 +27,7 @@ module.exports = {
     channel: 'MO02',
     homepageURL: 'https://cliqz.com/',
     OFFERS_CHANNEL: 'myoffrz',
+    OFFERS_BRAND: 'myoffrz',
     HW_CHANNEL: 'myoffrz',
     ALLOWED_COUNTRY_CODES: ['de'],
     ONBOARDING_URL: 'https://myoffrz.com/on-boarding/',
@@ -57,6 +58,7 @@ module.exports = {
   ],
   bundles: [
     'browser-panel/browser-panel.bundle.js',
+    'browser-panel/debug.bundle.js',
     'core/content-script.bundle.js',
     'hpnv2/worker.wasm.bundle.js',
     'hpnv2/worker.asmjs.bundle.js',

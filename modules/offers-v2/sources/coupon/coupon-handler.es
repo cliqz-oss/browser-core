@@ -168,9 +168,9 @@ export default class CouponHandler {
     this._publishPopupPushEvent({
       products: {
         ghostery: config.settings.channel === 'CH80',
-        chip: config.settings['chip-standalone.enabled'],
-        freundin: config.settings['freundin-standalone.enabled'],
-        incent: config.settings['incent-standalone.enabled'],
+        chip: config.settings.OFFERS_BRAND === 'chip',
+        freundin: config.settings.OFFERS_BRAND === 'freundin',
+        incent: config.settings.OFFERS_BRAND === 'incent',
       },
       key: getGeneralDomain(url),
       url,
