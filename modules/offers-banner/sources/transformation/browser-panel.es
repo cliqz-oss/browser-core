@@ -1,11 +1,8 @@
 /* eslint-disable import/prefer-default-export */
 import prefs from '../../core/prefs';
-import {
-  getResourceUrl,
-  isWebExtension,
-  isCliqzBrowser,
-} from '../../core/platform';
+import { getResourceUrl } from '../../core/platform';
 import { getTitleColor, products } from '../utils';
+import config from '../../core/config';
 
 export function transform(data = {}) {
   const { offer_data: { ui_info: uiInfo } = {}, offer_id: offerId } = data;
@@ -19,8 +16,7 @@ export function transform(data = {}) {
         titleColor: getTitleColor(templateData)
       },
       template_name: templateName,
-      isWebExtension,
-      isCliqzBrowser
+      brand: config.settings.OFFERS_BRAND
     },
     offerId,
     config: {

@@ -19,4 +19,5 @@ module.exports = {
   antitrackingPlaceholder: 'cliqz.com/tracking',
   antitrackingHeader: 'CLIQZ-AntiTracking',
   FRESHTAB_TITLE: 'Cliqz Tab',
+  OFFERS_BRAND: 'cliqz',
 };
