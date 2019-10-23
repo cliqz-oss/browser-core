@@ -1,4 +1,4 @@
-import { afterIframeRemoved, beforeIframeShown } from './sites-specific';
+import { afterIframeRemoved } from './sites-specific';
 import { createElement } from './utils';
 import * as styles from './styles/index';
 
@@ -32,7 +32,6 @@ export default class View {
     };
     setTimeout(() => {
       const isBrowserPanel = this.config.type === 'browser-panel';
-      if (isBrowserPanel) { beforeIframeShown(this.window); }
       this.wrapper.style.opacity = 1;
       this.iframe.style.opacity = 1;
       if (isBrowserPanel) {
@@ -54,8 +53,9 @@ export default class View {
     styles.animate(this.config.type, this.wrapper, animationsOptions);
   }
 
-  changePosition({ deltaRight = 0 }) {
+  changePosition({ deltaRight = 0, allowNegativeRight = false }) {
     const right = Number((this.wrapper.style.right || '0').replace(/\D/g, ''));
+    if (!allowNegativeRight && right + deltaRight < 0) { return; }
     this.wrapper.style.right = `${right + deltaRight}px`;
   }
 
@@ -91,6 +91,7 @@ export default class View {
     }
 
     iframe.frameBorder = 0;
+    iframe.style.height = '0px';
     wrapper.appendChild(iframe);
     iframe.src = this.config.url;
   }

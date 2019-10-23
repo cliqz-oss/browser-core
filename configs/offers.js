@@ -27,12 +27,13 @@ module.exports = {
     channel: 'MO02',
     homepageURL: 'https://cliqz.com/',
     OFFERS_CHANNEL: 'myoffrz',
+    OFFERS_BRAND: 'myoffrz',
     HW_CHANNEL: 'myoffrz',
     ALLOWED_COUNTRY_CODES: ['de'],
     ONBOARDING_URL: 'https://myoffrz.com/on-boarding/',
     OFFBOARDING_URL: 'https://myoffrz.com/off-boarding/',
+    SHOW_ONBOARDING_OVERLAY: true,
   }),
-  versionInfix: '.',
   versionPrefix: '11',
   default_prefs: {
     'modules.browser-panel.enabled': false,
@@ -54,10 +55,12 @@ module.exports = {
     'offers-cc',
     'offers-reminder',
     'offers-v2',
-    'popup-notification'
+    'popup-notification',
+    'onboarding-overlay',
   ],
   bundles: [
     'browser-panel/browser-panel.bundle.js',
+    'browser-panel/debug.bundle.js',
     'core/content-script.bundle.js',
     'hpnv2/worker.wasm.bundle.js',
     'hpnv2/worker.asmjs.bundle.js',
@@ -65,7 +68,9 @@ module.exports = {
     'human-web/rusha.bundle.js',
     'offers-banner/app.bundle.js',
     'offers-cc/offers-cc.bundle.js',
+    'offers-cc/offers-cc-after.bundle.js',
     'offers-reminder/offers-reminder.bundle.js',
+    'onboarding-overlay/app.bundle.js',
   ],
   builderDefault: Object.assign({}, base.builderConfig, {
     externals: base.builderConfig.externals.concat('@cliqz-oss/dexie'),
@@ -73,6 +78,6 @@ module.exports = {
       '@cliqz-oss/dexie': 'Dexie',
     }),
   }),
-  OFFERS_PRODUCT_PREFIX: 'myoffrz',
-  OFFERS_PRODUCT_TITLE: 'MyOffrz',
+  PRODUCT_PREFIX: 'myoffrz',
+  PRODUCT_TITLE: 'MyOffrz',
 };

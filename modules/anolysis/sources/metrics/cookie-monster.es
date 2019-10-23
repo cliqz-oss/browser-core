@@ -12,7 +12,8 @@ export default [
   {
     name: 'cookie-monster.cookieBatch',
     schema: {
-      required: ['count', 'existing', 'visited', 'deleted', 'modified'],
+      required: ['count', 'existing', 'visited', 'deleted', 'modified', 'expired',
+        'localStorageDeleted'],
       properties: {
         count: { type: 'number', minimum: 0 },
         existing: { type: 'number', minimum: 0 },
@@ -20,17 +21,22 @@ export default [
         deleted: { type: 'number', minimum: 0 },
         modified: { type: 'number', minimum: 0 },
         expired: { type: 'number', minimum: 0 },
+        localStorageDeleted: { type: 'number', minimum: 0 },
       },
     },
   }, {
     name: 'cookie-monster.prune',
     schema: {
-      required: ['visitsPruned', 'cookiesPruned', 'visitsCount', 'cookiesCount'],
+      required: ['visitsPruned', 'cookiesPruned', 'visitsCount', 'cookiesCount', 'sessionsPruned',
+        'totalCookies', 'totalOrigins'],
       properties: {
         visitsPruned: { type: 'number', minimum: 0 },
         cookiesPruned: { type: 'number', minimum: 0 },
         visitsCount: { type: 'number', minimum: 0 },
         cookiesCount: { type: 'number', minimum: 0 },
+        sessionsPruned: { type: 'number', minimum: 0 },
+        totalCookies: { type: 'number', minimum: 0 },
+        totalOrigins: { type: 'number', minimum: 0 },
       }
     }
   }, {
@@ -41,6 +47,7 @@ export default [
       nonTrackerEnabled: prefs.get('cookie-monster.nonTracker', false),
       cookieMode: prefs.get('attrack.cookieMode', 'thirdparty'),
       cookieBehavior: prefs.get('network.cookie.cookieBehavior', 5, ''),
+      trackerLocalStorageEnabled: prefs.get('cookie-monster.trackerLocalStorage', false),
     }],
     schema: {
       required: [
@@ -48,12 +55,14 @@ export default [
         'nonTrackerEnabled',
         'cookieMode',
         'cookieBehavior',
+        'trackerLocalStorageEnabled',
       ],
       properties: {
         sessionExpiryEnabled: { type: 'boolean' },
         nonTrackerEnabled: { type: 'boolean' },
         cookieMode: { type: 'string', enum: ['thirdparty', 'trackers', 'ghostery'] },
         cookieBehavior: { type: 'number', enum: [0, 1, 2, 3, 4, 5] },
+        trackerLocalStorageEnabled: { type: 'boolean' },
       },
     },
   },

@@ -8,7 +8,6 @@
 
 /* global chai */
 /* global describeModule */
-/* global require */
 
 
 const tldts = require('tldts-experimental');

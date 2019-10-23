@@ -447,9 +447,9 @@ export default {
         }
       },
       {
-        url: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/cliqz-history/index.html#/?query=youtube',
-        href: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/cliqz-history/index.html#/?query=youtube',
-        friendlyUrl: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/cliqz-history/index.html',
+        url: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/history/index.html#/?query=youtube',
+        href: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/history/index.html#/?query=youtube',
+        friendlyUrl: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/history/index.html',
         kind: [
           'history-ui'
         ],
@@ -463,7 +463,7 @@ export default {
           host: 'b83b4d62-77eb-5b4d-a5af-794591c1711a',
           hostAndPort: 'b83b4d62-77eb-5b4d-a5af-794591c1711a',
           port: '',
-          url: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/cliqz-history/index.html#/?query=youtube',
+          url: 'moz-extension://b83b4d62-77eb-5b4d-a5af-794591c1711a/modules/history/index.html#/?query=youtube',
           subType: {},
           logo: {
             text: 'b8',

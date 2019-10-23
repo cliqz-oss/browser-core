@@ -17,7 +17,7 @@ const KNOWN_PROTOCOLS = new Set([
 ]);
 
 export function isKnownProtocol(protocol) {
-  return KNOWN_PROTOCOLS.has(protocol);
+  return KNOWN_PROTOCOLS.has(protocol.toLowerCase());
 }
 export function getPunycodeEncoded(url) {
   return _getPunycodeEncoded(punycode.toASCII, url);

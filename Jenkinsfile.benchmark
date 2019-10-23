@@ -4,7 +4,7 @@
 
 properties([
     parameters([
-        string(name: 'CONFIG', defaultValue: 'browser.js'),
+        string(name: 'CONFIG', defaultValue: 'ci/browser.js'),
     ]),
 ])
 

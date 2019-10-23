@@ -28,21 +28,17 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
 
       it('renders cliqz logo', function () {
         expect(subject.query('#header .pause img')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .pause img')).display).to.not.equal('none');
         expect(subject.query('#header .pause img').getAttribute('src')).to.equal('./images/cliqz.svg');
       });
 
       it('renders "Your data is protected"', function () {
-        expect(subject.query('#header .title [data-i18n="control_center_txt_header"]')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header"]')).display).to.not.equal('none');
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="inactive"]')).display).to.equal('none');
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="critical"]')).display).to.equal('none');
-        expect(subject.query('#header .title [data-i18n="control_center_txt_header"]').textContent.trim()).to.equal('control_center_txt_header');
+        expect(subject.query('#header .title #noWarning')).to.exist;
+        expect(subject.query('#header .title #warning')).to.not.exist;
+        expect(subject.query('#header .title #noWarning').textContent.trim()).to.equal('control_center_txt_header');
       });
 
       it('doesn\'t render warning icon', function () {
-        expect(subject.query('#header .title img')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .title img')).display).to.equal('none');
+        expect(subject.query('#header .title img')).to.not.exist;
       });
     });
   }
@@ -57,7 +53,7 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
     });
 
     it('renders title', function () {
-      const titleSelector = '#https .title [data-i18n="control_center_info_https_title"]';
+      const titleSelector = '#https .title span';
       expect(subject.query(titleSelector)).to.exist;
       expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_info_https_title');
     });
@@ -89,12 +85,10 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
     });
 
     it('renders "ON"', function () {
-      const onSelector = '#https .switches [data-i18n="control_center_switch_on"]';
-      const offSelector = '#https .switches [data-i18n="control_center_switch_off"]';
+      const onSelector = '#https .switches [value="on"]';
+      const offSelector = '#https .switches [value="off"]';
       expect(subject.query(onSelector)).to.exist;
-      expect(subject.query(offSelector)).to.exist;
-      expect(subject.getComputedStyle(subject.query(onSelector)).display).to.not.equal('none');
-      expect(subject.getComputedStyle(subject.query(offSelector)).display).to.equal('none');
+      expect(subject.query(offSelector)).to.not.exist;
       expect(subject.query(onSelector).textContent.trim()).to.equal('control_center_switch_on');
     });
   });
@@ -121,12 +115,10 @@ describe('Control Center: HTTPS Everywhere UI browser', function () {
     });
 
     it('renders "OFF"', function () {
-      const onSelector = '#https .switches [data-i18n="control_center_switch_on"]';
-      const offSelector = '#https .switches [data-i18n="control_center_switch_off"]';
-      expect(subject.query(onSelector)).to.exist;
+      const onSelector = '#https .switches [value="on"]';
+      const offSelector = '#https .switches [value="off"]';
+      expect(subject.query(onSelector)).to.not.exist;
       expect(subject.query(offSelector)).to.exist;
-      expect(subject.getComputedStyle(subject.query(onSelector)).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query(offSelector)).display).to.not.equal('none');
       expect(subject.query(offSelector).textContent.trim()).to.equal('control_center_switch_off');
     });
   });

@@ -15,14 +15,13 @@ import t from '../i18n';
 function AsideLeft({
   historyUrl,
   isHistoryEnabled,
-  newTabUrl,
   onHistoryClick,
 }) {
   return (
     <aside className="aside">
       <AsideElement
         condition={isHistoryEnabled}
-        href={newTabUrl}
+        href="#"
         id="cliqz-home"
         label="Home"
         title={t('cliqz_tab_button')}
@@ -43,7 +42,6 @@ function AsideLeft({
 AsideLeft.propTypes = {
   historyUrl: PropTypes.string,
   isHistoryEnabled: PropTypes.bool,
-  newTabUrl: PropTypes.string,
   onHistoryClick: PropTypes.func,
 };
 

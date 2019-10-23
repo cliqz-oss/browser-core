@@ -6,28 +6,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const internalProtocols = new Set(['chrome:', 'resource:', 'moz-extension:', 'chrome-extension:']);
-
-
-export function skipInvalidSource(state) {
-  return state.tabUrlParts !== null;
-}
-
-
-export function skipInternalProtocols(state) {
-  if (!state.urlParts) {
-    // url must be parseable
+export function checkValidContext(state) {
+  if (!state.page || !state.tabUrlParts || !state.urlParts) {
     return false;
   }
-  if (state.tabUrlParts && internalProtocols.has(state.tabUrlParts.protocol)) {
-    return false;
-  }
-  if (state.urlParts && internalProtocols.has(state.urlParts.protocol)) {
+  if (!state.tabUrlParts.protocol.startsWith('http') || !state.urlParts.protocol.startsWith('http')) {
     return false;
   }
   return true;
 }
-
 
 export function checkSameGeneralDomain(state) {
   const gd1 = state.urlParts.generalDomain;

@@ -6,54 +6,41 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* eslint-disable strict, no-console */
+const { gitDescribeSync } = require('git-describe');
 
-'use strict';
+const {
+  configParameter,
+  getExtensionVersion,
+  setConfigPath,
+} = require('../common');
 
-const program = require('commander');
-const gitDescribe = require('git-describe');
-const common = require('./common');
+module.exports = (program) => {
+  program.command(`version ${configParameter}`)
+    .option('--prefix <prefix>', 'replace major version with <prefix>')
+    .option('--distance', 'include git distance in version')
+    .action((configPath, options) => {
+      const cfg = setConfigPath(configPath, options.toSubdir);
+      const config = cfg.CONFIG;
+      const prefix = options.prefix || config.versionPrefix;
+      const distance = options.distance || config.versionDistance;
 
-const setConfigPath = common.setConfigPath;
-const getExtensionVersion = common.getExtensionVersion;
-const gitDescribeSync = gitDescribe.gitDescribeSync;
-
-program.command(`version ${common.configParameter}`)
-  .option('--environment <environment>', 'development')
-  .option('--infix <infix>', '', '.1b')
-  .option('--prefix <prefix>', '')
-  .action((configPath, options) => {
-    process.env.CLIQZ_ENVIRONMENT = options.environment;
-
-    const cfg = setConfigPath(configPath, options.toSubdir);
-    const config = cfg.CONFIG;
-    const infix = config.versionInfix || options.infix;
-    const prefix = config.versionPrefix || options.prefix;
-
-    getExtensionVersion('package').then((version) => {
-      if (prefix) {
+      getExtensionVersion('package').then((version) => {
         const versionParts = version.split('.');
-        versionParts[0] = prefix;
-        version = versionParts.join('.');
-      }
-      // config infix implies we want to have long version number
-      if (!config.infix && options.environment === 'production') {
-        console.log(version);
-        return;
-      }
+        if (prefix) {
+          versionParts[0] = prefix;
+        }
 
-      const gitInfo = gitDescribeSync();
-      const betaVersion = [
-        version,
-        infix,
-        gitInfo.distance || '0'
-      ].join('');
+        if (distance) {
+          const gitInfo = gitDescribeSync();
+          versionParts.push(gitInfo.distance || 0);
+        }
 
-      console.log(betaVersion);
+        console.log(versionParts.join('.'));
+      });
     });
-  });
 
-program.command('addon-version')
-  .action(() => {
-    getExtensionVersion('package').then(version => console.log(version));
-  });
+  program.command('addon-version')
+    .action(() => {
+      getExtensionVersion('package').then(version => console.log(version));
+    });
+};

@@ -58,13 +58,8 @@ describe('Control Center: AMO, all modules are present', function () {
     });
 
     it('renders antiphishing module', function () {
-      const antiphishingSelector = '#control-center .amo #settings #anti-phising';
+      const antiphishingSelector = '#control-center .amo #settings #anti-phishing';
       expect(subject.query(antiphishingSelector)).to.exist;
-    });
-
-    it('renders cliqz tab module', function () {
-      const cliqzTabSelector = '#control-center .amo #settings #cliqz-tab';
-      expect(subject.query(cliqzTabSelector)).to.exist;
     });
   });
 
@@ -80,12 +75,12 @@ describe('Control Center: AMO, all modules are present', function () {
     });
 
     it('renders Search options', function () {
-      const searchSelector = '#control-center .amo #othersettings .accordion .accordion-section-title[href="#accordion-2"]';
+      const searchSelector = '#control-center .amo #othersettings .accordion .accordion-section-title.search';
       expect(subject.query(searchSelector)).to.exist;
     });
 
     it('renders MyOffrz options', function () {
-      const myOffrzSelector = '#control-center .amo #othersettings .accordion .accordion-section-title[href="#accordion-4"]';
+      const myOffrzSelector = '#control-center .amo #othersettings .accordion .accordion-section-title[data-target="offrz"]';
       expect(subject.query(myOffrzSelector)).to.exist;
     });
   });

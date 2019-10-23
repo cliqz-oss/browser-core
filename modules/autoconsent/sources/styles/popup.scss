@@ -1,0 +1,182 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+$color-cliqz-blue: #00aef0;
+
+@function get-color-opacity($color, $opacity) {
+  @if ($color == 'white') {
+    @return rgba(255, 255, 255, $opacity);
+  } @else {
+    @return rgba(0, 0, 0, $opacity);
+  }
+}
+
+@function get-color-black-opacity($opacity) {
+    $get-color: get-color-opacity('black', $opacity);
+    @return $get-color;
+}
+
+@mixin tooltip (){
+  :host {
+      all: initial;
+  }
+  .tooltip {
+      display: 'block';
+      padding: 18px 20px;
+      width: 100%;
+      background: $color-cliqz-blue;
+      opacity: 1;
+      pointer-events: none;
+      color: #fff;
+      font-size: 12px;
+      box-shadow: 0 0 25px get-color-black-opacity(0.3);
+      z-index: 101; // The notification should be on top of everything, also over `url-bar` from `_url-bar-with-results.scss`
+      transition: opacity 0.3s, top 0.3s;
+  }
+  &.closed {
+      top: 63px;
+      opacity: 0;
+  }
+
+  .header {
+      padding: 2px 0 10px;
+      font-weight: 600;
+      font-size: 18px;
+  }
+
+  .description {
+      padding-bottom: 18px;
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 1.4;
+  }
+
+  .btn-wrap {
+      white-space: nowrap;
+  }
+
+  .enable,
+  .later,
+  .close {
+      background: none;
+      border-radius: 2px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      color: #fff;
+      padding: 5px 10px;
+      pointer-events: initial;
+      font-size: 16px;
+      font-weight: 500;
+  }
+
+  .enable {
+      color: $color-cliqz-blue;
+      background-color: #fff;
+      border-radius: 2px;
+      margin-right: 15px;
+
+      &:hover {
+          background-color: $color-cliqz-blue;
+          border-color: #fff;
+          color: #fff;
+      }
+  }
+
+  .later {
+      &:hover {
+          border-color: #fff;
+      }
+  }
+
+  &-content {
+      display: inline-block;
+      width: calc(100% - 50px);
+  }
+
+  &-icon {
+      vertical-align: top;
+      display: inline-block;
+      margin-right: 15px;
+      margin-top: 5px;
+      position: relative;
+      width: 28px;
+      color: transparent;
+
+      &:after {
+          content: '';
+          position: absolute;
+          top: -28px;
+          left: 278px;
+          width: 0;
+          height: 0;
+          border-left: 10px solid transparent;
+          border-bottom: 10px solid $color-cliqz-blue;
+          border-right: 10px solid transparent;
+      }
+  }
+
+  &-close {
+      position: absolute;
+      width: 25px;
+      height: 25px;
+      top: 8px;
+      right: 5px;
+
+      .close {
+          position: relative;
+          display: block;
+          text-indent: -9999px;
+          cursor: pointer;
+          width: 25px;
+          height: 25px;
+          margin: 0px;
+          color: #fff;
+
+          &:after,
+          &:before {
+              content: '';
+              background: #fff;
+              position: absolute;
+              top: 0;
+              right: 10px;
+              height: 15px;
+              width: 1.5px;
+              transform: rotate(-45deg);
+              opacity: 0.55;
+          }
+
+          &:before {
+              transform: rotate(45deg);
+          }
+
+          &:hover {
+              &:before,
+              &:after {
+                  opacity: 1;
+              }
+          }
+      }
+  }
+}
+* {
+  box-sizing: border-box;
+  outline: none;
+  margin: 0px;
+  padding: 0px;
+  font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+}
+body {
+  width: 100%;
+}
+.autoconsent {
+  width: 360px;
+  margin: auto;
+  position: relative;
+  overflow-x: hidden;
+  @include tooltip();
+}

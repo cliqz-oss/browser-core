@@ -76,13 +76,15 @@ export default background({
     function sendUI(action) {
       // since migration to webext iframe do not receive runtime message.
       sendToPreferenceTab({
+        module: 'pairing',
         action,
-        message: this.peerSlave.pairingInfo,
+        args: [this.peerSlave.pairingInfo],
       });
 
       runtime.sendMessage({
+        module: 'pairing',
         action,
-        message: this.peerSlave.pairingInfo,
+        args: [this.peerSlave.pairingInfo],
       });
       events.pub(`pairing.${action}`, this.peerSlave.pairingInfo);
     }

@@ -8,13 +8,12 @@
 
 /* eslint no-param-reassign: 'off' */
 
-import md5 from '../../core/helpers/md5';
+import md5, { truncatedHash } from '../../core/helpers/md5';
 import { dURIC } from '../../core/url-info';
 import console from '../../core/console';
 
 import TokenDomain from '../token-domain';
 import BlockLog from '../block-log';
-import { truncatedHash } from '../utils';
 
 function decodeToken(token) {
   let decodedToken = dURIC(token);

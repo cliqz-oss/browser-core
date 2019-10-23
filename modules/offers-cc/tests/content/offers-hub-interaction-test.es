@@ -152,67 +152,23 @@ context('Offers Hub Interaction tests', function () {
       data = dataNewOffer;
       await subject.pushData(target, dataNewOffer);
 
-      subject.query('.card-promo__input').addEventListener('select', eventHandler);
-      subject.query('.card-promo__myoffrz-copy-code').click();
+      subject.query('.card-promo-ab__input').addEventListener('select', eventHandler);
+      subject.query('.card-promo-ab__copy-code').click();
 
       await waitFor(() =>
-        subject.query('.card-promo__myoffrz-copy-code').textContent.trim() !== 'offers_hub_copy_btn');
+        subject.query('.card-promo-ab__copy-code').textContent.trim() !== 'offers_hub_copy_btn');
     });
 
     afterEach(function () {
-      subject.query('.card-promo__input').removeEventListener('select', eventHandler);
+      subject.query('.card-promo-ab__input').removeEventListener('select', eventHandler);
     });
 
     it('selects the code', function () {
       expect(codeSelected).to.be.true;
     });
 
-    it('renders \'code copied\'', function () {
-      expect(subject.query('.card-promo__myoffrz-copy-code')).to.have.text('offers_hub_code_copy');
-    });
-  });
-
-  describe('clicking on "Conditions"', function () {
-    beforeEach(async function () {
-      data = dataNewOffer;
-      await subject.pushData(target, data);
-      subject.query('.card-conditions__label').click();
-      await waitFor(() =>
-        subject.messages.find(message => message.message.action === 'resize'));
-    });
-
-    it('renders card benefit', function () {
-      expect(subject.query('.card__benefit')).to.exist;
-      expect(subject.query('.card__benefit'))
-        .to.contain.text(data.vouchers[0].template_data.benefit);
-    });
-
-    it('does not render card headline and image', function () {
-      expect(subject.getComputedStyle('.card__screen-main').visibility).to.equal('hidden');
-    });
-
-    it('renders conditions text', function () {
-      expect(subject.query('.card__conditions')).to.exist;
-      expect(subject.query('.card__conditions'))
-        .to.contain.text(data.vouchers[0].template_data.conditions);
-    });
-
-    describe('twice', function () {
-      beforeEach(async function () {
-        subject.query('.card-conditions__label').click();
-        await waitFor(() =>
-          subject.messages.find(message => message.message.action === 'resize'));
-      });
-
-      it('renders card headline', function () {
-        expect(subject.query('.card__headline')).to.exist;
-        expect(subject.query('.card__headline'))
-          .to.contain.text(data.vouchers[0].template_data.headline);
-      });
-
-      it('does not render conditions text', function () {
-        expect(subject.getComputedStyle('.card__screen-secondary').display).to.equal('none');
-      });
+    it('renders \'copy and go\'', function () {
+      expect(subject.query('.card-promo-ab__copy-code')).to.have.text('copy_and_go');
     });
   });
 });

@@ -9,7 +9,6 @@
 /* global chai */
 /* global sinon */
 /* global describeModule */
-/* global require */
 
 const pako = require('pako');
 

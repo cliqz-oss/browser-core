@@ -13,6 +13,7 @@ const gateway = new client.Pushgateway('http://pushgateway-ddns.cliqz.discover:9
 const testNames = [
   'new_profile',
   'startup',
+  'wr_all',
   'wr_antitracking',
   'wr_adblocker',
   'wr_base'

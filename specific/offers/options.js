@@ -36,7 +36,7 @@ function restoreOptions() {
     module: 'offers-banner',
     args: [['telemetry', 'humanWebOptOut']],
     action: 'getPref'
-  }, ({ response: prefs = {} }) =>
+  }, (prefs = {}) =>
     Object.keys(prefs).forEach((key) => {
       const node = document.getElementById(key);
       if (!node) { return; }

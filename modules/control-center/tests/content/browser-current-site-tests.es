@@ -50,11 +50,11 @@ function currentSiteTests(amo) {
     it('link for "Report URL" is correct', function () {
       const objectSelector = '#control-center #currentsite .reportsite';
       expect(subject.query(objectSelector)).to.exist;
-      expect(subject.query(objectSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/report-url');
+      expect(subject.query(objectSelector).getAttribute('target')).to.equal('https://cliqz.com/report-url');
     });
 
     it('renders "Report URL"', function () {
-      const linkSelector = '#control-center #currentsite .reportsite[data-i18n="control_center_report_url"]';
+      const linkSelector = '#control-center #currentsite .reportsite';
       expect(subject.query(linkSelector)).to.exist;
       expect(subject.query(linkSelector).textContent.trim()).to.equal('control_center_report_url');
     });
@@ -88,11 +88,11 @@ function currentSiteTests(amo) {
     it('link for "Report URL" is correct', function () {
       const objectSelector = '#control-center #currentsite .reportsite';
       expect(subject.query(objectSelector)).to.exist;
-      expect(subject.query(objectSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/report-url');
+      expect(subject.query(objectSelector).getAttribute('target')).to.equal('https://cliqz.com/report-url');
     });
 
     it('renders "Report URL"', function () {
-      const linkSelector = '#control-center #currentsite .reportsite[data-i18n="control_center_report_url"]';
+      const linkSelector = '#control-center #currentsite .reportsite';
       expect(subject.query(linkSelector)).to.exist;
       expect(subject.query(linkSelector).textContent.trim()).to.equal('control_center_report_url');
     });
@@ -102,6 +102,7 @@ function currentSiteTests(amo) {
 describe('Control Center: Current site section UI tests browser', function () {
   currentSiteTests(false);
 });
+
 
 describe('Control Center: AMO, Current site section UI tests', function () {
   currentSiteTests(true);

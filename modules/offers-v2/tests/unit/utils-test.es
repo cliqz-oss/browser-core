@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 /* eslint-disable func-names */
 
 const commonMocks = require('./utils/common');

@@ -89,9 +89,13 @@ AppState.addEventListener('change', (state) => {
   }
 });
 
+const _setInterval = setInterval;
+const _clearTimeout = clearTimeout;
+const _clearInterval = clearInterval;
+
 export {
   _setTimeout as setTimeout,
-  setInterval,
-  clearTimeout,
-  clearInterval
+  _setInterval as setInterval,
+  _clearTimeout as clearTimeout,
+  _clearInterval as clearInterval
 };

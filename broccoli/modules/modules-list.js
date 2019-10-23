@@ -17,7 +17,7 @@ config.modules.forEach((module) => {
     'import',
     `${camelCase(module)}Module`,
     'from',
-    `'../../${module}/index';`,
+    `'../../${module}/background';`,
   ].join(' ');
   modulesList += importStatement;
 });

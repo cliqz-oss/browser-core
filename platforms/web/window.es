@@ -6,5 +6,4 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
 export default window;

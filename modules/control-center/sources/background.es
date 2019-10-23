@@ -106,10 +106,6 @@ export default background({
     this.intervals.removeAll();
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   refreshState(tabId) {
     return this.prepareData(tabId).then((data) => {
       this.actions.setState(tabId, data.generalState);
@@ -268,7 +264,7 @@ export default background({
       } else if (url.endsWith('modules/freshtab/home.html')) {
         friendlyURL = `${moduleConfig.settings.BRAND} Tab`;
         isSpecialUrl = true;
-      } else if (url.endsWith('modules/cliqz-history/index.html')) {
+      } else if (url.endsWith('modules/history/home.html')) {
         friendlyURL = `${getMessage('freshtab_history_button')}`;
         isSpecialUrl = true;
       } else if (url.endsWith('modules/privacy-dashboard/index.html')) {
@@ -429,23 +425,6 @@ export default background({
       }
     },
 
-    'cliqz-tab': function cliqzTab({ status, isPrivateMode }) {
-      events.pub('control-center:cliqz-tab');
-      if (!isPrivateMode) {
-        telemetry.push({
-          type: TELEMETRY_TYPE,
-          target: 'cliqz_tab',
-          action: 'click',
-          state: status === true ? 'on' : 'off'
-        }, 'metrics.legacy.control_center.cliqz_tab');
-      }
-    },
-
-    'type-filter': function typeFilter(data) {
-      prefs.set(`type_filter_${data.target}`, data.status);
-      events.pub('type_filter:change', { target: data.target, status: data.status });
-    },
-
     'antitracking-activator': async function antitrackingActivator(data) {
       const tabId = await this.getCurrentTabId();
       switch (data.status) {
@@ -511,6 +490,7 @@ export default background({
 
     'adb-activator': function adbActivator(data) {
       events.pub('control-center:adb-activator', data);
+
       let state;
       if (data.type === 'switch') {
         state = data.state === 'active' ? 'on' : 'off';
@@ -549,6 +529,33 @@ export default background({
       prefs.set('modules.search.providers.cliqz.enabled', data.enabled);
       // TODO telemetry
       return this.actions.getData();
+    },
+
+    'autoconsent-activator': (data) => {
+      const { state, deny, hostname, isPrivateMode, type } = data;
+      if (state === 'off_all' || state === 'critical') {
+        prefs.set('modules.autoconsent.enabled', false);
+      } else {
+        prefs.set('modules.autoconsent.enabled', true);
+        const autoconsent = inject.module('autoconsent');
+        autoconsent.action('setDefaultAction', deny ? 'deny' : 'allow');
+        if (hostname) {
+          if (state === 'active') {
+            autoconsent.action('clearSiteAction', hostname);
+          } else {
+            autoconsent.action('setSiteAction', hostname, 'none', isPrivateMode);
+          }
+        }
+      }
+      if (!isPrivateMode) {
+        const msg = {
+          type: TELEMETRY_TYPE,
+          target: `autoconsent_${type}`,
+          state: state || `${deny}`,
+          action: 'click',
+        };
+        telemetry.push(msg, `metrics.legacy.control_center.${msg.target}`);
+      }
     }
   },
 });

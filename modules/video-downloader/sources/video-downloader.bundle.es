@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global document, window, $, Handlebars */
+/* global $, Handlebars */
 /* eslint-disable no-param-reassign */
 import helpers from './content/helpers';
 import templates from './templates';

@@ -18,26 +18,36 @@ export default describeModule('offers-banner/transformation/helpers',
         it('expired in the next 70 years', () => {
           const d = Date.parse('04 Dec 2095 00:12:00 GMT');
           const d2 = Date.parse('04 Dec 2018 00:12:00 GMT');
-          const [diff, diffUnit, isExpired] = calculateValidity(d / 1000, d2);
+          const { diff, diffUnit, expired = {} } = calculateValidity(d / 1000, d2);
           chai.expect(diff).to.be.equal(28124);
           chai.expect(diffUnit.includes('day')).to.be.true;
-          chai.expect(isExpired).to.be.false;
+          chai.expect(expired.soon).to.be.false;
         });
+
+        it('expired in the next 5 days', () => {
+          const d = Date.parse('09 Dec 2095 00:12:00 GMT');
+          const d2 = Date.parse('04 Dec 2095 00:12:00 GMT');
+          const { diff, diffUnit, expired = {} } = calculateValidity(d / 1000, d2);
+          chai.expect(diff).to.be.equal(5);
+          chai.expect(diffUnit.includes('day')).to.be.true;
+          chai.expect(expired.leftSome).to.be.true;
+        });
+
         it('expired in the next hours', () => {
           const d = Date.parse('04 Dec 2018 04:12:00 GMT');
           const d2 = Date.parse('04 Dec 2018 00:12:00 GMT');
-          const [diff, diffUnit, isExpired] = calculateValidity(d / 1000, d2);
+          const { diff, diffUnit, expired = {} } = calculateValidity(d / 1000, d2);
           chai.expect(diff).to.be.equal(4);
           chai.expect(diffUnit.includes('hour')).to.be.true;
-          chai.expect(isExpired).to.be.true;
+          chai.expect(expired.soon).to.be.true;
         });
         it('expired in the next minutes', () => {
           const d = Date.parse('04 Dec 2018 00:32:00 GMT');
           const d2 = Date.parse('04 Dec 2018 00:12:00 GMT');
-          const [diff, diffUnit, isExpired] = calculateValidity(d / 1000, d2);
+          const { diff, diffUnit, expired = {} } = calculateValidity(d / 1000, d2);
           chai.expect(diff).to.be.equal(20);
           chai.expect(diffUnit.includes('minute')).to.be.true;
-          chai.expect(isExpired).to.be.true;
+          chai.expect(expired.soon).to.be.true;
         });
       });
 
@@ -46,18 +56,18 @@ export default describeModule('offers-banner/transformation/helpers',
           calculateValidity = this.module().calculateValidity;
         });
 
-        it('should return null', () => {
-          const [diff, diffUnit, isExpired] = calculateValidity(null);
-          chai.expect(diff).to.be.null;
-          chai.expect(diffUnit).to.be.null;
-          chai.expect(isExpired).to.be.null;
+        it('should return undefined', () => {
+          const { diff, diffUnit, expired } = calculateValidity(null);
+          chai.expect(diff).to.be.undefined;
+          chai.expect(diffUnit).to.be.undefined;
+          chai.expect(expired).to.be.undefined;
         });
 
-        it('should return null', () => {
-          const [diff, diffUnit, isExpired] = calculateValidity(0);
-          chai.expect(diff).to.be.null;
-          chai.expect(diffUnit).to.be.null;
-          chai.expect(isExpired).to.be.null;
+        it('should return undefined', () => {
+          const { diff, diffUnit, expired } = calculateValidity(0);
+          chai.expect(diff).to.be.undefined;
+          chai.expect(diffUnit).to.be.undefined;
+          chai.expect(expired).to.be.undefined;
         });
       });
 
@@ -68,10 +78,10 @@ export default describeModule('offers-banner/transformation/helpers',
 
         it('should return null', () => {
           const d = Date.parse('04 Dec 1970 00:12:00 GMT');
-          const [diff, diffUnit, isExpired] = calculateValidity(d / 1000);
-          chai.expect(diff).to.be.null;
-          chai.expect(diffUnit).to.be.null;
-          chai.expect(isExpired).to.be.null;
+          const { diff, diffUnit, expired } = calculateValidity(d / 1000);
+          chai.expect(diff).to.be.undefined;
+          chai.expect(diffUnit).to.be.undefined;
+          chai.expect(expired).to.be.undefined;
         });
       });
 
@@ -82,10 +92,10 @@ export default describeModule('offers-banner/transformation/helpers',
 
         it('should return null', () => {
           const d = Date.parse('04 Dec 1970 00:12:00 GMT');
-          const [diff, diffUnit, isExpired] = calculateValidity(d / 1000, d);
+          const { diff, diffUnit, expired = {} } = calculateValidity(d / 1000, d);
           chai.expect(diff).to.be.equal(0);
           chai.expect(diffUnit.includes('minute')).to.be.true;
-          chai.expect(isExpired).to.be.true;
+          chai.expect(expired.soon).to.be.true;
         });
       });
     });

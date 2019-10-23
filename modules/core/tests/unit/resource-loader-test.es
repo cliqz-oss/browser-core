@@ -7,7 +7,6 @@
  */
 
 /* global describeModule */
-/* global describe */
 /* eslint no-param-reassign: off */
 
 

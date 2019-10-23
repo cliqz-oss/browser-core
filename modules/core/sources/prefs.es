@@ -103,10 +103,11 @@ const TELEMETRY_WHITELIST = new Set([
   'offers2UserEnabled', // offers state
   'offersDevFlag', // offers dev flag
   'onboardingVersion', // AB Test for onboarding version
-  'serp_test', // AB Test running from 1.27.2, possible values A/B/C
   'session', // user session
   'share_location', // use location for enhanced local results
   'telemetry', // telemetry state
+  'modules.autoconsent.enabled', // is autoconsent module enabled
+  'modules.antitracking.enabled', // is anti-tracking module enabled
 ]);
 
 export function getCliqzPrefs() {

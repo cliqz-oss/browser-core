@@ -75,4 +75,6 @@ export default [
   ccMetric('info_help'),
   ccMetric('offerz_main', { states: BOOL_STATES }),
   ccMetric('offerz_location', { states: ['0', '1'] }),
+  ccMetric('autoconsent_switch', { states: ['inactive', 'active', 'off_all'] }),
+  ccMetric('autoconsent_deny', { states: BOOL_STATES }),
 ];

@@ -36,6 +36,9 @@ if (env.BRANCH_NAME.startsWith('v3.')) {
     matrix['cliqz-ios'] = [
         'config': 'cliqz-ios.js',
     ]
+    matrix['user-agent-ios'] = [
+        'config': 'user-agent-ios.js',
+    ]
     matrix['ghostery-ios'] = [
         'config': 'ghostery-ios.js',
     ]
@@ -150,6 +153,10 @@ if (isIntegrationBranch) {
 
     matrix['cliqz-ios'] = [
         'config': 'cliqz-ios.js',
+    ]
+
+    matrix['user-agent-ios'] = [
+        'config': 'user-agent-ios.js',
     ]
 
     matrix['ghostery-ios'] = [
@@ -276,8 +283,7 @@ def build(Map m) {
         node('master') {
             docker.image(getImageName()).inside() {
                 def isIntegrationBranch = getIsIntegrationBranch();
-                def environment = isIntegrationBranch ? 'development' : 'production'
-                def version = sh(returnStdout: true, script: "cd /app && ./fern.js version ./configs/${config} --environment ${environment}").trim()
+                def version = sh(returnStdout: true, script: "cd /app && ./fern.js version ./configs/${config}").trim()
                 echo "version: $version"
 
                 withEnv([

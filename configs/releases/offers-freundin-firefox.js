@@ -19,10 +19,10 @@ module.exports = Object.assign({}, configBase, {
     storeName: 'freundin_offers', // TODO
     channel: 'MF00', // Freundin Offers Firefox Release
     OFFERS_CHANNEL: 'freundin',
-    'freundin-standalone.enabled': true,
+    OFFERS_BRAND: 'freundin',
   }),
   versionPrefix: '15',
   specific: 'offers',
-  OFFERS_PRODUCT_PREFIX: 'freundin',
-  OFFERS_PRODUCT_TITLE: 'Freundin Offers',
+  PRODUCT_PREFIX: 'freundin',
+  PRODUCT_TITLE: 'Freundin Offers',
 });

@@ -5,26 +5,17 @@ import Tooltip from './Tooltip';
 import TooltipExtra from './TooltipExtra';
 import { resize } from './common/utils';
 
-const ALLOWED_POPUPS_IMAGES = ['with-image', 'with-no-image'];
-const ALLOWED_POPUPS_COPY_CODES = ['current', 'one-step', 'two-step'];
-
 export default function draw(data) {
   const {
     showTooltip = false,
     isGeneric = false,
-    popupsImage = 'with-image',
-    popupsCopyCode = 'current',
   } = data;
-  const allowedPopupsImage = ALLOWED_POPUPS_IMAGES
-    .find(image => image === popupsImage) || 'with-image';
-  const allowedPopupsCopyCode = ALLOWED_POPUPS_COPY_CODES
-    .find(code => code === popupsCopyCode) || 'current';
 
   const newData = {
     ...data,
     abtestInfo: {
-      popupsImage: allowedPopupsImage,
-      popupsCopyCode: allowedPopupsCopyCode,
+      popupsImage: 'with-image', // with-image | with-no-image
+      popupsCopyCode: 'one-step', // one-step | two-step
     },
   };
   const tooltip = isGeneric ? Tooltip : TooltipExtra;

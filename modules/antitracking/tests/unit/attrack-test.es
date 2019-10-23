@@ -141,6 +141,16 @@ export default describeModule('antitracking/attrack',
         onCreated: listenerStub,
         onUpdated: listenerStub,
         onRemoved: listenerStub,
+        onActivated: listenerStub,
+        query: () => Promise.resolve([]),
+      }
+    },
+    'platform/webnavigation': {
+      default: {
+        onBeforeNavigate: listenerStub,
+        onCommitted: listenerStub,
+        onDOMContentLoaded: listenerStub,
+        onCompleted: listenerStub,
       }
     },
     'platform/webrequest': {
@@ -176,6 +186,8 @@ export default describeModule('antitracking/attrack',
         onBeforeRequest: listenerStub,
         onBeforeSendHeaders: listenerStub,
         onHeadersReceived: listenerStub,
+        onCompleted: listenerStub,
+        onErrorOccurred: listenerStub,
       },
     },
     'platform/windows': { default: false },
@@ -196,11 +208,17 @@ export default describeModule('antitracking/attrack',
     'platform/lib/moment': {
       default: moment,
     },
+    'core/services/telemetry': {
+      default: {
+        isEnabled: () => false,
+      }
+    }
   }), function () {
     let attrack;
     let pipeline;
     let config;
     let md5;
+    let truncatedHash;
 
     const globalSetTimeout = setTimeout;
     const globalSetInterval = setInterval;
@@ -231,7 +249,9 @@ export default describeModule('antitracking/attrack',
           },
         },
       });
-      md5 = (await this.system.import('core/helpers/md5')).default;
+      const md5Module = await this.system.import('core/helpers/md5');
+      md5 = md5Module.default;
+      truncatedHash = md5Module.truncatedHash;
       const Config = (await this.system.import('antitracking/config')).default;
       config = new Config({});
       await attrack.init(config);
@@ -253,6 +273,9 @@ export default describeModule('antitracking/attrack',
     });
 
     function simulatePageLoad(pageSpec) {
+      pipeline.pageStore.onTabCreated({
+        ...pageSpec.tab
+      });
       return {
         onBeforeRequest: pageSpec.onBeforeRequest.map(function (reqData) {
           const response = pipeline.onBeforeRequest(reqData);
@@ -366,7 +389,7 @@ export default describeModule('antitracking/attrack',
 
             beforeEach(function () {
               key = md5('uid');
-              trackerHash = md5('127.0.0.1').substring(0, 16);
+              trackerHash = truncatedHash('127.0.0.1');
               attrack.qs_whitelist.addSafeToken(trackerHash, '');
               config.tokenDomainCountThreshold = 2;
               attrack.pipelineSteps.tokenChecker.tokenDomain.clear();
@@ -448,7 +471,7 @@ export default describeModule('antitracking/attrack',
 
       beforeEach(function () {
         config.qsEnabled = true;
-        attrack.qs_whitelist.addSafeToken(md5('tracker.com').substring(0, 16), '');
+        attrack.qs_whitelist.addSafeToken(truncatedHash('tracker.com'), '');
         config.tokenDomainCountThreshold = 0; // block first time
         return attrack.initPipeline();
       });
@@ -464,7 +487,6 @@ export default describeModule('antitracking/attrack',
           requestHeaders: mockRequestHeaders,
           frameAncestors: [],
         });
-        // chai.expect(attrack.tp_events._active).to.equal([]);
         chai.expect(mainDoc).to.not.have.property('cancel');
         chai.expect(mainDoc).to.not.have.property('redirectUrl');
         chai.expect(mainDoc).to.not.have.property('requestHeaders');
@@ -488,8 +510,8 @@ export default describeModule('antitracking/attrack',
       it('removes also after subsequent redirect with same uid', function () {
         const mainDoc = pipeline.onBeforeRequest({
           tabId: 34,
-          frameId: 34,
-          parentFrameId: 34,
+          frameId: 0,
+          parentFrameId: -1,
           method: 'GET',
           type: 'main_frame',
           url: 'http://cliqztest.com/',
@@ -503,8 +525,8 @@ export default describeModule('antitracking/attrack',
         chai.expect(mainDoc).to.not.have.property('requestHeaders');
         let response = pipeline.onBeforeRequest({
           tabId: 34,
-          frameId: 34,
-          parentFrameId: 34,
+          frameId: 0,
+          parentFrameId: -1,
           method: 'GET',
           type: 'xmlhttprequest',
           url: `http://tracker.com/track;uid=${uid}?uid2=${uid}&encuid=${encodeURIComponent(uid)}`,
@@ -520,8 +542,8 @@ export default describeModule('antitracking/attrack',
 
         response = pipeline.onBeforeRequest({
           tabId: 34,
-          frameId: 34,
-          parentFrameId: 34,
+          frameId: 0,
+          parentFrameId: -1,
           method: 'GET',
           type: 'xmlhttprequest',
           url: `http://tracker.com/track;uid=cliqz.com/tracking&uid2=cliqz.com/tracking&uid=${uid}?uid2=${uid}&encuid=${encodeURIComponent(uid)}`,

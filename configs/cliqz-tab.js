@@ -17,7 +17,6 @@ module.exports = {
   baseURL: '/modules/',
   pack: 'web-ext build -s build -a .',
   key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv/H/u0CVZ3QL0zWfO5EVbeTlLs76Adp8PUh+teBSoE4iXRlextXu4+BRDtfmZOvDktUlioWNQkBjojY/3ByjNUpyZBK4PJ+SluG/ex/mOmlGHwlbC3HRB0iGagWg6G1/4p4kYQnJlxX3mJEWHGAD8GwU0bnvq20LAqBM9Di3Cte47qujvbHUR7T8pjdpiJDIlW7b2HeVnFwt51UUPk4pUWgE2LnmGgBv7bgLnI/cCmKmqDEBNDebyB5KH331dDlN5vnNjRXp0cWkO9V7neSSfMbO1HRKcjEHwVU0z1jb04fWxCyrx62W9rPAEtvb7MiW57wBU8xPdOWZdmcgqRCe7wIDAQAB',
-  versionInfix: '.',
   versionPrefix: '9',
   settings: Object.assign({}, urls, {
     id,
@@ -62,7 +61,7 @@ module.exports = {
     'webextension-specific/app.bundle.js',
     'freshtab/home.bundle.js',
     'dropdown/dropdown.bundle.js',
-    'control-center/control-center.bundle.js',
+    'control-center/control-center-react.bundle.js',
     'human-web/page.bundle.js',
     'human-web/rusha.bundle.js',
   ],

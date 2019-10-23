@@ -6,11 +6,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { chrome } from '../globals';
+import { browser, chrome } from '../globals';
 
 export default class {
   static deleteVisit(visitId) {
-    return chrome.cliqzHistory.history.deleteVisit(+visitId);
+    return browser.cliqzHistory.history.deleteVisit(+visitId);
   }
 
   static deleteVisits(visitIds) {
@@ -21,19 +21,19 @@ export default class {
   }
 
   static showHistoryDeletionPopup() {
-    return chrome.cliqzHistory.history.showHistoryDeletionPopup();
+    return browser.cliqzHistory.history.showHistoryDeletionPopup();
   }
 
   static fillFromVisit(url, triggeringUrl) {
-    return chrome.cliqzHistory.history.fillFromVisit(url, triggeringUrl);
+    return browser.cliqzHistory.history.fillFromVisit(url, triggeringUrl);
   }
 
   static markAsHidden(url) {
-    return chrome.cliqzHistory.history.markAsHidden(url);
+    return browser.cliqzHistory.history.markAsHidden(url);
   }
 
   static cleanupEmptySearches() {
-    return chrome.cliqzHistory.history.cleanupEmptySearches();
+    return browser.cliqzHistory.history.cleanupEmptySearches();
   }
 
   static addVisit({ url, title, transition, visitTime }) {
@@ -42,13 +42,13 @@ export default class {
     }
 
     return new Promise((resolve, reject) => {
-      chrome.history.addUrl({
+      browser.history.addUrl({
         url,
         title,
-        transition: transition || chrome.history.TransitionType.TYPED,
+        transition: transition || browser.history.TransitionType.TYPED,
         visitTime,
       }, () => {
-        const e = chrome.runtime.lastError;
+        const e = browser.runtime.lastError;
         if (e) {
           reject(e);
         } else {
@@ -72,7 +72,7 @@ export default class {
       // eslint-disable-next-line
       frameEndsAt = +frameEndsAt;
     }
-    return chrome.cliqzHistory.history.query({ limit, frameStartsAt, frameEndsAt, domain, query });
+    return browser.cliqzHistory.history.query({ limit, frameStartsAt, frameEndsAt, domain, query });
   }
 
   static queryVisitsForTimespan({ frameStartsAt, frameEndsAt }) {
@@ -95,8 +95,9 @@ export default class {
   }
 
   static async stats() {
-    if (chrome.cliqzHistory && chrome.cliqzHistory.history && chrome.cliqzHistory.history.stats) {
-      return chrome.cliqzHistory.history.stats();
+    if (browser.cliqzHistory && browser.cliqzHistory.history
+        && browser.cliqzHistory.history.stats) {
+      return browser.cliqzHistory.history.stats();
     }
 
     return {

@@ -8,6 +8,10 @@
   border: 2px solid var(--chip-primary-color, #eb443f);
   background-color: var(--chip-primary-color, #eb443f);
 }
+.card-promo-ab__wrapper.card-promo-ab__myoffrz-wrapper {
+  border: 2px solid var(--myoffrz-primary-color, #f67057);
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
 
 .card-promo-ab__container {
   display: flex;
@@ -22,7 +26,7 @@
   width: 100%;
   color: #00AEF0;
   background-color: white;
-  height: 25px;
+  height: 30px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -35,6 +39,9 @@
 
 .card-promo-ab__input.card-promo-ab__chip-input {
   color: var(--chip-primary-color, #eb443f);
+}
+.card-promo-ab__input.card-promo-ab__myoffrz-input {
+  color: var(--myoffrz-primary-color, #f67057);
 }
 
 .card-promo-ab__copy-code {
@@ -53,23 +60,26 @@
 .card-promo-ab__button {
   display: inline-block;
   width: 100%;
-  height: 33px;
+  height: 36px;
   color: #fff;
   font-weight: 500;
   font-size: 14px;
   text-align: center;
   border-radius: 8px;
   cursor: pointer;
-  line-height: 33px;
+  line-height: 36px;
   background-color: #00AEF0;
 }
 
 .card-promo-ab__button.card-promo-ab__chip-button {
   background-color: var(--chip-primary-color, #eb443f);
 }
+.card-promo-ab__button.card-promo-ab__myoffrz-button {
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
 
 .card-promo-ab__button.card-promo-ab__show-code-button {
-  height: 31px;
-  line-height: 31px;
+  height: 36px;
+  line-height: 36px;
   text-transform: uppercase;
 }

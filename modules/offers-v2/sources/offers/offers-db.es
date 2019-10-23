@@ -654,6 +654,13 @@ class OfferDB {
     return sortedOffers;
   }
 
+  getOffersByRealEstate(realEstate) {
+    return this.getOffers().filter((offer) => {
+      const { offer: { rs_dest: rsDest = [] } = {} } = offer;
+      return rsDest.includes(realEstate);
+    });
+  }
+
   /**
    * will retrieve all the offers we have
    *

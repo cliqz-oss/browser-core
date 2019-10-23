@@ -8,7 +8,7 @@
 
 import Storage from '../core/storage';
 import Defer from '../core/helpers/defer';
-import { chrome } from './globals';
+import { browser } from './globals';
 import { Resource } from '../core/resource-loader';
 import { getDetailsFromUrl } from '../core/url';
 import console from '../core/console';
@@ -92,7 +92,7 @@ let enginesLoaded = false;
 let enginesLoading = false;
 
 function loadSearchEnginesFromResources() {
-  let locale = chrome.i18n.getUILanguage().slice(0, 2);
+  let locale = browser.i18n.getUILanguage().slice(0, 2);
   if (!['en', 'de', 'fr'].includes(locale)) {
     locale = 'en';
   }
@@ -113,8 +113,8 @@ export function loadSearchEngines() {
       });
   }
 
-  if (chrome.cliqzSearchEngines) {
-    return chrome.cliqzSearchEngines.getEngines()
+  if (browser.cliqzSearchEngines) {
+    return browser.cliqzSearchEngines.getEngines()
       .then((engines) => {
         SEARCH_ENGINES = buildSearchEngines(engines, true);
       });

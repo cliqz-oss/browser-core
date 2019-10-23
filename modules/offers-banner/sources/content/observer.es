@@ -1,4 +1,5 @@
 import View from './view';
+import { beforeIframeShown } from './sites-specific';
 
 export default class Observer {
   constructor({ window, onmessage, onaction, config, onremove, payload }) {
@@ -9,7 +10,6 @@ export default class Observer {
     this.payload = payload;
 
     this.view = new View({ onaction, window, config });
-    this._initialPayloadWasSent = false;
     this.config = config;
 
     this._onvisibilitychange = this._onvisibilitychange.bind(this);
@@ -66,12 +66,10 @@ export default class Observer {
     if (hideTooltip) {
       // assert payload.isPair = true
       this.view.sendToIframe(this.payload.popup);
-    }
-    if (!this._initialPayloadWasSent) {
+    } else {
       const payload = this.payload.isPair ? this.payload.tooltip : this.payload;
       this.view.sendToIframe(payload);
       this.view.makeVisible();
-      this._initialPayloadWasSent = true;
     }
   }
 
@@ -84,6 +82,10 @@ export default class Observer {
       },
       'browser-panel': {
         offersIFrameHandler: this._send.bind(this),
+        show: (dimensions) => {
+          this.view.resize(dimensions);
+          beforeIframeShown(this.window);
+        }
       },
       'offers-reminder': {
         changePositionWithAnimation: this.view.changePositionWithAnimation.bind(this.view),

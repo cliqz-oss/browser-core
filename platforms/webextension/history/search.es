@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { chrome } from '../globals';
+import { browser, chrome } from '../globals';
 
 const MAX_RESULTS_WITH_EMPTY_QUERY = 100;
 const MAX_RESULTS = 15;
@@ -14,7 +14,7 @@ const URL_PREFIX_BLACKLIST = [
   'moz-extension://',
   'chrome-extension://',
 ];
-const unifiedSearchAvailable = chrome.cliqzHistory && chrome.cliqzHistory.unifiedSearch;
+const unifiedSearchAvailable = browser.cliqzHistory && browser.cliqzHistory.unifiedSearch;
 
 function isURLBlacklisted(url) {
   return URL_PREFIX_BLACKLIST.find(prefix => url.indexOf(prefix) === 0);
@@ -69,7 +69,7 @@ if (chrome.tabs) {
 export default function getHistory(query, callback) {
   // we use the unified search experimental API in the Cliqz browser
   if (unifiedSearchAvailable) {
-    chrome.cliqzHistory.unifiedSearch(query).then(callback);
+    browser.cliqzHistory.unifiedSearch(query).then(callback);
     return;
   }
 
@@ -152,12 +152,8 @@ export default function getHistory(query, callback) {
     });
   };
 
-  // Support both callback and promise APIs styles
-  const promise = chrome.history
-    ? chrome.history.search({ text, startTime: 0, maxResults }, cb)
+  const promise = browser.history
+    ? browser.history.search({ text, startTime: 0, maxResults })
     : Promise.resolve([]);
-
-  if (promise && promise.then) {
-    promise.then(cb);
-  }
+  promise.then(cb);
 }

@@ -29,9 +29,7 @@ export default class MetaDatabase {
     return this.metaDB.get(url)
       .catch(() => ({ _id: url, meta: {} }))
       .then((metaDoc) => {
-        const doc = Object.assign({}, metaDoc, {
-          meta: Object.assign({}, metaDoc.meta, meta),
-        });
+        const doc = { ...metaDoc, meta: { ...metaDoc.meta, ...meta } };
         return this.metaDB.put(doc);
       });
   }

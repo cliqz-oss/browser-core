@@ -97,7 +97,6 @@ DATA.push({
     'popup-notification': null,
     'browser-panel': null,
     'message-center': null,
-    offboarding: null,
     anolysis: null,
     'anolysis-cc': null,
     abtests: null,
@@ -125,7 +124,6 @@ DATA.push({
       }
     },
     'onboarding-v3': null,
-    'type-filter': null,
     history: null,
     'offers-cc': null,
     'video-downloader': null,

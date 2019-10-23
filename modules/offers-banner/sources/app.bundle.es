@@ -1,3 +1,4 @@
+import events from '../core/events';
 import runtime from '../platform/runtime';
 import App from '../core/app';
 import { newTab } from '../platform/tabs';
@@ -68,7 +69,12 @@ async function onboarding(details) {
   if (details.reason === 'install' && config.settings.channel !== '99') {
     await appCreated.promise; // we must wait for the CLIQZ.app object to be created
     await CLIQZ.app.ready();
-    await newTab(DEBUG ? ONBOARDING_URL_DEBUG : ONBOARDING_URL, { focus: true });
+    const tabId = await newTab(DEBUG ? ONBOARDING_URL_DEBUG : ONBOARDING_URL, { focus: true });
+
+    if (config.settings.SHOW_ONBOARDING_OVERLAY) {
+      events.pub('lifecycle:onboarding', { tabId });
+    }
+
     telemetry.push({
       type: 'activity',
       action: 'onboarding-show',

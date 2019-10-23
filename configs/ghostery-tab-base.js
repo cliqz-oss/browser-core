@@ -16,7 +16,6 @@ module.exports = {
   specific: 'ghostery-tab',
   baseURL: '/modules/',
   pack: 'web-ext build -s build -a .',
-  versionInfix: '.',
   versionPrefix: '10',
   settings: Object.assign({}, urls, {
     id,
@@ -71,7 +70,7 @@ module.exports = {
     'webextension-specific/app.bundle.js',
     'freshtab/home.bundle.js',
     'dropdown/dropdown.bundle.js',
-    'control-center/control-center.bundle.js',
+    'control-center/control-center-react.bundle.js',
     'human-web/rusha.bundle.js',
     'toolbox/toolbox.bundle.js',
   ],

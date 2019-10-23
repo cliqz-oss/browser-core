@@ -34,7 +34,6 @@ export default class TopMessages extends React.Component {
   handleLaterClick(message) {
     messageSkipSignal(message.id);
     cliqz.freshtab.skipMessage(message);
-    this.container.remove();
   }
 
   handleCloseClick(message) {

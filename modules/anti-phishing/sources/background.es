@@ -64,8 +64,23 @@ export default background({
     CliqzAntiPhishing.unload();
   },
 
-  beforeBrowserShutdown() {
-    CliqzAntiPhishing.unload();
+  async currentWindowStatus({ url }) {
+    const isWhitelisted = CliqzAntiPhishing.isInWhitelist(url);
+    const whitelistStatus = CliqzAntiPhishing.getUrlWhitelistStatus(url);
+    const active = prefs.get('cliqz-anti-phishing-enabled', true);
+    let state = 'active';
+    if (isWhitelisted && whitelistStatus !== CliqzAntiPhishing.WHITELISTED_TEMPORARY) {
+      state = 'inactive';
+    }
+    if (!active) {
+      state = 'critical';
+    }
+    return {
+      visible: true,
+      active,
+      isWhitelisted,
+      state
+    };
   },
 
   actions: {
@@ -127,13 +142,11 @@ export default background({
           CliqzAntiPhishing.removeForceWhitelist(url);
           prefs.set('cliqz-anti-phishing-enabled', true);
           break;
-        case 'off_website':
         case 'inactive':
           prefs.set('cliqz-anti-phishing-enabled', true);
           CliqzAntiPhishing.whitelist(url);
           break;
         case 'critical':
-        case 'off_all':
           CliqzAntiPhishing.removeForceWhitelist(url);
           prefs.set('cliqz-anti-phishing-enabled', false);
           break;

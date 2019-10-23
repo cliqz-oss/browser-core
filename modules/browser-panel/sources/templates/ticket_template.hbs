@@ -42,20 +42,13 @@
                 href="#"
                 data-i18n="learn_more"
                 data-cqz-of-btn-id="more_about_cliqz"
-                data-openUrl="https://myoffrz.com/fuer-nutzer/"
+                data-openUrl="{{brand.learn_more_url}}"
             >
                 {{local learn_more}}
             </a>
         </span>
     </span>
   </div>
-  {{#if labels}}
-  <div class="special-flags">
-    {{#each labels}}
-        <span class="vertical-txt {{this}}" data-i18n="offers_{{this}}"></span>
-    {{/each}}
-  </div>
-  {{/if}}
 
   <div class="flex-item logo">
     <img
@@ -76,7 +69,6 @@
   {{/if}}
 
   {{#if (or benefit headline) }}
-
     {{#if benefit}}
       <div
         class="benefit flex-item {{#if (not headline) }} only-benefit{{/if}}"
@@ -123,11 +115,8 @@
 
   <div class="flex-item call-to-action">
     {{#if conditions }}
-      <span class="conditions tooltip flex-item" data-i18n="offers_conditions">
-
-      </span>
+      <span class="conditions tooltip flex-item" data-i18n="offers_conditions"></span>
       <span class="info-icon tooltip" title="{{conditions}}"></span>
-
     {{/if}}
 
     {{#if call_to_action}}
@@ -143,6 +132,6 @@
 
 
   <div class="close" data-cqz-of-btn-id="offer_closed">
-    <img data-cqz-of-btn-id="offer_closed" src="./images/ticket-tmpl/close-offer-hover.svg" />
+    <img data-cqz-of-btn-id="offer_closed" src="./images/close.svg" />
   </div>
 </div>

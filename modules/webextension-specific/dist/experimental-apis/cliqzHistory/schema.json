@@ -124,7 +124,43 @@
       "type": "function",
       "description": "Returns the top domains from the user's history",
       "async": "callback",
-      "parameters": []
+      "parameters": [{
+        "name": "options",
+        "type": "object",
+        "optional": true,
+        "default": {
+          "limit": 15,
+          "exclude": [],
+          "includeAdult": false
+        },
+        "properties": {
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 15,
+            "minimum": 1
+          },
+          "exclude": {
+            "type": "array",
+            "optional": true,
+            "default": [],
+            "items": {
+              "type": "string"
+            }
+          },
+          "includeAdult": {
+            "type": "boolean",
+            "optional": true,
+            "default": false
+          }
+        }
+      },
+      {
+        "type": "function",
+        "name": "callback",
+        "optional": true,
+        "parameters": []
+      }]
     }
   ]
 }]

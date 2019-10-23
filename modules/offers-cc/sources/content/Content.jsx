@@ -80,20 +80,25 @@ export default class Content extends React.Component {
 
   onCloseWhyDoIsee = () => this.props.onChangeView('cards');
 
-  renderActiveCard = (voucher, activeIndex) => {
+  renderFeedback(activeCard, i) {
+    const { products } = this.props;
+    return (
+      <Feedback
+        shouldPad={i !== 0}
+        products={products}
+        onChange={this.onChangeFeedback(activeCard, 'send')}
+        onSkip={this.onChangeFeedback(activeCard, 'skip')}
+      />
+    );
+  }
+
+  renderActiveCard = (voucher, i) => {
     const { products, autoTrigger, abtestInfo = {} } = this.props;
     const { activeCard, cards } = this.state;
     const cardStatus = cards[activeCard].status;
     return (
       <React.Fragment key={activeCard}>
-        {activeIndex !== 0 && <div key={`${activeCard}pre`} style={{ height: '4px' }} />}
-        {cardStatus === 'in-feedback' && (
-        <Feedback
-          products={products}
-          onChange={this.onChangeFeedback(activeCard, 'send')}
-          onSkip={this.onChangeFeedback(activeCard, 'skip')}
-        />
-        )}
+        {cardStatus === 'in-feedback' && this.renderFeedback(activeCard, i)}
         {cardStatus === 'active' && (
         <Card
           products={products}
@@ -106,36 +111,25 @@ export default class Content extends React.Component {
           autoTrigger={autoTrigger}
         />
         )}
-        <div key={`${activeCard}post`} style={{ height: '4px' }} />
       </React.Fragment>
     );
   }
 
-  renderBadge = (voucher, i, activeIndex) => {
-    const inTheMiddleOfList = ![activeIndex + 1, 0].includes(i);
-
+  renderBadge = (voucher, i) =>
     /* eslint-disable  jsx-a11y/no-static-element-interactions */
-    return (
-      <div
-        style={inTheMiddleOfList ? { marginTop: '-6px' } : {}}
-        key={i}
-        onClick={this.onClickBadge(voucher.offer_id)}
-      >
-        <Badge
-          wrapperClass={inTheMiddleOfList ? 'content__badge-top-border' : ''}
-          key={i}
-          voucher={voucher}
-        />
+    (
+      <div key={i} onClick={this.onClickBadge(voucher.offer_id)}>
+        <Badge key={i} voucher={voucher} />
       </div>
-    );
+    )
     /* eslint-enable jsx-a11y/no-static-element-interactions */
-  }
 
-  renderVoucher = activeIndex => (voucher, i) => {
+
+  renderVoucher = (voucher, i) => {
     const { activeCard } = this.state;
     return voucher.offer_id === activeCard
-      ? this.renderActiveCard(voucher, activeIndex)
-      : this.renderBadge(voucher, i, activeIndex);
+      ? this.renderActiveCard(voucher, i)
+      : this.renderBadge(voucher, i);
   }
 
   renderVouchers = () => {
@@ -146,10 +140,9 @@ export default class Content extends React.Component {
       return cardStatus === 'active'
         || (cardStatus === 'in-feedback' && activeCard === voucher.offer_id);
     });
-    const activeIndex = activeVouchers.findIndex(v => v.offer_id === activeCard);
     return activeVouchers.length === 0
       ? <Empty products={products} autoTrigger={autoTrigger} />
-      : activeVouchers.map(this.renderVoucher(activeIndex));
+      : activeVouchers.map(this.renderVoucher);
   }
 
   render() {

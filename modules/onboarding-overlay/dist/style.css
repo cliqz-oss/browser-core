@@ -1,0 +1,130 @@
+html {
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+body {
+  background-color: #f7faff;
+  font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  color: #606367;
+  position: relative;
+  top: 50px;
+  border-radius: 15px;
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+h1 {
+  font-size: 30px;
+  color: #20292A;
+}
+
+h2 {
+  font-size: 16px;
+  color: #606367;
+  font-weight: 500;
+}
+
+.center {
+  padding: 50px 30px 10px 30px;
+}
+
+.logo {
+  position: absolute;
+  background-image: url(/assets/icon128.png); /* might be overriden by the branding */
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: contain;
+  height: 100px;
+  width: 100%;
+  top: -51px;
+}
+
+.content {
+  font-size: 16px;
+  padding-top: 10px;
+}
+
+.hide {
+  display: none
+}
+
+.show-more {
+  cursor: pointer;
+  padding-right: 15px;
+}
+
+.show-more::after {
+  content:"▾";
+  font-size: 18px;
+  position: absolute;
+  margin: -3px 0 0 3px;
+}
+
+.more {
+  margin-top: 10px;
+}
+
+.description {
+  padding-bottom: 10px;
+}
+
+.description a {
+  color: #606367;
+}
+
+.settings-header {
+  padding: 10px 0px;
+}
+
+.actions {
+  text-align: center;
+  margin: 20px 0px;
+}
+
+.button {
+  height: 35px;
+  color: white;
+  background: #00AEF0; /* might be overriden by the branding */
+  border-radius: 7px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  width: 200px;
+  user-select: none;
+}
+
+.option-name {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+}
+
+/* branding */
+
+body.chip .button {
+  background: #eb443f;
+}
+
+body.chip .logo {
+  background-image: url(/assets/chip-icon128.png);
+}
+
+body.myoffrz .button {
+  background: #F87057;
+}
+
+body.myoffrz .logo {
+  background-image: url(/assets/myoffrz-icon128.png);
+}
+
+body.cliqz .button {
+  background: #00AEF0;
+}
+
+body.cliqz .logo {
+  background-image: url(/assets/icon128.png);
+}

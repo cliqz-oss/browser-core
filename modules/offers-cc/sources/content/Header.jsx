@@ -12,10 +12,6 @@ export default class Header extends React.Component {
       return;
     }
     if (vouchers.length === 1) {
-      /*
-        if we decide to choose abtest as main view
-        then TODO add `offer_closed` signal to abtest
-      */
       send('sendOfferActionSignal', {
         signal_type: 'offer-action-signal',
         element_id: 'offer_closed',
@@ -27,8 +23,12 @@ export default class Header extends React.Component {
 
   render() {
     const { products, onClickMenu, activeMenu } = this.props;
-    const prefix = chooseProduct(products, { cliqz: true });
-    const labels = { cliqz: 'Cliqz Offers', myoffrz: 'MyOffrz', chip: 'Sparalarm' };
+    const prefix = chooseProduct(products);
+    const labels = {
+      cliqz: 'CLIQZ OFFERS',
+      amo: 'CLIQZ OFFERS',
+      chip: 'SPARALARM'
+    };
 
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (

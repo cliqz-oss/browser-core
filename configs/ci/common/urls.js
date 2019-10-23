@@ -7,6 +7,6 @@
  */
 
 module.exports = {
-  OFFERS_BE_BASE_URL: 'https://localhost:3000',
+  OFFERS_BE_BASE_URL: 'https://offers-api-staging-myo.myoffrz.ninja',
   RESULTS_PROVIDER: 'https://localhost:3000', // core/config.es
 };

@@ -80,6 +80,9 @@
     "show_code": {
       "message": "Montrer le code"
     },
+    "show_more": {
+      "message": "Show more"
+    },
     "why_offers_text": {
         "message": "Vos données privées ne quittent jamais votre appareil. Votre navigateur détecte automatiquement ce qui est susceptible de vous intéressez selon vos précédentes utilisations."
     },

@@ -110,8 +110,14 @@ export default background({
     await this.init(this.settings);
   },
 
-  beforeBrowserShutdown() {
-    HumanWeb.unload();
+  status() {
+    if (this.active) {
+      return {
+        visible: true,
+        state: !prefs.get('humanWebOptOut', false),
+      };
+    }
+    return undefined;
   },
 
   events: {

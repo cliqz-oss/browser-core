@@ -11,7 +11,7 @@
       "./tests/fixtures/ReactNativeTestProject",
       "./**/styles/spectre-icons.min.scss",
       "./**/styles/spectre.min.scss",
-      "./modules/{black-friday,browser-panel,myoffrz-helper,offers-banner,offers-cc,offers-reminder,offers-v2,popup-notification}/**/*.{js,es,jsx,scss}"
+      "./modules/{browser-panel,myoffrz-helper,offers-banner,offers-cc,offers-reminder,offers-v2,popup-notification}/**/*.{js,es,jsx,scss}"
     ]
   }
 }

@@ -17,6 +17,7 @@ import config, {
   ADB_PREF_STRICT,
   ADB_USER_LANG,
 } from './config';
+import { isUrl } from '../core/url';
 
 function isSupportedProtocol(url) {
   return (
@@ -74,6 +75,64 @@ export default background({
     this.shallowUnload();
   },
 
+  currentWindowStatus({ id, url }) {
+    if (config.abtestEnabled === false) {
+      return undefined;
+    }
+
+    const isCorrectUrl = isUrl(url);
+    let disabledForDomain = false;
+    let disabledEverywhere = false;
+
+    // Check if adblocker is disabled on this page
+    if (isCorrectUrl && this.adblocker !== null) {
+      const whitelist = this.adblocker.whitelist.getState(url);
+      disabledForDomain = whitelist.hostname;
+    }
+
+    const report = this.adblocker !== null
+      ? this.adblocker.stats.report(id)
+      : {
+        totalCount: 0,
+        advertisersList: {},
+        advertisersInfo: {},
+      };
+
+    const enabled = this.adblocker !== null;
+    disabledEverywhere = !enabled && !disabledForDomain;
+
+    // Check stat of the adblocker
+    let state;
+    if (!enabled) {
+      state = 'off';
+    } else if (disabledForDomain) {
+      state = 'off';
+    } else {
+      state = 'active';
+    }
+
+    // Check disable state
+    let offState;
+    if (disabledForDomain) {
+      offState = 'off_domain';
+    } else if (disabledEverywhere) {
+      offState = 'off_all';
+    }
+
+    return {
+      visible: true,
+      enabled: enabled && !disabledForDomain && !disabledEverywhere,
+      optimized: config.strictMode,
+      disabledForDomain,
+      disabledEverywhere,
+      totalCount: report.totalCount,
+      advertisersList: report.advertisersList,
+      advertisersInfo: report.advertisersInfo,
+      state,
+      off_state: offState,
+    };
+  },
+
   isAdblockerReady() {
     // This makes sure that adblocker is enabled and that the engine is ready.
     // Whenever the module is loading of the adblocker is being updated, it can
@@ -114,29 +173,18 @@ export default background({
         this.adblocker.whitelist.clearState(data.url);
       }
 
-      if (data.status === 'active') {
+      if (data.state === 'active') {
         // Control center switch for the adblocker was turned-on
         logger.log('Turn adblocker ON');
         config.enabled = true;
-      } else if (data.status === 'off') {
-        // Control center switch for the adblocker was turned-off: check which
-        // option was specified: domain, page, all sites.
-        if (data.option === 'all-sites') {
-          logger.log('Turn adblocker OFF: all sites');
-          config.enabled = false;
-        } else {
-          logger.log(`Turn adblocker OFF: current ${data.option}`);
-          config.enabled = true;
-          let type = data.option;
-          if (data.option === 'domain') {
-            type = 'hostname';
-          }
-          if (data.option === 'page') {
-            type = 'url';
-          }
-          this.adblocker.whitelist.changeState(data.url, type, 'add');
-          this.logActionHW(data.url, type, 'add');
-        }
+      } else if (data.state === 'off_all') {
+        logger.log('Turn adblocker OFF: all sites');
+        config.enabled = false;
+      } else if (data.state === 'off_domain') {
+        logger.log('Turn adblocker OFF: domain');
+        config.enabled = true;
+        this.adblocker.whitelist.changeState(data.url, 'generalDomain', 'add');
+        this.logActionHW(data.url, 'hostname', 'add');
       }
     },
 

@@ -217,8 +217,8 @@ export function getApiOffersMock({ dest, timeout }) {
         headline: 'Gutschein test',
         desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt.',
         benefit: '11%',
-        logo_url: './debug/images/ticket-tmpl/normal.png',
-        picture_url: './debug/images/ticket-tmpl/rewe-picture.jpg',
+        logo_url: './debug/images/normal.png',
+        picture_url: './debug/images/rewe-picture.jpg',
         conditions: 'conditions-test',
         code: promoCode,
         call_to_action: {

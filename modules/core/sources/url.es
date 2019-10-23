@@ -53,17 +53,16 @@ export function isIpAddress(host) {
 }
 
 export function fixURL(url) {
-  try {
-    // detect if we have a url already
-    /* eslint-disable no-new */
-    new URL(url);
-    /* eslint-enable no-new */
-  } catch (e) {
-    // if not a url, we make up one
-    return `http://${url}`;
+  let uri = URLInfo.get(url);
+  if (!uri || !uri.scheme || !isKnownProtocol(uri.scheme)) {
+    url = `http://${url.replace(/^:?\/*/, '')}`;
+    uri = URLInfo.get(url);
   }
 
-  return url;
+  return (
+    uri
+    && url
+  ) || null;
 }
 
 /**
@@ -115,7 +114,7 @@ export function isUrl(_input) {
   }
 
   // TODO extract regexp
-  const [, proto, slashes, auth, host] = input.match(/^(?:([^:/\s@]*):(\/*))?([^@#?/]+@)?([^/?#]+).*$/) || [];
+  const [, proto, slashes, auth, host] = input.match(/^(?:([^:/\s@]*):(\/*))?([^@#?/\s]+@)?([^/?#]+).*$/) || [];
 
   if (proto) {
     if (host) {
@@ -339,18 +338,6 @@ export function generalizeUrl(url, skipCorrection) {
   return url[url.length - 1] === '/' ? url.slice(0, -1) : url;
 }
 
-function* flipTrailingSlash(urlObj, enabled) {
-  if (enabled) {
-    yield urlObj;
-    if (urlObj.pathname.endsWith('/')) {
-      urlObj.pathname = urlObj.pathname.slice(0, -1);
-    } else {
-      urlObj.pathname = `${urlObj.pathname}/`;
-    }
-  }
-  yield urlObj;
-}
-
 function* filpWWW(urlObj, enabled) {
   if (enabled) {
     yield urlObj;
@@ -366,23 +353,41 @@ function* filpWWW(urlObj, enabled) {
 export function getUrlVariations(url, {
   protocol = true,
   www = true,
-  trailingSlash = true,
 } = {}) {
   let protocols = protocol ? ['http:', 'https:'] : [];
-  const u = new URL(url);
+  let u;
+  try {
+    u = new URL(url);
+  } catch (e) {
+    return [url];
+  }
   const urlSet = new Set([url]);
 
   if (!protocols.includes(u.protocol)) {
+    // If original protocol is not "http/https" don't change it
     protocols = [u.protocol];
   }
 
+  // Create url variants with different protocol "http/https"
   protocols.forEach((proto) => {
     u.protocol = proto;
     /* eslint-disable no-unused-vars, no-shadow */
+    // Two more variants by adding/removing "www" subdomain
     for (const _ of filpWWW(u, www)) {
-      for (const _ of flipTrailingSlash(u, trailingSlash)) {
-        urlSet.add(u.href);
+      // Two more variants: with and without trailing slash
+      let href = u.href;
+      urlSet.add(href);
+      if (u.pathname !== '/' && !u.pathname.endsWith('/')) {
+        u.pathname = `${u.pathname}/`;
+        href = u.href;
+      } else if (u.search.startsWith('?')) {
+        href = href.replace('/?', '?');
+      } else if (u.hash.startsWith('#')) {
+        href = href.replace('/#', '#');
+      } else if (href.endsWith('/')) {
+        href = href.slice(0, -1);
       }
+      urlSet.add(href);
     }
     /* eslint-enable */
   });

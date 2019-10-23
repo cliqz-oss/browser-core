@@ -1,0 +1,47 @@
+{
+    "clear-btn-label": {
+        "message": "Clear Recent History..."
+    },
+    "day_selection_all": {
+        "message": "All"
+    },
+    "day_selection_pastweek": {
+        "message": "Last 7 days"
+    },
+    "day_selection_today": {
+        "message": "Today"
+    },
+    "day_selection_yesterday": {
+        "message": "Yesterday"
+    },
+    "feedback_open": {
+        "message": "Feedback"
+    },
+    "feedback_step1": {
+        "message": "How do you like this new history view?"
+    },
+    "feedback_step2": {
+        "message": "Any comments?"
+    },
+    "feedback_step3": {
+        "message": "Thank you!"
+    },
+    "feedback_submit": {
+        "message": "Send"
+    },
+    "history_title": {
+        "message": "History"
+    },
+    "no_further_history_entry": {
+        "message": "No further history entries"
+    },
+    "no_history_entry": {
+        "message": "No history entries found"
+    },
+    "no_search_result": {
+        "message": "No search results found for:"
+    },
+    "search_placeholder": {
+        "message": "Search History"
+    }
+}

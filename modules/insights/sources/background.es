@@ -132,10 +132,6 @@ export default background({
     this.api.unload();
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   async getAntitrackingReport(tabId, pageHost) {
     if (this.antitrackStaged.has(tabId)) {
       const { url, host, report } = this.antitrackStaged.get(tabId);

@@ -16,10 +16,6 @@ export default {
   platformName: 'mobile',
 };
 
-export function isOnionModeFactory() {
-  return () => false;
-}
-
 export const appName = userAgent.appName;
 
 export const OS = userAgent.OS;

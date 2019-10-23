@@ -17,7 +17,6 @@ module.exports = {
   testem_launchers: ['unit-node'],
   testem_launchers_ci: ['unit-node'],
   versionPrefix: '3',
-  versionInfix: '.',
   pack: [
     "(jq '.name=\\\"browser-core-cliqz-ios\\\"' package.json > package-new.json)",
     'mv package.json package-old.json',

@@ -8,6 +8,7 @@
 
 /* global Components, PlacesUtils, Services */
 Components.utils.import('resource://gre/modules/PlacesUtils.jsm');
+Components.utils.import('resource://gre/modules/Services.jsm');
 
 function observableFromSql(sql, columns = [], params = {}) {
   // change row into object with columns as property names
@@ -41,9 +42,15 @@ function observableFromSql(sql, columns = [], params = {}) {
         // access raw connection to create statements that can be canceled
         const connection = conn._connectionData._dbConn;
         const statement = connection.createAsyncStatement(sql);
-        Object.keys(params).forEach((key) => {
-          statement.params[key] = params[key];
-        });
+        if (Array.isArray(params)) {
+          params.forEach((value, i) => {
+            statement.bindByIndex(i, value);
+          });
+        } else {
+          Object.keys(params).forEach((key) => {
+            statement.params[key] = params[key];
+          });
+        }
 
         return new Promise((resolve) => {
           pendingStatement = statement.executeAsync({
@@ -78,28 +85,26 @@ function observableFromSql(sql, columns = [], params = {}) {
   };
 }
 
-const HistoryProvider = {
-  query: function query(sql, columns, params) {
-    const results = [];
-    let resolver;
-    let rejecter;
+export function queryHistory(sql, columns, params) {
+  const results = [];
+  let resolver;
+  let rejecter;
 
-    const promise = new Promise((resolve, reject) => {
-      resolver = resolve;
-      rejecter = reject;
-    });
+  const promise = new Promise((resolve, reject) => {
+    resolver = resolve;
+    rejecter = reject;
+  });
 
-    const observable = observableFromSql(sql, columns, params);
+  const observable = observableFromSql(sql, columns, params);
 
-    observable.subscribe(
-      row => results.push(row),
-      rejecter,
-      () => resolver(results)
-    );
+  observable.subscribe(
+    row => results.push(row),
+    rejecter,
+    () => resolver(results)
+  );
 
-    return promise;
-  }
-};
+  return promise;
+}
 
 const visitSessionStatement = `
   WITH RECURSIVE
@@ -183,7 +188,7 @@ function findLastVisitId(url, since = 0) {
   if (since) {
     params.since = since;
   }
-  return HistoryProvider.query(
+  return queryHistory(
     `
       SELECT moz_historyvisits.id AS id
       FROM moz_historyvisits
@@ -200,7 +205,7 @@ function findLastVisitId(url, since = 0) {
 
 export default class {
   static deleteVisit(visitId) {
-    return HistoryProvider.query(
+    return queryHistory(
       `
         SELECT id, from_visit AS fromVisit
         FROM moz_historyvisits
@@ -210,7 +215,7 @@ export default class {
       ['id', 'fromVisit'],
       { visitId }
     ).then(([{ id, fromVisit }]) =>
-      HistoryProvider.query(
+      queryHistory(
         `
           UPDATE moz_historyvisits
           SET from_visit = :fromVisit
@@ -232,16 +237,15 @@ export default class {
   }
 
   static showHistoryDeletionPopup(window) {
-    try {
-      // Firefox < 60
-      Components.classes['@mozilla.org/browser/browserglue;1']
-        .getService(Components.interfaces.nsIBrowserGlue).sanitize(window);
-    } catch (e) {
-      // Firefox > 60
+    return new Promise((resolve) => {
+      Services.obs.addObserver(resolve, 'sanitizer-sanitization-complete');
+
       const SanitizerWrapper = Components.utils.import('resource:///modules/Sanitizer.jsm');
       const Sanitizer = SanitizerWrapper.Sanitizer;
-      Sanitizer.showUI();
-    }
+      Sanitizer.showUI(window);
+
+      Services.obs.removeObserver(resolve, 'sanitizer-sanitization-complete');
+    });
   }
 
   static addVisit({ url, title, transition, visitTime }) {
@@ -284,7 +288,7 @@ export default class {
 
     const { sql, params } = searchQuery({ frameStartsAt, frameEndsAt, domain, query, limit });
 
-    return HistoryProvider.query(
+    return queryHistory(
       sql,
       ['id', 'session_id', 'visit_date'],
       params,
@@ -311,7 +315,7 @@ export default class {
         }
       });
 
-      return HistoryProvider.query(
+      return queryHistory(
         sessionsQuery([...sessionIds]),
         ['id', 'url', 'visit_date', 'title', 'session_id'],
       ).then(visits => ({
@@ -337,7 +341,7 @@ export default class {
         return Promise.reject(meta);
       }
 
-      await HistoryProvider.query(
+      await queryHistory(
         `
           UPDATE moz_historyvisits
           SET from_visit = :triggeringVisitId
@@ -351,7 +355,7 @@ export default class {
   }
 
   static markAsHidden(url) {
-    return HistoryProvider.query(`
+    return queryHistory(`
       UPDATE moz_places
       SET hidden = 1, visit_count = 0
       WHERE url = :url
@@ -360,7 +364,7 @@ export default class {
 
   static migrate(version) {
     if (version === 0) {
-      return HistoryProvider.query(`
+      return queryHistory(`
         UPDATE moz_places
         SET hidden = 1, visit_count = 0
         WHERE url LIKE "https://cliqz.com/search?q=%" AND visit_count > 0
@@ -377,8 +381,7 @@ export default class {
         WHERE moz_places.url LIKE "https://cliqz.com/search?q=%"
           AND not exists(SELECT from_visit FROM moz_historyvisits WHERE from_visit = search_visit_id)
     `;
-    const places = await HistoryProvider
-      .query(sql, ['visit_date', 'place_id', 'url', 'search_visit_id'], {});
+    const places = await queryHistory(sql, ['visit_date', 'place_id', 'url', 'search_visit_id'], {});
     return places.forEach((place) => {
       PlacesUtils.history.removeVisitsByFilter({
         beginDate: PlacesUtils.toDate(+place.visit_date),
@@ -397,7 +400,7 @@ export default class {
       JOIN moz_places ON moz_historyvisits.place_id = moz_places.id
       WHERE moz_historyvisits.visit_date BETWEEN :frameStartsAt AND :frameEndsAt;
     `;
-    const places = await HistoryProvider.query(sql, ['url', 'ts'], { frameStartsAt, frameEndsAt });
+    const places = await queryHistory(sql, ['url', 'ts'], { frameStartsAt, frameEndsAt });
     for (let i = 0; i < places.length; i += 1) {
       places[i].ts = Math.floor(places[i].ts / 1000);
     }

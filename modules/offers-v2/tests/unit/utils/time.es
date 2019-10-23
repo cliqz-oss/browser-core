@@ -19,6 +19,7 @@ module.exports = {
       return Promise.resolve(fn());
     },
     deadline(p) { return p; },
+    throttle: (_w, fn) => fn,
   },
   'core/services/pacemaker': {
     default: {

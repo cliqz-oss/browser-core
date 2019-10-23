@@ -32,7 +32,8 @@ export default [
         rich_data: {
           duration: 235,
           thumbnail: 'https://imgr.cliqz.com/s_qoYUGjmydAGfVa7hKES_9t2t30KZhlVmFPcN11vz8/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS8wN1llYk12MzkxZy9tcWRlZmF1bHQuanBn.jpg',
-          views: '1895311'
+          views: '1895311',
+          expected_views: '1,895,311'
         }
       },
       friendlyUrl: 'youtube.com/watch',

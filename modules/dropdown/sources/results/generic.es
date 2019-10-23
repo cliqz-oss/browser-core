@@ -143,7 +143,7 @@ export default class GenericResult extends BaseResult {
       meta,
       thumbnail: extra.thumbnail,
       duration: extra.duration,
-      views: extra.views,
+      views: Number(extra.views).toLocaleString(),
       text: this.query,
     }));
   }
@@ -206,12 +206,12 @@ export default class GenericResult extends BaseResult {
             onButtonClick: (actionName) => {
               locationAssistant[actionName](this.query, this.rawResult)
                 .then(({ snippet, locationState }) => {
-                  const newRawResult = Object.assign({}, this.rawResult);
-                  newRawResult.data.extra = Object.assign(
-                    {},
-                    newRawResult.data.extra,
-                    snippet.extra,
-                  );
+                  const newRawResult = { ...this.rawResult };
+                  newRawResult.data.extra = {
+
+                    ...newRawResult.data.extra,
+                    ...snippet.extra,
+                  };
 
                   // Update Location assistante state
                   Object.assign(this.resultTools.assistants.location, locationState);

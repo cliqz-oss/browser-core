@@ -1,4 +1,4 @@
-/* global document, Handlebars */
+/* global Handlebars */
 
 import Basic from './fixtures/basic';
 import NoImage from './fixtures/no-image';

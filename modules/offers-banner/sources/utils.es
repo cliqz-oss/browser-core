@@ -6,7 +6,6 @@ import logos from '../core/services/logos';
 import { isCliqzBrowser, isAMO } from '../core/platform';
 import config from '../core/config';
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin'];
 const BLACK_LIST = [
   'accounts-static.cdn.mozilla.net',
   'accounts.firefox.com',
@@ -76,12 +75,13 @@ export function products() {
   return {
     cliqz: isCliqzBrowser,
     amo: isAMO,
-    chip: config.settings['chip-standalone.enabled'],
-    freundin: config.settings['freundin-standalone.enabled'],
-    incent: config.settings['incent-standalone.enabled'],
+    chip: config.settings.OFFERS_BRAND === 'chip',
+    freundin: config.settings.OFFERS_BRAND === 'freundin',
+    incent: config.settings.OFFERS_BRAND === 'incent',
   };
 }
 
+const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo'];
 export function chooseProduct(options = {}) {
   return ALLOWED_PRODUCTS.find(product => options[product]) || 'myoffrz';
 }

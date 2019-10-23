@@ -27,15 +27,6 @@ export default class PairingUI {
 
     this.TEMPLATE_NAMES = ['template'];
     this.TEMPLATE_CACHE = {};
-    this.start();
-
-    this.connectionChecker = setInterval(() => {
-      console.log('PairingUI: connectionChecker -> startPairing...');
-      this.startPairing();
-      PeerComm.checkMasterConnection().catch((e) => {
-        console.error('PairingUI error:', e);
-      });
-    }, PairingUI.checkInterval);
 
     // Pairing events
     this.oninit = (info) => {
@@ -69,7 +60,17 @@ export default class PairingUI {
       }
     }).catch((e) => {
       console.error(e);
+    }).then(() => {
+      this.start();
     });
+
+    this.connectionChecker = setInterval(() => {
+      console.log('PairingUI: connectionChecker -> startPairing...');
+      this.startPairing();
+      PeerComm.checkMasterConnection().catch((e) => {
+        console.error('PairingUI error:', e);
+      });
+    }, PairingUI.checkInterval);
   }
 
   async startPairing() {
@@ -125,6 +126,14 @@ export default class PairingUI {
 
   renderPaired({ isPaired, masterName, deviceName, isMasterConnected }) {
     if (!isPaired) return;
+
+    try {
+      const iframe = parent.document.querySelector('iframe#connect-iframe');
+      iframe.classList.add('hidden');
+    } catch (e) {
+      // Permission denied to access property "document", due to browser scope
+    }
+
     this.updateConnectionInfo(isMasterConnected, deviceName, masterName);
   }
 

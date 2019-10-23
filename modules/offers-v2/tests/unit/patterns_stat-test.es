@@ -16,7 +16,7 @@ export default describeModule('offers-v2/patterns_stat',
 
     let patternsStat;
     beforeEach(async function () {
-      const PatternsStat = this.module().default;
+      const PatternsStat = this.module().PatternsStat;
       patternsStat = new PatternsStat(() => {}, reemitter);
       await patternsStat.init(() => ({ getReason: () => ['pattern'] }));
       for (const signalName of patternsStat.getPatternSignals()) {
@@ -140,6 +140,21 @@ export default describeModule('offers-v2/patterns_stat',
         patternsStat.reinterpretCampaignSignalSync('landing', 'cid', 'oid');
 
         chai.expect(addFunc).to.be.not.called;
+      });
+
+      it('/ collect for all required signals', async () => {
+        const requiredSignals = [
+          'landing', 'success', 'offer_triggered', 'offer_closed', 'offer_ca_action'
+        ];
+        returnPatternsNextTime([{ pattern: 'p', domainHash: 'h' }]);
+
+        for (const signal of requiredSignals) {
+          // eslint-disable-next-line no-await-in-loop
+          await patternsStat.reinterpretCampaignSignalAsync(signal, 'cid', 'oid');
+        }
+
+        const gotSignals = addFunc.args.map(args => args[0]);
+        chai.expect(gotSignals).to.eql(requiredSignals);
       });
     });
   });

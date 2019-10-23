@@ -23,7 +23,6 @@ function SpeedDial({
   removeSpeedDial,
   shouldAnimate,
   updateModalState,
-  updateSpeedDial,
   visitSpeedDial,
 }) {
   return (
@@ -42,7 +41,6 @@ function SpeedDial({
           <EditSpeedDial
             dial={dial}
             removeDial={removeSpeedDial}
-            updateDial={updateSpeedDial}
             updateModalState={updateModalState}
           />
         )
@@ -73,7 +71,6 @@ SpeedDial.propTypes = {
   removeSpeedDial: PropTypes.func,
   shouldAnimate: PropTypes.bool,
   updateModalState: PropTypes.func,
-  updateSpeedDial: PropTypes.func,
   visitSpeedDial: PropTypes.func,
 };
 

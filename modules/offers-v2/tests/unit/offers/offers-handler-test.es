@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
 
@@ -202,6 +201,7 @@ export default describeModule('offers-v2/offers/offers-handler',
                 setTimeout: () => {}, // no timeout for `fetch`
               }),
             });
+            ohandler._notifyAboutUnreadOffers = () => {};
 
             events.clearAll();
             latestOffersInstalledTs = 0;

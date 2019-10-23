@@ -54,18 +54,22 @@ export default class WebRequestContext {
       pageStore.onSubFrame(context);
     }
 
+    // Get context on this page
+    const page = pageStore.getPageForRequest(context);
+
     // **Chromium addition**
     // frameAncestors
     if (context.frameAncestors === undefined) {
-      context.frameAncestors = pageStore.getFrameAncestors(context);
+      context.frameAncestors = page ? page.getFrameAncestors(context) : [];
     }
 
     // Cliqz-specific extensions to webRequest details
-    context.tabUrl = context.tabUrl || pageStore.getTabUrl(context);
-    context.frameUrl = context.frameUrl || pageStore.getFrameUrl(context);
-    context.isRedirect = pageStore.isRedirect(context);
-    context.isPrivate = pageStore.isPrivateTab(context.tabId);
+    context.page = page;
+    context.tabUrl = context.tabUrl || (page && page.getTabUrl());
+    context.frameUrl = context.frameUrl || (page && page.getFrameUrl(context));
+    context.isPrivate = page ? page.isPrivate : null;
     context.isMainFrame = context.type === 'main_frame';
+    context.isRedirect = page && context.isMainFrame && page.isRedirect;
 
     context.originUrl = context.originUrl || context.initiator || context.frameUrl
       || context.tabUrl;

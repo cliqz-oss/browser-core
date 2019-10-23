@@ -18,17 +18,18 @@
     "http://*/*",
     "https://*/*",
     "storage",
-    "history",
     "geolocation",
     "<all_urls>",
-    "topSites",
     "nativeMessaging",
-    "unlimitedStorage"
+    "unlimitedStorage",
+    "privacy",
+    "browsingData"
   ],
   "background": {
     "scripts": [
       "modules/vendor/dexie.min.js",
-      "modules/webextension-specific/app.bundle.js"
+      "modules/webextension-specific/app.bundle.js",
+      "setup.js"
     ]
   },
   "content_scripts": [

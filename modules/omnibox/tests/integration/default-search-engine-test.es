@@ -13,7 +13,6 @@ import {
   fillIn,
   mockSearch,
   mockGetSearchEngines,
-  unmockGetSearchEngines,
   waitForPopup,
   win,
   withHistory,
@@ -25,15 +24,15 @@ export default function () {
   const results = [];
   describe('default search engine tests', function () {
     context('changing search engines with queries', function () {
-      let getSearchEngines;
+      let unmockGetSearchEngines;
       before(function () {
         win.preventRestarts = true;
-        getSearchEngines = mockGetSearchEngines(searchEngines);
+        unmockGetSearchEngines = mockGetSearchEngines(searchEngines);
       });
 
       after(function () {
         win.preventRestarts = false;
-        unmockGetSearchEngines(getSearchEngines);
+        unmockGetSearchEngines();
       });
 
       searchEngines.forEach(function (engine) {

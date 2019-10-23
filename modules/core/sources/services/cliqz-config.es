@@ -15,9 +15,6 @@ import console from '../console';
 import pacemaker from './pacemaker';
 import { nextTick } from '../decorators';
 import inject from '../kord/inject';
-import { isOnionModeFactory } from '../platform';
-
-const isOnionMode = isOnionModeFactory(prefs);
 
 function setDefaultCountryIndex() {
   const selectedCountry = prefs.get('backend_country', '');
@@ -86,10 +83,6 @@ async function updateCliqzConfig() {
 }
 
 export function service() {
-  if (isOnionMode()) {
-    return Promise.resolve();
-  }
-
   let interval = null;
   nextTick(() => {
     interval = pacemaker.everyHour(updateCliqzConfig);

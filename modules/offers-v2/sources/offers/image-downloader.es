@@ -1,11 +1,10 @@
-import { getResourceUrl } from '../../core/platform';
 import { toBase64 } from '../../core/encoding';
 import { fetch as httpFetch } from '../../core/http';
 import { setTimeout as coreSetTimeout } from '../../core/timers';
 import logger from '../common/offers_v2_logger';
 import { timestampMS } from '../utils';
 
-export const FALLBACK_IMAGE = getResourceUrl('offers-v2/images/offers-cc-icon.svg');
+export const FALLBACK_IMAGE = '';
 const DOWNLOAD_WITHIN_TIMEOUT_MS = 2000;
 const INTERVAL_BETWEEN_DOWNLOAD_BATCHES_MS = 1000 * 60 * 10; // 10 minutes
 
@@ -138,7 +137,8 @@ class ImageDownloaderForBatch {
     if (!shouldDownload(url, dataurl)) {
       return false;
     }
-    const cbUrl = dataurl ? FALLBACK_IMAGE : url;
+    const isNil = item => item === undefined || item === null;
+    const cbUrl = !isNil(dataurl) ? FALLBACK_IMAGE : url;
     if (cbUrl !== dataurl) {
       callback(cbUrl);
     }

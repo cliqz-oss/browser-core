@@ -3,25 +3,11 @@
   max-height: 500px;
 }
 .why-do-i-see__wrapper {
-  margin: 2px 7px;
-  padding: 2px 7px 0px;
+  padding: 2px 22px 0px;
   background-color: #fff;
   border-radius: 5px;
   box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.25);
   height: 100%;
-}
-
-.why-do-i-see__freundin-title {
-  color: var(--freundin-secondary-color, #da3434);
-}
-.why-do-i-see__incent-title {
-  color: var(--incent-secondary-color, #5c8fa6);
-}
-.why-do-i-see__chip-title {
-  color: var(--chip-secondary-color, #eb443f);
-}
-.why-do-i-see__myoffrz-title {
-  color: #00AEF0;
 }
 
 .why-do-i-see__title {
@@ -29,6 +15,20 @@
   font-size: 19px;
   margin: 10px 0;
   padding: 0 10px;
+  color: #00AEF0;
+}
+
+.why-do-i-see__title.why-do-i-see__freundin-title {
+  color: var(--freundin-secondary-color, #da3434);
+}
+.why-do-i-see__title.why-do-i-see__incent-title {
+  color: var(--incent-secondary-color, #5c8fa6);
+}
+.why-do-i-see__title.why-do-i-see__chip-title {
+  color: var(--chip-secondary-color, #eb443f);
+}
+.why-do-i-see__title.why-do-i-see__myoffrz-title {
+  color: var(--myoffrz-secondary-color, #f67057);
 }
 
 .why-do-i-see__description {

@@ -7,7 +7,7 @@
  */
 
 /* globals chai */
-import { chrome } from '../globals';
+import { browser } from '../globals';
 import { waitFor } from '../../core/helpers/wait';
 
 const expect = chai.expect;
@@ -33,7 +33,7 @@ export const wrap = getObj => new Proxy({}, {
 const chromeQueryHtml = async (url, selector, attribute, {
   attributeType = 'property',
 } = {}) => {
-  const window = chrome.extension.getViews().find(w => w.location.href === url);
+  const window = browser.extension.getViews().find(w => w.location.href === url);
 
   if (!window) {
     return [];
@@ -64,7 +64,7 @@ const chromeQueryHtml = async (url, selector, attribute, {
 };
 
 const chromeQueryComputedStyle = async (url, selector) => {
-  const window = chrome.extension.getViews().find(w => w.location.href === url);
+  const window = browser.extension.getViews().find(w => w.location.href === url);
 
   if (!window) {
     return [];
@@ -76,17 +76,7 @@ const chromeQueryComputedStyle = async (url, selector) => {
   );
 };
 
-const chromeClick = async (url, selector, ind) => {
-  const window = chrome.extension.getViews().find(w => w.location.href === url);
-
-  if (!window) {
-    return [];
-  }
-
-  return window.document.querySelectorAll(selector)[ind].click();
-};
-
-const bgWindow = wrap(() => chrome.extension.getBackgroundPage().window);
+const bgWindow = wrap(() => browser.extension.getBackgroundPage().window);
 export const win = wrap(() => bgWindow);
 export const CLIQZ = wrap(() => bgWindow.CLIQZ);
 export const app = wrap(() => bgWindow.CLIQZ.app);
@@ -102,18 +92,18 @@ const contentQueryComputedStyle = async (...args) => {
 };
 
 export function getUrl(path) {
-  return chrome.runtime.getURL(path);
+  return browser.runtime.getURL(path);
 }
 
 export function queryHTML(url, ...rest) {
-  if (url.startsWith(chrome.runtime.getURL(''))) {
+  if (url.startsWith(browser.runtime.getURL(''))) {
     return chromeQueryHtml(url, ...rest);
   }
   return contentQueryHTML(url, ...rest);
 }
 
 export function queryComputedStyle(url, ...rest) {
-  if (url.startsWith(chrome.runtime.getURL(''))) {
+  if (url.startsWith(browser.runtime.getURL(''))) {
     return chromeQueryComputedStyle(url, ...rest);
   }
   return contentQueryComputedStyle(url, ...rest);
@@ -121,23 +111,33 @@ export function queryComputedStyle(url, ...rest) {
 
 const contentClick = (url, selector) => app.modules.core.action('click', url, selector);
 
+export function elementAction(url, selector, action, ind = 0) {
+  const window = browser.extension.getViews().find(w => w.location.href === url);
+
+  if (!window) {
+    return [];
+  }
+
+  return window.document.querySelectorAll(selector)[ind][action]();
+}
+
 export function click(url, selector, ind = 0) {
-  if (url.startsWith(chrome.runtime.getURL(''))) {
-    return chromeClick(url, selector, ind);
+  if (url.startsWith(browser.runtime.getURL(''))) {
+    return elementAction(url, selector, 'click', ind);
   }
   return contentClick(url, selector);
 }
 
 export function setUrlbarSelection(selectionStart, selectionEnd) {
-  return chrome.testHelpers.update({ selectionStart, selectionEnd });
+  return browser.testHelpers.update({ selectionStart, selectionEnd });
 }
 
 export function press(options) {
-  return chrome.testHelpers.press(options);
+  return browser.testHelpers.press(options);
 }
 
 export function release(options) {
-  return chrome.testHelpers.release(options);
+  return browser.testHelpers.release(options);
 }
 
 function getCSSPath(_el, baseSelector = '') {
@@ -165,7 +165,7 @@ export const getComputedStyle = async (_selectorOrEl, property) => {
   if (_selectorOrEl instanceof Node) {
     selector = getCSSPath(_selectorOrEl, '#cliqz-dropdown');
   }
-  const { styles } = await chrome.testHelpers.querySelector(selector, {
+  const { styles } = await browser.testHelpers.querySelector(selector, {
     attributes: false,
     classes: false,
     properties: [],
@@ -178,42 +178,38 @@ export const getComputedStyle = async (_selectorOrEl, property) => {
 };
 
 export const dropdownClick = async selector =>
-  chrome.testHelpers.callMethod(selector, 'click', []);
+  browser.testHelpers.callMethod(selector, 'click', []);
 
 export const dropdownClickExt = async (selector, opt) =>
-  chrome.testHelpers.callMethodExt(selector, 'click', opt);
+  browser.testHelpers.callMethodExt(selector, 'click', opt);
 
 export const urlbar = {
-  _cache: {},
-  _updateCache(data) {
-    Object.assign(this._cache, data);
-  },
-  blur: () => chrome.testHelpers.blur(),
-  focus: () => chrome.testHelpers.focus(),
+  blur: () => browser.testHelpers.blur(),
+  focus: () => browser.testHelpers.focus(),
   get textValue() {
-    return chrome.testHelpers.get()
+    return browser.testHelpers.get()
       .then(data => data.visibleValue);
   },
   get selectionStart() {
-    return chrome.testHelpers.get()
+    return browser.testHelpers.get()
       .then(data => data.selectionStart);
   },
   get selectionEnd() {
-    return chrome.testHelpers.get()
+    return browser.testHelpers.get()
       .then(data => data.selectionEnd);
   },
   get value() {
-    return chrome.testHelpers.get()
+    return browser.testHelpers.get()
       .then(data => data.value);
   },
   get lastQuery() {
-    return chrome.testHelpers.getLastQuery();
+    return browser.testHelpers.getLastQuery();
   }
 };
 export const EventUtils = {
   sendString(text) {
     // returns promise
-    return chrome.testHelpers.sendString(text);
+    return browser.testHelpers.sendString(text);
   }
 };
 export const TIP = wrap(() => { throw new Error('Not implemented'); });
@@ -230,7 +226,7 @@ export const $cliqzResults = {
     html: false,
   },
   async _getEl() {
-    const html = await chrome.testHelpers.querySelector('#cliqz-dropdown', this._outerHTML);
+    const html = await browser.testHelpers.querySelector('#cliqz-dropdown', this._outerHTML);
     if (!html) {
       return null;
     }
@@ -257,13 +253,13 @@ export const $cliqzResults = {
 };
 
 export async function blurUrlBar() {
-  const { height, focused } = await chrome.testHelpers.get();
+  const { height, focused } = await browser.testHelpers.get();
   if (!focused && height === 0) {
     return Promise.resolve();
   }
 
   let onSessionEnd = null;
-  await chrome.testHelpers.blur();
+  await browser.testHelpers.blur();
   return Promise.all([
     new Promise((resolve) => {
       onSessionEnd = resolve;
@@ -271,7 +267,7 @@ export async function blurUrlBar() {
       setTimeout(resolve, 1000);
     }),
     waitFor(async () => {
-      const { height: h, focused: f } = await chrome.testHelpers.get();
+      const { height: h, focused: f } = await browser.testHelpers.get();
       return !f && h === 0;
     }),
   ])
@@ -292,25 +288,25 @@ export function clearDB(dbNames) {
 }
 
 export function fillIn(text) {
-  return chrome.testHelpers.update({ focused: true, value: '', visibleValue: '' })
+  return browser.testHelpers.update({ focused: true, value: '', visibleValue: '' })
     .then(() => EventUtils.sendString(text));
 }
 
 export async function waitForPopup(resultsCount, timeout = 700) {
   let nResults;
   await waitFor(async () => {
-    const height = await chrome.testHelpers.getDropdownHeight();
+    const height = await browser.testHelpers.getDropdownHeight();
     return height !== 0;
   });
 
   if (resultsCount) {
     await waitFor(
       async () => {
-        const navigateResult = await chrome.testHelpers.querySelector('.result.navigate-to');
-        const searchResult = await chrome.testHelpers.querySelector('.result.search');
+        const navigateResult = await browser.testHelpers.querySelector('.result.navigate-to');
+        const searchResult = await browser.testHelpers.querySelector('.result.search');
         nResults = navigateResult ? resultsCount + 1 : resultsCount;
         nResults = searchResult ? nResults + 1 : nResults;
-        return expect(await chrome.testHelpers.querySelectorAll('.cliqz-result')).to.have.length(nResults);
+        return expect(await browser.testHelpers.querySelectorAll('.cliqz-result')).to.have.length(nResults);
       },
       timeout,
     );
@@ -321,26 +317,34 @@ export async function waitForPopup(resultsCount, timeout = 700) {
 
 export async function waitForPopupClosed(timeout) {
   await waitFor(async () => {
-    const height = await chrome.testHelpers.getDropdownHeight();
+    const height = await browser.testHelpers.getDropdownHeight();
     return height === 0;
   }, timeout);
 }
 
 export function focusOnTab(tabId) {
   const updateProperties = { active: true };
-  return new Promise(r => chrome.tabs.update(tabId, updateProperties, () => {
-    r();
-  }));
+  return browser.tabs.update(tabId, updateProperties);
+}
+
+export function mockBackgroundProp(propStringPath, newProp) {
+  const propPath = propStringPath.split('.');
+  const lastProp = propPath.pop();
+  const original = propPath.reduce((obj, prop, i) => {
+    if (typeof obj[prop] === 'undefined') {
+      throw new Error(`Can't mock ${propStringPath}: ${propPath.slice(0, i + 1).join('.')} is undefined.`);
+    }
+    return obj[prop];
+  }, bgWindow);
+
+  const oldProp = original[lastProp];
+  original[lastProp] = newProp;
+
+  return function unmock() {
+    original[lastProp] = oldProp;
+  };
 }
 
 export function mockGetSearchEngines(engines) {
-  const getSearchEngines = bgWindow.browser.cliqz.getSearchEngines;
-  bgWindow.browser.cliqz.getSearchEngines = function mockedGetSearchEngines() {
-    return Promise.resolve(engines);
-  };
-  return getSearchEngines;
-}
-
-export function unmockGetSearchEngines(realFunction) {
-  bgWindow.browser.cliqz.getSearchEngines = realFunction;
+  return mockBackgroundProp('browser.cliqz.getSearchEngines', () => Promise.resolve(engines));
 }

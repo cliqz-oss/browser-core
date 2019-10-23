@@ -16,6 +16,7 @@ import OffersGeneralStats from './offers-general-stats';
 import OfferStatus from './offers-status';
 import OffersAPI from './offers-api';
 import OfferDBObserver from './offers-db-observer';
+import Offer from './offer';
 import IntentOffersHandler from './intent-offers-handler';
 import OffersMonitorHandler from './offers-monitoring';
 import ActionID from './actions-defs';
@@ -34,6 +35,8 @@ import SoftFilters from './jobs/soft-filters';
 import ContextFilter from './jobs/context-filters';
 import ThrottlePushToRewardsFilter from './jobs/throttle';
 import ShuffleFilter from './jobs/shuffle';
+
+const REWARD_BOX_REAL_ESTATE_TYPE = 'offers-cc';
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Helper methods
@@ -236,19 +239,24 @@ export default class OffersHandler {
   }
 
   markOffersAsRead() {
-    const offers = isGhostery ? [] : this.offersDB.getOffers();
+    const offers = isGhostery
+      ? []
+      : this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
     const [counter, action] = [1, 'offer_read'];
     offers.forEach(({ offer }) => this.offersDB.incOfferAction(offer.offer_id, action, counter));
     this.offersToPageRelationStats.invalidateCache();
   }
 
-  getStoredOffersWithMarkRelevant(filters, { catMatches, url } = {}) {
+  getStoredOffersWithMarkRelevant(filters, { catMatches, urlData } = {}) {
     if (!this.offersAPI) { return []; }
     const offers = this.offersAPI.getStoredOffers(filters);
-    if (!url || !catMatches) { return offers; }
-    const offersForStats = isGhostery ? [] : this.offersDB.getOffers();
-    const stats = this.offersToPageRelationStats.stats(offersForStats, catMatches, url);
-    return offers.map(o => ({ ...o, relevant: stats.related.includes(o.offer_id) }));
+    if (!urlData || !catMatches) { return offers; }
+    const offersForStats = isGhostery
+      ? []
+      : this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
+    const stats = this.offersToPageRelationStats.stats(offersForStats, catMatches, urlData);
+    const relevant = stats.related.concat(stats.owned);
+    return offers.map(o => ({ ...o, relevant: relevant.includes(o.offer_id) }));
   }
 
   updateIntentOffers() {
@@ -331,12 +339,16 @@ export default class OffersHandler {
   }
 
   async _processEventWrapped({ urlData, catMatches }) {
-    logger.debug('Offers handler processing a new event', urlData.getRawUrl());
+    const unreminderedOfferId = this._notifyAboutUnreadOffers(catMatches, urlData);
+    const wasChosen = await this._chooseBestOfferIfCan(catMatches, urlData);
+    if (!wasChosen && unreminderedOfferId) {
+      this._showTooltip(unreminderedOfferId, urlData);
+    }
+    return wasChosen;
+  }
 
-    // we need notify before process a new offer,
-    // otherwise from user point of view we notify her twice:
-    // new offer and reddot in the icon
-    this._notifyAboutUnreadOffers(catMatches, urlData);
+  async _chooseBestOfferIfCan(catMatches, urlData) {
+    logger.debug('Offers handler processing a new event', urlData.getRawUrl());
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
       logger.debug('we should not show any offer now');
@@ -417,6 +429,7 @@ export default class OffersHandler {
   _offersDBCallback(message) {
     if (message.evt === 'offer-action') {
       this.offersGeneralStats.newOfferAction(message);
+      this.offersToPageRelationStats.invalidateCache();
     } else if (message.evt === 'offer-added') {
       // we will add the action to the offer to keep track of it
       const offerID = message.offer.offer_id;
@@ -450,11 +463,40 @@ export default class OffersHandler {
   }
 
   _notifyAboutUnreadOffers(catMatches, urlData) {
-    const url = urlData.getRawUrl();
-    const offers = isGhostery ? [] : this.offersDB.getOffers();
-    const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, url);
-    const count = stats.related.filter(oid => !stats.touched.includes(oid)).length;
+    const offers = isGhostery
+      ? []
+      : this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
+    const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, urlData);
+
+    const relevant = Array.from(new Set(stats.related.concat(stats.owned)));
+    const untouched = relevant.filter(oid => !stats.touched.includes(oid));
+    if (untouched.length === 0) { return undefined; }
+
+    // (untouched & related) - tooltip - owned
+    const notRemindered = untouched.filter(
+      oid => stats.related.includes(oid)
+        && !stats.owned.includes(oid)
+        && !stats.tooltip.includes(oid)
+    );
+    if (notRemindered.length !== 0) { return notRemindered.pop(); } // just last offerId
+
+    this._notifyUnreadCounts(urlData, untouched.length);
+    return undefined;
+  }
+
+  _notifyUnreadCounts(urlData, count) {
     const tabId = urlData.getTabId();
     if (count) { events.pub('offers-notification:unread-offers-count', { count, tabId }); }
+  }
+
+  _showTooltip(offerId, urlData) {
+    const offer = this.getOfferObject(offerId);
+    if (!offer) { return; }
+    const { ui_info: uiInfo = {} } = offer;
+    const newuiInfo = { ...uiInfo, notif_type: 'tooltip' };
+    this.offersAPI.pushOffer(
+      new Offer({ ...offer, ui_info: newuiInfo }),
+      { url: [urlData.getRawUrl()] } // displayRuleInfo
+    );
   }
 }

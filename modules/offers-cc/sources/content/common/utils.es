@@ -1,4 +1,3 @@
-/* global window, $ */
 import { chrome } from '../../../platform/content/globals';
 import send from '../transport';
 
@@ -17,16 +16,28 @@ export const i18n = (key, params = []) => chrome.i18n.getMessage(key, params);
 
 const MAX_WINDOW_HEIGHT = 600;
 
+function calcHeight(selector) {
+  return (document.querySelector(selector) || {}).offsetHeight || 0;
+}
+
+function setStyles(selector, styles = {}) {
+  const node = document.querySelector(selector);
+  if (!node) { return; }
+  Object.keys(styles).forEach((k) => {
+    node.style[k] = styles[k];
+  });
+}
+
 function popupHeight() {
-  const padding = 4;
-  return $('.main__header').outerHeight()
-    + $('.content__size').outerHeight()
-    + $('.main__footer').outerHeight()
-    + padding;
+  const padding = -1;
+  const height = calcHeight('.main__header')
+    + calcHeight('.content__size')
+    + calcHeight('.main__footer');
+  return height > 0 ? height + padding : 0;
 }
 
 function tooltipHeight() {
-  return $('#cliqz-offers-cc').outerHeight();
+  return calcHeight('#cliqz-offers-cc');
 }
 
 function getHeight(type = 'card') {
@@ -41,7 +52,7 @@ function getHeight(type = 'card') {
 function getWidth(type = 'card') {
   const widthMapper = {
     tooltip: 260,
-    card: 264,
+    card: 307,
   };
   return widthMapper[type] || 0;
 }
@@ -50,11 +61,11 @@ function getWidth(type = 'card') {
 
 export function resize({ type = 'card' } = {}) {
   const width = getWidth(type);
-  $('#cliqz-offers-cc').css({ 'min-width': width });
+  setStyles('#cliqz-offers-cc', { 'min-width': `${width}px` });
   const height = getHeight(type);
 
   if (IS_POPUP) {
-    $('html').css({ height, width });
+    setStyles('html', { height: `${height}px`, width: `${width}px` });
   } else {
     send('resize', { width, height });
   }
@@ -62,12 +73,10 @@ export function resize({ type = 'card' } = {}) {
 
 /** **************************************************************** */
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent'];
+const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent', 'cliqz', 'amo'];
 
-export function chooseProduct(products = {}, { cliqz = false } = {}) {
-  return (cliqz ? ['cliqz'] : [])
-    .concat(ALLOWED_PRODUCTS)
-    .find(product => products[product]) || 'myoffrz';
+export function chooseProduct(products = {}) {
+  return ALLOWED_PRODUCTS.find(product => products[product]) || 'myoffrz';
 }
 
 /** **************************************************************** */

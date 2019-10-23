@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window, document, Handlebars */
+/* global Handlebars */
 
 import { fromEvent, merge } from 'rxjs';
 import { map, mapTo } from 'rxjs/operators';

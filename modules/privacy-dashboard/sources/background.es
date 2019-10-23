@@ -30,6 +30,13 @@ export default background({
     PrivacyRep.unload();
   },
 
+  status() {
+    return {
+      visible: true,
+      url: chrome.runtime.getURL('modules/privacy-dashboard/index.html')
+    };
+  },
+
   actions: {
     register() {
       PrivacyRep.registerStream();

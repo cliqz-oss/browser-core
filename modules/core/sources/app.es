@@ -7,6 +7,7 @@
  */
 
 /* eslint no-param-reassign: 'off' */
+import browserPolyfill from 'webextension-polyfill';
 
 import config from './config';
 import events, { subscribe } from './events';
@@ -16,14 +17,9 @@ import { setApp } from './kord';
 import console, { isLoggingEnabled, enable as enableConsole, disable as disableConsole } from './console';
 import Logger from './logger';
 import telemetry from './services/telemetry';
-import { Window, mapWindows, forEachWindow, addWindowObserver,
-  removeWindowObserver, reportError, mustLoadWindow,
-  enableChangeEvents,
-  disableChangeEvents, waitWindowReady, addMigrationObserver, removeMigrationObserver,
-  addSessionRestoreObserver, removeSessionRestoreObserver } from '../platform/browser';
+import { enableChangeEvents, disableChangeEvents } from '../platform/browser';
 import Defer from './helpers/defer';
 import { getChannel } from '../platform/demographics';
-import { isOnionModeFactory } from './platform';
 import createSettings from './settings';
 import * as i18n from './i18n';
 import migrate from './app/migrations';
@@ -32,8 +28,6 @@ export function shouldEnableModule(name) {
   const pref = `modules.${name}.enabled`;
   return prefs.get(pref) !== false;
 }
-
-const isOnionMode = isOnionModeFactory(prefs);
 
 function setupConsole() {
   if (isLoggingEnabled()) {
@@ -62,7 +56,7 @@ export default class App {
   // But if `App` is instantiated by a third-party that uses
   // `browser-core` as a library, then no `version` is given
   // and therefore `App` should find out the version self.
-  constructor({ version = config.EXTENSION_VERSION, debug } = {}) {
+  constructor({ version = config.EXTENSION_VERSION, debug, browser = browserPolyfill } = {}) {
     this.settings = createSettings(config.settings, { version });
     this.isFullyLoaded = false;
 
@@ -85,18 +79,15 @@ export default class App {
      */
     this.services = Object.create(null);
 
-    /**
-     * @property {WeakSet} loadedWindows
-     */
-    this.loadedWindows = new WeakSet();
-
     this._startedDefer = new Defer();
 
     config.modules.forEach((moduleName) => {
-      const module = new Module(
-        moduleName,
-        this.settings,
-      );
+      const module = new Module(moduleName, this.settings, browser);
+
+      // special handling for core as it is not really a module and it manages app state
+      if (moduleName === 'core' && module.backgroundModule) {
+        module.backgroundModule.app = this;
+      }
 
       this.modules[moduleName] = module;
 
@@ -107,11 +98,6 @@ export default class App {
 
     setApp(this);
     this.isRunning = false;
-    this.onMigrationEnded = (_, topic) => {
-      if (topic === 'Migration:Ended') {
-        this.extensionRestart();
-      }
-    };
   }
 
   injectHelpers() {
@@ -127,13 +113,6 @@ export default class App {
    * @param {function} changes - function called between stop and start
    */
   extensionRestart(changes) {
-    // unload windows
-    forEachWindow((win) => {
-      if (win.CLIQZ && win.CLIQZ.Core) {
-        this.unloadWindow(win);
-      }
-    });
-
     // unload background
     this.unload();
 
@@ -143,69 +122,12 @@ export default class App {
     }
 
     // load background
-    return this.load().then(() => {
-      // load windows
-      const corePromises = [];
-      forEachWindow((win) => {
-        corePromises.push(this.loadWindow(win));
-      });
-      return Promise.all(corePromises);
-    });
-  }
-
-  /**
-   * @method unloadIntoWindow
-   * @private
-   */
-  unloadFromWindow(win, data) {
-    // unload core even if the window closes to allow all modules to do their cleanup
-    if (!mustLoadWindow(win)) {
-      return;
-    }
-
-    try {
-      this.unloadWindow(win, data);
-      // count the number of opened windows here and send it to events
-      // if the last window was closed then remaining == 0.
-      let remainingWin = 0;
-      forEachWindow(() => {
-        remainingWin += 1;
-      });
-      events.pub('core.window_closed', { remaining: remainingWin });
-    } catch (e) {
-      reportError(e);
-    }
-  }
-
-  /**
-   * @method loadIntoWindow
-   * @private
-   */
-  loadIntoWindow(win, source) {
-    console.log('window loading -> source:', source);
-    if (!win) return;
-    if (this.loadedWindows.has(win)) {
-      console.log('window loading -> stop: already loaded');
-      return;
-    }
-    this.loadedWindows.add(win);
-
-    waitWindowReady(win) // This takes a lot to fulfill...
-      .then(() => {
-        if (mustLoadWindow(win)) {
-          return this.loadWindow(win);
-        }
-        return null;
-      })
-      .catch((e) => {
-        console.error(e, 'Extension failed loaded window modules');
-      });
+    return this.load();
   }
 
   /**
    * Starts the Cliqz App.
-   * Loads all required services, module backgrounds and module windows.
-   * Setup window observer to load window module into all future windows.
+   * Loads all required services and module backgrounds.
    *
    * Modules that are marked as disabled will not be loaded. To mark a module
    * as disabled set a preference `modules.<moduleName>.enabled` to `false`.
@@ -219,54 +141,10 @@ export default class App {
     if (!this.settings.channel) {
       this.settings.channel = await getChannel();
     }
-
-    addMigrationObserver(this.onMigrationEnded);
-
     await this.setupPrefs();
-
-    // If we are Onion mode, remove non onion-ready modules from 'this.modules'.
-    // We do it here not to break code relying on 'this.modules' before calling
-    // 'start()' (e.g. Ghostery). Besides, we need to load prefs before 'isOnionMode()'.
-    if (isOnionMode()) {
-      // We have to recreate this.services
-      this.services = Object.create(null);
-      Object.keys(this.modules).forEach((name) => {
-        const module = this.modules[name];
-        if (!module.isOnionReady) {
-          delete this.modules[name];
-        } else {
-          Object.assign(this.services, module.providedServices);
-        }
-      });
-    }
-
     await this.load();
-
     enableChangeEvents();
     this.injectHelpers();
-    this.windowWatcher = (win, event) => {
-      if (event === 'opened') {
-        this.loadIntoWindow(win, 'windowWatcher');
-      } else if (event === 'closed') {
-        this.unloadFromWindow(win);
-      }
-    };
-
-    addWindowObserver(this.windowWatcher);
-
-    // Load into currently open windows
-    forEachWindow((win) => {
-      this.loadIntoWindow(win, 'existing window');
-    });
-
-    this.sessionRestoreObserver = () => {
-      // Load into all the open windows after session restore hits
-      forEachWindow((win) => {
-        this.loadIntoWindow(win, 'session restore');
-      });
-    };
-
-    addSessionRestoreObserver(this.sessionRestoreObserver);
   }
 
   /**
@@ -279,7 +157,6 @@ export default class App {
    */
   stop(isShutdown, disable, telemetrySignal) {
     this.isRunning = false;
-    removeMigrationObserver(this.onMigrationEnded);
     // NOTE: Disable this warning locally since the solution is hacky anyway.
     /* eslint-disable no-param-reassign */
 
@@ -315,19 +192,11 @@ export default class App {
     }
 
     if (isShutdown) {
-      this.unload({ quick: true });
+      this.unload();
       return;
     }
 
-    // Unload from any existing windows
-    forEachWindow((w) => {
-      this.unloadFromWindow(w, { disable });
-    });
-
     this.unload();
-
-    removeWindowObserver(this.windowWatcher);
-    removeSessionRestoreObserver(this.sessionRestoreObserver);
 
     disableChangeEvents();
   }
@@ -398,7 +267,7 @@ export default class App {
     module.markAsEnabling();
 
     return this.prepareServices(module.requiredServices).then(
-      () => module.enable(this)
+      () => module.enable()
         .catch(e => console.error('App', 'Error on loading module:', module.name, e)),
       e => console.error('App', 'Error on loading services', e)
     );
@@ -424,9 +293,11 @@ export default class App {
       .then(() => {
         // do not return - we trigger module loading and let window loading to
         // start as soon as possible
+        // TODO: should we return now?
         Promise.all(modules.map(x => this.loadModule(x)))
           .then(() => {
             console.log('App', 'Loading modules -- all loaded');
+            this.isFullyLoaded = true;
             this._startedDefer.resolve();
           })
           .catch((e) => {
@@ -436,7 +307,7 @@ export default class App {
       });
   }
 
-  unload({ quick } = { quick: false }) {
+  unload() {
     if (this.prefchangeEventListener) {
       this.prefchangeEventListener.unsubscribe();
     }
@@ -445,7 +316,7 @@ export default class App {
     this.enabledModules().reverse().forEach((module) => {
       try {
         console.log('App', 'unload background module: ', module.name);
-        module.disable({ quick });
+        module.disable();
       } catch (e) {
         console.error(`Error unloading module: ${module.name}`, e);
       }
@@ -454,59 +325,6 @@ export default class App {
     console.log('App', 'unload services');
     this.unloadServices();
     console.log('App', 'unload services finished');
-  }
-
-  loadWindow(window) {
-    // TODO: remove Cliqz from window
-    if (!window.CLIQZ) {
-      const CLIQZ = {
-        config,
-        startedAt: Date.now(),
-        app: this,
-        Core: { }, // TODO: remove and all clients
-      };
-
-      Object.defineProperty(window, 'CLIQZ', {
-        configurable: true,
-        value: CLIQZ,
-      });
-    }
-
-    const core = this.moduleList.find(x => x.name === 'core');
-    const modules = this.moduleList.filter(x => x.name !== 'core' && !x.isDisabled);
-
-    return core.loadWindow(window)
-      .then(() => Promise.all(
-        modules.map(
-          mod => mod.loadWindow(window)
-            .catch(e => console.error('App', 'error loading window module', mod.name, e))
-        )
-      ))
-      .then(() => {
-        console.log('App', 'Window loaded');
-        const windowId = new Window(window).id;
-        events.pub('app:window-loaded', { windowId });
-        window.CLIQZ.loadedAt = Date.now();
-        window.CLIQZ.loadingTime = window.CLIQZ.loadedAt - window.CLIQZ.startedAt;
-        this.isFullyLoaded = true;
-      })
-      .catch((e) => {
-        console.error('App window', 'Error loading (should not happen!)', e);
-      });
-  }
-
-  unloadWindow(window, data) {
-    console.log('App window', 'unload window modules');
-    this.enabledModules().reverse().forEach((module) => {
-      try {
-        module.unloadWindow(window, data);
-      } catch (e) {
-        console.error('App window', `error on unload module ${module.name}`, e);
-      }
-    });
-    /* eslint-disable */
-    delete window.CLIQZ;
-    /* eslint-enable */
   }
 
   onPrefChange(pref) {
@@ -543,8 +361,7 @@ export default class App {
   }
 
   /**
-   * Enabled module background and then load into all windows.
-   * Returns early if module is already enabled.
+   * Enabled module background. Returns early if module is already enabled.
    *
    * It sets the `modules.<moduleName>.enabled` pref to true.
    *
@@ -563,18 +380,11 @@ export default class App {
       return Promise.resolve();
     }
 
-    // TODO: move this into the loadModule
-    const moduleEnabled = module.isEnabling ? module.isReady() : this.loadModule(module);
-
-    return moduleEnabled
-      .then(() => Promise.all(
-        mapWindows(module.loadWindow.bind(module))
-      ));
+    return module.isEnabling ? module.isReady() : this.loadModule(module);
   }
 
   /**
-   * Disable module windows and then the background.
-   * Does nothing if module is already disabled.
+   * Disable module background. Does nothing if module is already disabled.
    *
    * It sets the `modules.<moduleName>.enabled` pref to false. So if called
    * before startup, it will prevent module start.
@@ -597,16 +407,11 @@ export default class App {
       return Promise.resolve();
     }
 
-    const disable = () => {
-      forEachWindow(module.unloadWindow);
-      module.disable();
-    };
-
     if (module.isEnabling) {
-      return module.isReady().then(disable);
+      return module.isReady().then(() => module.disable());
     }
 
-    disable();
+    module.disable();
 
     return Promise.resolve();
   }

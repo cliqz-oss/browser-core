@@ -35,10 +35,6 @@ export function generateFavResponse() {
       {
         history: [],
         custom: range(a).map(favoritesDial),
-        speedDialsTimers: {
-          customDials: 0,
-          historyDials: 0,
-        },
       }
     );
   }
@@ -66,10 +62,6 @@ export function generateHistoryResponse() {
       {
         history: range(a).map(historyDial),
         custom: [],
-        speedDialsTimers: {
-          customDials: 0,
-          historyDials: 0,
-        },
       }
     );
   }
@@ -388,10 +380,6 @@ export class Subject {
       response: {
         history: [],
         custom: [],
-        speedDialsTimers: {
-          customDials: 0,
-          historyDials: 0,
-        },
       },
     });
   }
@@ -480,7 +468,7 @@ export const defaultConfig = Object.freeze({
     },
     displayFriendsIcon: true,
     hasActiveNotifications: false,
-    HISTORY_URL: '/cliqz-history/index.html',
+    HISTORY_URL: '/history/index.html',
     isBetaVersion: false,
     isBlue: false,
     isBrowser: false,

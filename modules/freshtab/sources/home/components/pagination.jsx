@@ -6,7 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
 import PropTypes from 'prop-types';
 import React from 'react';
 import { historyPaginationHoverSignal, historyPaginationClickSignal } from '../services/telemetry/home';
@@ -21,17 +20,6 @@ const DEFAULT_PAGESIZE = {
 };
 
 class Pagination extends React.Component {
-  static get propTypes() {
-    return {
-      contentType: PropTypes.string,
-      currentPage: PropTypes.number,
-      isModalOpen: PropTypes.bool,
-      isNewsHover: PropTypes.bool,
-      items: PropTypes.array,
-      onChangePage: PropTypes.func,
-    };
-  }
-
   constructor(props) {
     super(props);
     this.state = {
@@ -213,5 +201,13 @@ class Pagination extends React.Component {
   }
 }
 
+Pagination.propTypes = {
+  contentType: PropTypes.string,
+  currentPage: PropTypes.number,
+  isModalOpen: PropTypes.bool,
+  isNewsHover: PropTypes.bool,
+  items: PropTypes.array,
+  onChangePage: PropTypes.func,
+};
 
 export default Pagination;

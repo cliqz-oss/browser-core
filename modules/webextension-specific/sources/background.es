@@ -30,7 +30,7 @@ export default background({
     this.onTabSelect = ({ tabId }) => {
       chrome.tabs.get(tabId, tabInfo => events.pub('core:tab_select', { ...tabInfo, tabId }));
     };
-    this.onTabClose = (tabId, removeInfo) => events.pub('core:tab_close', Object.assign({ tabId }, removeInfo));
+    this.onTabClose = (tabId, removeInfo) => events.pub('core:tab_close', { tabId, ...removeInfo });
     this.onTabOpen = tabInfo => events.pub('core:tab_open', tabInfo);
 
     chrome.tabs.onActivated.addListener(this.onTabSelect);
@@ -43,10 +43,6 @@ export default background({
     chrome.tabs.onActivated.removeListener(this.onTabSelect);
     chrome.tabs.onRemoved.removeListener(this.onTabClose);
     chrome.tabs.onCreated.removeListener(this.onTabOpen);
-  },
-
-  beforeBrowserShutdown() {
-
   },
 
   events: {

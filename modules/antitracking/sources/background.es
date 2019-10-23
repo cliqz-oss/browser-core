@@ -14,13 +14,14 @@ import telemetryService from '../core/services/telemetry';
 import Attrack from './attrack';
 import { DEFAULT_ACTION_PREF, updateDefaultTrackerTxtRule } from './tracker-txt';
 import prefs from '../core/prefs';
+import events from '../core/events';
 import telemetry from './telemetry';
 import Config, { TELEMETRY } from './config';
 import { updateTimestamp } from './time';
-import domainInfo from '../core/services/domain-info';
 import { bindObjectFunctions } from '../core/helpers/bind-functions';
 import inject from '../core/kord/inject';
 import { isMobile, isEdge } from '../core/platform';
+import { URLInfo } from '../core/url-info';
 
 function humanwebExistsAndDisabled() {
   const humanweb = inject.module('human-web');
@@ -36,6 +37,8 @@ export default background({
   controlCenter: inject.module('control-center'),
 
   requiresServices: ['cliqz-config', 'domainInfo', 'pacemaker'],
+
+  attrack: null,
 
   /**
   * @method init
@@ -69,6 +72,9 @@ export default background({
     if (isEdge) {
       this.config.databaseEnabled = false;
     }
+    this.attrack.webRequestPipeline.action('getPageStore').then((pageStore) => {
+      this.pageStore = pageStore;
+    });
     return this.config.init().then(() => {
       // check HW status (for telemetry)
       // - On Cliqz humanweb opt-out is flagged via 'humanWebOptOut' pref.
@@ -103,15 +109,65 @@ export default background({
     };
   },
 
+  async currentWindowStatus({ id, url: u }) {
+    if (this.attrack === null) {
+      return this.status();
+    }
+
+    return this.attrack.getTabBlockingInfo(id, u)
+      .then((info) => {
+        const url = URLInfo.get(info.url);
+        const ps = info.ps;
+        const hostname = url ? url.hostname : '';
+        const isWhitelisted = url !== null && this.attrack.urlWhitelist.isWhitelisted(
+          url.href,
+          url.hostname,
+          url.generalDomain,
+        );
+        const enabled = prefs.get('modules.antitracking.enabled', true) && !isWhitelisted;
+        let s;
+
+        if (enabled) {
+          s = 'active';
+        } else if (isWhitelisted) {
+          s = 'inactive';
+        } else {
+          s = 'critical';
+        }
+
+        return {
+          visible: true,
+          strict: prefs.get('attrackForceBlock', false),
+          hostname,
+          cookiesCount: info.cookies.blocked,
+          requestsCount: info.requests.unsafe,
+          totalCount: info.cookies.blocked + info.requests.unsafe,
+          badgeData: this.getBadgeData(info),
+          enabled,
+          isWhitelisted: isWhitelisted || enabled,
+          reload: info.reload || false,
+          trackersList: info,
+          ps,
+          state: s
+        };
+      });
+  },
+
+  getBadgeData(info) {
+    if (this.attrack === null || this.attrack.urlWhitelist.isWhitelisted(info.url)) {
+      // do not display number if site is whitelisted
+      return 0;
+    }
+    return info.cookies.blocked + info.requests.unsafe;
+  },
+
   actions: {
     getBadgeData({ tabId, url }) {
-      return this.attrack.getTabBlockingInfo(tabId, url).then((info) => {
-        if (this.attrack.urlWhitelist.isWhitelisted(url)) {
-          // do not display number if site is whitelisted
-          return 0;
-        }
-        return info.cookies.blocked + info.requests.unsafe;
-      });
+      if (this.attrack === null) {
+        return 0;
+      }
+
+      return this.attrack.getTabBlockingInfo(tabId, url).then(info => this.getBadgeData(info));
     },
     getCurrentTabBlockingInfo() {
       return this.attrack.getCurrentTabBlockingInfo();
@@ -134,47 +190,20 @@ export default background({
     getWhitelist() {
       return this.attrack.qs_whitelist;
     },
-    getTabTracker() {
-      return this.attrack.tp_events;
-    },
     getTrackerListForTab(tab) {
       return this.attrack.getTrackerListForTab(tab);
     },
-    aggregatedBlockingStats(tabId) {
-      return this.attrack.getAppsForTab(tabId).then((info) => {
-        const stats = {};
-
-        Object.keys(info.known || {}).forEach((appId) => {
-          const company = domainInfo.getAppOwner(appId);
-          if (!company) {
-            return;
-          }
-          if (!stats[company.cat]) {
-            stats[company.cat] = {};
-          }
-          stats[company.cat][company.name] = info.known[appId];
-        });
-
-        Object.keys(info.unknown).forEach((tld) => {
-          if (!stats.unknown) {
-            stats.unknown = {};
-          }
-          stats.unknown[tld] = info.unknown[tld];
-        });
-
-        return stats;
-      });
-    },
     getGhosteryStats(tabId) {
-      if (!this.attrack.tp_events._active[tabId]
-          || !this.attrack.tp_events._active[tabId].annotations
-          || !this.attrack.tp_events._active[tabId].annotations.counter) {
+      const page = this.pageStore.tabs.get(tabId);
+      if (!page
+          || !page.annotations
+          || !page.annotations.counter) {
         return {
           bugs: {},
           others: {},
         };
       }
-      return this.attrack.tp_events._active[tabId].annotations.counter.getSummary();
+      return page.annotations.counter.getSummary();
     },
     isEnabled() {
       return this.enabled;
@@ -336,6 +365,25 @@ export default background({
           target: 'clearcache',
         }, 'metrics.legacy.antitracking');
       }
+    },
+    'webrequest-pipeline:stage': function (page) {
+      let report = {
+        bugs: {},
+        others: {},
+      };
+      // Generate tracker-report event for insights
+      if (page.annotations && page.annotations.counter) {
+        report = page.annotations.counter.getSummary();
+      }
+      events.pub('antitracking:tracker-report', {
+        tabId: page.id,
+        ts: page.s,
+        url: page.url,
+        host: page.hostname,
+        report,
+      });
+      // send page-load telemetry
+      this.attrack.onPageStaged(page);
     },
   },
 });

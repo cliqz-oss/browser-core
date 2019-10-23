@@ -13,6 +13,7 @@ const configSignals = {
   nonTrackerEnabled: false,
   cookieMode: 'thirdparty',
   cookieBehavior: 5,
+  trackerLocalStorageEnabled: false,
 };
 
 require('../telemetry-schemas-test-helpers')({
@@ -54,6 +55,7 @@ require('../telemetry-schemas-test-helpers')({
         deleted: 4,
         modified: 9,
         expired: 3,
+        localStorageDeleted: 0,
         ...configSignals
       });
     });
@@ -65,11 +67,17 @@ require('../telemetry-schemas-test-helpers')({
           cookiesPruned: 342,
           visitsCount: 3,
           cookiesCount: 241,
+          sessionsPruned: 2,
+          totalCookies: 20,
+          totalOrigins: 6,
         }, {
           visitsPruned: 3,
           cookiesPruned: 42,
           visitsCount: 33,
           cookiesCount: 120,
+          sessionsPruned: 1,
+          totalCookies: 25,
+          totalOrigins: 5,
         }],
         'cookie-monster.config': [configSignals],
       });
@@ -82,6 +90,9 @@ require('../telemetry-schemas-test-helpers')({
         visitsSize: 33,
         visitsPruned: 26,
         cookiesPruned: 384,
+        sessionsPruned: 3,
+        totalCookies: 25,
+        totalOrigins: 6,
         ...configSignals,
       });
     });
@@ -102,6 +113,9 @@ require('../telemetry-schemas-test-helpers')({
           cookiesPruned: 342,
           visitsCount: 3,
           cookiesCount: 241,
+          sessionsPruned: 0,
+          totalCookies: 25,
+          totalOrigins: 5,
         }],
       });
       chai.expect(signals).to.have.length(1);
@@ -120,6 +134,10 @@ require('../telemetry-schemas-test-helpers')({
         visitsSize: 3,
         visitsPruned: 23,
         cookiesPruned: 342,
+        localStorageDeleted: 0,
+        sessionsPruned: 0,
+        totalCookies: 25,
+        totalOrigins: 5,
         ...configSignals,
       });
     });

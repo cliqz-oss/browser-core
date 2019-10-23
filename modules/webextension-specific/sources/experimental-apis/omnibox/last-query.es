@@ -33,8 +33,8 @@ export default class LastQuery extends EventEmitter {
     this.container = this.window.document.createElement('hbox');
     this.container.id = LAST_QUERY_BOX_ID;
     this.container.appendChild(this.lastQueryBox);
-    this.urlbar = this.window.gURLBar.textbox || this.window.gURLBar;
-    const $targetPosition = this.urlbar.mInputField.parentElement;
+    this.urlbar = this.window.gURLBar;
+    const $targetPosition = this.window.gURLBar.inputField.parentElement;
     $targetPosition.insertBefore(this.container, $targetPosition.firstChild);
     this.addEventListeners();
     this.attached = true;
@@ -141,7 +141,7 @@ export default class LastQuery extends EventEmitter {
   update(tabId, text) {
     const { id, active } = this.getTab(tabId);
     this.showingQueries.set(id, text);
-    if (active) {
+    if (active && text.length > 0) {
       this.show(text);
     }
   }

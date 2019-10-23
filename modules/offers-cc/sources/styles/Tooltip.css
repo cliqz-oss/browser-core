@@ -13,24 +13,28 @@
   cursor: pointer;
 }
 
-.tooltip__myoffrz-image {
-  background: url(../images/myoffrz-tooltip-logo.svg) no-repeat center;
-}
-.tooltip__chip-image.tooltip__image-base {
-  background: url(../images/chip-tooltip-logo.svg) no-repeat center;
-  background-size: contain;
-  border-radius: 25%;
-}
-.tooltip__freundin-image {
-  background: url(../images/freundin-tooltip-logo.svg) no-repeat center;
-}
-
-.tooltip__image-base {
+.tooltip__image {
+  background: url(../images/cliqz-tooltip-logo.svg) no-repeat center;
   background-size: contain;
   border-radius: 50%;
   width: 40px;
   height: 40px;
   padding-left: 10px;
+}
+
+.tooltip__image.tooltip__myoffrz-image {
+  background: url(../images/myoffrz-tooltip-logo.svg) no-repeat center;
+  border-radius: 25%;
+  background-size: contain;
+}
+.tooltip__image.tooltip__chip-image {
+  background: url(../images/chip-tooltip-logo.svg) no-repeat center;
+  background-size: contain;
+  border-radius: 25%;
+}
+.tooltip__image.tooltip__freundin-image {
+  background: url(../images/freundin-tooltip-logo.svg) no-repeat center;
+  background-size: contain;
 }
 
 .tooltip__right-item {

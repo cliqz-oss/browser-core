@@ -8,12 +8,11 @@
 
 import { Subject, interval, timer, of, merge } from 'rxjs';
 import { groupBy, flatMap, filter, map, delay, distinct, buffer, auditTime } from 'rxjs/operators';
-import md5 from '../../core/helpers/md5';
+import md5, { truncatedHash } from '../../core/helpers/md5';
 import DefaultMap from '../../core/helpers/default-map';
 import { TELEMETRY } from '../config';
 import { getConfigTs } from '../time';
 import inject from '../../core/kord/inject';
-import { truncatedHash } from '../utils';
 
 const DEFAULT_CONFIG = {
   // token batchs, max 720 messages/hour
@@ -420,7 +419,7 @@ export class KeyPipeline extends CachedEntryPipeline {
  */
 export default class TokenTelemetry {
   constructor(telemetry, qsWhitelist, config, database, shouldCheckToken, options) {
-    const opts = Object.assign({}, DEFAULT_CONFIG, options);
+    const opts = { ...DEFAULT_CONFIG, ...options };
     Object.keys(DEFAULT_CONFIG).forEach((confKey) => {
       this[confKey] = opts[confKey];
     });

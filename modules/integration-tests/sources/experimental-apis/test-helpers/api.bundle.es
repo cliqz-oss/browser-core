@@ -240,8 +240,8 @@ global.testHelpers = class extends ExtensionAPI {
         getDropdownHeight: windowId => this._getDropdownHeight(windowId),
         getLastQuery: async (windowId) => {
           const window = await this._getWindow(windowId);
-          const urlbar = window.gURLBar.textbox || window.gURLBar;
-          const lastQueryBox = Array.from(urlbar.mInputField.parentElement.childNodes)
+          const urlbar = window.gURLBar;
+          const lastQueryBox = Array.from(urlbar.inputField.parentElement.childNodes)
             .find(node => node.id === 'cliqzLastQueryBox');
           const visible = !!lastQueryBox && lastQueryBox.style.display !== 'none';
           return {
@@ -250,7 +250,7 @@ global.testHelpers = class extends ExtensionAPI {
           };
         },
         querySelector: async (selector, _options) => {
-          const options = Object.assign({}, this.DEFAULT_QUERY_OPTIONS, _options);
+          const options = { ...this.DEFAULT_QUERY_OPTIONS, ..._options };
           const browser = await this._getBrowser(options.windowId);
           const response = await this._sendMessage(browser, {
             action: 'querySelector',
@@ -260,7 +260,7 @@ global.testHelpers = class extends ExtensionAPI {
           return response;
         },
         querySelectorAll: async (selector, _options) => {
-          const options = Object.assign({}, this.DEFAULT_QUERY_OPTIONS, _options);
+          const options = { ...this.DEFAULT_QUERY_OPTIONS, ..._options };
           const browser = await this._getBrowser(options.windowId);
           const response = await this._sendMessage(browser, {
             action: 'querySelectorAll',
@@ -364,19 +364,19 @@ global.testHelpers = class extends ExtensionAPI {
         },
         get: async (windowId) => {
           const window = this._getWindow(windowId);
-          const urlbar = window.gURLBar.textbox || window.gURLBar;
+          const urlbar = window.gURLBar;
           return {
             value: urlbar.value,
-            focused: window.Services.focus.focusedElement === urlbar.mInputField,
+            focused: window.Services.focus.focusedElement === urlbar.inputField,
             height: await this._getDropdownHeight(windowId),
-            visibleValue: urlbar.mInputField.value,
+            visibleValue: urlbar.inputField.value,
             selectionStart: urlbar.selectionStart,
             selectionEnd: urlbar.selectionEnd,
           };
         },
         update: (windowId, details) => {
           const window = this._getWindow(windowId);
-          const urlbar = window.gURLBar.textbox || window.gURLBar;
+          const urlbar = window.gURLBar;
           // 1. focus/blur
           if (details.focused !== null) {
             if (urlbar.focused !== details.focused) {
@@ -388,8 +388,8 @@ global.testHelpers = class extends ExtensionAPI {
           if (typeof details.value === 'string' && urlbar.value !== details.value) {
             urlbar.value = details.value;
           }
-          if (typeof details.visibleValue === 'string' && urlbar.mInputField.value !== details.visibleValue) {
-            urlbar.mInputField.value = details.visibleValue;
+          if (typeof details.visibleValue === 'string' && urlbar.inputField.value !== details.visibleValue) {
+            urlbar.inputField.value = details.visibleValue;
           }
           if (typeof details.selectionStart === 'number' && urlbar.selectionStart !== details.selectionStart) {
             urlbar.selectionStart = details.selectionStart;

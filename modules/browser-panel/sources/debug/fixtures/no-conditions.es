@@ -10,8 +10,8 @@ export default {
       headline: 'Extra-Rabatt',
       benefit: '11%',
       desc: 'Genießen Sie die besten Weine aus Spanien, Italien und aus aller Welt. Jetzt Angebot sichern!',
-      logo_url: './debug/images/ticket-tmpl/short.png',
-      picture_url: './debug/images/ticket-tmpl/rewe-picture.jpg',
+      logo_url: './debug/images/short.png',
+      picture_url: './debug/images/rewe-picture.jpg',
       code: 'cLsWk17',
       call_to_action: {
         url: 'http://newurl',

@@ -1,27 +1,37 @@
-/* global document, window, $, Handlebars */
+/* global $, Handlebars */
 
 import { chrome } from '../platform/content/globals';
 import { sendMessageToWindow } from './content/data';
 import templates from './templates';
 import helpers from './helpers';
-import { isCliqzBrowser } from '../core/platform';
+
+const BRANDS = {
+  myoffrz: {
+    learn_more_url: 'https://myoffrz.com/fuer-nutzer/'
+  },
+  chip: {
+    learn_more_url: 'https://sparalarm.chip.de/fuer-nutzer/'
+  },
+  cliqz: {
+    learn_more_url: 'https://cliqz.com/myoffrz'
+  }
+};
+
+function brandAssets(brand) {
+  return BRANDS[brand] || BRANDS.myoffrz;
+}
 
 Handlebars.partials = templates;
 Object.keys(helpers).forEach((helperName) => {
   Handlebars.registerHelper(helperName, helpers[helperName]);
 });
 
-if (isCliqzBrowser) {
-  $('.cqz-offers-wrapper').addClass('cliqz-browser');
-}
-
 function localizeDocument() {
   Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {
     const elArgs = el.dataset.i18n.split(',');
     const key = elArgs.shift();
-    /* eslint-disable */
+    // eslint-disable-next-line no-param-reassign
     el.innerHTML = chrome.i18n.getMessage(key, elArgs);
-    /* eslint-enable */
   });
 }
 
@@ -119,17 +129,16 @@ function draw(data) {
     templateName = 'default_template';
   }
 
+  $('html').addClass(`${data.brand || 'myoffrz'}-brand`);
+  templateData.brand = brandAssets(data.brand);
+
   // EX-6655: Specify lang for sake of hyphenation - only German offers for now
   // TODO: Get offer language from portal once they start supporting languages
   // const docElem = document.documentElement;
   // docElem.setAttribute('lang', data.lang);
 
   const panel = document.getElementById('cqz-browser-panel-re');
-  if (data.isWebExtension) {
-    panel.classList.add('web-ext');
-  }
-  const html = templates[templateName](templateData);
-  panel.innerHTML = html;
+  panel.innerHTML = templates[templateName](templateData);
 
   $('img').on('error', function onError() {
     $(this).hide();
@@ -144,6 +153,11 @@ function draw(data) {
   });
 
   localizeDocument();
+
+  sendMessageToWindow({
+    handler: 'show',
+    data: { height: 115 }, // should be static, see plz offers-banner/sites-specific.js
+  });
 }
 
 window.draw = draw;

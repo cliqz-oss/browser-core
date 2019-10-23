@@ -8,7 +8,7 @@ export default function Content(props) {
   const { voucher, products, view, onChangeView } = props;
   const product = chooseProduct(products);
   return (
-    <div className={_css('container-base', `${product}-container`)}>
+    <div className={_css('container', `${product}-container`)}>
       <Header
         voucher={voucher}
         view={view}

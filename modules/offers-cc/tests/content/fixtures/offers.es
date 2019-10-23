@@ -4,8 +4,6 @@ export const dataGenericTooltip = {
   isWebExtension: true,
   showTooltip: true,
   isGeneric: true,
-  headline: 'You have a new offer',
-  icon: `/${config.testsBasePath.slice(1)}/offers-cc/images/offers-cc-icon-white.svg`,
 };
 
 export const dataExtraTooltip = {
@@ -64,7 +62,7 @@ export const dataNewOffer = {
       backgroundColor: '#d7011d',
       validity: {
         text: 'Expires in 23 hours',
-        isExpiredSoon: true,
+        expired: { soon: true },
       },
       preferred: true,
     },
@@ -95,7 +93,7 @@ export const dataNewOffer = {
       backgroundColor: '#d7011d',
       validity: {
         text: 'Expires in 3 days',
-        isExpiredSoon: false,
+        expired: {},
       },
     },
     {
@@ -125,7 +123,7 @@ export const dataNewOffer = {
       backgroundColor: '#d7011d',
       validity: {
         text: 'Expires in 5 minutes',
-        isExpiredSoon: true,
+        expired: { soon: true },
       },
     },
     {
@@ -156,7 +154,7 @@ export const dataNewOffer = {
       backgroundColor: '#d7011d',
       validity: {
         text: 'Expires in 45 days',
-        isExpiredSoon: false,
+        expired: {},
       },
     },
   ],
@@ -189,7 +187,7 @@ export const dataNewOffer1 = {
       backgroundColor: '#d7011d',
       validity: {
         text: 'Expires in 3 days',
-        isExpiredSoon: false,
+        expired: {},
       },
       preferred: true,
     },

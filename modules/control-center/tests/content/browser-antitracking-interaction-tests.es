@@ -42,13 +42,11 @@ function antitrackingInteractionTests(amo) {
 
   function antitrackingDropdown() {
     it('renders "This domain"', function () {
-      expect(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]')).display).to.not.equal('none');
+      expect(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="inactive"]')).to.exist;
     });
 
     it('renders "All websites"', function () {
-      expect(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]')).display).to.not.equal('none');
+      expect(subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="critical"]')).to.exist;
     });
   }
 
@@ -128,10 +126,10 @@ function antitrackingInteractionTests(amo) {
       antitrackingDropdown();
 
       context('click on "All websites"', function () {
-        updateGeneralStateTest('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]', 'critical');
+        updateGeneralStateTest('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="critical"]', 'critical');
 
         it('sends message to deactivate antitracking for all websites', function () {
-          subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]').click();
+          subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="critical"]').click();
 
           return waitFor(
             () => subject.messages.find(message => message.action === 'antitracking-activator')
@@ -190,10 +188,10 @@ function antitrackingInteractionTests(amo) {
       antitrackingDropdown();
 
       context('click on "This domain"', function () {
-        updateGeneralStateTest('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]', 'inactive');
+        updateGeneralStateTest('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="inactive"]', 'inactive');
 
         it('sends message to deactivate antitracking for this domain', function () {
-          subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]').click();
+          subject.query('#anti-tracking .new-dropdown .new-dropdown-content .dropdown-content-option[value="inactive"]').click();
 
           return waitFor(
             () => subject.messages.find(message => message.action === 'antitracking-activator')

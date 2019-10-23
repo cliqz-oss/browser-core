@@ -6,8 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
-
 import App from '../core/app';
 
 const CLIQZ = {};

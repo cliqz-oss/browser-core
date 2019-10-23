@@ -1,0 +1,14 @@
+{
+  "autoconsent-onboarding-description": {
+    "message": ""
+  },
+  "autoconsent-onboarding-enable": {
+    "message": "Immer blockieren"
+  },
+  "autoconsent-onboarding-later": {
+    "message": "Nicht jetzt"
+  },
+  "autoconsent-onboarding-message": {
+    "message": "Cookie-Hinweise immer blockieren und ablehnen in Cliqz?"
+  }
+}

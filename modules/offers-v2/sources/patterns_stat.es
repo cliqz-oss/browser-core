@@ -3,10 +3,15 @@ import ActionID from './offers/actions-defs';
 import logger from './common/offers_v2_logger';
 
 // Name of the table is equal to the name of the signal
-const dexieSchema = {
+const dexieSchemaV2 = {
   [ActionID.AID_OFFER_TRIGGERED]: '++id',
-  [ActionID.AID_LANDING]: '++id', // click on an offer
-  [ActionID.AID_SUCCESS]: '++id', // offer conversion
+  [ActionID.AID_LANDING]: '++id',
+  [ActionID.AID_SUCCESS]: '++id',
+};
+const dexieSchemaLast = {
+  ...dexieSchemaV2,
+  [ActionID.AID_OFFER_CALL_TO_ACTION]: '++id',
+  [ActionID.AID_OFFER_CLOSED]: '++id',
 };
 
 /**
@@ -14,7 +19,7 @@ const dexieSchema = {
  * was matched.
  * @class PatternsStat
  */
-export default class PatternsStat {
+class PatternsStat {
   /**
    * @constructor
    * @param {id => OfferMatchTraits} offerIdToReasonFunc
@@ -28,12 +33,16 @@ export default class PatternsStat {
 
   async init() {
     const Dexie = await getDexie();
+    // We used Dexie wrongly in old versions. Now, if an user upgrades
+    // the extension, the best option is to delete the old database and
+    // use the new one.
     await Dexie
       .delete('offers-patterns-stat')
       .catch(e => logger.error(`delete offers-patterns-stat failed, ${e.message}`))
       .then(() => {
         this.db = new Dexie('offers-patterns-stat-v2');
-        this.db.version(1).stores(dexieSchema);
+        this.db.version(1).stores(dexieSchemaV2); // Version 1 for historical reason
+        this.db.version(3).stores(dexieSchemaLast); // Version 3 to match name `dexieSchemaV3`
       });
     this.signalReEmitter.on('signal', this.reinterpretCampaignSignalAsync);
 
@@ -55,7 +64,7 @@ export default class PatternsStat {
    * @returns {Promise}
    */
   async add(collection, data = {}) {
-    if (!(collection in dexieSchema) || !this.db) {
+    if (!(collection in dexieSchemaLast) || !this.db) {
       logger.warn(`PatternsStat: unknown collection name '${collection}'`);
       return;
     }
@@ -80,7 +89,7 @@ export default class PatternsStat {
    * </pre>
    */
   async moveAll(collection) {
-    if (!(collection in dexieSchema) || !this.db) {
+    if (!(collection in dexieSchemaLast) || !this.db) {
       logger.warn(`PatternsStat: unknown collection name '${collection}'`);
       return [];
     }
@@ -121,7 +130,7 @@ export default class PatternsStat {
    * @returns {string[]}
    */
   getPatternSignals() {
-    return Object.keys(dexieSchema);
+    return Object.keys(dexieSchemaLast);
   }
 
   /**
@@ -140,7 +149,7 @@ export default class PatternsStat {
    * @returns {Promise}
    */
   reinterpretCampaignSignalAsync(signalID, campaignID, offerID) {
-    if (!(signalID in dexieSchema)) {
+    if (!(signalID in dexieSchemaLast)) {
       return Promise.resolve(true);
     }
     this.threadCount += 1;
@@ -172,3 +181,5 @@ export default class PatternsStat {
     );
   }
 }
+
+export { PatternsStat, dexieSchemaV2, dexieSchemaLast };

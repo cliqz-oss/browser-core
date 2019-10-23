@@ -39,7 +39,8 @@ export default [
               extra: {
                 duration: 719,
                 thumbnail: 'https://i.ytimg.com/vi/zTcNN-zwCog/hqdefault.jpg',
-                views: '251329'
+                views: '251329',
+                expected_views: '251,329'
               },
               title: 'Unge REAGIERT auf Kochen mit Tanzverbot! | ungeklickt',
               url: 'https://www.youtube.com/watch?v=zTcNN-zwCog'
@@ -48,7 +49,8 @@ export default [
               extra: {
                 duration: 215,
                 thumbnail: 'https://i.ytimg.com/vi/7u6v3_pO-7E/hqdefault.jpg',
-                views: '29279'
+                views: '29279',
+                expected_views: '29,279'
               },
               title: 'Felix von der Laden Vlog Musik | Conro - Circus (feat. Beckii Power)🍂',
               url: 'https://www.youtube.com/watch?v=7u6v3_pO-7E'
@@ -57,7 +59,8 @@ export default [
               extra: {
                 duration: 252,
                 thumbnail: 'https://i.ytimg.com/vi/vOtqfhwvY94/hqdefault.jpg',
-                views: '24764'
+                views: '24764',
+                expected_views: '24,764'
               },
               title: '100% Kostenlos Gutschein - Ihr wolltet immer Leben wie ein König? - Ich zeige euch wie VLOG03',
               url: 'https://www.youtube.com/watch?v=vOtqfhwvY94'

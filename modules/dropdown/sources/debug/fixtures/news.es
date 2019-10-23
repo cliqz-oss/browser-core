@@ -63,9 +63,9 @@ export default {
         }
       },
       {
-        url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=spiegel',
-        href: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=spiegel',
-        friendlyUrl: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html',
+        url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=spiegel',
+        href: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=spiegel',
+        friendlyUrl: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html',
         kind: [
           'history-ui'
         ],
@@ -78,7 +78,7 @@ export default {
           host: '54ee063c-6d24-e34a-a740-f2425b275264',
           hostAndPort: '54ee063c-6d24-e34a-a740-f2425b275264',
           port: '',
-          url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=spiegel',
+          url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=spiegel',
           subType: {},
           completion: '',
           logo: {
@@ -647,9 +647,9 @@ export default {
         }
       },
       {
-        url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=github',
-        href: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=github',
-        friendlyUrl: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html',
+        url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=github',
+        href: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=github',
+        friendlyUrl: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html',
         kind: [
           'history-ui'
         ],
@@ -662,7 +662,7 @@ export default {
           host: '54ee063c-6d24-e34a-a740-f2425b275264',
           hostAndPort: '54ee063c-6d24-e34a-a740-f2425b275264',
           port: '',
-          url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=github',
+          url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=github',
           subType: {},
           completion: '',
           logo: {
@@ -1902,9 +1902,9 @@ export default {
         }
       },
       {
-        url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=amazon',
-        href: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=amazon',
-        friendlyUrl: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html',
+        url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=amazon',
+        href: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=amazon',
+        friendlyUrl: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html',
         kind: [
           'history-ui'
         ],
@@ -1917,7 +1917,7 @@ export default {
           host: '54ee063c-6d24-e34a-a740-f2425b275264',
           hostAndPort: '54ee063c-6d24-e34a-a740-f2425b275264',
           port: '',
-          url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/cliqz-history/index.html#/?query=amazon',
+          url: 'moz-extension://54ee063c-6d24-e34a-a740-f2425b275264/modules/history/index.html#/?query=amazon',
           subType: {},
           completion: '',
           logo: {

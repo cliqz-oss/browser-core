@@ -11,7 +11,6 @@ import { getMessage } from '../../../core/i18n';
 import inject from '../../../core/kord/inject';
 
 import {
-  CLIQZ,
   EventUtils,
   expect,
   getComputedStyle,
@@ -26,14 +25,6 @@ import { $cliqzResults } from '../../core/integration/search-helpers';
 
 export * from '../../core/test-helpers';
 export * from '../../core/integration/search-helpers';
-
-
-export function getWindowModule(/* name */) {
-  return {
-    ui: CLIQZ.UI,
-  };
-}
-
 
 export function fastFillIn(text) {
   urlbar.focus();
@@ -1562,7 +1553,7 @@ export function checkChildren({ $result, results, parentSelector, youtube = fals
 
         if (youtube) {
           expect($childDescription)
-            .to.contain.text(results[0].snippet.deepResults[1].links[i].extra.views);
+            .to.contain.text(results[0].snippet.deepResults[1].links[i].extra.expected_views);
         } else {
           expect($childDescription).to.have.text(results[0]
             .snippet.deepResults[1].links[i].extra.description);

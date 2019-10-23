@@ -15,14 +15,11 @@ import HistoryService from '../core/history-service';
 import background from '../core/base/background';
 import createHistoryDTO from './history-dto';
 import { equals, getDetailsFromUrl } from '../core/url';
-import RichHeaderProxy from './rich-header-proxy';
 import LRU from '../core/LRU';
 import migrate from './history-migration';
 import { isCliqzBrowser, getResourceUrl } from '../core/platform';
 import prefs from '../core/prefs';
 
-// import Database from '../core/database';
-// import MetaDatabase from './meta-database';
 const NEW_TAB_URL = getResourceUrl(config.settings.NEW_TAB_URL);
 const HISTORY_URL = getResourceUrl(config.settings.HISTORY_URL);
 
@@ -42,13 +39,9 @@ export default background({
   /**
   * @method init
   */
-  init(settings) {
-    this.richHeader = new RichHeaderProxy(settings);
-    // const metaDB = new Database('cliqz-metas');
-    // this.metaDatabase = new MetaDatabase(metaDB);
+  init() {
     this.history = History;
     this.redirectMap = new LRU(100);
-    this.sessionCounts = new Map();
 
     if (HistoryService && HistoryService.onVisitRemoved) {
       this.onVisitRemovedListener = this._onVisitRemovedListener.bind(this);
@@ -78,10 +71,6 @@ export default background({
   },
 
   unload() {
-    if (this.sessionCountSubscribtion) {
-      this.sessionCountSubscribtion.dispose();
-    }
-
     if (this.onVisitRemovedListener) {
       HistoryService.onVisitRemoved.removeListener(this.onVisitRemovedListener);
       HistoryService.onVisited.removeListener(this.onVisitedListener);
@@ -126,9 +115,6 @@ export default background({
     }
   },
 
-  beforeBrowserShutdown() {
-  },
-
   getSourceUrl(url, path = []) {
     const sourceUrl = this.redirectMap.get(url);
 
@@ -162,7 +148,7 @@ export default background({
   },
 
   onResult({ query, url, isPrivateMode, isFromAutocompletedURL }) {
-    if (isPrivateMode || !url || isFromAutocompletedURL || !query) {
+    if (isPrivateMode || !url || isFromAutocompletedURL || !query || query === url) {
       return;
     }
 
@@ -198,15 +184,6 @@ export default background({
     'ui:click-on-url': function onUIClick({ query, url, isPrivateMode, isFromAutocompletedURL }) {
       this.onResult({ query, url, isPrivateMode, isFromAutocompletedURL });
     },
-
-    /**
-    * @event core:url-meta
-    * @param url {string}
-    * @param meta
-    */
-    'core:url-meta': function onUrlMeta(url, meta) {
-      this.actions.recordMeta(url, meta);
-    },
   },
 
   actions: {
@@ -224,31 +201,17 @@ export default background({
         domain,
         query,
       }).then(({ places, from, to }) => {
-        // const activeTabs = queryActiveTabs ? queryActiveTabs(getWindow()) : undefined;
-        const dtoP = createHistoryDTO({
-          places,
-          // activeTabs,
-        });
+        const dtoP = createHistoryDTO({ places });
 
         return dtoP.then(dto => (
-          Object.assign({
-            frameStartsAt: from,
+          { frameStartsAt: from,
             frameEndsAt: to,
-          }, dto)));
+            ...dto }));
       });
-    },
-
-    openUrl(url, newTab = false) {
-      openLink(getWindow(), url, newTab);
     },
 
     newTab() {
       openLink(null, NEW_TAB_URL);
-    },
-
-    recordMeta(/* url, meta */) {
-      // turn off for now
-      // this.metaDatabase.record(url, meta);
     },
 
     deleteVisit(visitId) {
@@ -266,19 +229,9 @@ export default background({
     sendUserFeedback(data) {
       this.core.action('sendUserFeedback', data);
     },
-    /*
-     * returns undefined if value not is cache
-     */
-    getSessionCount(query) {
-      const sessionCount = this.sessionCounts.get(query);
-      if (sessionCount) {
-        return sessionCount.promise;
-      }
-      return Promise.resolve();
-    },
 
-    getNews(domain) {
-      return this.richHeader.getNews(domain);
-    },
+    getConstUrls() {
+      return ({ NEW_TAB_URL, HISTORY_URL });
+    }
   },
 });

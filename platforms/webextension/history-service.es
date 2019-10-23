@@ -6,6 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { chrome } from './globals';
+import { browser } from './globals';
 
-export default chrome.history;
+export default browser.history;

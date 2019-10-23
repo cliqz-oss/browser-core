@@ -18,10 +18,10 @@ module.exports = Object.assign({}, configBase, {
     name: 'incentAppName',
     storeName: 'incent_offers', // TODO
     channel: 'MN00', // Incent Offers Firefox Release
-    'incent-standalone.enabled': true,
+    OFFERS_BRAND: 'incent',
   }),
   versionPrefix: '16',
   specific: 'offers',
-  OFFERS_PRODUCT_PREFIX: 'incent',
-  OFFERS_PRODUCT_TITLE: 'Incent Offers',
+  PRODUCT_PREFIX: 'incent',
+  PRODUCT_TITLE: 'Incent Offers',
 });

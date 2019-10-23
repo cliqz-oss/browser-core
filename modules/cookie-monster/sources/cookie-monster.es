@@ -13,9 +13,13 @@ import {
   SessionCookiePolicy,
   NonTrackerCookiePolicy,
   SpecialCookiePolicy,
+  ONE_HOUR,
+  ONE_WEEK,
+  THIRTY_DAYS,
 } from './policy';
 import logger from './logger';
 import cookies from '../platform/cookies';
+import { browser } from '../platform/globals';
 
 const cookieKeyCols = ['domain', 'path', 'name', 'storeId', 'firstPartyDomain'];
 export function cookieId(cookie) {
@@ -24,7 +28,7 @@ export function cookieId(cookie) {
 
 export function cookieGeneralDomain(cookieDomain) {
   const domain = cookieDomain.startsWith('.') ? cookieDomain.substring(1) : cookieDomain;
-  return getGeneralDomain(domain);
+  return getGeneralDomain(domain) || domain;
 }
 
 export function formatDate(date) {
@@ -43,18 +47,31 @@ export default class CookieMonster {
       this.policies.push(new SpecialCookiePolicy());
       this.policies.push(new NonTrackerCookiePolicy());
     }
+    this.trackerLSOPruningEnabled = config.trackerLocalStorage && !!browser.browsingData;
   }
 
   async init() {
     const Dexie = await getDexie();
     this.db = new Dexie('cookie-monster');
-    this.db.version(1).stores({
-      trackerCookies: '[domain+path+name+storeId+firstPartyDomain], created',
-      visits: '[domain+day], domain, day',
+    const localStorage = 'hostname, expires';
+    const trackerCookies = '[domain+path+name+storeId+firstPartyDomain], created, session';
+    const visits = '[domain+day], domain, day';
+    this.db.version(4).stores({
+      localStorage,
+      trackerCookies,
+      visits,
+    });
+    this.db.version(3).stores({
+      localStorage,
     });
     this.db.version(2).stores({
-      trackerCookies: '[domain+path+name+storeId+firstPartyDomain], created, session',
+      trackerCookies,
     });
+    this.db.version(1).stores({
+      trackerCookies: '[domain+path+name+storeId+firstPartyDomain], created',
+      visits,
+    });
+    return this.db.open();
   }
 
   unload() {
@@ -77,7 +94,7 @@ export default class CookieMonster {
 
   processBatch(ckis) {
     return Promise.all([this.upsertCookies(ckis), this.getTrackerCookieVisits(ckis)])
-      .then(([results, visited]) => {
+      .then(async ([results, visited]) => {
         logger.debug('cookies', results, visited);
 
         // timestamps are in seconds for compatibility with cookie expirations
@@ -146,6 +163,13 @@ export default class CookieMonster {
           }
           return '';
         });
+
+        // localstorage expiry
+        let localStorageDeleted = 0;
+        if (this.trackerLSOPruningEnabled) {
+          localStorageDeleted = (await this.pruneLocalStorage()).length;
+        }
+
         if (this.telemetry) {
           this.telemetry('cookieBatch', {
             count: ckis.length,
@@ -154,6 +178,7 @@ export default class CookieMonster {
             deleted: actions.filter(a => a === 'delete').length,
             modified: actions.filter(a => a === 'update').length,
             expired: actions.filter(a => a === 'expired').length,
+            localStorageDeleted,
           });
         }
         return actions;
@@ -198,7 +223,8 @@ export default class CookieMonster {
   }
 
   getTrackerCookieVisits(ckis) {
-    return this.db.visits.where('domain').anyOf(ckis.map(({ cookie }) => cookieGeneralDomain(cookie.domain)))
+    const domains = new Set(ckis.map(({ cookie }) => cookieGeneralDomain(cookie.domain)));
+    return this.db.visits.where('domain').anyOf(...domains)
       .toArray().then(result =>
         // count visits per domain
         result.reduce((visited, row) => ({
@@ -234,12 +260,48 @@ export default class CookieMonster {
     await this.processBatch(
       (await sessionCookies.toArray()).map(cookie => ({ cookie, removed: false }))
     );
+    // check total number of cookies
+    const allCookies = await cookies.getAll({});
+    const cookieOrigins = allCookies.reduce((origins, cki) => {
+      origins.add(cookieGeneralDomain(cki.domain));
+      return origins;
+    }, new Set());
+
     return this.telemetry('prune', {
       visitsPruned: await pruneVisits,
       cookiesPruned: await pruneCookies,
       sessionsPruned: await sessionCookies.delete(),
       visitsCount: await this.db.visits.count(),
       cookiesCount: await this.db.trackerCookies.count(),
+      totalCookies: allCookies.length,
+      totalOrigins: cookieOrigins.size,
     });
+  }
+
+  async onFrame({ domain, hostname, firstParty }) {
+    // check if this domain was visited
+    const visits = await this.db.visits.where('domain').equals(domain).toArray();
+    let expireIn = ONE_HOUR * 24;
+    if (firstParty) {
+      // load in first party context
+      expireIn = THIRTY_DAYS;
+    } else if (visits.length > 0) {
+      expireIn = ONE_WEEK;
+    }
+    const expires = Date.now() + expireIn;
+    const entry = (await this.db.localStorage.get(hostname)) || { hostname, expires };
+    entry.expires = Math.max(entry.expires, expires);
+    await this.db.localStorage.put(entry);
+  }
+
+  async pruneLocalStorage() {
+    const expiryDue = await this.db.localStorage.where('expires').below(Date.now()).toArray();
+    const hostnames = expiryDue.map(({ hostname }) => hostname);
+    logger.debug('deleting localstorage for hosts:', hostnames);
+    await browser.browsingData.removeLocalStorage({
+      hostnames,
+    });
+    await this.db.localStorage.bulkDelete(hostnames);
+    return hostnames;
   }
 }

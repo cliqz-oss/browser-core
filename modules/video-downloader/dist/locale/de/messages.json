@@ -47,12 +47,6 @@
     "video_downloader_uitour_description": {
         "message": "Schaue dir das Video offline an. Lade es auf deinen Computer oder dein mobiles Gerät herunter."
     },
-    "video_downloader_uitour_downloads_description": {
-        "message": "Du kannst Videos auch auf dein Mobilgerät herunterladen. Probier’s!"
-    },
-    "video_downloader_uitour_downloads_title": {
-        "message": "Download läuft..."
-    },
     "video_downloader_uitour_title": {
         "message": "Video Downloader"
     },

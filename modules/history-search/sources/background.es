@@ -47,10 +47,6 @@ export default background({
     }
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   events: {
     prefchange: function onPrefChanged(pref) {
       if (pref === 'historyLookupEnabled') {

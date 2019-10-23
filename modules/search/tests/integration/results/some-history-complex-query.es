@@ -329,9 +329,9 @@ const finalWithHistoryView = {
       }
     },
     {
-      url: getUrl('modules/cliqz-history/index.html#/?query=highest peaks in europe'),
-      href: getUrl('modules/cliqz-history/index.html#/?query=highest peaks in europe'),
-      friendlyUrl: getUrl('modules/cliqz-history/index.html#/?query=highest peaks in europe#/?query=highest peaks in europe'),
+      url: getUrl('modules/history/index.html#/?query=highest peaks in europe'),
+      href: getUrl('modules/history/index.html#/?query=highest peaks in europe'),
+      friendlyUrl: getUrl('modules/history/index.html#/?query=highest peaks in europe#/?query=highest peaks in europe'),
       kind: [
         'history-ui'
       ],
@@ -344,7 +344,7 @@ const finalWithHistoryView = {
         host: '90c2d786-3b6c-bc44-9225-f3aaea0dbc41',
         hostAndPort: '90c2d786-3b6c-bc44-9225-f3aaea0dbc41',
         port: '',
-        url: getUrl('modules/cliqz-history/index.html#/?query=highest%20peaks%20in%20europe'),
+        url: getUrl('modules/history/index.html#/?query=highest%20peaks%20in%20europe'),
         subType: {},
         completion: '',
         logo: {},
@@ -692,5 +692,5 @@ const results = {
   ]
 };
 
-export const withoutHistoryView = Object.assign({}, finalWithoutHistoryView, results);
-export const withHistoryView = Object.assign({}, finalWithHistoryView, results);
+export const withoutHistoryView = { ...finalWithoutHistoryView, ...results };
+export const withHistoryView = { ...finalWithHistoryView, ...results };

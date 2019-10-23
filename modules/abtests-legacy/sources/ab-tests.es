@@ -17,7 +17,6 @@ import prefs from '../core/prefs';
 import console from '../core/console';
 import config from '../core/config';
 import pacemaker from '../core/services/pacemaker';
-import { getDefaultEngine, revertToOriginalEngine } from '../core/search-engines';
 import { httpGet } from '../core/http';
 import { isDesktopBrowser } from '../core/platform';
 
@@ -361,24 +360,6 @@ const CliqzABTests = {
       case '1112_B':
         prefs.set('experiment_svm', true);
         break;
-      case '1114_A':
-      case '1114_B':
-      case '1114_C':
-      case '1114_D':
-      case '1114_E':
-      case '1114_F':
-      case '1114_G':
-      case '1114_H':
-      case '1114_I':
-      case '1114_J':
-      case '1114_K':
-        // we activate this test locally in services.es/session()
-        // so we only need to disable it with the AB test
-        if (getDefaultEngine().name === 'Cliqz') {
-          revertToOriginalEngine();
-        }
-        prefs.clear('serp_test');
-        break;
       case '1115_A':
         if (isDesktopBrowser) {
           prefs.set('network.http.referer.XOriginTrimmingPolicy', 0);
@@ -456,7 +437,7 @@ const CliqzABTests = {
         // changes browser cookie setting to enable Firefox blocking cookies and storage for
         // tracker domains in third-party contexts. We do not join the test if user already has a
         // custom cookie behaviour
-        if (prefs.get('network.cookie.cookieBehavior', '') !== 0) {
+        if (prefs.get('network.cookie.cookieBehavior', undefined, '') !== 0) {
           return false;
         }
         prefs.set('network.cookie.cookieBehavior', 4, '');
@@ -479,6 +460,12 @@ const CliqzABTests = {
         break;
       case '1128_C':
         prefs.set('offers-popup.copy-code', 'two-step');
+        break;
+      case '1129_A':
+        prefs.set('cookie-monster.trackerLocalStorage', false);
+        break;
+      case '1129_B':
+        prefs.set('cookie-monster.trackerLocalStorage', true);
         break;
       default:
         ruleExecuted = false;
@@ -771,22 +758,6 @@ const CliqzABTests = {
       case '1112_B':
         prefs.clear('experiment_svm');
         break;
-      case '1114_A':
-      case '1114_B':
-      case '1114_C':
-      case '1114_D':
-      case '1114_E':
-      case '1114_F':
-      case '1114_G':
-      case '1114_H':
-      case '1114_I':
-      case '1114_J':
-      case '1114_K':
-        if (getDefaultEngine().name === 'Cliqz') {
-          revertToOriginalEngine();
-        }
-        prefs.clear('serp_test');
-        break;
       case '1115_A':
       case '1115_B':
         if (isDesktopBrowser) {
@@ -839,6 +810,10 @@ const CliqzABTests = {
       case '1128_B':
       case '1128_C':
         prefs.clear('offers-popup.copy-code');
+        break;
+      case '1129_A':
+      case '1129_B':
+        prefs.clear('cookie-monster.trackerLocalStorage');
         break;
       default:
         ruleExecuted = false;

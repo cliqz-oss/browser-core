@@ -26,9 +26,7 @@
   font-weight: 600;
 }
 
-.promo__chip-copy-code,
-.promo__freundin-copy-code,
-.promo__myoffrz-copy-code {
+.promo__copy-code {
   text-transform: uppercase;
   font-size: 13px;
   color: #607c85;
@@ -38,8 +36,12 @@
   text-align: right;
 }
 
-.promo__myoffrz-copy-code:hover {
+.promo__cliqz-copy-code:hover,
+.promo__amo-copy-code:hover {
   color: #00AEF0;
+}
+.promo__myoffrz-copy-code:hover {
+  color: var(--myoffrz-primary-color, #f67057);
 }
 .promo__chip-copy-code:hover {
   color: var(--chip-primary-hover-color, #c93636);

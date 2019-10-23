@@ -97,7 +97,7 @@ describe('Freshtab buttons UI', function () {
 
       it('with correct link', function () {
         expect(subject.query(historyButtonSelector).href)
-          .to.contain('/cliqz-history/index.html');
+          .to.contain('/history/index.html');
       });
     });
 

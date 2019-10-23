@@ -1,0 +1,74 @@
+$block-size: 12px;
+$big-block-size: $block-size * 2;
+$block-margin: 2px;
+$block-position-offset-1: ($big-block-size + $block-margin * 2) * 2;
+$block-position-offset-2: $big-block-size + $block-margin * 2;
+$block-position-offset-4: $block-position-offset-2 * -1;
+$block-position-offset-5: $block-position-offset-1 * -1;
+
+@mixin animation-mixin($offset) {
+  @keyframes move#{$offset} {
+    0% { left: 0 }
+    50% { left: $offset }
+    100% { left: 0 }
+  }
+}
+
+@include animation-mixin($block-position-offset-1);
+@include animation-mixin($block-position-offset-2);
+@include animation-mixin($block-position-offset-4);
+@include animation-mixin($block-position-offset-5);
+
+@keyframes changeSize {
+  0% { width: $block-size; height: $block-size; }
+  50% { width: $big-block-size; height: $big-block-size; }
+  100% { width: $block-size; height: $block-size; }
+}
+
+.preloader-container {
+  margin: auto;
+  display: flex;
+}
+
+.preloader-block {
+  border: 1px solid $color-dark-gray;
+  position: relative;
+  background-color: $color-light-gray;
+  width: $block-size;
+  height: $block-size;
+  margin: $block-margin;
+  display: inline-block;
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+}
+
+.block-1 {
+  animation-name: changeSize, move#{$block-position-offset-1};
+}
+
+.block-2 {
+  animation-name: changeSize, move#{$block-position-offset-2};
+}
+
+.block-3 {
+  animation-name: changeSize;
+  z-index: 3;
+}
+
+.block-4 {
+  animation-name: changeSize, move#{$block-position-offset-4};
+}
+
+.block-5 {
+  animation-name: changeSize, move#{$block-position-offset-5};
+}
+
+.block-1,
+.block-5 {
+  z-index: 1;
+}
+
+.block-2,
+.block-4 {
+  z-index: 2;
+}

@@ -47,12 +47,6 @@
     "video_downloader_uitour_description": {
         "message": "Watch this video offline. Download it to your computer or mobile device."
     },
-    "video_downloader_uitour_downloads_description": {
-        "message": "Hint: You can do the same on your mobile device. Try it now!"
-    },
-    "video_downloader_uitour_downloads_title": {
-        "message": "Downloading now..."
-    },
     "video_downloader_uitour_title": {
         "message": "Video Downloader"
     },

@@ -8,7 +8,7 @@
 
 /* global chai */
 
-let freshtTabActionResult = Promise.resolve({ active: true });
+let freshtTabActionResult = true;
 
 require('../telemetry-schemas-test-helpers')({
   name: 'metrics.freshtab.state',
@@ -18,14 +18,7 @@ require('../telemetry-schemas-test-helpers')({
       default: {
         module() {
           return {
-            isEnabled: () => true,
-            async action(action) {
-              if (action === 'getState') {
-                return freshtTabActionResult;
-              }
-
-              return Promise.reject(new Error(`No such action: ${action}`));
-            },
+            isEnabled: () => freshtTabActionResult,
           };
         },
       },
@@ -39,22 +32,12 @@ require('../telemetry-schemas-test-helpers')({
     };
 
     it('enabled', () => {
-      freshtTabActionResult = Promise.resolve({ active: true });
+      freshtTabActionResult = true;
       return test(signal => chai.expect(signal).to.be.eql({ is_freshtab_on: true }));
     });
 
     it('disabled', () => {
-      freshtTabActionResult = Promise.resolve({ active: false });
-      return test(signal => chai.expect(signal).to.be.eql({ is_freshtab_on: false }));
-    });
-
-    it('disabled (field missing)', () => {
-      freshtTabActionResult = Promise.resolve({});
-      return test(signal => chai.expect(signal).to.be.eql({ is_freshtab_on: false }));
-    });
-
-    it('freshtab not reachable', () => {
-      freshtTabActionResult = Promise.reject();
+      freshtTabActionResult = false;
       return test(signal => chai.expect(signal).to.be.eql({ is_freshtab_on: false }));
     });
   },

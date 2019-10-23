@@ -1,0 +1,149 @@
+.feedback-container {
+  border-top: 1px solid #ccc;
+  margin-top: 20px;
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.small {
+  min-height: 80px;
+}
+
+.large {
+  min-height: 190px;
+}
+
+.feedback-header-container {
+  display: flex;
+  justify-content: space-between;
+  flex: 0 0 30px;
+}
+
+.feedback-open-btn {
+  flex: none;
+  margin: 5px 0;
+  background:url('../images/face-feedback.svg') no-repeat;
+  background-position: left bottom;
+  border: none;
+  width: 74px;
+  height: 20px;
+  font-size: 11px;
+  color: #8E8E8E;
+  padding: 0;
+  text-align: right;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-cliqz;
+  }
+
+  &:active {
+    color: #3F3F3F;
+  }
+}
+
+.feedback-close-btn {
+  margin-top: 8px;
+  float: right;
+  background:url('../images/close-search.svg') no-repeat center top;
+  width: 12px;
+  height: 12px;
+  border: none;
+  opacity: 0.6;
+  vertical-align: middle;
+
+  &:hover {
+    border: none;
+    opacity: 1;
+  }
+}
+
+.feedback-question,
+.feedback-vote-container {
+  border-radius: 5px;
+}
+
+.feedback-question {
+  padding: 5px;
+  font-size: 12.5px;
+  color: #fff;
+  background-color: $color-cliqz;
+  box-shadow: 0px 1px 2px 0px rgba(0,133,166,1);
+  flex: 0 0 auto;
+}
+
+.feedback-vote-container {
+  background-color: #fff;
+  border-top: 0;
+  box-shadow: 0px 1px 1px 0px rgba(0,0,0,0.15);
+  flex: 0 0 45px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.feedback-btn {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  width: 36px;
+  height: 36px;
+  border: none;
+}
+
+.feedback-positive-btn {
+  background-position: center top;
+  background-image: url('../images/thumb-up.svg');
+
+  &:hover {
+    background-image: url('../images/thumb-up-hover.svg');
+  }
+
+  &:active {
+    background-image: url('../images/thumb-up-active.svg');
+  }
+}
+
+.feedback-negative-btn {
+  background-image: url('../images/thumb-down.svg');
+  background-position: center;
+
+  &:hover {
+    background-image: url('../images/thumb-down-hover.svg');
+  }
+
+  &:active {
+    background-image: url('../images/thumb-down-active.svg');
+  }
+}
+
+.feedback-textarea {
+  border: 1px solid #D4D4D4;
+  border-radius: 3px;
+  width: 100%;
+
+  &:focus {
+    border-color: #868686;
+  }
+}
+
+.send {
+  border: 2px solid $color-cliqz;
+  border-radius: 5px;
+  background-color: #fff;
+  color: $color-dark-gray;
+  width: 100%;
+  height: 30px;
+
+  &:hover {
+    color: #000;
+    border-color: $color-dark-blue;
+  }
+
+  &:active {
+    color: #E7ECEE;
+    border-color: $color-dark-blue;
+    background-color: $color-dark-blue;
+  }
+}

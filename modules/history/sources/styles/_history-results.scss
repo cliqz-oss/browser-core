@@ -1,0 +1,245 @@
+$delete-visit-btn-size: 36px;
+
+.history-container {
+  border-left: 1px solid $color-light-gray;
+  background-color: #F7F7F7;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 720px;
+}
+
+.history-results {
+  flex: 1 1 auto;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+.session-container {
+  position: relative;
+  clear: both;
+  margin: 20px;
+}
+
+.session {
+  background-color: white;
+  padding: 13px 0;
+  box-shadow: 0 1px 1px rgba(34, 25, 25, 0.15);
+  border: 1px solid #ededed;
+  margin-right: 20px;
+}
+
+.delete-session-btn {
+  position: absolute;
+  top: 0;
+  right: -10px;
+  cursor: pointer;
+  background: url('../images/trash-session.svg') no-repeat;
+  width: 20px;
+  height: 20px;
+  border: none;
+
+  &:hover {
+    background-image: url('../images/trash-session-hover.svg');
+
+    & ~.session {
+      border: 1px solid $color-red;
+    }
+  }
+}
+
+.visit-container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.session-container,
+.visit-container {
+  opacity: 1;
+  transition: opacity .5s;
+}
+
+.deleted {
+  opacity: 0;
+}
+
+.visit {
+  min-height: 32px;
+  display: flex;
+  flex: none;
+  width: calc(100% - #{$delete-visit-btn-size});
+  padding: 5px 5px 5px 15px;
+  align-items: flex-end;
+  color: #000;
+  text-decoration: none;
+}
+
+.from-now-date {
+  display: initial;
+}
+
+.exact-date {
+  display: none;
+}
+
+.visit:hover {
+  .from-now-date {
+    display: none;
+  }
+
+  .exact-date {
+    display: initial;
+  }
+}
+
+.delete-visit-btn {
+  flex: none;
+  background-image: url('../images/trash-visit.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent;
+  width: $delete-visit-btn-size;
+  height: $delete-visit-btn-size;
+  border: none;
+  cursor: pointer;
+  background-size: 16px 16px;
+
+  &:hover {
+    background-color: $color-red;
+    background-image: url('../images/trash-visit-hover.svg');
+
+    & ~.visit {
+      background-color: #FFDEE3
+    }
+  }
+}
+
+.logo {
+  border-radius: 2px;
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+  margin-left: 23px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px;
+  flex: none;
+  text-align: center;
+  line-height: 22px;
+  color: #FFF;
+}
+
+.logo-text-not-shown {
+  opacity: 0;
+}
+
+.visit-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 5px;
+  padding: 0 5px;
+  line-height: 22px;
+}
+
+.visit-container:nth-child(1) {
+  .delete-visit-btn {
+    background-position: center 30px;
+  }
+
+  .visit,
+  .delete-visit-btn {
+    height: 54px;
+  }
+
+  .logo {
+    margin-left: 0;
+    height: 44px;
+    width: 44px;
+    font-size: 24px;
+    background-size: 30px;
+    line-height: 44px;
+  }
+}
+
+.visit-container:hover {
+  background-color: #F7F7F7;
+
+  .visit-content {
+    color: #0078CA;
+  }
+}
+
+.domain {
+  position: absolute;
+  left: 70px;
+  padding-top: 5px;
+  z-index: 2;
+  display: none;
+
+  &.first {
+    display: initial;
+  }
+}
+
+.title {
+  flex: 0 0 300px;
+}
+
+.url {
+  flex: 0 1 auto;
+  min-width: 20px;
+}
+
+.date {
+  flex: 1 0 auto;
+  min-width: 130px;
+  text-align: right;
+}
+
+.domain,
+.url,
+.date {
+  font-size: 13.5px;
+  color: #8E8E8E;
+}
+
+.keyword {
+  box-sizing: content-box;
+  float: left;
+  border: 1px solid $color-light-gray;
+  font-weight: bold;
+  line-height: 20px;
+  height: 20px;
+  padding: 0 7px 0 5px;
+  border-radius: 12px;
+  max-width: calc(100% - 12px);
+  overflow-x: hidden;
+  cursor: pointer;
+  font-size: 14px;
+  background-color: transparent;
+  text-overflow: ellipsis;
+}
+
+.keyword-image {
+  float: left;
+  margin-top: 3px;
+  height: 14px;
+  width: 14px;
+  margin-right: 5px;
+  background-image: url('../images/glass-dark.svg');
+}
+.keyword-dash {
+  margin: 0 5px;
+}
+
+.no-further-history {
+  font-size: 20px;
+  margin-left: 15px;
+  padding-bottom: 20px;
+}

@@ -18,6 +18,8 @@
  */
 
 import moment from '../../platform/lib/moment';
+import { window } from '../../platform/globals';
+import { throttle } from '../../core/decorators';
 import logger from '../common/offers_v2_logger';
 import MonitorDBHandler from './monitor/monitor-db';
 import { buildMultiPatternIndexPatternAsID } from '../common/pattern-utils';
@@ -92,7 +94,7 @@ const selectActiveMonitors = (activeMonitors) => {
       return mit;
     }
 
-    const repMonitor = Object.assign({}, mit);
+    const repMonitor = { ...mit };
     repMonitor.signalID = `repeated_${mit.signalID}`;
     return repMonitor;
   });
@@ -158,6 +160,11 @@ export default class OffersMonitorHandler {
     // Register for webrequests
     this.webRequestCallback = this.webRequestCallback.bind(this);
 
+    this._getOffersAndRebuildMonitorsThrottle = throttle(
+      window,
+      () => this._getOffersAndRebuildMonitors(),
+      1000
+    );
     // Rebuild monitors. Only now, after `this` is bound.
     this._getOffersAndRebuildMonitors();
   }
@@ -504,6 +511,6 @@ export default class OffersMonitorHandler {
     // this is definitely excessive and probably expensive
     // still we would need to change a lot of messages to update all of them
     // with the missing information
-    this._getOffersAndRebuildMonitors();
+    this._getOffersAndRebuildMonitorsThrottle();
   }
 }

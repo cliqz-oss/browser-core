@@ -25,6 +25,8 @@ import { updateTab, closeTab, query, getCurrentTab } from './tabs';
 import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
 import ResourceLoader from './resource-loader';
 import { getResourceUrl } from './platform';
+import { isUrl, fixURL } from '../core/url';
+import { getEngineByQuery } from '../core/search-engines';
 
 /**
  * @module core
@@ -35,11 +37,10 @@ export default background({
   requiresServices: ['pacemaker', 'telemetry', 'domainInfo'],
   providesServices,
 
-  init(settings, app) {
+  init(settings) {
     enableRequestSanitizer();
 
     this.settings = settings;
-    this.app = app;
 
     this.bm = new ContentCommunicationManager();
     this.bm.init();
@@ -64,13 +65,16 @@ export default background({
     logger.unload();
   },
 
-  getWindowStatusFromModules(win) {
+  getWindowStatusFromModules() {
+    let currentTab;
     return Object.keys(this.app.modules).map(async (module) => {
-      const windowModule = this.app.modules[module].getWindowModule(win);
       const backgroundModule = this.app.modules[module].backgroundModule;
       let status = null;
-      if (windowModule && windowModule.status) {
-        status = await windowModule.status();
+      if (backgroundModule && backgroundModule.currentWindowStatus) {
+        if (!currentTab) {
+          currentTab = await getCurrentTab();
+        }
+        status = await backgroundModule.currentWindowStatus(currentTab);
       } else if (backgroundModule && backgroundModule.status) {
         status = await backgroundModule.status();
       }
@@ -149,18 +153,24 @@ export default background({
       { newTab = true, switchTab = false } = {},
       { tab: { id: tabId } = {} } = {}
     ) {
+      let fixedURL = fixURL(url);
+      if (!isUrl(url) || !fixedURL) {
+        // This url cannot be opened, open search page instead
+        const engine = getEngineByQuery(url);
+        fixedURL = engine.getSubmissionForQuery(url);
+      }
+
       if (newTab) {
-        openLink(url);
+        openLink(fixedURL);
         return;
       }
 
       let id = tabId;
-
-      if (switchTab) {
+      if (switchTab && !newTab) {
         const tabs = await query({
           url: url.replace(/#.*$/, ''),
         });
-        const tab = tabs.find(t => t.url === url);
+        const tab = tabs.find(t => t.url === fixedURL);
         if (tab) {
           const currentTab = await getCurrentTab();
           id = tab.id;
@@ -171,7 +181,7 @@ export default background({
           return;
         }
       }
-      updateTab(id, { url });
+      updateTab(id, { url: fixedURL });
     },
 
     openTab(tabId) {

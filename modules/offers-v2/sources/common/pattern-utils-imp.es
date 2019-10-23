@@ -22,7 +22,6 @@ class PatternIndex {
       filters,
       optimize: fs => fs,
     });
-    this.tokens = PatternMatching.compactTokens(this.index.getTokens());
   }
 
   /**

@@ -1,30 +1,45 @@
 import React from 'react';
 import send from '../transport';
 import Header from './Header';
-import Promo from './Promo';
 import PromoAB from './PromoAB';
-import Conditions from './Conditions';
-import { css, i18n, resize, chooseProduct } from '../common/utils';
+import { i18n, css, resize } from '../common/utils';
+
+const CONDITIONS_STYLE_MARKER = '✓';
 
 const _css = css('card__');
 export default class Card extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isConditionsShown: false,
-    };
+  state = {
+    shouldRenderShowMore: true,
   }
 
-  onConditionsClick = () => {
-    const { isConditionsShown } = this.state;
-    this.setState({ isConditionsShown: !isConditionsShown }, resize);
-    if (!isConditionsShown) {
-      const data = {
-        action: 'click',
-        target: 'conditions'
-      };
-      send('sendTelemetry', data);
-    }
+  _getStyledConditions(conditions) {
+    const { shouldRenderShowMore } = this.state;
+    const maxCollapsedBullets = 2;
+    const bullets = conditions.split(CONDITIONS_STYLE_MARKER).filter(Boolean);
+    const shouldShowMore = bullets.length > maxCollapsedBullets && shouldRenderShowMore;
+    const newConditions = shouldShowMore
+      ? bullets.slice(0, maxCollapsedBullets)
+      : bullets;
+    return [newConditions, shouldShowMore];
+  }
+
+  _getCommonConditions(conditions) {
+    const { shouldRenderShowMore } = this.state;
+    const maxLetters = 80;
+    const shouldShowMore = conditions.length >= maxLetters && shouldRenderShowMore;
+    const newConditions = shouldShowMore
+      ? `${conditions.substr(0, maxLetters)}...`
+      : conditions;
+    return [newConditions, shouldShowMore];
+  }
+
+  _getConditions() { // -> [boolean, string | string[], boolean]
+    const { template_data: templateData = {} } = this.props.voucher || {};
+    const { conditions = '' } = templateData;
+    const isStyled = conditions.indexOf(CONDITIONS_STYLE_MARKER) !== -1;
+    return isStyled
+      ? [true, ...this._getStyledConditions(conditions)]
+      : [false, ...this._getCommonConditions(conditions)];
   }
 
   onCtaElementClick = (offerId, elemId, url) => () => {
@@ -55,27 +70,56 @@ export default class Card extends React.Component {
     /* eslint-enable jsx-a11y/no-noninteractive-element-interactions */
   }
 
-  renderLabels() {
-    const { voucher = {} } = this.props;
-    const { template_data: { labels = [] } = {} } = voucher;
-    if (labels.length === 0) { return null; }
+  renderShowMore(Tag = props => <div {...props} />) {
+    /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
     return (
-      <div className={_css('labels')}>
-        {labels.map(label => (
-          <div key={label} className={_css(label, 'label')}>{i18n(`offers_${label}`)}</div>
-        ))}
-      </div>
+      <Tag
+        className={_css('show-more')}
+        onClick={() => this.setState({ shouldRenderShowMore: false }, () => resize())}
+      >
+        {i18n('show_more')}&nbsp;
+        <span className={_css('small-triangle')}>&#9660;</span>
+      </Tag>
     );
+    /* eslint-enable jsx-a11y/no-noninteractive-element-interactions */
+  }
+
+  renderStyledConditions(conditions, shouldShowMore) {
+    /* eslint-disable react/no-array-index-key */
+    return (
+      <ul className={_css('bullets', shouldShowMore ? 'pointer' : '')}>
+        {conditions.map((text, i) => <li key={i} className={_css('bullet')}>{text}</li>)}
+        {shouldShowMore && this.renderShowMore(props => <li {...props} />)}
+      </ul>
+    );
+    /* eslint-enable react/no-array-index-key */
+  }
+
+  renderCommonConditions(conditions, shouldShowMore) {
+    if (!shouldShowMore) { return conditions; }
+    return (
+      <React.Fragment>
+        {conditions}
+        {shouldShowMore && this.renderShowMore()}
+      </React.Fragment>
+    );
+  }
+
+  renderConditions() {
+    const [isStyled, conditions, shouldShowMore] = this._getConditions();
+    return isStyled
+      ? this.renderStyledConditions(conditions, shouldShowMore)
+      : this.renderCommonConditions(conditions, shouldShowMore);
   }
 
   renderText() {
     const { voucher = {} } = this.props;
     const {
       template_data: templateData = {},
-      backgroundColor = '#494949',
       offer_id: offerId,
     } = voucher;
     const { call_to_action: { url } = {} } = templateData;
+
     /* eslint-disable  jsx-a11y/no-static-element-interactions */
     return (
       <div className={_css('text')}>
@@ -87,86 +131,28 @@ export default class Card extends React.Component {
         </div>
         <div
           onClick={this.onCtaElementClick(offerId, 'headline', url)}
-          style={{ color: backgroundColor }}
           className={_css('headline')}
         >
           {templateData.headline}
         </div>
         <div style={{ height: '11px' }} />
-        <div
-          onClick={this.onCtaElementClick(offerId, 'description', url)}
-          className={_css('description')}
-        >
-          {templateData.desc}
-        </div>
+        <div className={_css('description')}> {this.renderConditions()} </div>
       </div>
     );
     /* eslint-enable jsx-a11y/no-static-element-interactions */
   }
 
-  renderButton() {
-    const { voucher = {}, onChangeCodeStatus, products } = this.props;
-    const { template_data: templateData = {}, offer_id: offerId } = voucher;
-    const { call_to_action: { text, url } = {} } = templateData;
-    const prefix = chooseProduct(products);
-
-    /* eslint-disable jsx-a11y/no-static-element-interactions */
-    return (
-      <div
-        onClick={() => {
-          onChangeCodeStatus();
-          send('openURL', {
-            offerId,
-            url,
-            closePopup: false,
-            isCallToAction: true,
-          });
-          send('sendTelemetry', { target: 'use' });
-        }}
-        className={_css('button', `${prefix}-button`)}
-      >
-        {text}
-      </div>
-    );
-    /* eslint-disable jsx-a11y/no-static-element-interactions */
-  }
-
   renderOfferIfVisible() {
-    const visibility = !this.state.isConditionsShown ? 'visible' : 'hidden';
     return (
-      <div
-        className={_css('screen-main')}
-        style={{ visibility }}
-      >
+      <div className={_css('screen-main')}>
         {this.renderImage()}
         <div style={{ height: '2px' }} />
-        {this.renderLabels()}
         {this.renderText()}
       </div>
     );
   }
 
-  renderOfferWithConditionsIfVisible() {
-    const { voucher = {} } = this.props;
-    const { template_data: templateData = {} } = voucher;
-
-    const display = this.state.isConditionsShown ? 'block' : 'none';
-    return (
-      <div
-        className={_css('screen-secondary')}
-        style={{ display }}
-      >
-        <div className={_css('text', 'cursor-default')}>
-          <div className={_css('benefit')}>{templateData.benefit}</div>
-          <div style={{ height: '11px' }} />
-          <div className={_css('conditions')}>{templateData.conditions}</div>
-        </div>
-      </div>
-    );
-  }
-
   renderPromo() {
-    const { isConditionsShown } = this.state;
     const {
       onChangeCodeStatus,
       isCodeHidden,
@@ -176,35 +162,22 @@ export default class Card extends React.Component {
         popupsCopyCode
       } = {},
     } = this.props;
-    const NewPromo = {
-      current: Promo,
-      'one-step': PromoAB,
-      'two-step': PromoAB,
-    }[popupsCopyCode] || Promo;
     return (
       <React.Fragment>
-        <NewPromo
+        <PromoAB
           abtestInfo={{ popupsCopyCode }}
           products={products}
           isCodeHidden={isCodeHidden}
           onCopyCode={onChangeCodeStatus}
           voucher={voucher}
         />
-        <div style={{ height: '4px' }} />
-        <Conditions
-          products={products}
-          active={isConditionsShown}
-          voucher={voucher}
-          onClick={this.onConditionsClick}
-        />
-        <div style={{ height: '11px' }} />
+        <div style={{ height: '15px' }} />
       </React.Fragment>
     );
   }
 
   render() {
-    const { voucher = {}, onRemove, autoTrigger, abtestInfo = {} } = this.props;
-    const { popupsCopyCode } = abtestInfo;
+    const { voucher = {}, onRemove, autoTrigger } = this.props;
     return (
       <div className={_css('wrapper')}>
         <Header
@@ -215,11 +188,9 @@ export default class Card extends React.Component {
         <div style={{ height: '7px' }} />
         <div className={_css('screen-container')}>
           {this.renderOfferIfVisible()}
-          {this.renderOfferWithConditionsIfVisible()}
         </div>
         <div style={{ height: '20px' }} />
         {this.renderPromo()}
-        {popupsCopyCode === 'current' && this.renderButton()}
       </div>
     );
   }

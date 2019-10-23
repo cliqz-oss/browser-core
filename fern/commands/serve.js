@@ -6,134 +6,129 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-'use strict';
-
-const program = require('commander');
-const rimraf = require('rimraf');
-const copyDereferenceSync = require('copy-dereference').sync;
-const notifier = require('node-notifier');
+const { spawn } = require('child_process');
 const path = require('path');
+
+const notifier = require('node-notifier');
 const moment = require('moment');
-const spawn = require('child_process').spawn;
-const common = require('./common');
 
-const setConfigPath = common.setConfigPath;
-const getExtensionVersion = common.getExtensionVersion;
-const createBuildWatcher = common.createBuildWatcher;
+const {
+  configParameter,
+  createBuildWatcher,
+  getExtensionVersion,
+  setConfigPath,
+} = require('../common');
 
-program.command(`serve ${common.configParameter}`)
-  .option('--lint', 'Lint code')
-  .option('--no-maps', 'disables source maps')
-  .option('--no-debug', 'disables debug pages')
-  .option('--version [version]', 'sets extension version', 'package')
-  .option('--environment <environment>')
-  .option('--port [port]', 'dev server port', 4300)
-  .option('--firefox-profile [name|path]', 'firefox profile name or absolute path (web-ext)')
-  .option('--firefox [firefox]', 'firefox path (web-ext)', 'nightly')
-  .option('--firefox-keep-changes', 'keep profile changes (web-ext)')
-  .option('--no-launch', 'do not launch a browser')
-  .option('--include-tests', 'include tests files in build')
-  .action((configPath, options) => {
-    process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment || 'development';
-    process.env.CLIQZ_SOURCE_MAPS = options.maps;
-    process.env.CLIQZ_SOURCE_DEBUG = options.debug;
-    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
-      (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')
-        ? 'true'
-        : ''
-    );
+module.exports = (program) => {
+  program.command(`serve ${configParameter}`)
+    .option('--lint', 'Lint code')
+    .option('--no-maps', 'disables source maps')
+    .option('--no-debug', 'disables debug pages')
+    .option('--version [version]', 'sets extension version', 'package')
+    .option('--environment <environment>')
+    .option('--port [port]', 'dev server port', 4300)
+    .option('--firefox-profile [name|path]', 'firefox profile name or absolute path (web-ext)')
+    .option('--firefox [firefox]', 'firefox path (web-ext)', 'nightly')
+    .option('--firefox-keep-changes', 'keep profile changes (web-ext)')
+    .option('--no-launch', 'do not launch a browser')
+    .option('--include-tests', 'include tests files in build')
+    .action((configPath, options) => {
+      process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment || 'development';
+      process.env.CLIQZ_SOURCE_MAPS = options.maps;
+      process.env.CLIQZ_SOURCE_DEBUG = options.debug;
+      process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
+        (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')
+          ? 'true'
+          : ''
+      );
 
-    const cfg = setConfigPath(configPath);
-    const CONFIG = cfg.CONFIG;
-    const OUTPUT_PATH = cfg.OUTPUT_PATH;
+      const { CONFIG, OUTPUT_PATH } = setConfigPath(configPath);
 
-    // Enabled code linting
-    process.env.CLIQZ_ESLINT = (
-      (options.lint || (configPath || process.env.CLIQZ_CONFIG_PATH).includes('unit-tests.js'))
-        ? 'true'
-        : 'false'
-    );
+      // Enabled code linting
+      process.env.CLIQZ_ESLINT = (
+        (options.lint || (configPath || process.env.CLIQZ_CONFIG_PATH).includes('unit-tests.js'))
+          ? 'true'
+          : 'false'
+      );
 
-    let customPrefs = {};
-    let server;
+      let customPrefs = {};
+      let server;
 
-    try {
-      customPrefs = require('../../.custom-prefs.json');
-    } catch (e) {
-      // .custom-prefs.json is optional so it is fine if it is missing
-    }
-
-    let addonID = '';
-    if (CONFIG.platform === 'firefox') {
-      addonID = CONFIG.settings.id || 'cliqz@cliqz.com';
-    }
-
-    const prefs = Object.assign({
-      'browser.link.open_newwindow': 3,
-      'javascript.options.strict': false,
-      'extensions.cliqz.showConsoleLogs': true,
-      'extensions.cliqz.developer': true,
-      'security.sandbox.content.level': 2,
-      'extensions.legacy.enabled': true,
-      'dom.webcomponents.enabled': true,
-      'dom.webcomponents.shadowdom.enabled': true,
-      'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
-      'browser.tabs.warnonclose': true,
-      'dom.min_background_timeout_value': 50,
-      'browser.tabs.remote.autostart': true,
-      'extensions.systemAddon.update.enabled': false,
-      'extensions.systemAddon.update.url': '',
-      'devtools.aboutdebugging.new-enabled': false,
-    }, customPrefs);
-
-    if (options.includeTests) {
-      prefs['extensions.cliqz.browserOnboarding'] = true;
-      prefs['extensions.cliqz.freshtab.tooltip.enabled'] = true;
-      server = spawn('node', ['./tests/test-server.js']);
-      process.on('SIGTERM', () => server.kill());
-    }
-
-    const start = Date.now();
-
-    getExtensionVersion(options.version).then((version) => {
-      process.env.PACKAGE_VERSION = version;
-      process.env.EXTENSION_VERSION = version;
-
-      if (!process.env.VERSION) {
-        process.env.VERSION = version;
+      try {
+        customPrefs = require('../../.custom-prefs.json');
+      } catch (e) {
+        // .custom-prefs.json is optional so it is fine if it is missing
       }
 
-      let extensionRunner;
-      const watcher = createBuildWatcher(Number(options.port));
+      let addonID = '';
+      if (CONFIG.platform === 'firefox') {
+        addonID = CONFIG.settings.id || 'cliqz@cliqz.com';
+      }
 
-      watcher.on('buildSuccess', () => {
-        let donePromise = Promise.resolve();
-        rimraf.sync(OUTPUT_PATH);
-        copyDereferenceSync(watcher.builder.outputPath, OUTPUT_PATH);
-        if (['firefox', 'webextension'].indexOf(CONFIG.platform) >= 0
-          && options.launch !== false
-          && !configPath.includes('ghostery.js')
-        ) {
-          if (extensionRunner) {
-            donePromise = extensionRunner.reloadAllExtensions();
-          } else {
-            const FirefoxBrowser = require('../../tests/runners/launchers/firefox-web-ext').Browser;
-            const firefoxRunner = new FirefoxBrowser(prefs);
-            donePromise = firefoxRunner.run({
-              configFilePath: configPath,
-              config: cfg,
-              outputPath: OUTPUT_PATH,
-              firefoxPath: options.firefox,
-              sourceDir: path.join(OUTPUT_PATH, addonID),
-              keepProfileChanges: options.firefoxKeepChanges || false,
-              firefoxProfile: options.firefoxProfile
-            }).then(() => {
-              extensionRunner = firefoxRunner;
-            });
-          }
+      const prefs = {
+        'browser.link.open_newwindow': 3,
+        'javascript.options.strict': false,
+        'extensions.cliqz.showConsoleLogs': true,
+        'extensions.cliqz.developer': true,
+        'security.sandbox.content.level': 2,
+        'extensions.legacy.enabled': true,
+        'dom.webcomponents.enabled': true,
+        'dom.webcomponents.shadowdom.enabled': true,
+        'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
+        'browser.tabs.warnonclose': true,
+        'dom.min_background_timeout_value': 50,
+        'browser.tabs.remote.autostart': true,
+        'extensions.systemAddon.update.enabled': false,
+        'extensions.systemAddon.update.url': '',
+        'devtools.aboutdebugging.new-enabled': false,
+        ...customPrefs
+      };
+
+      if (options.includeTests) {
+        prefs['extensions.cliqz.browserOnboarding'] = true;
+        prefs['extensions.cliqz.freshtab.tooltip.enabled'] = true;
+        server = spawn('node', ['./tests/test-server.js']);
+        process.on('SIGTERM', () => server.kill());
+      }
+
+      const start = Date.now();
+
+      getExtensionVersion(options.version).then((version) => {
+        process.env.PACKAGE_VERSION = version;
+        process.env.EXTENSION_VERSION = version;
+
+        if (!process.env.VERSION) {
+          process.env.VERSION = version;
         }
 
-        donePromise.then(() => {
+        let extensionRunner;
+        const watcher = createBuildWatcher(OUTPUT_PATH, Number(options.port), async () => {
+          try {
+            if (['firefox', 'webextension'].indexOf(CONFIG.platform) >= 0
+              && options.launch !== false
+              && !configPath.includes('ghostery.js')
+            ) {
+              if (extensionRunner) {
+                await extensionRunner.reloadAllExtensions();
+              } else {
+                const FirefoxBrowser = require('../../tests/runners/launchers/firefox-web-ext').Browser;
+                const firefoxRunner = new FirefoxBrowser(prefs);
+                await firefoxRunner.run({
+                  configFilePath: configPath,
+                  config: CONFIG,
+                  outputPath: OUTPUT_PATH,
+                  firefoxPath: options.firefox,
+                  sourceDir: path.join(OUTPUT_PATH, addonID),
+                  keepProfileChanges: options.firefoxKeepChanges || false,
+                  firefoxProfile: options.firefoxProfile
+                });
+                extensionRunner = firefoxRunner;
+              }
+            }
+          } catch (ex) {
+            console.error(ex);
+          }
+
           const end = Date.now();
           console.log('Build completed at: ', new Date(end));
           const ms = moment(end).diff(moment(start));
@@ -143,16 +138,16 @@ program.command(`serve ${common.configParameter}`)
             message: 'Build complete',
             time: 1500
           });
-        }).catch(console.error);
-      });
-
-      watcher.on('buildFailure', (err) => {
-        notifier.notify({
-          title: 'Fern',
-          message: `Build error - ${err}`,
-          type: 'warn',
-          time: 3000
         });
-      });
-    }).catch(console.error);
-  });
+
+        watcher.on('buildFailure', (err) => {
+          notifier.notify({
+            title: 'Fern',
+            message: `Build error - ${err}`,
+            type: 'warn',
+            time: 3000
+          });
+        });
+      }).catch(console.error);
+    });
+};

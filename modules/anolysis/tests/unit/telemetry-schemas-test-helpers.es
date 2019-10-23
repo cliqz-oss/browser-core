@@ -185,8 +185,8 @@ module.exports = ({ name, metrics, currentDate, mock, tests }) => describeModule
   () => ({
     ...mockDexie,
     'platform/globals': {
-      chrome: {
-      },
+      chrome: {},
+      browser: {},
     },
     'platform/runtime': {
       default: {},

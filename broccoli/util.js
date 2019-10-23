@@ -137,12 +137,12 @@ module.exports = {
           replacement: ({ QUICK_SEARCH_TOGGLE }) => QUICK_SEARCH_TOGGLE || ''
         },
         {
-          match: /\{\{OFFERS_PRODUCT_PREFIX\}\}/g,
-          replacement: ({ OFFERS_PRODUCT_PREFIX }) => OFFERS_PRODUCT_PREFIX || ''
+          match: /\{\{PRODUCT_PREFIX\}\}/g,
+          replacement: ({ PRODUCT_PREFIX }) => PRODUCT_PREFIX || ''
         },
         {
-          match: /\{\{OFFERS_PRODUCT_TITLE\}\}/g,
-          replacement: ({ OFFERS_PRODUCT_TITLE }) => OFFERS_PRODUCT_TITLE || ''
+          match: /\{\{PRODUCT_TITLE\}\}/g,
+          replacement: ({ PRODUCT_TITLE }) => PRODUCT_TITLE || ''
         },
       ]
     });

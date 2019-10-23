@@ -51,7 +51,6 @@ export default background({
     this.searchReporter = null;
   },
 
-  beforeBrowserShutdown() { },
   actions: {
     send(type, offerId, msg, autoTrigger) {
       transportDispatcher(type, offerId, msg, autoTrigger);

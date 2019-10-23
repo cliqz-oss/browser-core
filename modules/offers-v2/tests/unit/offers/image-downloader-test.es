@@ -133,14 +133,14 @@ export default describeModule('offers-v2/offers/image-downloader',
         it('/fallback image on failure', async () => {
           await downloader.download(failUrl, 'not-a-data-url', cb);
 
-          const dataurl = cb.lastCall.lastArg;
+          const dataurl = cb.lastCall.args[0];
           chai.expect(dataurl).to.eq(FALLBACK_IMAGE);
         });
 
         it('/first call is setting a fallback url', async () => {
           await downloader.download(okUrl, okUrl, cb);
 
-          const dataurl = cb.firstCall.lastArg;
+          const dataurl = cb.firstCall.args[0];
           chai.expect(dataurl).to.eq(FALLBACK_IMAGE);
         });
 

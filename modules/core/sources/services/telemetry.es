@@ -7,7 +7,7 @@
  */
 
 import prefs from '../prefs';
-import { isDesktopBrowser, isOnionModeFactory } from '../platform';
+import { isDesktopBrowser } from '../platform';
 import { subscribe } from '../events';
 import { isPrivateMode, getWindow } from '../browser';
 import inject from '../kord/inject';
@@ -19,8 +19,6 @@ const logger = Logger.get('telemetry', {
   level: 'log',
   prefix: '[telemetry]',
 });
-
-const isOnionMode = isOnionModeFactory(prefs);
 
 function isBrowserTelemetryEnabled() {
   // This check uses 'host prefs' which are present in Cliqz Browsers only.
@@ -34,11 +32,6 @@ function isBrowserTelemetryEnabled() {
 function isTelemetryEnabled() {
   if (!isBrowserTelemetryEnabled()) {
     logger.log('Telemetry disabled because of user opt-out');
-    return false;
-  }
-
-  if (isOnionMode()) {
-    logger.log('Telemetry disabled because of TOR mode');
     return false;
   }
 

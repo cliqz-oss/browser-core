@@ -84,10 +84,11 @@ export default class Main extends React.Component {
         autoTrigger = false,
       } = {}
     } = this.props;
+    const prefix = chooseProduct(products);
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
       <div onClick={this.onOutsideClick} className={_css('container')}>
-        <div className={_css('header')}>
+        <div className={_css('header', `${prefix}-header`)}>
           <Header
             vouchers={vouchers}
             products={products}

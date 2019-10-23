@@ -11,18 +11,17 @@ import { View, StyleSheet } from 'react-native';
 import Snippet from './partials/Snippet';
 import SnippetList from './partials/SnippetList';
 import { withStyles } from '../withTheme';
-import { cardSidePadding } from '../themes';
 
 const SUPPORTED_DEEP_RESULTS = ['streaming', 'simple_links', 'buttons'];
 
-const cardStyle = (theme, themeDetails) => StyleSheet.create({
+const cardStyle = theme => StyleSheet.create({
   container: {
     flexDirection: 'column',
     paddingBottom: 5,
-    paddingLeft: cardSidePadding,
-    paddingRight: cardSidePadding,
-    backgroundColor: themeDetails[theme].card.bgColor,
-    borderRadius: themeDetails[theme].card.borderRadius,
+    paddingLeft: theme.card.sidePadding,
+    paddingRight: theme.card.sidePadding,
+    backgroundColor: theme.card.bgColor,
+    borderRadius: theme.card.borderRadius,
   },
 });
 

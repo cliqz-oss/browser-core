@@ -6,8 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import Pagination from './pagination';
@@ -22,16 +20,6 @@ const twoNewsBreakpoint = 919;
 const largeBreakpoint = 1600;
 
 export default class News extends React.Component {
-  static get propTypes() {
-    return {
-      isModalOpen: PropTypes.bool,
-      news: PropTypes.shape({
-        data: PropTypes.array,
-      }),
-      newsLanguage: PropTypes.string,
-    };
-  }
-
   constructor(props) {
     super(props);
     this.state = {
@@ -175,3 +163,11 @@ export default class News extends React.Component {
     );
   }
 }
+
+News.propTypes = {
+  isModalOpen: PropTypes.bool,
+  news: PropTypes.shape({
+    data: PropTypes.array,
+  }),
+  newsLanguage: PropTypes.string,
+};

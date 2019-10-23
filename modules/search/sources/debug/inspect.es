@@ -6,7 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window, document */
 import { fromEvent } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import background from '../background';

@@ -7,8 +7,6 @@
  */
 
 import './content/amo-all-modules-tests';
-import './content/amo-cliqz-tab-interaction-tests';
-import './content/amo-cliqz-tab-ui-tests';
 import './content/browser-current-site-tests';
 import './content/browser-all-modules-tests';
 import './content/browser-adblock-interaction-tests';
@@ -24,3 +22,4 @@ import './content/browser-https-ui-tests';
 import './content/browser-other-settings-ui-tests';
 import './content/browser-search-ui-tests';
 import './content/browser-offers-ui-tests';
+import './content/browser-autoconsent-ui-tests';

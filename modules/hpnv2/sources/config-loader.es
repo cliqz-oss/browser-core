@@ -71,7 +71,7 @@ export default class ConfigLoader {
         const serverTs = parseServerTimestamp(config.ts);
         await this.onServerTimestampRefresh(serverTs);
 
-        const configWithoutTs = JSON.stringify(Object.assign({}, config, { ts: '' }));
+        const configWithoutTs = JSON.stringify({ ...config, ts: '' });
         const isNewConfig = configWithoutTs !== this._lastKnownConfigWithoutTs;
 
         if (isNewConfig) {

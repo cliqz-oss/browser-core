@@ -80,6 +80,9 @@
     "show_code": {
       "message": "Code anzeigen"
     },
+    "show_more": {
+      "message": "Mehr anzeigen"
+    },
     "why_offers_text": {
         "message": "Keinerlei persönliche Daten verlassen dein Gerät. Dein Browser erkennt selbständig anhand deiner bisherigen Nutzung, wofür du dich interessieren könntest."
     },

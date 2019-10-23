@@ -6,7 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window, document */
 import checkIfChromeReady from '../core/content/ready-promise';
 import createModuleWrapper from '../core/helpers/action-module-wrapper';
 

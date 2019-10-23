@@ -21,25 +21,21 @@ import {
 import inject from '../core/kord/inject';
 import background from '../core/base/background';
 import cookies from '../platform/cookies';
-import { getGeneralDomain } from '../core/tlds';
-import md5 from '../core/helpers/md5';
+import { parse, getGeneralDomain } from '../core/tlds';
+import { truncatedHash } from '../core/helpers/md5';
 import console from '../core/console';
-import WebRequest from '../core/webrequest';
-import tabs from '../platform/tabs';
+import webNavigation from '../platform/webnavigation';
 import prefs from '../core/prefs';
 import CookieMonster, { cookieId } from './cookie-monster';
 import logger from './logger';
+import { browser } from '../platform/globals';
 
 const TELEMETRY_PREFIX = 'cookie-monster';
 
 const BATCH_UPDATE_FREQUENCY = 180000;
 
-function isPrivateTab(tabId) {
-  return new Promise((resolve) => {
-    tabs.get(tabId, (tab) => {
-      resolve(tab.incognito);
-    });
-  });
+async function isPrivateTab(tabId) {
+  return (await browser.tabs.get(tabId)).incognito;
 }
 
 function formatDate(date) {
@@ -55,6 +51,7 @@ export default background({
     this.cookieMonster = new CookieMonster(this.isTrackerDomain.bind(this), {
       expireSession: prefs.get('cookie-monster.expireSession', false),
       nonTracker: prefs.get('cookie-monster.nonTracker', false),
+      trackerLocalStorage: prefs.get('cookie-monster.trackerLocalStorage', false),
     }, this.telemetry.bind(this));
 
     this.subjectCookies = new Subject();
@@ -66,10 +63,7 @@ export default background({
     cookies.onChanged.addListener(this.onCookieChanged);
 
     // listen for page loads on tracker domains
-    WebRequest.onHeadersReceived.addListener(this.onPage, {
-      urls: ['<all_urls>'],
-      types: ['main_frame'],
-    });
+    webNavigation.onCommitted.addListener(this.onPage);
 
     // filter page loads: must stay on site for 10s before it is logged
     this.pageStream = this.subjectPages.pipe(
@@ -111,7 +105,7 @@ export default background({
     const initDb = this.cookieMonster.init();
     const initTrackerList = this.antitracking.action('getWhitelist').then((qsWhitelist) => {
       this.trackers = qsWhitelist;
-    });
+    }).catch(() => logger.warn('antitracking not available, running limited policy set.'));
 
     // trigger pruning after first batch on startup, or when the date changes
     this.pruneStream = batchObservable.pipe(
@@ -120,6 +114,9 @@ export default background({
     )
       .subscribe(() => {
         this.cookieMonster.pruneDb();
+        if (this.cookieMonster.trackerLSOPruningEnabled) {
+          this.cookieMonster.pruneLocalStorage();
+        }
       });
 
     return Promise.all([initDb, initTrackerList]);
@@ -131,7 +128,7 @@ export default background({
     this.trackerCookiesStream.unsubscribe();
     this.pruneStream.unsubscribe();
     this.pageStream.unsubscribe();
-    WebRequest.onHeadersReceived.removeListener(this.onPage);
+    webNavigation.onCommitted.removeListener(this.onPage);
     this.cookieMonster.unload();
   },
 
@@ -142,29 +139,33 @@ export default background({
     });
   },
 
-  async onPage(details) {
-    if (details.type !== 'main_frame') {
+  async onPage({ url, tabId, frameId }) {
+    const { domain, hostname } = parse(url);
+    if (frameId !== 0) {
+      // non main frame
+      // if LSO pruning is enabled, notify CM of a new frame which may have data to prune
+      if (this.cookieMonster && this.cookieMonster.trackerLSOPruningEnabled
+          && domain && this.trackers.isTrackerDomain(truncatedHash(domain))) {
+        // check if this is a first-party frame
+        const tab = await browser.tabs.get(tabId);
+        if (tab && tab.incognito) {
+          return;
+        }
+        const firstParty = !!tab && getGeneralDomain(tab.url) === domain;
+        this.cookieMonster.onFrame({ domain, hostname, firstParty });
+      }
       return;
     }
-    if (details.isPrivate) {
-      return;
-    }
-
-    const domain = getGeneralDomain(details.url);
     if (domain && this.trackers
-        && this.trackers.isTrackerDomain(md5(domain).substring(0, 16))) {
+        && this.trackers.isTrackerDomain(truncatedHash(domain))) {
       // do not register private tabs
       // on webextensions check tab API, on firefox use details.isPrivate
-      const checkIsPrivate = typeof details.isPrivate !== 'boolean'
-        ? isPrivateTab(details.tabId)
-        : Promise.resolve(details.isPrivate);
-      if (await checkIsPrivate) {
+      if (await isPrivateTab(tabId)) {
         return;
       }
       this.subjectPages.next({
-        tabId: details.tabId,
+        tabId,
         domain,
-        statusCode: details.statusCode,
       });
     }
   },
@@ -177,7 +178,7 @@ export default background({
     if (!this.trackers) {
       return false;
     }
-    return this.trackers.isTrackerDomain(md5(domain).substring(0, 16));
+    return this.trackers.isTrackerDomain(truncatedHash(domain));
   },
 
   events: {},

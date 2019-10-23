@@ -124,10 +124,6 @@ const CliqzHumanWeb = {
         name:   "queryKey",
         parser: /(?:^|&)([^&=]*)=?([^&]*)/g
     },
-    parser: {
-        strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-        loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-    },
     activeUsage : null,
     activeUsageThreshold : 2,
     pageStatusCountSent: null,
@@ -926,275 +922,298 @@ const CliqzHumanWeb = {
         }
         else callback();
     },
-    doubleFetch: function(url, page_doc) {
-        // Need to add check for page MU.
-        // one last validation whether should be fetchable or not. If we cannot send that URL because it's
-        // private/suspicious/search_result page/etc. we can mark it as private directly
 
-        var isok = true;
+    // Runs some heuristics based on the URL and the page structure to determine
+    // whether the given page is safe enough to proceed with doublefetch.
+    allowDoublefetch(url, page_doc) {
+      function discard(reason) {
+        return { accepted: false, rejectDetails: reason };
+      }
+      function accept() {
+        return { accepted: true };
+      }
 
-        if (page_doc ==null || page_doc['x'] == null) {
-            // this should not happen, but it does. Need to debug why the 'x' field gets lost
-            // right now, let's set is a private to avoid any risk
-            //
-            isok = false
+      // Need to add check for page MU.
+      // one last validation whether should be fetchable or not. If we cannot send that URL because it's
+      // private/suspicious/search_result page/etc. we can mark it as private directly
+
+      if (page_doc ==null || page_doc['x'] == null) {
+        // this should not happen, but it does. Need to debug why the 'x' field gets lost
+        // right now, let's set is a private to avoid any risk
+        _log('page_doc.x missing for url:', url);
+        return discard('page_doc.x missing');
+      }
+
+      if (page_doc && page_doc['x'] && page_doc['x']['iall'] == false) {
+        return discard('the page is marked as noindex');
+      }
+
+      // the url is suspicious, this should never be the case here but better safe
+      if (CliqzHumanWeb.isSuspiciousURL(url) == true) {
+        return discard('URL failed the isSuspiciousURL check');
+      }
+
+      if (CliqzHumanWeb.dropLongURL(url)) {
+        // The URL itself is considered unsafe, but it has a canonical URL, so it should be public
+        const cUrl = page_doc['x']['canonical_url'];
+        if (cUrl) {
+          if (CliqzHumanWeb.dropLongURL(cUrl)) {
+            // wops, the canonical is also bad, therefore mark as private
+            _log(`both URL=${url} and canonical_url=${cUrl} are too long`);
+            return discard(`both URL and canonical_url are too long`);
+          }
+          // proceed, as we are in the good scenario in which the canonical
+          // looks safe, although the url did not
+        } else if (page_doc['isMU']) {
+          return accept();
+        } else {
+          return discard(`URL is too long (and there is no canonical URL)`);
+        }
+      }
+
+      return accept();
+    },
+
+    async doubleFetch(url, page_doc) {
+      try {
+        const result = await CliqzHumanWeb._doubleFetch(url, page_doc);
+        if (result.isPrivate) {
+          CliqzHumanWeb.setAsPrivate(result.url);
+        } else {
+          CliqzHumanWeb.setAsPublic(result.url);
+
+          // At this point, we have the "page" message ready but there
+          // are still checks left in telemetry, so it is still possible
+          // that the message will be dropped.
+          await CliqzHumanWeb.telemetry(result.msgCandidate);
+        }
+      } catch (e) {
+        _log('Unexpected error during doublefetch', e);
+      }
+    },
+
+    _doubleFetch(url, page_doc) {
+      return new Promise((resolve, _) => {
+        function privateUrlFound(url, explanation) {
+          _log('The URL', url, 'failed one of the doublefetch heuristics. Details:', explanation);
+          resolve({
+            url,
+            isPrivate: true,
+            explanation,
+          });
+        }
+        function publicUrlFound(url, page_doc) {
+          _log('The URL', url, 'passed all doublefetch heuristics');
+          resolve({
+            url,
+            isPrivate: false,
+            page_doc,
+
+            // Note that the sanitizer still needs to run over it. Depending on that
+            // output, it is still possible that the message will be modified or even dropped.
+            msgCandidate: {
+              type: CliqzHumanWeb.msgType,
+              action: 'page',
+              payload: page_doc,
+            },
+          });
         }
 
-        if (page_doc && page_doc['x'] && page_doc['x']['iall'] == false) {
-                // the url is marked as noindex
-                isok = false;
+        const { accepted: allowDoublefetch, rejectDetails } = CliqzHumanWeb.allowDoublefetch(url, page_doc);
+        if (!allowDoublefetch) {
+          privateUrlFound(url, `URL rejected by heuristics before doublefetch: ${rejectDetails}`);
+          return;
         }
 
-        // the url is suspicious, this should never be the case here but better safe
-        //
-        if (CliqzHumanWeb.isSuspiciousURL(url) == true) isok = false;
+        _log("going to double-fetch:", url);
+        CliqzHumanWeb.auxGetPageData(url, page_doc, url, function(url, page_doc, original_url, data) {
 
-        if (CliqzHumanWeb.dropLongURL(url)) {
-            _log("The url: " + url + " is long");
+            // data contains the public data of the url double-fetch,
 
-            if (page_doc && page_doc['x'] && page_doc['x']['canonical_url']) {
-                // the url is to be drop, but it has a canonical URL so it should be public
-                if (CliqzHumanWeb.dropLongURL(page_doc['x']['canonical_url'])) {
-                    // wops, the canonical is also bad, therefore mark as private
-                    _log("The canonical url: " + page_doc['x']['canonical_url'] + " is also long");
-                    isok = false;
-                }
-                else {
-                    // there we are in the good scenario in which canonical looks ok although
-                    // url did not
-                    isok = true;
-                }
-            }
-            else {
-                if(page_doc['isMU']){
-                    isok = true;
-                }
-                else{
-                    isok = false;
-                }
-            }
-        }
+            _log("success on doubleFetch, need further validation", url);
 
-        if (isok) {
-            _log("going to double-fetch: " + url);
+            if (CliqzHumanWeb.validDoubleFetch(page_doc['x'], data, {'structure_strict': false})) {
+                //
+                // If the double fetch is validated, we will now check for the iFrame and frameSets
+                // Since we only need the telemetry for now, this seems to be the right place
+                // we need to inject the page structure. The final event will have an extra key
+                // nifshmatch : true / false , nfshmatch: true / false.,
+                // nifshbf : Iframe count in struct_bef, nifshbf : framsetcount in before.
+                // This key is added to both page_doc and data.
+                //
 
-            CliqzHumanWeb.auxGetPageData(url, page_doc, url, function(url, page_doc, original_url, data) {
+                let nifshmatch = CliqzHumanWeb.validFrameCount(page_doc['x'], data);
+                let nfshmatch = CliqzHumanWeb.validFrameSetCount(page_doc['x'], data);
 
-                // data contains the public data of the url double-fetch,
+                data.nifshmatch = nifshmatch;
+                data.nfshmatch = nfshmatch;
+                data.nifshbf = page_doc.x.nifsh;
+                data.nfshbf = page_doc.x.nifsh;
 
-                _log("success on doubleFetch, need further validation" + url);
+                //
+                // url, we should have the data of the double for the referral in CliqzHumanWeb.docCache
+                //
+                CliqzHumanWeb.fetchReferral(page_doc['ref'], function() {
 
-                if (CliqzHumanWeb.validDoubleFetch(page_doc['x'], data, {'structure_strict': false})) {
+                    var strict_value = CliqzHumanWeb.calculateStrictness(url, page_doc);
 
+                    if (page_doc['ref'] && page_doc['ref']!='') {
+                        // the page has a referral
+                        _log("PPP: page has a referral, " + url + " < " + page_doc['ref']);
+                        var hasurl = CliqzHumanWeb.hasURL(page_doc['ref'], url);
+                        _log("PPP: page has a referral, " + url + " < " + page_doc['ref'] + ">>>> " + hasurl);
 
-                    //
-                    // If the double fetch is validated, we will now check for the iFrame and frameSets
-                    // Since we only need the telemetry for now, this seems to be the right place
-                    // we need to inject the page structure. The final event will have an extra key
-                    // nifshmatch : true / false , nfshmatch: true / false.,
-                    // nifshbf : Iframe count in struct_bef, nifshbf : framsetcount in before.
-                    // This key is added to both page_doc and data.
-                    //
+                        // overwrite strict value because the link exists on a public fetchable page
+                        if (hasurl) strict_value = false;
+                    }
+                    else {
+                        // page has no referral
+                        _log("PPP: page has NO referral,", url);
 
-                    let nifshmatch = CliqzHumanWeb.validFrameCount(page_doc['x'], data);
-                    let nfshmatch = CliqzHumanWeb.validFrameSetCount(page_doc['x'], data);
+                        // we do not know the origin of the page, run the dropLongURL strict version, if
+                        // there is no canonical or if there is canonical and is the same as the url,
+                    }
 
-                    data.nifshmatch = nifshmatch;
-                    data.nfshmatch = nfshmatch;
-                    data.nifshbf = page_doc.x.nifsh;
-                    data.nfshbf = page_doc.x.nifsh;
+                    _log("strict URL:", url, ">", strict_value);
 
-                    //
-                    // url, we should have the data of the double for the referral in CliqzHumanWeb.docCache
-                    //
-                    CliqzHumanWeb.fetchReferral(page_doc['ref'], function() {
+                    if (CliqzHumanWeb.validDoubleFetch(page_doc['x'], data, {'structure_strict': strict_value})) {
 
-                        var strict_value = CliqzHumanWeb.calculateStrictness(url, page_doc);
+                        // we do not know the origin of the page, run the dropLongURL strict version
 
-                        if (page_doc['ref'] && page_doc['ref']!='') {
-                            // the page has a referral
-                            _log("PPP: page has a referral, " + url + " < " + page_doc['ref']);
-                            var hasurl = CliqzHumanWeb.hasURL(page_doc['ref'], url);
-                            _log("PPP: page has a referral, " + url + " < " + page_doc['ref'] + ">>>> " + hasurl);
-
-                            // overwrite strict value because the link exists on a public fetchable page
-                            if (hasurl) strict_value = false;
-                        }
-                        else {
-                            // page has no referral
-                            _log("PPP: page has NO referral, " + url);
-
-                            // we do not know the origin of the page, run the dropLongURL strict version, if
-                            // there is no canonical or if there is canonical and is the same as the url,
-                        }
-
-                        _log("strict URL:" + url + " > " + strict_value);
-
-                        if (CliqzHumanWeb.validDoubleFetch(page_doc['x'], data, {'structure_strict': strict_value})) {
-
-                            // we do not know the origin of the page, run the dropLongURL strict version
-
-                            if (CliqzHumanWeb.dropLongURL(url, {'strict': strict_value})) {
-                                if (page_doc && page_doc['x'] && page_doc['x']['canonical_url']) {
-                                    if (CliqzHumanWeb.dropLongURL(page_doc['x']['canonical_url'], {'strict': strict_value})) {
-                                        _log("doubleFetch failed on dropLongURL strict=true:" + url);
-                                        CliqzHumanWeb.setAsPrivate(url);
-                                        return;
-                                    }
-                                }
-                                else {
-                                    _log("doubleFetch failed on dropLongURL strict=true:" + url);
-                                    CliqzHumanWeb.setAsPrivate(url);
+                        if (CliqzHumanWeb.dropLongURL(url, {'strict': strict_value})) {
+                            if (page_doc && page_doc['x'] && page_doc['x']['canonical_url']) {
+                                if (CliqzHumanWeb.dropLongURL(page_doc['x']['canonical_url'], {'strict': strict_value})) {
+                                    privateUrlFound(url, 'rejected by dropLongURL (strict=true) heuristic');
                                     return;
                                 }
-                            }
-                        }
-                        else {
-                            // the strict version of validDoubleFetch fails for a page with no referral,
-                            // since we do not know the origin mark as private
-                            _log("doubleFetch failed on structure_strict=true: " + url);
-                            CliqzHumanWeb.setAsPrivate(url);
-                            return;
-                        }
-
-
-
-                        _log("success on doubleFetch, need further validation");
-
-                        //
-                        // we need to modify the 'x' field of page_doc to substitute any structural information about
-                        // the page content by the data coming from the doubleFetch (no session)
-                        //
-
-                        var first_url_double_fetched = url;
-
-                        //
-                        // we need to modify the 'x' field of page_doc to substitute any structural information about
-                        // the page content by the data coming from the doubleFetch (no session)
-                        //
-
-                        // at this point we might have 3 different urls: url, page_doc['x']['canonical_url'] (either
-                        // one of them has to have passed the dropLongURL test), and finally we also have data['canonical_url']
-                        // (which has not passed the dropLongURL test). In principle, data['canonical_url']==page_doc['x']['canonical_url']
-                        // but is not always the case, different calls can give different urls
-
-                        if (data['canonical_url']!=null && data['canonical_url'] != '' && CliqzHumanWeb.dropLongURL(data['canonical_url'])==false) {
-                            page_doc['url'] = data['canonical_url'];
-                            page_doc['x'] = data;
-                        }
-                        else {
-                            if (page_doc['x']['canonical_url']!=null && page_doc['x']['canonical_url'] != '' && CliqzHumanWeb.dropLongURL(page_doc['x']['canonical_url'])==false) {
-                                page_doc['url'] = page_doc['x']['canonical_url'];
-                                page_doc['x'] = data;
-                                page_doc['x']['canonical_url'] = page_doc['url'];
                             }
                             else {
-                                // there was no canonical either on page_doc['x'] or in data or it was droppable
-
-                                if (CliqzHumanWeb.dropLongURL(url)==false) {
-                                    page_doc['url'] = url;
-                                    page_doc['x'] = data;
-
-                                    if (page_doc['x']['canonical_url']!=null && page_doc['x']['canonical_url'] != '') {
-                                        page_doc['x']['canonical_url'] = url;
-                                    }
-                                }
-                                else {
-                                    // this should not happen since it would be covered by the isok checks, but better safe,
-                                    CliqzHumanWeb.setAsPrivate(url);
-                                    return;
-                                }
+                                privateUrlFound(url, 'rejected by dropLongURL (strict=true) heuristic');
+                                return;
                             }
                         }
+                    }
+                    else {
+                        // the strict version of validDoubleFetch fails for a page with no referral,
+                        // since we do not know the origin mark as private
+                        privateUrlFound(url, `rejected by validDoubleFetch(structure_strict=${strict_value})`);
+                        return;
+                    }
+                    _log("success on doubleFetch, need further validation");
 
-                        var clean_url = CliqzHumanWeb.getCleanerURL(page_doc['url']);
+                    //
+                    // we need to modify the 'x' field of page_doc to substitute any structural information about
+                    // the page content by the data coming from the doubleFetch (no session)
+                    //
 
-                        if (clean_url != page_doc['url']) {
-                            // we have a candidate for a cleaner url (without query_string) or without the last segment
-                            // of the path, we want to double fetch it and if successful, then, we could replace the url
-                            // because it would be cleaner hence safer
-                            //
+                    var first_url_double_fetched = url;
 
-                            _log("going to clean_url double-fetch: " + clean_url);
+                    //
+                    // we need to modify the 'x' field of page_doc to substitute any structural information about
+                    // the page content by the data coming from the doubleFetch (no session)
+                    //
 
-                            CliqzHumanWeb.auxGetPageData(clean_url, page_doc, first_url_double_fetched, function(url, page_doc, original_url, data) {
+                    // at this point we might have 3 different urls: url, page_doc['x']['canonical_url'] (either
+                    // one of them has to have passed the dropLongURL test), and finally we also have data['canonical_url']
+                    // (which has not passed the dropLongURL test). In principle, data['canonical_url']==page_doc['x']['canonical_url']
+                    // but is not always the case, different calls can give different urls
 
-                                _log("success on clean_url doubleFetch, need further validation");
-
-                                if (CliqzHumanWeb.validDoubleFetch(page_doc['x'], data, {'structure_strict': false})) {
-                                    // if it the second double fetch is valid, that means that the clean_url is (url parameter) is
-                                    // equivalent, so we can replace
-                                    page_doc['url'] = url;
-                                    page_doc['x'] = data;
-                                    CliqzHumanWeb.setAsPublic(original_url);
-                                    CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'page', 'payload': page_doc});
-
-                                }
-                                else {
-                                    // the page with the clean_urls does not return the same, it can be two cases here, one is that
-                                    // the content is just totally different, in this case, we should send the page with the unclean_url,
-                                    // the other case is that the content is different but now we have passwords where we did not have before,
-                                    // in such a case, it's safer to assume that the fragments cleaned were identifiying a user, and the
-                                    // website is redirecting to the login page, in such a case, we should not send the page at all, in fact, we
-                                    // should mark it as private just to be sure,
-
-                                    if (CliqzHumanWeb.debug) {
-                                        _log("checking clean_url, page_doc: " + JSON.stringify(page_doc));
-                                        _log("checking clean_url, data: " + JSON.stringify(data));
-                                    }
-
-
-                                    if (page_doc['x']['nip'] < data['nip']) {
-                                        // the page with url_clean have more input password fields or more forms, this is dangerous,
-                                        _log("failure on checking the password and forms for clean_url: " + original_url + " set as private");
-                                        CliqzHumanWeb.setAsPrivate(original_url);
-                                    }
-                                    else {
-                                        // safe, here we will send the url before clean_url
-                                        CliqzHumanWeb.setAsPublic(original_url);
-                                        CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'page', 'payload': page_doc});
-                                    }
-                                }
-                            },
-                            function(url, page_doc, original_url, error_message) {
-                                _log("failure on clean_url doubleFetch! structure did not match");
-                                // there was a failure, the clean_url does not go to the same place, therefore it's better
-                                // not to replace
-
-                                CliqzHumanWeb.setAsPublic(original_url);
-                                CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'page', 'payload': page_doc});
-
-                            });
+                    if (data['canonical_url']!=null && data['canonical_url'] != '' && CliqzHumanWeb.dropLongURL(data['canonical_url'])==false) {
+                        page_doc['url'] = data['canonical_url'];
+                        page_doc['x'] = data;
+                    }
+                    else {
+                        if (page_doc['x']['canonical_url']!=null && page_doc['x']['canonical_url'] != '' && CliqzHumanWeb.dropLongURL(page_doc['x']['canonical_url'])==false) {
+                            page_doc['url'] = page_doc['x']['canonical_url'];
+                            page_doc['x'] = data;
+                            page_doc['x']['canonical_url'] = page_doc['url'];
                         }
                         else {
-                            CliqzHumanWeb.setAsPublic(original_url);
-                            CliqzHumanWeb.telemetry({'type': CliqzHumanWeb.msgType, 'action': 'page', 'payload': page_doc});
+                            // there was no canonical either on page_doc['x'] or in data or it was droppable
+
+                            if (CliqzHumanWeb.dropLongURL(url)==false) {
+                                page_doc['url'] = url;
+                                page_doc['x'] = data;
+
+                                if (page_doc['x']['canonical_url']!=null && page_doc['x']['canonical_url'] != '') {
+                                    page_doc['x']['canonical_url'] = url;
+                                }
+                            }
+                            else {
+                                // this should not happen since it would be covered by the isok checks, but better safe,
+                                privateUrlFound(url, `rejected by fail-safe branch (dropLongURL(${url} should have been passed)`);
+                                return;
+                            }
                         }
-                    });
-                }
-                else {
-                    _log("failure on doubleFetch! " + "structure did not match");
-                    CliqzHumanWeb.setAsPrivate(url);
-                }
-            },
-            function(url, page_doc, original_url, error_message) {
-                _log("failure on doubleFetch! " + error_message);
-                CliqzHumanWeb.setAsPrivate(url);
-            });
+                    }
 
-        }
-        else {
-            _log("doubleFetch refused to process this url: " + url);
-            CliqzHumanWeb.setAsPrivate(url);
-        }
+                    var clean_url = CliqzHumanWeb.getCleanerURL(page_doc['url']);
 
+                    if (clean_url != page_doc['url']) {
+                        // we have a candidate for a cleaner url (without query_string) or without the last segment
+                        // of the path, we want to double fetch it and if successful, then, we could replace the url
+                        // because it would be cleaner hence safer
+                        //
+
+                        _log("going to clean_url double-fetch:", clean_url);
+
+                        CliqzHumanWeb.auxGetPageData(clean_url, page_doc, first_url_double_fetched, function(url, page_doc, original_url, data) {
+
+                            _log("success on clean_url doubleFetch, need further validation");
+
+                            if (CliqzHumanWeb.validDoubleFetch(page_doc['x'], data, {'structure_strict': false})) {
+                                // if it the second double fetch is valid, that means that the clean_url is (url parameter) is
+                                // equivalent, so we can replace
+                                page_doc['url'] = url;
+                                page_doc['x'] = data;
+                                publicUrlFound(original_url, page_doc);
+                            }
+                            else {
+                                // the page with the clean_urls does not return the same, it can be two cases here, one is that
+                                // the content is just totally different, in this case, we should send the page with the unclean_url,
+                                // the other case is that the content is different but now we have passwords where we did not have before,
+                                // in such a case, it's safer to assume that the fragments cleaned were identifiying a user, and the
+                                // website is redirecting to the login page, in such a case, we should not send the page at all, in fact, we
+                                // should mark it as private just to be sure,
+                                if (CliqzHumanWeb.debug) {
+                                    _log("checking clean_url, page_doc:", page_doc);
+                                    _log("checking clean_url, data: ", data);
+                                }
+
+                                if (page_doc['x']['nip'] < data['nip']) {
+                                    // the page with url_clean have more input password fields or more forms, this is dangerous,
+                                    privateUrlFound(original_url, 'rejected by extra password / form fields (after doublefetch)');
+                                }
+                                else {
+                                    // safe, here we will send the url before clean_url
+                                    publicUrlFound(original_url, page_doc);
+                                }
+                            }
+                        },
+                        function(url, page_doc, original_url, error_message) {
+                            // there was a failure, the clean_url does not go to the same place, therefore it's better
+                            // not to replace
+                            _log("failure on clean_url doubleFetch! structure did not match");
+                            publicUrlFound(original_url, page_doc);
+                        });
+                    } else {
+                      publicUrlFound(original_url, page_doc);
+                    }
+                });
+            }
+            else {
+                privateUrlFound(url, 'rejected as the structure of the document changed significantly (after doublefetch)');
+            }
+        },
+        function(url, page_doc, original_url, error_message) {
+            _log("failure on doubleFetch!", error_message);
+            privateUrlFound(url, `rejected as doublefetch failed with an error ${error_message}`);
+        });
+      });
     },
     hasURL: function(source_url, target_url) {
         // the target_url is in the source_url
-
         try {
-
-
             var tt = CliqzHumanWeb.docCache[source_url];
             if (tt) {
                 var cd = tt['doc'];
@@ -2238,17 +2257,6 @@ const CliqzHumanWeb = {
           }
         }
 
-        //Check for doorway action durl
-        if(msg.action=='doorwaypage') {
-            if((CliqzHumanWeb.isSuspiciousURL(msg.payload['durl'])) || (CliqzHumanWeb.isSuspiciousURL(msg.payload['url']))){
-                return null;
-            }
-            if((CliqzHumanWeb.dropLongURL(msg.payload['durl'])) || (CliqzHumanWeb.dropLongURL(msg.payload['url']))){
-                return null;
-            }
-        }
-
-
         //Remove the msg if the query is too long,
 
         if(msg.action=='query' || msg.action == 'anon-query') {
@@ -2314,21 +2322,40 @@ const CliqzHumanWeb = {
     },
 
     async telemetry(msg, instantPush) {
-      const { accepted, rejectDetails } = await CliqzHumanWeb._telemetry(msg, instantPush);
+      const { accepted, rejectDetails } = await CliqzHumanWeb.runAllMessageSanitizers(msg);
       if (accepted) {
-        _log('all checks passed: telemetry message added to the sent queue:', msg);
+        _log('all checks passed: telemetry message added to the send queue:', msg);
+        CliqzHumanWeb.incrActionStats(msg.action);
+
+        // do not wait for the promise to complete (keeping the old fire-and-forget API)
+        const start = Date.now();
+        CliqzHumanWeb.safebrowsingEndpoint.send(msg, { instantPush })
+          .then(() => {
+            logger.debug('Successfully sent message after', (Date.now() - start) / 1000.0, 'sec', msg);
+          })
+          .catch((e) => {
+            logger.info(`Finally giving up on sending message (reason: ${e}, elapsed: ${(Date.now() - start) / 1000.0} sec)`, msg);
+          });
       } else {
         _log('telemetry message has been discarded:', rejectDetails, msg);
       }
     },
 
-    // TODO: migrate actionsStats to Anolysis
-    async _telemetry(msg, instantPush) {
+    // Runs final heuristics to decide whether the given Human Web message is safe to be sent.
+    // Note that the sanitizer might modify the given message as a side-effect
+    // (i.e., it might zero out sensitive fields).
+    async runAllMessageSanitizers(msg, { updateStats = true } = {}) {
+      let okTillQuorum = false;
       function discard(reason) {
-        return { accepted: false, rejectDetails: reason };
+        return { accepted: false, rejectDetails: reason, okTillQuorum };
       }
       function accept() {
         return { accepted: true };
+      }
+      function incStats(action) {
+        if (updateStats) {
+          CliqzHumanWeb.incrActionStats(action);
+        }
       }
 
       if (!CliqzHumanWeb || //might be called after the module gets unloaded
@@ -2352,18 +2379,23 @@ const CliqzHumanWeb = {
         return discard('failed local domain check');
       }
 
+      // Once we crossed this point, the message itself is considered safe.
+      // However, we are still waiting for confirmation for the quorum system
+      // (i.e., the URL has to been seen by enough users).
+      okTillQuorum = true;
+
       let isSafe;
       try {
         isSafe = await CliqzHumanWeb.safeQuorumCheck(msg);
       } catch (e) {
         _log('Exception during safe quorum check', e);
-        CliqzHumanWeb.incrActionStats(`dropped-${e}`);
-        return discard('failed safe quorum check: ${e}');
+        incStats(`dropped-${e}`);
+        return discard(`failed safe quorum check: ${e}`);
       }
 
       _log('Quorum consent?', isSafe);
       if (!isSafe) {
-        CliqzHumanWeb.incrActionStats('droppedQC');
+        incStats('droppedQC');
         return discard('failed safe quorum check');
       }
 
@@ -2374,19 +2406,6 @@ const CliqzHumanWeb = {
         _log('Error while checking other urls for quorum', e);
         return discard('failed safe quorum check for other urls');
       }
-
-      // message passed all checks and is ready to be sent
-      CliqzHumanWeb.incrActionStats(msg.action);
-
-      // do not wait for the promise to complete (keeping the old fire-and-forget API)
-      const start = Date.now();
-      CliqzHumanWeb.safebrowsingEndpoint.send(msg)
-        .then(() => {
-          logger.debug('Successfully sent message after', (Date.now() - start) / 1000.0, 'sec', msg);
-        })
-        .catch((e) => {
-          logger.info(`Finally giving up on sending message (reason: ${e}, elapsed: ${(Date.now() - start) / 1000.0} sec)`, msg);
-        });
 
       return accept();
     },
@@ -2426,6 +2445,112 @@ const CliqzHumanWeb = {
   // to invoke in console: CliqzHumanWeb.listOfUnchecked(1000000000000, 0, null, function(x) {console.log(x)})
     forceDoubleFetch: function(url) {
         CliqzHumanWeb.listOfUnchecked(1000000000000, 0, url, CliqzHumanWeb.processUnchecks);
+    },
+
+    // Intended only for debugging doublefetch heuristics.
+    //
+    // To use it, follow these steps:
+    // 1) open all URLs that you want to check in new tabs
+    // 2) run this function (in the extension devtools):
+    //    (CLIQZ.app || CLIQZ).modules['human-web'].background.humanWeb._simulateDoublefetch().then(console.table).catch(console.error);
+    //
+    // By default all open URLs are considered, but you can pass filter conditions:
+    //  * domainFilter (type: string): only consider URLs that match the given domain
+    //  * urlFilter (type: string): only consider URLs that match the given domain
+    //
+    // If you want only complete matches, use the "exact" version of the filter.
+    // Otherwise, there is some tolerance. For example, "https://www.example.com" will
+    // match both filterByDomain = "example.com" and filterByDomain = "www.example.com",
+    // but not "exactFilterByDomain = "example.com".
+    //
+    // Examples:
+    // 1) Check all open tabs:
+    //   _simulateDoublefetch()
+    //
+    // 2) Check all open tabs, but filter only for the Spiegel news site:
+    //   _simulateDoublefetch({ filterByDomain: 'spiegel' })
+    //
+    // 3) Check all pending, but unprocessed pages for the FAZ news site ("unprocessed"
+    //    means these URLs will eventually be tested and if they meet all conditions
+    //    result in actual "page" messages being sent):
+    //
+    //   _simulateDoublefetch({ filterByDomain: 'faz', source: 'unprocessed' })
+    async _simulateDoublefetch({
+      filterByDomain = null,
+      filterByUrl = null,
+      filterByExactDomain = null,
+      filterByExactUrl = null,
+      source = null, // 'openTabs' (default), 'unprocessed'
+    } = {}) {
+      function isRelevantUrl(url) {
+        if (filterByUrl && !url.includes(filterByUrl)) {
+          return false;
+        }
+        if (filterByExactUrl && url !== filterByExactUrl) {
+          return false;
+        }
+        if (filterByDomain && !new URL(url).host.includes(filterByDomain)) {
+          return false;
+        }
+        if (filterByExactDomain && new URL(url).host !== filterByExactDomain) {
+          return false;
+        }
+        return true;
+      }
+
+      let pages;
+      if (!source || source === 'openTabs') {
+        const allOpenPages = await CliqzHumanWeb.getAllOpenPages();
+        pages = allOpenPages
+          .map(url => ({ url, page_doc: CliqzHumanWeb.state.v[url] }))
+          .filter(({ url, page_doc }) => page_doc && isRelevantUrl(url));
+      } else if (source === 'unprocessed') {
+        pages = await new Promise((resolve, reject) => {
+          CliqzHumanWeb.listOfUnchecked(1000000000000, 0, null, (res, _) => {
+            try {
+              resolve(res.map(x => ({ url: x[0], page_doc: x[1] })).filter(x => isRelevantUrl(x.url)));
+            } catch (e) {
+              reject(e);
+            }
+          });
+        });
+      } else {
+        throw new Error(`unexpected source: ${source}`);
+      }
+
+      const results = await Promise.all(pages.map(async ({ url, page_doc }) => {
+        try {
+          const { isPrivate, explanation, msgCandidate } = await CliqzHumanWeb._doubleFetch(url, page_doc);
+          let state;
+          let comment;
+          if (isPrivate) {
+            if (CliqzHumanWeb.contentExtractor.isSearchEngineUrl(url)) {
+              state = 'search';
+              comment = 'search pages never generate "page" messages';
+            } else {
+              state = 'private';
+              comment = explanation;
+            }
+          } else {
+            const { accepted, rejectDetails, okTillQuorum } =
+              await CliqzHumanWeb.runAllMessageSanitizers(msgCandidate, { updateStats: false });
+            if (accepted) {
+              state = 'public';
+            } else if (okTillQuorum) {
+              state = 'candidate';
+              comment = rejectDetails;
+            } else {
+              state = 'private';
+              comment = rejectDetails;
+            }
+          }
+          return { url, state, comment: comment || '' };
+        } catch (e) {
+          logger.error(e);
+          return { url, state: 'error', explanation: `error: ${e}` };
+        }
+      }));
+      return results.sort((x, y) => x.url < y.url);
     },
 
     /**
@@ -3093,31 +3218,18 @@ const CliqzHumanWeb = {
         }
         return false;
     },
-    safeQuorumCheck: function(msg) {
-        //
-        // Check for conditions.
-        //
+    async safeQuorumCheck(msg) {
+      if (!CliqzHumanWeb.performQC(msg)) {
+        _log("Perform QC: quorum check not needed");
+        return true;
+      }
 
-        let promise = new Promise( (resolve, reject) => {
-            if (CliqzHumanWeb.performQC(msg)) {
-                _log("Perform QC: true");
-                let url = msg.payload.url;
+      _log("Perform QC: quorum confirmation required");
+      const hash = await CliqzHumanWeb.sha1(msg.payload.url);
+      await CliqzHumanWeb.sendQuorumIncrement(hash);
 
-                return CliqzHumanWeb.sha1(url)
-                    .then( CliqzHumanWeb.sendQuorumIncrement )
-                    .then( CliqzHumanWeb.getQuorumConsent )
-                    .then( result => resolve(result))
-                    .catch( err => {
-                        _log("Error while safe quorum check: " + err);
-                        reject("quorumcheck");
-                    });
-
-            } else {
-                _log("Perform QC: false");
-                resolve(true);
-            }
-        });
-        return promise;
+      const quorumReached = await CliqzHumanWeb.getQuorumConsent(hash);
+      return quorumReached;
     },
     initWorker: function() {
       if (!CliqzHumanWeb.rushaWorker) {
@@ -3409,7 +3521,7 @@ const CliqzHumanWeb = {
 
         return promise;
     },
-    addURLtoDB: function (url, ref, paylobj) {
+    addURLtoDB(url, ref, paylobj) {
       /*
       1. Check if the given URL is a search URL,
       We do not want to save search URLs in the DB,

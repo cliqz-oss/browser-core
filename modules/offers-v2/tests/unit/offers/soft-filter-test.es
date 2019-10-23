@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 /* eslint no-param-reassign: off */
 
 const jspe = require('jsep');

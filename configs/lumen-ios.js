@@ -17,7 +17,6 @@ module.exports = {
   testem_launchers: ['unit-node'],
   testem_launchers_ci: ['unit-node'],
   versionPrefix: '13',
-  versionInfix: '.',
   // pack changes the name in package.json before running npm pack
   pack: [
     "(jq '.name=\\\"browser-core-lumen-ios\\\"' package.json > package-new.json)",
