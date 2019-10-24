@@ -1,7 +1,4 @@
 {
-    "hw_data_collection": {
-        "message": "To improve the search and browsing experience, Cliqz for Firefox sends data about web searches and website visits to Cliqz’s servers in a completely anonymous, privacy-safe way."
-    },
     "hw_page_choice": {
         "message": "You can choose if you want Cliqz to submit anonymous statistical data to improve relevance and safety via the Human Web."
     },

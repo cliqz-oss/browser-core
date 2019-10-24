@@ -1,6 +1,6 @@
 {
   "name": "browser-core",
-  "version": "2.39.1",
+  "version": "2.39.2",
   "description": "Cliqz features, shared across products including Cliqz browsers for Windows, Mac, Android and iOS",
   "main": "build/index.js",
   "scripts": {

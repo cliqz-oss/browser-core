@@ -21,6 +21,7 @@ module.exports = {
     offboardingURLs: {
       en: 'https://cliqz.com/home/offboarding',
     },
+    SHOW_ONBOARDING_OVERLAY: true,
   }),
   default_prefs: {
     'freshtab.search.mode': 'search',
@@ -54,6 +55,7 @@ module.exports = {
     'anolysis-cc',
     'search',
     'webextension-specific',
+    'onboarding-overlay',
   ],
   bundles: [
     'hpnv2/worker.wasm.bundle.js',
@@ -69,11 +71,13 @@ module.exports = {
     'offers-banner/app.bundle.js',
     'human-web/page.bundle.js',
     'human-web/rusha.bundle.js',
+    'onboarding-overlay/app.bundle.js',
   ],
   builderDefault: Object.assign({}, base.builderConfig, {
     externals: base.builderConfig.externals.concat('@cliqz-oss/dexie'),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
       '@cliqz-oss/dexie': 'Dexie'
     }),
-  })
+  }),
+  PRODUCT_PREFIX: 'cliqz',
 };

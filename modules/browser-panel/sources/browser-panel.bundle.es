@@ -30,9 +30,8 @@ function localizeDocument() {
   Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {
     const elArgs = el.dataset.i18n.split(',');
     const key = elArgs.shift();
-    /* eslint-disable */
+    // eslint-disable-next-line no-param-reassign
     el.innerHTML = chrome.i18n.getMessage(key, elArgs);
-    /* eslint-enable */
   });
 }
 
