@@ -163,7 +163,7 @@ registerContentScript({
       const onMouseDown = (ev) => {
         recordMouseDown(ev, CLIQZ);
       };
-      window.addEventListener('mouseDown', onMouseDown);
+      window.addEventListener('mousedown', onMouseDown);
 
       const onDOMContentLoaded = () => {
         recordMeta(window, CLIQZ);
@@ -172,7 +172,7 @@ registerContentScript({
 
       // Stop listening
       window.addEventListener('unload', () => {
-        window.removeEventListener('mouseDown', onMouseDown);
+        window.removeEventListener('mousedown', onMouseDown);
         window.removeEventListener('DOMContentLoaded', onDOMContentLoaded);
       }, { once: true });
 
