@@ -3,7 +3,7 @@ import { getTab } from '../platform/tabs';
 import adblocker from '../platform/lib/adblocker';
 import { getActiveTab } from '../core/browser';
 import logos from '../core/services/logos';
-import { isCliqzBrowser, isAMO } from '../core/platform';
+import { isCliqzBrowser, isAMO, isGhostery } from '../core/platform';
 import config from '../core/config';
 
 const BLACK_LIST = [
@@ -75,13 +75,14 @@ export function products() {
   return {
     cliqz: isCliqzBrowser,
     amo: isAMO,
+    ghostery: isGhostery,
     chip: config.settings.OFFERS_BRAND === 'chip',
     freundin: config.settings.OFFERS_BRAND === 'freundin',
     incent: config.settings.OFFERS_BRAND === 'incent',
   };
 }
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo'];
+const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo', 'ghostery'];
 export function chooseProduct(options = {}) {
   return ALLOWED_PRODUCTS.find(product => options[product]) || 'myoffrz';
 }
@@ -92,4 +93,10 @@ export function matchPatternsByUrl(patterns, url) {
     const filter = adblocker.NetworkFilter.parse(pattern);
     return acc || filter.match(request);
   }, false);
+}
+
+export function getResourceUrl(module = 'offers-cc') {
+  const prefix = isGhostery ? 'cliqz' : 'modules';
+  const path = 'index.html?cross-origin';
+  return chrome.runtime.getURL(`${prefix}/${module}/${path}`);
 }

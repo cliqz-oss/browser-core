@@ -58,6 +58,16 @@
   margin-left: 2px;
 }
 
+.header__ghostery-logo {
+  background: url('../images/ghostery-rewards-beta.svg') no-repeat right;
+  background-size: contain;
+  width: 180px;
+  height: 18px;
+  margin-left: 11px;
+  margin-top: 4px;
+  filter: brightness(0) invert(1);
+}
+
 .header__cliqz-logo,
 .header__amo-logo {
   background: url('../images/offers-cc-icon.svg') no-repeat right;
@@ -80,13 +90,6 @@
   margin-top: 5px;
 }
 
-.header__menu:hover {
-  filter: brightness(0);
-}
-.header__menu-active {
-  filter: brightness(0);
-}
-
 .header__close {
   background: url('../images/close-offer.svg') no-repeat center;
   background-size: contain;
@@ -97,9 +100,6 @@
   margin-top: 5px;
   cursor: pointer;
   filter: brightness(165%);
-}
-.header__close:hover {
-  filter: brightness(0);
 }
 
 .header__space {

@@ -25,9 +25,11 @@ export default function WhyDoIsee(props) {
           onClick={() => {
             send('sendTelemetry', { target: 'learn_more' });
             const lang = getUILanguage() !== 'de' ? 'en/' : '';
+            const ghosteryUrl = 'https://www.ghostery.com/faqs/what-is-ghostery-rewards/';
             send('openURL', {
               url: (products.cliqz && `https://cliqz.com/${lang}myoffrz`)
                    || (products.chip && 'https://sparalarm.chip.de/fuer-nutzer')
+                   || (products.ghostery && ghosteryUrl)
                    || `https://myoffrz.com/${lang}fuer-nutzer`,
               closePopup: false,
             });

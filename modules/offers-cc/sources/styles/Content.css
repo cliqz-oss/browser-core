@@ -1,9 +1,6 @@
 .content__size {
   max-height: 525px;
 }
-
-/* for ms-edge */
-.content__badge-top-border {
-  border-top: 0.5px solid gainsboro;
+.content__size.content__ghostery-size.content__normal-trigger-size {
+  max-height: 370px;
 }
-

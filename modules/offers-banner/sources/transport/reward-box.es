@@ -1,9 +1,12 @@
 import { chrome } from '../../platform/globals';
+import { isGhostery } from '../../core/platform';
+import prefs from '../../core/prefs';
+import events from '../../core/events';
 import { setTimeout as coreSetTimeout } from '../../core/timers';
 import { send } from './index';
 import { matchPatternsByUrl } from '../utils';
 
-const REAL_ESTATE_ID = 'offers-cc';
+const REAL_ESTATE_ID = isGhostery ? 'ghostery' : 'offers-cc';
 const MAX_TMP_PINNED_TAB_LIVE = 5 * 1000;
 
 export function actions(data = {}) {
@@ -65,6 +68,11 @@ export function seenOffer(providedOfferId, data, autoTrigger) {
   send(msg, 'offers');
 }
 
+export function myOffrzTurnoff() {
+  if (!isGhostery) { return; }
+  events.pub('myoffrz:turnoff');
+}
+
 const _removeTabIfNeeded = (tab, patterns) => (_, __, tabInfo) => {
   if (tab.id !== tabInfo.id) { return; }
   if (tabInfo.status === 'complete' && matchPatternsByUrl(patterns, tabInfo.url || '')) {
@@ -84,4 +92,13 @@ export function openAndClosePinnedURL({ url, matchPatterns = [] } = {}) {
       chrome.tabs.onUpdated.removeListener(callback);
     }, MAX_TMP_PINNED_TAB_LIVE);
   });
+}
+
+export function setOptInResult({ optin = true } = {}) {
+  // user just has seen optin dialog;
+  // `opted_in` pref we use in ghostery extension
+  prefs.set('myoffrz.opted_in', true);
+
+  const actionId = optin ? 'offer_first_optin' : 'offer_first_optout';
+  commonAction({ actionId });
 }

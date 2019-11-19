@@ -6,30 +6,6 @@ export const dataGenericTooltip = {
   isGeneric: true,
 };
 
-export const dataExtraTooltip = {
-  isWebExtension: true,
-  showTooltip: true,
-  backgroundImage: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/Logo_REWE.svg',
-  logoClass: 'short',
-  headline: 'reduction',
-  benefit: '11%',
-  backgroundColor: '#d7011d',
-  labels: [
-    'exclusive',
-    'best_offer',
-  ],
-};
-
-export const dataExtraTooltip1 = {
-  isWebExtension: true,
-  showTooltip: true,
-  backgroundImage: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/Logo_REWE.svg',
-  logoClass: 'short',
-  headline: 'reduction',
-  benefit: '11%',
-  backgroundColor: '#d7011d',
-};
-
 export const dataNewOffer = {
   isWebExtension: true,
   vouchers:
@@ -61,7 +37,8 @@ export const dataNewOffer = {
       logoClass: 'short',
       backgroundColor: '#d7011d',
       validity: {
-        text: 'Expires in 23 hours',
+        diff: 23,
+        diffUnit: 'hour',
         expired: { soon: true },
       },
       preferred: true,
@@ -92,7 +69,8 @@ export const dataNewOffer = {
       logoClass: 'normal',
       backgroundColor: '#d7011d',
       validity: {
-        text: 'Expires in 3 days',
+        diff: 3,
+        diffUnit: 'day',
         expired: {},
       },
     },
@@ -122,7 +100,8 @@ export const dataNewOffer = {
       logoClass: 'square',
       backgroundColor: '#d7011d',
       validity: {
-        text: 'Expires in 5 minutes',
+        diff: 5,
+        diffUnit: 'minute',
         expired: { soon: true },
       },
     },
@@ -153,7 +132,8 @@ export const dataNewOffer = {
       logoClass: 'long',
       backgroundColor: '#d7011d',
       validity: {
-        text: 'Expires in 45 days',
+        diff: 45,
+        diffUnit: 'day',
         expired: {},
       },
     },
@@ -186,7 +166,8 @@ export const dataNewOffer1 = {
       logoClass: 'short',
       backgroundColor: '#d7011d',
       validity: {
-        text: 'Expires in 3 days',
+        diff: 3,
+        diffUnit: 'day',
         expired: {},
       },
       preferred: true,

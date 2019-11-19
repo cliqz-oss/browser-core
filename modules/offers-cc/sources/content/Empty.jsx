@@ -7,9 +7,7 @@ function renderWhiteLabelHeader(prefix) {
   return (
     <div className={_css('stars')}>
       <div style={{ height: '50px' }} />
-      <h1 className={_css('title', `${prefix}-title`)}>
-        {i18n('offers_hub_welcome_title')}
-      </h1>
+      <h1 className={_css('title', `${prefix}-title`)}>{i18n('welcome_title')}</h1>
     </div>
   );
 }
@@ -22,9 +20,7 @@ function renderCliqzHeader(prefix) {
         src="./images/offers-cc-icon.svg"
         alt=""
       />
-      <h1 className={_css('title', `${prefix}-title`)}>
-        {i18n('offers_hub_welcome_title')}
-      </h1>
+      <h1 className={_css('title', `${prefix}-title`)}>{i18n('welcome_title')}</h1>
     </React.Fragment>
   );
 }
@@ -34,10 +30,8 @@ export default function Empty(props) {
   /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
   const prefix = chooseProduct(products);
   const mapper = {
-    chip: renderWhiteLabelHeader,
-    freundin: renderWhiteLabelHeader,
-    incent: renderWhiteLabelHeader,
-    myoffrz: renderWhiteLabelHeader,
+    amo: renderCliqzHeader,
+    cliqz: renderCliqzHeader,
   };
   const url = prefix === 'chip'
     ? 'https://sparalarm.chip.de/onboarding/'
@@ -45,8 +39,8 @@ export default function Empty(props) {
   return (
     <div className={_css('wrapper')}>
       <div className={_css('container')}>
-        {(mapper[prefix] || renderCliqzHeader)(prefix)}
-        <p className={_css('text')}>{i18n('offers_hub_welcome_text')}</p>
+        {(mapper[prefix] || renderWhiteLabelHeader)(prefix)}
+        <p className={_css('text')}>{i18n('welcome_text')}</p>
         <p
           onClick={() => {
             send('openURL', { url });
@@ -58,7 +52,7 @@ export default function Empty(props) {
           }}
           className={_css('link')}
         >
-          {i18n('offers_hub_welcome_link')}
+          {i18n('welcome_link')}
         </p>
       </div>
     </div>

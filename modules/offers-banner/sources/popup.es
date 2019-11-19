@@ -1,4 +1,5 @@
 import { chrome } from '../platform/globals';
+import { isGhostery } from '../core/platform';
 import events from '../core/events';
 import * as transport from './transport/index';
 
@@ -38,7 +39,8 @@ export default class Popup {
   _dispatcher = async (action, sendResponse) => {
     if (action === 'getEmptyFrameAndData') {
       this.onPopupOpen();
-      const payload = await this.getOffers();
+      const banner = isGhostery ? 'ghostery' : 'offers-cc';
+      const payload = await this.getOffers(banner);
       sendResponse({ action: 'pushData', data: payload.data });
       this._sendTelemetry();
       events.pub('ui:click-on-reward-box-icon', {});

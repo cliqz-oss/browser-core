@@ -13,7 +13,7 @@ export default function Menu(props) {
       >
         {i18n('why_see_this')}
       </li>
-      {!(products.cliqz || products.amo) && (
+      {!(products.cliqz || products.amo || products.ghostery) && (
       <li
         onClick={() => props.onClick('settings')}
         className={_css('item')}
@@ -21,12 +21,14 @@ export default function Menu(props) {
         {i18n('settings')}
       </li>
       )}
+      {!products.ghostery && (
       <li
         onClick={() => props.onClick('help')}
         className={_css('item')}
       >
         {i18n('help')}
       </li>
+      )}
     </ul>
   );
   /* eslint-enable jsx-a11y/no-noninteractive-element-interactions */

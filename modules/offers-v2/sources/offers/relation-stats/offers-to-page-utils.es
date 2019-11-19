@@ -21,6 +21,7 @@ function match(patterns, url) {
 
 export function matchHostname(patterns = [], url = '') {
   const hostname = extractHostname(url);
+  if (!hostname) { return false; }
   return match(patterns, hostname);
 }
 

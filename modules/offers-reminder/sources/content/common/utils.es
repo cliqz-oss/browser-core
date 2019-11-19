@@ -7,7 +7,7 @@ export const SEARCH_PARAMS = new URLSearchParams(window.location.search);
 export function css(prefix) {
   return (...args) => [...args].filter(Boolean).map(cls => prefix + cls).join(' ');
 }
-export const i18n = (key, params = []) => chrome.i18n.getMessage(key, params);
+export const i18n = (key, params = []) => chrome.i18n.getMessage(`myoffrz_${key}`, params);
 
 /** **************************************************************** */
 
@@ -30,8 +30,7 @@ export function resize() {
 
 /** **************************************************************** */
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo'];
-
+const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo', 'ghostery'];
 export function chooseProduct(products = {}) {
   return ALLOWED_PRODUCTS.find(product => products[product]) || 'myoffrz';
 }

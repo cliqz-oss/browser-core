@@ -164,6 +164,8 @@ const ActionID = {
   AID_GH_RETURN_HUB: 'offer_return_hub',
   AID_GH_SETTINGS: 'offer_settings',
   AID_GH_SHOWN_0: 'offer_shown_0',
+  AID_GH_REWARDS_ON: 'rewards_on',
+  AID_GH_REWARDS_OFF: 'rewards_off',
 };
 
 export default ActionID;

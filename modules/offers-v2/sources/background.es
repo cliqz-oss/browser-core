@@ -685,6 +685,22 @@ export default background({
       return this.categoryHandler.learnTargeting(feature);
     },
 
+    isUrlBlacklisted(url = '') {
+      return this.offersHandler.isUrlBlacklisted(url);
+    },
+
+    isUrlBlacklistedForOffer(offerId, url = '') {
+      const offer = this.offersHandler.getOfferObject(offerId);
+      if (!offer) {
+        const msg = '[isUrlBlacklistedForOffer] there is no offer for offerId: ';
+        logger.warning(msg, offerId);
+        return false;
+      }
+      const model = new Offer(offer);
+      return model.hasBlacklistPatterns()
+        && model.blackListPatterns.match(new UrlData(url).getPatternRequest());
+    },
+
     async softReloadOffers() {
       await this.softUnload();
       await this.softInit();

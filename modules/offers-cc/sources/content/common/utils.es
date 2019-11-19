@@ -10,7 +10,7 @@ export function css(prefix) {
 }
 // chrome.i18n.getUILanguage is undefined in content tests
 export const getUILanguage = () => chrome.i18n.getUILanguage && chrome.i18n.getUILanguage();
-export const i18n = (key, params = []) => chrome.i18n.getMessage(key, params);
+export const i18n = (key, ...params) => chrome.i18n.getMessage(`myoffrz_${key}`, params);
 
 /** **************************************************************** */
 
@@ -28,8 +28,7 @@ function setStyles(selector, styles = {}) {
   });
 }
 
-function popupHeight() {
-  const padding = -1;
+function popupHeight(padding) {
   const height = calcHeight('.main__header')
     + calcHeight('.content__size')
     + calcHeight('.main__footer');
@@ -40,29 +39,28 @@ function tooltipHeight() {
   return calcHeight('#cliqz-offers-cc');
 }
 
-function getHeight(type = 'card') {
+function getHeight(type = 'card', padding) {
   const heightMapper = {
     tooltip: tooltipHeight,
     card: popupHeight,
   };
-  const height = heightMapper[type]() || 0;
+  const height = heightMapper[type](padding) || 0;
   return Math.min(height, MAX_WINDOW_HEIGHT);
 }
 
-function getWidth(type = 'card') {
-  const widthMapper = {
-    tooltip: 260,
-    card: 307,
-  };
-  return widthMapper[type] || 0;
+function getWidth({ type, products, autoTrigger }) {
+  if (type === 'tooltip') { return 260; }
+  if (type !== 'card') { return 0; }
+  if (products.ghostery && !autoTrigger) { return 344; }
+  return 307;
 }
 
 /** **************************************************************** */
 
-export function resize({ type = 'card' } = {}) {
-  const width = getWidth(type);
-  setStyles('#cliqz-offers-cc', { 'min-width': `${width}px` });
-  const height = getHeight(type);
+export function resize({ type = 'card', products = {}, autoTrigger = false } = {}) {
+  const width = getWidth({ type, products, autoTrigger });
+  setStyles('#cliqz-offers-cc', { 'min-width': `${width}px`, 'max-width': `${width}px` });
+  const height = getHeight(type, /* padding */ -1);
 
   if (IS_POPUP) {
     setStyles('html', { height: `${height}px`, width: `${width}px` });
@@ -73,7 +71,7 @@ export function resize({ type = 'card' } = {}) {
 
 /** **************************************************************** */
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent', 'cliqz', 'amo'];
+const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent', 'cliqz', 'amo', 'ghostery'];
 
 export function chooseProduct(products = {}) {
   return ALLOWED_PRODUCTS.find(product => products[product]) || 'myoffrz';

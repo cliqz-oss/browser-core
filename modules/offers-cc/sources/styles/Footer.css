@@ -6,6 +6,10 @@
   padding-bottom: 1px;
   border-top: 2px #edebeb solid;
 }
+.footer__container.footer__ghostery-container.footer__auto-trigger-container {
+  border-top: 0px;
+}
+
 .footer__left-item {
   display: flex;
   align-items: center;
@@ -42,4 +46,15 @@
 .footer__feedback {
   font-size: 10px;
   cursor: pointer;
+}
+.footer__turnoff-rewards {
+  font-size: 10px;
+  cursor: pointer;
+  color: #acacac;
+  text-transform: uppercase;
+}
+.footer__notification {
+  padding: 0 8px 5px;
+  font-size: 11px;
+  color: #acacac;
 }

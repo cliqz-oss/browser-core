@@ -10,6 +10,13 @@
   box-shadow: rgba(0, 0, 0, 0.12) 2px 3px 3px;
 }
 
+.main__floating-button.main__ghostery-floating-button {
+  background: url('../images/ghosty-white-star.svg') no-repeat center;
+  border-radius: 25%;
+  background-color: var(--ghostery-primary-color);
+  width: 52px;
+  height: 52px;
+}
 .main__floating-button.main__myoffrz-floating-button {
   background: url('../images/myoffrz-floating-button.svg') no-repeat center;
   border-radius: 47%;

@@ -27,6 +27,9 @@
 .why-do-i-see__title.why-do-i-see__chip-title {
   color: var(--chip-secondary-color, #eb443f);
 }
+.why-do-i-see__title.why-do-i-see__ghostery-title {
+  color: var(--ghostery-secondary-color, #5B005C);
+}
 .why-do-i-see__title.why-do-i-see__myoffrz-title {
   color: var(--myoffrz-secondary-color, #f67057);
 }

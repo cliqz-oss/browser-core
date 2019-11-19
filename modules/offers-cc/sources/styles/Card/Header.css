@@ -72,8 +72,9 @@
   background: url('../images/expired-grey.svg') no-repeat center;
   background-size: contain;
   width: 13px;
-  height: 12px;
+  height: 13px;
   margin-right: 4px;
+  margin-top: -1px;
   align-self: baseline;
 }
 .card-header__expired-icon.card-header__till-soon-icon {

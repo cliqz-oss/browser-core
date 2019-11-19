@@ -33,7 +33,7 @@ context('Offers Hub Interaction tests for feedback', function () {
     it('renders confirmation text', function () {
       const feedbackNotification = subject.query('.feedback__notification');
       expect(feedbackNotification).to.exist;
-      expect(feedbackNotification).to.have.text('offers_offer_removed');
+      expect(feedbackNotification).to.have.text('myoffrz_offer_removed');
     });
 
     it('renders inactive "send" button', function () {

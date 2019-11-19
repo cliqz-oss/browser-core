@@ -16,6 +16,7 @@ export function transform(type, data) {
     'offers-cc': rewardBox.transform,
     'browser-panel': browserPanel.transform,
     'offers-reminder': reminder.transform,
+    ghostery: rewardBox.transform,
   };
   if (!mapper[type]) { logger.warn('receive wrong type of real estate: ', type); }
   const noop = () => {};
@@ -25,6 +26,7 @@ export function transform(type, data) {
 export function transformMany(type, data) {
   const mapper = {
     'offers-cc': rewardBox.transformMany,
+    ghostery: rewardBox.transformMany,
   };
   if (!mapper[type]) { logger.warn('receive wrong type of real estate: ', type); }
   const noop = () => {};

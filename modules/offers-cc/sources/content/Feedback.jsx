@@ -27,14 +27,14 @@ export default class Feedback extends React.Component {
           onClick={() => !disabled && this.props.onChange({ text, vote })}
           className={_css('button', ...cls)}
         >
-          {i18n('offers_send_feedback')}
+          {i18n('send')}
         </button>
         <button
           type="button"
           onClick={() => this.props.onSkip({ text: '' })}
           className={_css('button', 'secondary', `${prefix}-secondary`)}
         >
-          {i18n('feedback_skip')}
+          {i18n('skip')}
         </button>
       </li>
     );
@@ -45,11 +45,11 @@ export default class Feedback extends React.Component {
       <div className={_css('wrapper')}>
         <div className={_css('container', this.props.shouldPad ? 'padding' : '')}>
           <div className={_css('notification')}>
-            {i18n('offers_offer_removed')}
+            {i18n('offer_removed')}
           </div>
           <p className={_css('title')}>
-            {i18n('offers_hub_feedback_title')}
-            <span className={_css('optional')}>{i18n('offers_hub_feedback_optional')}</span>
+            {i18n('feedback_title')}
+            <span className={_css('optional')}>{i18n('feedback_optional')}</span>
           </p>
           <ul className={_css('list')}>
             <li className={_css('list-item')}>
@@ -64,7 +64,7 @@ export default class Feedback extends React.Component {
                 className={_css('label')}
                 htmlFor="feedback_option1"
               >
-                {i18n('offers_hub_feedback_option1')}
+                {i18n('feedback_option1')}
               </label>
             </li>
             <li className={_css('list-item')}>
@@ -79,7 +79,7 @@ export default class Feedback extends React.Component {
                 className={_css('label')}
                 htmlFor="feedback_option2"
               >
-                {i18n('offers_hub_feedback_option2')}
+                {i18n('feedback_option2')}
               </label>
             </li>
             <li className={_css('list-item')}>
@@ -94,7 +94,7 @@ export default class Feedback extends React.Component {
                 className={_css('label')}
                 htmlFor="feedback_option3"
               >
-                {i18n('offers_hub_feedback_option3')}
+                {i18n('feedback_option3')}
               </label>
             </li>
             <li>
@@ -104,7 +104,7 @@ export default class Feedback extends React.Component {
                 className={_css('field')}
                 rows="3"
                 cols="26"
-                placeholder={i18n('offers_hub_feedback_option4')}
+                placeholder={i18n('feedback_option4')}
               />
             </li>
             {this.renderButtons()}

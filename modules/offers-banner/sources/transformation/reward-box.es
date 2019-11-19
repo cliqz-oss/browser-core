@@ -1,12 +1,16 @@
-import { getResourceUrl, isCliqzBrowser, isWebExtension } from '../../core/platform';
-import { getMessage } from '../../core/i18n';
+import {
+  isCliqzBrowser,
+  isWebExtension,
+  isGhostery,
+} from '../../core/platform';
 import prefs from '../../core/prefs';
-import { products } from '../utils';
+import { products, getResourceUrl } from '../utils';
 import { calculateValidity } from './helpers';
 
 function commonData() {
   return {
     products: products(),
+    shouldShowOptIn: isGhostery && !prefs.get('myoffrz.opted_in', null),
 
     // the next two for browser-panel
     isCliqzBrowser,
@@ -30,10 +34,8 @@ function popup(uiInfo, {
 
   const { diff, diffUnit, expired = {} } = calculateValidity(expirationTime);
   const validity = expirationTime && diff !== undefined
-    ? {
-      text: `${getMessage('offers_expires_in')} ${diff} ${getMessage(diffUnit)}`,
-      expired,
-    } : {};
+    ? { diff, diffUnit, expired }
+    : {};
 
   return {
     created: createdTs,
@@ -100,7 +102,7 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
   const payload = {
     offerId,
     config: {
-      url: getResourceUrl('offers-cc/index.html?cross-origin'),
+      url: getResourceUrl(),
       type: 'offers-cc',
       products: products(),
     },
@@ -135,7 +137,7 @@ function tooltipWrapper(offerId, {
     },
     offerId,
     config: {
-      url: getResourceUrl('offers-cc/index.html?cross-origin'),
+      url: getResourceUrl(),
       type: 'offers-cc',
       products: products(),
     },
@@ -150,8 +152,9 @@ export function transform(data = {}) {
     offer_id: offerId,
     attrs,
   } = data;
+
   const { notif_type: notifType } = uiInfo;
-  return notifType === 'pop-up'
+  return notifType === 'pop-up' || (isGhostery && notifType === undefined)
     ? popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs })
     : tooltipWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs });
 }
@@ -180,7 +183,7 @@ export function transformMany({ offers = [] } = {}) {
 
   newOffers.sort((a, b) => (b.relevant - a.relevant || b.last_update - a.last_update));
   const offersConfig = {
-    url: getResourceUrl('offers-cc/index.html?cross-origin'),
+    url: getResourceUrl(),
     type: 'offers-cc',
     products: products(),
   };

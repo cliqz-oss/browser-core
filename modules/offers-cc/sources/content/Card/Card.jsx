@@ -1,7 +1,7 @@
 import React from 'react';
 import send from '../transport';
 import Header from './Header';
-import PromoAB from './PromoAB';
+import Promo from './Promo';
 import { i18n, css, resize } from '../common/utils';
 
 const CONDITIONS_STYLE_MARKER = '✓';
@@ -53,11 +53,12 @@ export default class Card extends React.Component {
   }
 
   renderImage() {
-    const { voucher = {}, abtestInfo: { popupsImage } } = this.props;
+    const { voucher = {}, products } = this.props;
     const { template_data: templateData = {}, offer_id: offerId } = voucher;
     const { call_to_action: { url } = {} } = templateData;
+    if (!templateData.picture_dataurl || products.ghostery) { return null; }
+
     /* eslint-disable  jsx-a11y/no-noninteractive-element-interactions */
-    if (!templateData.picture_dataurl || popupsImage === 'with-no-image') { return null; }
     return (
       <img
         alt=""
@@ -71,11 +72,15 @@ export default class Card extends React.Component {
   }
 
   renderShowMore(Tag = props => <div {...props} />) {
+    const { autoTrigger, products } = this.props;
     /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
     return (
       <Tag
         className={_css('show-more')}
-        onClick={() => this.setState({ shouldRenderShowMore: false }, () => resize())}
+        onClick={() => this.setState(
+          { shouldRenderShowMore: false },
+          () => resize({ products, autoTrigger })
+        )}
       >
         {i18n('show_more')}&nbsp;
         <span className={_css('small-triangle')}>&#9660;</span>
@@ -142,7 +147,7 @@ export default class Card extends React.Component {
     /* eslint-enable jsx-a11y/no-static-element-interactions */
   }
 
-  renderOfferIfVisible() {
+  renderOffer() {
     return (
       <div className={_css('screen-main')}>
         {this.renderImage()}
@@ -164,7 +169,7 @@ export default class Card extends React.Component {
     } = this.props;
     return (
       <React.Fragment>
-        <PromoAB
+        <Promo
           abtestInfo={{ popupsCopyCode }}
           products={products}
           isCodeHidden={isCodeHidden}
@@ -187,7 +192,7 @@ export default class Card extends React.Component {
         />
         <div style={{ height: '7px' }} />
         <div className={_css('screen-container')}>
-          {this.renderOfferIfVisible()}
+          {this.renderOffer()}
         </div>
         <div style={{ height: '20px' }} />
         {this.renderPromo()}

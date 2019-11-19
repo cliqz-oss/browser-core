@@ -9,9 +9,7 @@ export default class Promo extends React.Component {
     const isCodeHidden = props.voucher.isCodeHidden || false;
     this.state = {
       copied: false,
-      buttonText: isCodeHidden
-        ? i18n('offers_hub_get_code_btn')
-        : i18n('offers_hub_copy_btn'),
+      buttonText: isCodeHidden ? i18n('get_code') : i18n('copy_code'),
       isCodeHidden,
       isOpenCTAurl: false,
     };
@@ -21,7 +19,7 @@ export default class Promo extends React.Component {
     const { ctaurl: url, offerId, landing } = this.props.voucher;
     const { isOpenCTAurl } = this.state;
     this.setState({
-      buttonText: i18n('offers_hub_code_copy'),
+      buttonText: i18n('copied'),
       isCodeHidden: false,
       copied: true,
       isOpenCTAurl: true,

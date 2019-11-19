@@ -3,7 +3,6 @@ import { expect } from '../../core/test-helpers';
 import Subject from './local-helpers';
 import {
   dataGenericTooltip,
-  dataExtraTooltip,
   dataNewOffer,
   dataNewOffer1,
 } from './fixtures/offers';
@@ -46,7 +45,7 @@ describe('Offers Hub UI tests', function () {
     it('renders feedback icon and label', function () {
       expect(subject.query('.footer__face')).to.exist;
       expect(subject.query('.footer__feedback')).to.exist;
-      expect(subject.query('.footer__feedback')).to.have.text('offers_hub_feedback_title');
+      expect(subject.query('.footer__feedback')).to.have.text('myoffrz_feedback_title');
     });
   }
 
@@ -120,47 +119,10 @@ describe('Offers Hub UI tests', function () {
 
     it('with the correct text', function () {
       expect(subject.query('.tooltip__text').textContent.trim())
-        .to.equal('offers_hub_tooltip_new_offer');
+        .to.equal('myoffrz_tooltip_new_offer');
     });
 
     it("doesn't render header and footer", function () {
-      expect(subject.query('.header__container')).to.not.exist;
-      expect(subject.query('.footer__container')).to.not.exist;
-    });
-  });
-
-  context('extra tooltip with optional data', function () {
-    before(async function () {
-      data = dataExtraTooltip;
-      subject = new Subject();
-      await subject.load();
-      await subject.pushData(target, data);
-    });
-
-    after(function () {
-      subject.unload();
-    });
-
-    it('renders tooltip extra', function () {
-      expect(subject.query('.tooltip-extra__wrapper')).to.exist;
-    });
-
-    it("left border's color is correct", function () {
-      expect(hex(subject.getComputedStyle('.tooltip-extra__wrapper')['border-left-color']))
-        .to.equal(data.backgroundColor);
-    });
-
-    it('renders short logo', function () {
-      expect(subject.query('.tooltip-extra__image')).to.exist;
-    });
-
-    it('renders benefit and headline ', function () {
-      expect(subject.query('.tooltip-extra__text')).to.exist;
-      expect(subject.query('.tooltip-extra__text').textContent.trim())
-        .to.equal(`${data.benefit} ${data.headline}`);
-    });
-
-    it('does not render header and footer', function () {
       expect(subject.query('.header__container')).to.not.exist;
       expect(subject.query('.footer__container')).to.not.exist;
     });
@@ -187,12 +149,12 @@ describe('Offers Hub UI tests', function () {
 
       it('renders title', function () {
         expect(subject.query('.empty__title')).to.exist;
-        expect(subject.query('.empty__title')).to.have.text('offers_hub_welcome_title');
+        expect(subject.query('.empty__title')).to.have.text('myoffrz_welcome_title');
       });
 
       it('renders text', function () {
         expect(subject.query('.empty__text')).to.exist;
-        expect(subject.query('.empty__text')).to.have.text('offers_hub_welcome_text');
+        expect(subject.query('.empty__text')).to.have.text('myoffrz_welcome_text');
       });
     });
   });
@@ -239,21 +201,23 @@ describe('Offers Hub UI tests', function () {
     });
 
     it('with promocode', function () {
-      expect(subject.query('.card-promo-ab__input')).to.exist;
-      expect(subject.query('.card-promo-ab__input').value)
+      expect(subject.query('.card-promo__input')).to.exist;
+      expect(subject.query('.card-promo__input').value)
         .to.equal(data.vouchers[0].template_data.code);
     });
 
     it('with "copy code" button', function () {
-      expect(subject.query('.card-promo-ab__copy-code')).to.exist;
-      expect(subject.query('.card-promo-ab__copy-code').textContent.trim())
-        .to.equal('copy_and_go');
+      expect(subject.query('.card-promo__copy-code')).to.exist;
+      expect(subject.query('.card-promo__copy-code').textContent.trim())
+        .to.equal('myoffrz_copy_and_go');
     });
 
     it('with expires time', function () {
+      const { diff, diffUnit } = data.vouchers[0].validity;
+      const text = `myoffrz_expires_in_${diffUnit}${diff === 1 ? '' : 's'}`;
       expect(subject.query('.card-header__till')).to.exist;
       expect(subject.query('.card-header__till').textContent.trim())
-        .to.equal(data.vouchers[0].validity.text);
+        .to.equal(text);
     });
 
     it('expires time text has correct color', function () {
@@ -264,7 +228,7 @@ describe('Offers Hub UI tests', function () {
     });
 
     it('with action button', function () {
-      expect(subject.query('.card-promo-ab__copy-code')).to.exist;
+      expect(subject.query('.card-promo__copy-code')).to.exist;
     });
   });
 
@@ -316,21 +280,23 @@ describe('Offers Hub UI tests', function () {
     });
 
     it('with promocode', function () {
-      expect(subject.query('.card-promo-ab__input')).to.exist;
-      expect(subject.query('.card-promo-ab__input').value)
+      expect(subject.query('.card-promo__input')).to.exist;
+      expect(subject.query('.card-promo__input').value)
         .to.equal(data.vouchers[0].template_data.code);
     });
 
     it('with "copy code" button', function () {
-      expect(subject.query('.card-promo-ab__copy-code')).to.exist;
-      expect(subject.query('.card-promo-ab__copy-code').textContent.trim())
-        .to.equal('copy_and_go');
+      expect(subject.query('.card-promo__copy-code')).to.exist;
+      expect(subject.query('.card-promo__copy-code').textContent.trim())
+        .to.equal('myoffrz_copy_and_go');
     });
 
     it('with expires time', function () {
+      const { diff, diffUnit } = data.vouchers[0].validity;
+      const text = `myoffrz_expires_in_${diffUnit}${diff === 1 ? '' : 's'}`;
       expect(subject.query('.card-header__till')).to.exist;
       expect(subject.query('.card-header__till').textContent.trim())
-        .to.equal(data.vouchers[0].validity.text);
+        .to.equal(text);
     });
 
     it('expires time text has not correct color', function () {
@@ -339,7 +305,7 @@ describe('Offers Hub UI tests', function () {
     });
 
     it('with action button', function () {
-      expect(subject.query('.card-promo-ab__copy-code')).to.exist;
+      expect(subject.query('.card-promo__copy-code')).to.exist;
     });
   });
 });

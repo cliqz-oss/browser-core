@@ -1,11 +1,10 @@
-import { getResourceUrl } from '../../core/platform';
-import { products } from '../utils';
+import { products, getResourceUrl } from '../utils';
 
 /* eslint-disable import/prefer-default-export */
 export function transform(data = {}) {
   const payload = {
     config: {
-      url: getResourceUrl('offers-reminder/index.html?cross-origin'),
+      url: getResourceUrl('offers-reminder'),
       type: 'offers-reminder',
       styles: {
         animation: data.state === 'new',
