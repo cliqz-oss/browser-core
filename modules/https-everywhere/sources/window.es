@@ -6,16 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import background from './background';
-
 export default class Win {
   init() {
   }
 
   unload() {
-  }
-
-  status() {
-    return background.status();
   }
 }

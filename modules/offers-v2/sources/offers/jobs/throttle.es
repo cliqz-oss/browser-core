@@ -4,6 +4,7 @@ import OfferJob from './job';
 import { isDeveloper } from '../../utils';
 
 const SILENT_OFFER_NOTIF_TYPE = 'silent';
+const TOOLTIP_OFFER_NOTIF_TYPE = 'tooltip';
 
 function containsPopupRealEstate(estates) {
   return estates.includes('offers-cc') || estates.includes('ghostery');
@@ -30,7 +31,7 @@ export default class Throttle extends OfferJob {
     if (!containsPopupRealEstate(dest)) { return; }
     const { offer_data: { ui_info: uiInfo = {} } = {} } = data;
     const { notif_type: notifType = 'pop-up' } = uiInfo;
-    if (notifType !== SILENT_OFFER_NOTIF_TYPE) {
+    if (![SILENT_OFFER_NOTIF_TYPE, TOOLTIP_OFFER_NOTIF_TYPE].includes(notifType)) {
       this.lastRewardBoxTsMs = Date.now();
     }
   }

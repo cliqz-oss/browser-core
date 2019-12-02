@@ -6,57 +6,51 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-'use strict';
-
 const assert = require('assert');
-const broccoli = require('broccoli');
-const copyDereferenceSync = require('copy-dereference').sync;
-const printSlowNodes = require('broccoli-slow-trees');
-const program = require('commander');
 
-const common = require('./common');
+const UI = require('console-ui');
+const { onBuildSuccess } = require('broccoli/dist/messages');
 
-const setConfigPath = common.setConfigPath;
-const cleanupDefaultBuild = common.cleanupDefaultBuild;
-const getExtensionVersion = common.getExtensionVersion;
+const {
+  configParameter,
+  getBroccoliBuilder,
+  getExtensionVersion,
+  setConfigPath,
+  syncBuildFolder,
+} = require('../common');
 
-program.command(`build ${common.configParameter}`)
-  .option('--lint', 'Lint code')
-  .option('--no-maps', 'disables source maps')
-  .option('--no-debug', 'disables debug pages')
-  .option('--version [version]', 'sets extension version', 'package')
-  .option('--environment <environment>', 'the name of build environment', 'development')
-  .option('--to-subdir', 'build into a subdirectory named after the config')
-  .option('--include-tests', 'include tests files in build')
-  .action((configPath, options) => {
-    process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment;
-    process.env.CLIQZ_SOURCE_MAPS = options.maps;
-    process.env.CLIQZ_SOURCE_DEBUG = options.debug;
-    process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
-      (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')
-        ? 'true'
-        : ''
-    );
+module.exports = (program) => {
+  program.command(`build ${configParameter}`)
+    .option('--lint', 'Lint code')
+    .option('--no-maps', 'disables source maps')
+    .option('--no-debug', 'disables debug pages')
+    .option('--version [version]', 'sets extension version', 'package')
+    .option('--environment <environment>', 'the name of build environment', 'development')
+    .option('--to-subdir', 'build into a subdirectory named after the config')
+    .option('--include-tests', 'include tests files in build')
+    .action(async (configPath, options) => {
+      process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment;
+      process.env.CLIQZ_SOURCE_MAPS = options.maps;
+      process.env.CLIQZ_SOURCE_DEBUG = options.debug;
+      process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
+        (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')
+          ? 'true'
+          : ''
+      );
 
-    const cfg = setConfigPath(configPath, options.toSubdir);
-    const OUTPUT_PATH = cfg.OUTPUT_PATH;
+      const { OUTPUT_PATH } = setConfigPath(configPath, options.toSubdir);
 
-    // Enabled code linting
-    process.env.CLIQZ_ESLINT = (
-      (options.lint || (configPath || process.env.CLIQZ_CONFIG_PATH).includes('unit-tests.js'))
-        ? 'true'
-        : 'false'
-    );
+      // Enabled code linting
+      process.env.CLIQZ_ESLINT = (
+        (options.lint || (configPath || process.env.CLIQZ_CONFIG_PATH).includes('unit-tests.js'))
+          ? 'true'
+          : 'false'
+      );
 
-    assert(OUTPUT_PATH);
+      assert(OUTPUT_PATH);
 
-    const buildStartAt = Date.now();
-
-    console.log('Starting build');
-
-    cleanupDefaultBuild();
-
-    getExtensionVersion(options.version).then((version) => {
+      console.log('Starting build');
+      const version = await getExtensionVersion(options.version);
       process.env.PACKAGE_VERSION = version;
       process.env.EXTENSION_VERSION = version;
 
@@ -64,23 +58,23 @@ program.command(`build ${common.configParameter}`)
         process.env.VERSION = version;
       }
 
-      const node = broccoli.loadBrocfile();
-      const builder = new broccoli.Builder(node, {
-        outputDir: OUTPUT_PATH
-      });
+      const builder = getBroccoliBuilder(OUTPUT_PATH);
 
-      return builder
-        .build()
-        .then(() => {
-          copyDereferenceSync(builder.outputPath, OUTPUT_PATH);
-          printSlowNodes(builder.outputNodeWrapper, 0);
-          // builder.cleanup();
-          console.log('Build successful - took ', (Date.now() - buildStartAt) / 1000, 's');
-          process.exit(0);
-        })
-        .catch((err) => {
-          console.error('Build error', err);
-          process.exit(1);
-        });
-    }).catch(e => console.log(e));
-  });
+      try {
+        await builder.build();
+        syncBuildFolder(builder, OUTPUT_PATH);
+        onBuildSuccess(builder, new UI()); // display slow-trees
+      } catch (ex) {
+        console.error(ex);
+        process.exit(1);
+      } finally {
+        await builder.cleanup();
+      }
+
+      // It seems that on fresh builds, process hangs here. Looking at upstream
+      // source-code of broccoli project, they also explicitely call
+      // `process.exit(0)` at the end of build. It would be nice to know why
+      // this is needed though.
+      process.exit(0);
+    });
+};

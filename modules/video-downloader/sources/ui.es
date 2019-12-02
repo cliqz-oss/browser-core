@@ -15,13 +15,12 @@ import console from '../core/console';
 import { getMessage } from '../core/i18n';
 import { chrome } from '../platform/globals';
 import { showUITour, hideUITour } from '../core/ui-tour';
-import { uiTourSignal, downloadUiTourSignal } from './utils/ui-tour-telemetry';
+import uiTourSignal from './utils/ui-tour-telemetry';
 import { getResourceUrl } from '../core/platform';
 
 const TELEMETRY_VERSION = 2;
 const TELEMETRY_TYPE = 'video_downloader';
 const UI_TOUR_PREF = 'videoDownloaderUITourDismissed';
-const DOWNLOADS_UI_TOUR_PREF = 'downloadsUITourDismissed';
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 export default class UI {
@@ -313,63 +312,7 @@ export default class UI {
     });
   }
 
-  showDownloadUITour() {
-    if (this.isUITourDismissed(DOWNLOADS_UI_TOUR_PREF)) {
-      return;
-    }
-
-    const settings = {
-      targetId: 'downloads-button',
-      title: getMessage('video_downloader_uitour_downloads_title'),
-      text: getMessage('video_downloader_uitour_downloads_description'),
-      icon: null,
-    };
-
-    const ctaButton = {
-      label: 'AppStore',
-      style: ''
-    };
-
-    const skipButton = {
-      label: 'PlayStore',
-      style: ''
-    };
-
-    const promise = showUITour(settings, ctaButton, skipButton);
-
-    downloadUiTourSignal({ action: 'show' });
-
-    promise.then((button) => {
-      switch (button) {
-        case 'CTA': {
-          this.markUITourDismissed(DOWNLOADS_UI_TOUR_PREF);
-          downloadUiTourSignal({ action: 'click', target: 'apple' });
-          this.openPage(getMessage('video_downloader_mobile_ios_app'));
-          break;
-        }
-
-        case 'skip': {
-          this.markUITourDismissed(DOWNLOADS_UI_TOUR_PREF);
-          downloadUiTourSignal({ action: 'click', target: 'google' });
-          this.openPage(getMessage('video_downloader_mobile_android_app'));
-          break;
-        }
-
-        case 'close': {
-          this.markUITourDismissed(DOWNLOADS_UI_TOUR_PREF);
-          downloadUiTourSignal({ action: 'click', target: 'dismiss' });
-          break;
-        }
-
-        default: {
-          console.log(button);
-        }
-      }
-    });
-  }
-
   download({ url, filename, size, format, origin }) {
-    const hasDownloadsPanelShown = prefs.get('download.panel.shown', false, 'browser.');
     telemetry.push({
       type: TELEMETRY_TYPE,
       version: TELEMETRY_VERSION,
@@ -395,13 +338,6 @@ export default class UI {
 
       if (origin && browser.cliqzHistory) {
         browser.cliqzHistory.history.fillFromVisit(url, origin);
-      }
-
-      // instead of detecting opening downloadsPanel, check the pref
-      if (hasDownloadsPanelShown) {
-        setTimeout(() => {
-          this.showDownloadUITour();
-        }, 1000);
       }
 
       console.log('Download started');

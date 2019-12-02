@@ -65,7 +65,7 @@ export default class Main extends React.Component {
         >
           <div
             onClick={this.onClickFloatingButton}
-            className={_css('floating-button-base', `${product}-floating-button`)}
+            className={_css('floating-button', `${product}-floating-button`)}
           />
         </div>
         <div style={{ width: '3px' }} />

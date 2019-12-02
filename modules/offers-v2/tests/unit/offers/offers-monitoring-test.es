@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
 const commonMocks = require('../utils/common');
@@ -1168,7 +1167,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
           it('/coupon: should show autofill pop up', function () {
             const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000 };
-            offer.view = Date.now() - 1000 * 60 * 20; // Small amount of time, f.e. 20 minutes
+            offer.click = Date.now() - 1000 * 60 * 20; // Small amount of time, f.e. 20 minutes
             const monitors = [{
               signalID: '-',
               type: 'coupon',
@@ -1188,7 +1187,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/coupon: should not show autofill pop up due to backend setting', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 1543231629086 };
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: Date.now() - 1000, last_update: 20000 };
             const monitors = [{
               signalID: '-',
               type: 'coupon',

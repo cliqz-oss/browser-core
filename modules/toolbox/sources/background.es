@@ -91,8 +91,6 @@ export default background({
 
   unload() {},
 
-  beforeBrowserShutdown() { },
-
   events: {},
 
   actions: {

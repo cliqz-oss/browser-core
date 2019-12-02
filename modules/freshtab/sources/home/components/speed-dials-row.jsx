@@ -16,20 +16,6 @@ import { speedDialClickSignal, speedDialDeleteSignal } from '../services/telemet
 import config from '../../config';
 
 export default class SpeedDialsRow extends React.Component {
-  static get propTypes() {
-    return {
-      addSpeedDial: PropTypes.func,
-      currentPage: PropTypes.number,
-      dials: PropTypes.array,
-      getSpeedDials: PropTypes.func,
-      removeSpeedDial: PropTypes.func,
-      shouldAnimate: PropTypes.bool,
-      showPlaceholder: PropTypes.bool,
-      type: PropTypes.string,
-      updateModalState: PropTypes.func,
-    };
-  }
-
   showAddButton() {
     if (!this.state.isCustom) {
       return null;
@@ -65,19 +51,6 @@ export default class SpeedDialsRow extends React.Component {
     }
   }
 
-  resetAll = () => {
-    cliqz.freshtab.resetAllHistory().then(() => {
-      this.closeUndo('history');
-      this.props.getSpeedDials();
-    });
-
-    cliqz.core.sendTelemetry({
-      type: 'home',
-      action: 'click',
-      target_type: 'reset-all-history'
-    }, false, '');
-  }
-
   getRealIndex(index) {
     return (config.constants.MAX_SPOTS * (this.pageNumber - 1)) + index;
   }
@@ -102,9 +75,6 @@ export default class SpeedDialsRow extends React.Component {
                     removeSpeedDial={() => this.removeSpeedDial(dial, this.getRealIndex(i))}
                     shouldAnimate={this.props.shouldAnimate}
                     updateModalState={this.props.updateModalState}
-                    updateSpeedDial={
-                      newDial => this.props.updateSpeedDial(newDial, this.getRealIndex(i))
-                    }
                     visitSpeedDial={() => this.visitSpeedDial(this.getRealIndex(i))}
                   />
                 ))
@@ -122,7 +92,6 @@ export default class SpeedDialsRow extends React.Component {
           {this.showAddButton()
             && (
               <AddSpeedDial
-                addSpeedDial={this.props.addSpeedDial}
                 updateModalState={this.props.updateModalState}
               />
             )
@@ -132,3 +101,13 @@ export default class SpeedDialsRow extends React.Component {
     );
   }
 }
+
+SpeedDialsRow.propTypes = {
+  currentPage: PropTypes.number,
+  dials: PropTypes.array,
+  removeSpeedDial: PropTypes.func,
+  shouldAnimate: PropTypes.bool,
+  showPlaceholder: PropTypes.bool,
+  type: PropTypes.string,
+  updateModalState: PropTypes.func,
+};

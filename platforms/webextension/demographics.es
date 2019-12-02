@@ -8,7 +8,7 @@
 
 import { getPref, setPref, hasPref } from './prefs';
 import config from '../core/config';
-import { chrome } from './globals';
+import { browser } from './globals';
 
 const DEFAULT_DIST_VAL = 'web0003';
 const DISTRIBUTION_PREF = 'offers.distribution.channel.ID';
@@ -19,18 +19,18 @@ export function getUserAgent() {
 
 export async function getDistribution() {
   let distribution = getPref('distribution', '');
-  if (chrome.demographics && !distribution
+  if (browser.demographics && !distribution
     && config.settings.channel === '40'
     && navigator.userAgent.indexOf('Mac OS') > -1) {
-    distribution = await chrome.demographics.getMacDistribution() || DEFAULT_DIST_VAL;
+    distribution = await browser.demographics.getMacDistribution() || DEFAULT_DIST_VAL;
     setPref('distribution', distribution);
   }
   return distribution;
 }
 
 export function getChannel() {
-  if (chrome.cliqzAppConstants) { // Android
-    return chrome.cliqzAppConstants.get('CLIQZ_CHANNEL') || config.settings.channel || '';
+  if (browser.cliqzAppConstants) { // Android
+    return browser.cliqzAppConstants.get('CLIQZ_CHANNEL') || config.settings.channel || '';
   }
   if (hasPref(DISTRIBUTION_PREF)) {
     return config.settings.channel + getPref(DISTRIBUTION_PREF, '');
@@ -39,8 +39,8 @@ export function getChannel() {
 }
 
 export async function getInstallDate() {
-  if (chrome.cliqzNativeBridge) { // Android
-    return chrome.cliqzNativeBridge.callAction('getInstallDate', []);
+  if (browser.cliqzNativeBridge) { // Android
+    return browser.cliqzNativeBridge.callAction('getInstallDate', []);
   }
   return getPref('install_date', '');
 }

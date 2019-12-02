@@ -28,10 +28,6 @@ export default background({
 
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   events: {
 
   },
@@ -44,5 +40,9 @@ export default background({
     finishOnboarding() {
       chrome.tabs.reload();
     },
+
+    openPrivacyReport({ tab: { windowId } = {} } = {}) {
+      chrome.omnibox2.navigateTo(windowId, 'about:preferences#privacy-reports', { target: 'tab' });
+    }
   },
 });

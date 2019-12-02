@@ -14,15 +14,15 @@ import NativeDrawable from './custom/NativeDrawable';
 import { withStyles } from '../withTheme';
 import { getMessage } from '../../core/i18n';
 
-const styles = (theme, themeDetails) => StyleSheet.create({
+const styles = theme => StyleSheet.create({
   container: {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
   },
   button: {
-    backgroundColor: themeDetails[theme].searchEngine.buttonBgColor,
-    color: themeDetails[theme].searchEngine.buttonColor,
+    backgroundColor: theme.searchEngine.buttonBgColor,
+    color: theme.searchEngine.buttonColor,
     flexDirection: 'row',
     fontSize: 13,
     borderRadius: 25,
@@ -41,7 +41,7 @@ const styles = (theme, themeDetails) => StyleSheet.create({
     marginRight: 10,
   },
   buttonText: {
-    color: themeDetails[theme].searchEngine.buttonColor,
+    color: theme.searchEngine.buttonColor,
     paddingRight: 30,
     marginLeft: 'auto',
     marginRight: 'auto'
@@ -49,7 +49,7 @@ const styles = (theme, themeDetails) => StyleSheet.create({
   text: {
     margin: 10,
     fontSize: 11,
-    color: themeDetails[theme].searchEngine.textColor
+    color: theme.searchEngine.textColor
   },
   ghosty: {
     height: 32,
@@ -58,7 +58,7 @@ const styles = (theme, themeDetails) => StyleSheet.create({
     marginBottom: 9,
   },
   ghostyColor: {
-    color: themeDetails[theme].searchEngine.ghostyColorARGB
+    color: theme.searchEngine.ghostyColorARGB
   },
   footer: {
     marginBottom: 35

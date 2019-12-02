@@ -71,8 +71,7 @@ export function homeConfigsStatusSignal(state, tabIndex) {
     home_id: tabIndex
   });
 
-  telemetry(Object.assign({
-    type: 'home',
+  telemetry({ type: 'home',
     action: 'show',
     favorite_count: state.dials.custom.length,
     topsite_count: state.dials.history.length,
@@ -81,7 +80,7 @@ export function homeConfigsStatusSignal(state, tabIndex) {
     is_search_bar_on: state.config.componentsState.search.visible,
     is_news_on: state.config.componentsState.news.visible,
     is_stats_on: state.config.componentsState.stats.visible,
-  }, newsTypes));
+    ...newsTypes });
 }
 
 export function sendHomeUnloadSignal({ tabIndex }) {

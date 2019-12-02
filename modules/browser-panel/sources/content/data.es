@@ -1,4 +1,4 @@
-/* global window, draw */
+/* global draw */
 
 // iframe to browser window
 export function sendMessageToWindow(message) {

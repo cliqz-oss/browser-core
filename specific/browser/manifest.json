@@ -111,7 +111,8 @@
     "unlimitedStorage",
     "webNavigation",
     "webRequest",
-    "webRequestBlocking"
+    "webRequestBlocking",
+    "browsingData"
   ],
   "background": {
     "scripts": [
@@ -125,6 +126,9 @@
   "chrome_url_overrides": {
     "newtab": "modules/freshtab/home.html"
   },
+  "chrome_settings_overrides": {
+    "homepage": "modules/freshtab/home.html"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -137,6 +141,7 @@
   "web_accessible_resources": [
     "modules/browser-panel/index.html",
     "modules/offers-cc/index.html",
-    "modules/offers-reminder/index.html"
+    "modules/offers-reminder/index.html",
+    "modules/autoconsent/popup.html"
   ]
 }

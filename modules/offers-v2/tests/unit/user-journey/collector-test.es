@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 const commonMocks = require('../utils/common');
 
 export default describeModule('offers-v2/user-journey/collector',

@@ -1058,7 +1058,6 @@ export default {
     },
     'browser-panel': null,
     'message-center': null,
-    offboarding: null,
     anolysis: null,
     abtests: null,
     theme: null,
@@ -1070,7 +1069,6 @@ export default {
       visible: true,
       enabled: true,
       optimized: false,
-      disabledForUrl: false,
       disabledForDomain: false,
       disabledEverywhere: false,
       totalCount: 0,
@@ -1078,19 +1076,13 @@ export default {
       },
 
       state: 'active',
-      off_state: 'off_website'
+      off_state: 'off_domain'
     },
     'https-everywhere': {
       visible: true,
       active: true
     },
     'onboarding-v3': null,
-    'type-filter': {
-      visible: true,
-      type1: true,
-      type2: true,
-      type3: true
-    },
     history: null,
     'offers-cc': null,
     'video-downloader': null,

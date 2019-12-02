@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 /* global sinon */
 const { JSDOM } = require('jsdom');
 const waitFor = require('../../utils/waitfor');

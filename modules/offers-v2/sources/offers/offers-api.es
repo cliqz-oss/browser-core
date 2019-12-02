@@ -95,7 +95,7 @@ export default class OffersAPI {
       logger.warn('Failed to createOrUpdateDB');
       return false;
     }
-    if (!this.offersDB.addReasonForHaving(offer.uniqueID, matchTraits)) {
+    if (matchTraits && !this.offersDB.addReasonForHaving(offer.uniqueID, matchTraits)) {
       logger.warn('Failed to addReasonForHaving');
       return false;
     }

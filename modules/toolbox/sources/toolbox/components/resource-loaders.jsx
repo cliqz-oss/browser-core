@@ -15,7 +15,7 @@ import Row from './partials/row';
 class ResourceLoaders extends React.Component {
   state = {
     RLStatus: [],
-  }
+  };
 
   componentDidMount() {
     this.syncState();

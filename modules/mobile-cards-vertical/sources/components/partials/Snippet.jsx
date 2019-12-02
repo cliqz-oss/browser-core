@@ -12,38 +12,31 @@ import SnippetIcon from './SnippetIcon';
 import Link from '../Link';
 import { withStyles } from '../../withTheme';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
-import {
-  snippetTitleFontSize,
-  snippetTitleLineHeight,
-  snippetMainIconSize,
-  snippetSubtitleFontSize,
-  snippetIconMarginRight,
-  cardSidePadding,
-} from '../../themes';
 
 const httpsLockWidth = 9;
 const httpsLockMarginRight = 5;
 
-const cardStyle = (theme, themeDetails) => StyleSheet.create({
+const cardStyle = theme => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    paddingRight: (2 * cardSidePadding) + snippetMainIconSize + snippetIconMarginRight,
+    paddingRight:
+      (2 * theme.card.sidePadding) + theme.snippet.mainIconSize + theme.snippet.iconMarginRight,
     paddingTop: 7,
     paddingBottom: 6
   },
   mainTitle: {
-    color: themeDetails[theme].snippet.titleColor,
-    fontSize: snippetTitleFontSize,
-    lineHeight: snippetTitleLineHeight,
-    marginTop: (snippetMainIconSize - snippetTitleLineHeight) / 2,
+    color: theme.snippet.titleColor,
+    fontSize: theme.snippet.titleFontSize,
+    lineHeight: theme.snippet.titleLineHeight,
+    marginTop: (theme.snippet.mainIconSize - theme.snippet.titleLineHeight) / 2,
   },
   subTitle: {
-    color: themeDetails[theme].snippet.titleColor,
-    fontSize: snippetSubtitleFontSize,
-    lineHeight: snippetTitleLineHeight,
+    color: theme.snippet.titleColor,
+    fontSize: theme.snippet.subtitleFontSize,
+    lineHeight: theme.snippet.titleLineHeight,
   },
   visitedTitle: {
-    color: themeDetails[theme].snippet.visitedTitleColor,
+    color: theme.snippet.visitedTitleColor,
   },
   urlContainer: {
     flexDirection: 'row',
@@ -52,7 +45,7 @@ const cardStyle = (theme, themeDetails) => StyleSheet.create({
     paddingBottom: 2
   },
   url: {
-    color: themeDetails[theme].snippet.urlColor,
+    color: theme.snippet.urlColor,
     fontSize: 13.5,
   },
   lock: {
@@ -61,10 +54,10 @@ const cardStyle = (theme, themeDetails) => StyleSheet.create({
     marginRight: httpsLockMarginRight,
   },
   lockColor: {
-    color: themeDetails[theme].snippet.urlColor
+    color: theme.snippet.urlColor
   },
   description: {
-    color: themeDetails[theme].snippet.descriptionColor,
+    color: theme.snippet.descriptionColor,
     fontSize: 14.5,
     marginTop: 2,
   }

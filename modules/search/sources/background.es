@@ -9,21 +9,13 @@
 import { share } from 'rxjs/operators';
 import background from '../core/base/background';
 import telemetry from '../core/services/telemetry';
-import { getWindow } from '../core/browser';
+import { getMessage } from '../core/i18n';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
 import { promiseHttpHandler } from '../core/http';
-import {
-  setDefaultSearchEngine,
-  getEngineByQuery,
-  getSearchEngineQuery,
-} from '../core/search-engines';
+import { setDefaultSearchEngine, getSearchEnginesAsync } from '../core/search-engines';
 import ObservableProxy from '../core/helpers/observable-proxy';
 import events from '../core/events';
-import {
-  isUrl,
-  fixURL,
-} from '../core/url';
 
 // providers
 import Calculator from './providers/calculator';
@@ -33,6 +25,7 @@ import HistoryView from './providers/history-view';
 import Instant from './providers/instant';
 import QuerySuggestions from './providers/query-suggestions';
 import RichHeader, { getRichHeaderQueryString } from './providers/rich-header';
+import Tabs from './providers/tabs';
 
 import getThrottleQueries from './operators/streams/throttle-queries';
 
@@ -56,6 +49,26 @@ import { bindAll } from '../core/helpers/bind-functions';
 import { chrome } from '../platform/globals';
 
 const performanceTelemetryEnabled = !!chrome.webRequest;
+
+function getProviders() {
+  const currentBackend = prefs.get('backend_country', 'de');
+  const all = JSON.parse(prefs.get('config_backends', '["de"]'))
+    .reduce((acc, cur) => {
+      acc[cur] = {
+        selected: cur === currentBackend,
+        name: getMessage(`country_code_${cur.toUpperCase()}`),
+      };
+      return acc;
+    }, {});
+  if (prefs.has('backend_country.override')) {
+    const customCountry = prefs.get('backend_country.override');
+    all[customCountry] = {
+      selected: true,
+      name: `Custom - [${customCountry}]`
+    };
+  }
+  return all;
+}
 
 /**
   @namespace search
@@ -87,7 +100,7 @@ export default background({
     @method init
     @param settings
   */
-  init(settings) {
+  init(settings, browser) {
     this.settings = settings;
     this.searchSessions = new Map();
     this.adultAssistant = new AdultAssistant();
@@ -97,6 +110,7 @@ export default background({
     });
 
     addCustomSearchEngines();
+    const { tabs } = browser;
 
     this.providers = {
       calculator: new Calculator(),
@@ -106,7 +120,13 @@ export default background({
       instant: new Instant(),
       querySuggestions: new QuerySuggestions(),
       richHeader: new RichHeader(settings), //
+      tabs: new Tabs({ tabs }),
     };
+
+    for (const provider of Object.values(this.providers)) {
+      provider.init();
+    }
+
 
     if (performanceTelemetryEnabled) {
       // some platforms might not have webRequest
@@ -123,10 +143,31 @@ export default background({
     if (performanceTelemetryEnabled) {
       performance.unload();
     }
+
+    for (const provider of Object.values(this.providers)) {
+      provider.unload();
+    }
   },
 
-  beforeBrowserShutdown() {
-
+  async status() {
+    let engines = await getSearchEnginesAsync();
+    try {
+      engines = engines.map(engine => ({
+        name: engine.name,
+        code: engine.code,
+        alias: engine.alias,
+        default: engine.default,
+      }));
+    } catch (e) {
+      // may be not initailized yet
+    }
+    return {
+      visible: true,
+      state: engines,
+      supportedIndexCountries: getProviders(),
+      quickSearchEnabled: prefs.get('modules.search.providers.cliqz.enabled', true),
+      showQuerySuggestions: prefs.get('suggestionsEnabled', false)
+    };
   },
 
   events: {
@@ -312,7 +353,7 @@ export default background({
           tabId: _tabId,
           query: _query,
           ts: queriedAt,
-          ...meta,
+          ...meta
         } = responses.query;
 
         const response = {
@@ -451,7 +492,7 @@ export default background({
     },
 
     getBackendCountries() {
-      return this.search.windowAction(getWindow(), 'getBackendCountries');
+      return getProviders();
     },
 
     setAdultFilter(filter) {
@@ -494,21 +535,6 @@ export default background({
         offers: offersAssistant.getState(),
         settings: settingsAssistant.getState(),
       };
-    },
-
-    queryToUrl(query = '') {
-      let handledQuery = '';
-
-      if (isUrl(query)) {
-        handledQuery = fixURL(query);
-      } else {
-        const engine = getEngineByQuery(query);
-        const rawQuery = getSearchEngineQuery(engine, query);
-
-        handledQuery = engine.getSubmissionForQuery(rawQuery);
-      }
-
-      return handledQuery;
     },
 
     setSearchSession() {

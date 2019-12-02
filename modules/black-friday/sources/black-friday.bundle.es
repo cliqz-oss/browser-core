@@ -1,1 +1,0 @@
-import './black-friday/index';

@@ -95,62 +95,38 @@ export default function () {
       });
     });
 
-    xcontext('first press arrowLeft', function () {
-      beforeEach(function () {
-        press({ key: 'ArrowLeft' });
-        return waitFor(async () => {
-          const start = await urlbar.selectionStart;
-          const end = await urlbar.selectionEnd;
-          return start === end;
+    ['ArrowLeft', 'ArrowRight'].forEach((key) => {
+      ['ArrowUp', 'ArrowDown'].forEach((key2) => {
+        context(`first press ${key}`, function () {
+          const expectedValue = friendlyUrl[results[0].url];
+          const expectedCursorPosition = key === 'ArrowLeft'
+            ? query.length
+            : expectedValue.length;
+
+          beforeEach(function () {
+            press({ key });
+            return waitFor(async () => {
+              const start = await urlbar.selectionStart;
+              const end = await urlbar.selectionEnd;
+              return start === end;
+            });
+          });
+
+          it('autocompleted friendlyUrl is in url bar', async function () {
+            expect(await urlbar.textValue).to.equal(visibleValue(friendlyUrl[results[0].url]));
+          });
+
+          it('cursor is at the right place', async function () {
+            expect(await urlbar.selectionStart).to.equal(expectedCursorPosition);
+            expect(await urlbar.selectionEnd).to.equal(expectedCursorPosition);
+          });
+
+          it(`cursor is at the end of the query after pressing ${key2}`, async function () {
+            press({ key: key2 });
+            expect(await urlbar.selectionStart).to.equal(expectedValue.length);
+            expect(await urlbar.selectionEnd).to.equal(expectedValue.length);
+          });
         });
-      });
-
-      it('autocompleted friendlyUrl is in url bar', async function () {
-        expect(await urlbar.textValue).to.equal(visibleValue(friendlyUrl[results[0].url]));
-      });
-
-      it('cursor is at the right place', async function () {
-        expect(await urlbar.selectionStart).to.equal(query.length);
-        expect(await urlbar.selectionEnd).to.equal(query.length);
-      });
-
-      it('then press arrowDown and arrowUp', async function () {
-        press({ key: 'ArrowDown' });
-        await waitFor(async () => {
-          await expectSelection(result2Selector, visibleValue(results[1].url));
-        }, 3000);
-        press({ key: 'ArrowUp' });
-        await waitFor(() => expectSelection(result1Selector,
-          visibleValue(friendlyUrl[results[0].url])), 600);
-      });
-    });
-
-    xcontext('first press arrowRight', function () {
-      beforeEach(function () {
-        press({ key: 'ArrowRight' });
-        return waitFor(async () => {
-          const start = await urlbar.selectionStart;
-          const end = await urlbar.selectionEnd;
-          return start === end;
-        });
-      });
-
-      it('there is autocompleted link in url bar', async function () {
-        expect(await urlbar.textValue).to.equal(visibleValue(friendlyUrl[results[0].url]));
-      });
-
-      it('cursor is at the right place', async function () {
-        expect(await urlbar.selectionStart).to.equal(friendlyUrl[results[0].url].length);
-        expect(await urlbar.selectionEnd).to.equal(friendlyUrl[results[0].url].length);
-      });
-
-      it('then press arrowDown and arrowUp', async function () {
-        press({ key: 'ArrowDown' });
-        await waitFor(() => expectSelection(result2Selector,
-          visibleValue(results[1].url)), 600);
-        press({ key: 'ArrowUp' });
-        await waitFor(() => expectSelection(result1Selector,
-          visibleValue(friendlyUrl[results[0].url])), 600);
       });
     });
   });

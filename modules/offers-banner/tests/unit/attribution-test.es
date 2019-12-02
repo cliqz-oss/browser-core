@@ -14,7 +14,12 @@ const URL_TO_CHANNEL = {
   'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-chip&subchannel=MKTG22': { channel: 'external-chip', subchannel: 'MKTG22' },
   'https://chrome.random.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus': { channel: null, subchannel: null },
   'https://chrome.random.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-chip&subchannel=MKTG22': { channel: null, subchannel: null },
-  'https://myoffrz.net': { channel: null, subchannel: null }
+  'https://myoffrz.net': { channel: null, subchannel: null },
+  'https://sparalarm.chip.de/?utm_source=external-chip': { channel: 'external-chip', subchannel: null },
+  'https://sparalarm.chip.de/?utm_source=external-focus': { channel: 'external-focus', subchannel: null },
+  'https://sparalarm.chip.de/?utm_source=external-chip&utm_campaign=campaign_22': { channel: 'external-chip', subchannel: 'campaign_22' },
+  'https://sparalarm.chip.de/?utm_source=external-focus&utm_campaign=campaign_22': { channel: 'external-focus', subchannel: 'campaign_22' },
+  'https://sparalarm.chip.de/?utm_source=external-cliqz&utm_campaign=campaign_22': { channel: 'external-cliqz', subchannel: 'campaign_22' },
 };
 
 // used to have expected returns
@@ -64,6 +69,72 @@ export default describeModule('offers-banner/attribution',
       beforeEach(async function () {
         guessDistributionChannel = this.module().guessDistributionChannel;
         STATES = {};
+      });
+
+      describe('Homepage landings', async () => {
+        it('current tab chip', async () => {
+          STATES.getCurrentTab = { url: 'https://sparalarm.chip.de/?utm_source=external-chip' };
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('');
+        });
+
+        it('current tab focus', async () => {
+          STATES.getCurrentTab = { url: 'https://sparalarm.chip.de/?utm_source=external-focus' };
+          chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('');
+        });
+
+        it('current tab chip with campaign', async () => {
+          STATES.getCurrentTab = { url: 'https://sparalarm.chip.de/?utm_source=external-chip&utm_campaign=campaign_22' };
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('campaign_22');
+        });
+
+        it('current tab focus with campaign', async () => {
+          STATES.getCurrentTab = { url: 'https://sparalarm.chip.de/?utm_source=external-focus&utm_campaign=campaign_22' };
+          chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('campaign_22');
+        });
+
+        it('current tab random', async () => {
+          STATES.getCurrentTab = { url: 'https://sparalarm.chip.de/?utm_source=external-cliqz&utm_campaign=campaign_22' };
+          chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('');
+        });
+
+        it('history', async () => {
+          STATES.history = { url: 'https://sparalarm.chip.de/?utm_source=external-cliqz&utm_campaign=campaign_22' };
+          chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('');
+        });
+
+        it('query', async () => {
+          STATES.query = { url: 'https://sparalarm.chip.de/?utm_source=external-cliqz&utm_campaign=campaign_22' };
+          chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('');
+        });
+
+        it('all', async () => {
+          STATES.getCurrentTab = { url: 'https://sparalarm.chip.de/?utm_source=external-chip&utm_campaign=campaign_1' };
+          STATES.query = [{ url: 'https://sparalarm.chip.de/?utm_source=external-focus&utm_campaign=campaign_2' }];
+          STATES.history = [{ url: 'https://sparalarm.chip.de/?utm_source=external-focus&utm_campaign=campaign_3' }];
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('campaign_1');
+        });
+
+        it('website prio', async () => {
+          STATES.getCurrentTab = { url: 'https://sparalarm.chip.de/?utm_source=external-chip&utm_campaign=campaign_1' };
+          STATES.history = [{ url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-chip' }];
+          chai.expect((await guessDistributionChannel()).clean).to.eql('chip');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('campaign_1');
+        });
+
+        it('history prio', async () => {
+          STATES.getCurrentTab = { url: 'https://addons.mozilla.org/en-US/firefox/addon/myoffrz/' };
+          STATES.history = [{ url: 'https://sparalarm.chip.de/?utm_source=external-focus&utm_campaign=campaign_12' }];
+          chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
+          chai.expect((await guessDistributionChannel()).sub).to.eql('campaign_12');
+        });
       });
 
       describe('Complex States', async () => {

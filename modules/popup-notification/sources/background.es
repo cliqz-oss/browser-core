@@ -11,7 +11,6 @@ export default background({
 
   init() { },
   unload() { },
-  beforeBrowserShutdown() { },
   actions: {
     push({target, data}) {
       getActiveTab().then(({ id }) => this.core.action(

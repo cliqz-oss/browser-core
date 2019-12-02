@@ -61,10 +61,6 @@ export default background({
 
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   events: {
 
   },

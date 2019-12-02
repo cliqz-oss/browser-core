@@ -3,9 +3,10 @@ import { createElement, copySelectedText, chooseProduct } from './utils';
 
 export default function subview({ chrome, window, config, onCancel, onApply, onCopyCode }) {
   const container = createElement(window, { tag: 'div', className: 'container' });
+  const isCliqzOffers = ['cliqz', 'amo'].includes(chooseProduct(config.products));
   container.innerHTML = getTemplate(chrome, {
     ...config,
-    logoText: chooseProduct(config.products) !== 'myoffrz' ? '&nbsp;' : 'MyOffrz',
+    logoText: isCliqzOffers ? 'Cliqz&nbsp;Offers' : '&nbsp;',
   });
 
   ['btn-close', 'btn-cancel'].forEach((cls) => {

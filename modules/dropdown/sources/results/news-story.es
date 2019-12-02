@@ -51,6 +51,7 @@ export default class NewsStoryResult extends GenericResult {
       showLogo: true,
       isBreakingNews: this._richData.breaking,
       text: this.query,
+      meta: this.meta,
     });
   }
 

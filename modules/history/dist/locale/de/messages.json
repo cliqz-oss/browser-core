@@ -1,0 +1,47 @@
+{
+    "clear-btn-label": {
+        "message": "Gesamte Chronik löschen..."
+    },
+    "day_selection_all": {
+        "message": "Alles"
+    },
+    "day_selection_pastweek": {
+        "message": "Letzte 7 Tage"
+    },
+    "day_selection_today": {
+        "message": "Heute"
+    },
+    "day_selection_yesterday": {
+        "message": "Gestern"
+    },
+    "feedback_open": {
+        "message": "Feedback"
+    },
+    "feedback_step1": {
+        "message": "Was hältst du von dieser neuen Chronik-Ansicht?"
+    },
+    "feedback_step2": {
+        "message": "Kommentar hinzufügen?"
+    },
+    "feedback_step3": {
+        "message": "Danke!"
+    },
+    "feedback_submit": {
+        "message": "Senden"
+    },
+    "history_title": {
+        "message": "Chronik"
+    },
+    "no_further_history_entry": {
+        "message": "Keine weiteren Chronikeinträge"
+    },
+    "no_history_entry": {
+        "message": "Keine Chronikeinträge gefunden"
+    },
+    "no_search_result": {
+        "message": "Keine Suchergebnisse gefunden für:"
+    },
+    "search_placeholder": {
+        "message": "Chronik durchsuchen"
+    }
+}

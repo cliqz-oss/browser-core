@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="32px" height="39px" viewBox="0 0 32 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g transform="translate(-6.000000, 0.000000)" fill-rule="nonzero">
+            <rect id="Rectangle-12-Copy" fill-opacity="0.00840692935" fill="#FFFFFF" opacity="0.385377799" x="6.44057291" y="0.96010742" width="31" height="38"></rect>
+            <path d="M21.931013,9.19182521 L12.21594,13.2159402 L8.19182508,22.9310131 L12.21594,32.6460861 L21.931013,36.6702011 L31.6460859,32.6460861 L35.6702009,22.9310131 L31.6460859,13.2159402 L21.931013,9.19182521 Z M33.7891132,11.072913 L38.700899,22.9310131 L33.7891132,34.7891133 L21.931013,39.7008992 L10.0729128,34.7891133 L5.16112692,22.9310131 L10.0729128,11.072913 L21.931013,6.16112705 L33.7891132,11.072913 Z" id="Polygon-12-Copy-19" fill="#54BF30" transform="translate(21.931013, 22.931013) rotate(22.500000) translate(-21.931013, -22.931013) "></path>
+            <polygon id="Line-Copy-94" fill="#54BF30" points="10.7926997 14.1379593 30.8478049 34.1930645 32.8277039 32.2131655 12.7725987 12.1580603"></polygon>
+        </g>
+    </g>
+</svg>

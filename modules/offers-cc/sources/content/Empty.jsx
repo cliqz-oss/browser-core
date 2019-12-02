@@ -14,7 +14,7 @@ function renderWhiteLabelHeader(prefix) {
   );
 }
 
-function renderMyOffrzHeader() {
+function renderCliqzHeader(prefix) {
   return (
     <React.Fragment>
       <img
@@ -22,7 +22,7 @@ function renderMyOffrzHeader() {
         src="./images/offers-cc-icon.svg"
         alt=""
       />
-      <h1 className={_css('title', 'myoffrz-title')}>
+      <h1 className={_css('title', `${prefix}-title`)}>
         {i18n('offers_hub_welcome_title')}
       </h1>
     </React.Fragment>
@@ -37,7 +37,7 @@ export default function Empty(props) {
     chip: renderWhiteLabelHeader,
     freundin: renderWhiteLabelHeader,
     incent: renderWhiteLabelHeader,
-    myoffrz: renderMyOffrzHeader,
+    myoffrz: renderWhiteLabelHeader,
   };
   const url = prefix === 'chip'
     ? 'https://sparalarm.chip.de/onboarding/'
@@ -45,7 +45,7 @@ export default function Empty(props) {
   return (
     <div className={_css('wrapper')}>
       <div className={_css('container')}>
-        {mapper[prefix](prefix)}
+        {(mapper[prefix] || renderCliqzHeader)(prefix)}
         <p className={_css('text')}>{i18n('offers_hub_welcome_text')}</p>
         <p
           onClick={() => {

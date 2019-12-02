@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base target="_blank">
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <div class="logo"></div>
+  <div class="center">
+    <h1 data-i18n="title"></h1>
+    <h2 data-i18n="subtitle"></h2>
+    <div class="content">
+      <div class="description">
+        <span data-i18n="description"></span>
+        <span class="show-more" data-i18n="more"></span>
+        <div class="more hide" data-i18n="description_more"></div>
+      </div>
+
+      <div class="settings-header" data-i18n="settings_header"></div>
+      <div>
+        <input class="checkbox" type="checkbox" id="telemetry" />
+        <label for="telemetry" class="option-name" data-i18n="telemetry"></label>
+
+        <input class='checkbox' type='checkbox' id='humanWebOptOut' />
+        <label for="humanWebOptOut" class='option-name' data-i18n="human_web"></label>
+      </div>
+    </div>
+    <div class="actions">
+      <button tabIndex='-1' class='button' data-i18n="ok"></button>
+    </div>
+  </div>
+  <script src="app.bundle.js"></script>
+</body>
+</html>

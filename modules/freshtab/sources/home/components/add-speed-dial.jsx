@@ -9,10 +9,7 @@
 /* eslint-disable react/no-unused-state */
 
 import React from 'react';
-import PropTypes from 'prop-types';
-
 import cliqz from '../cliqz';
-import sanitizeUrl from '../services/url-check';
 import t from '../i18n';
 import { favoriteAddSignal, addFormCloseSignal, addFormSubmitSignal } from '../services/telemetry/speed-dial';
 
@@ -27,7 +24,7 @@ export default class AddSpeedDial extends React.Component {
     showModal: false,
     url: '',
     title: '',
-  }
+  };
 
   freshtab = cliqz.freshtab;
 
@@ -61,7 +58,7 @@ export default class AddSpeedDial extends React.Component {
 
   handleSubmit = (event) => {
     event.preventDefault();
-    const url = sanitizeUrl(this.state.url);
+    const url = this.state.url.trim();
     const title = this.state.title;
 
     if (!url) {
@@ -96,7 +93,6 @@ export default class AddSpeedDial extends React.Component {
         });
 
         addFormSubmitSignal();
-        this.props.addSpeedDial(resp);
         return this.handleCloseModal({ sendTelemetry: false });
       }
 
@@ -138,7 +134,3 @@ export default class AddSpeedDial extends React.Component {
     );
   }
 }
-
-AddSpeedDial.propTypes = {
-  addSpeedDial: PropTypes.func,
-};

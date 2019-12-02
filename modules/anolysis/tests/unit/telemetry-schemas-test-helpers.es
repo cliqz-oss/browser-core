@@ -174,7 +174,6 @@ async function generateAnalysisResults({
 
       chai.expect(signal.meta.dev).to.be.true;
       chai.expect(signal.meta.date).to.be.eql(currentDate);
-      chai.expect(signal.meta.session).to.be.eql('session');
     }
   });
 
@@ -185,8 +184,8 @@ module.exports = ({ name, metrics, currentDate, mock, tests }) => describeModule
   () => ({
     ...mockDexie,
     'platform/globals': {
-      chrome: {
-      },
+      chrome: {},
+      browser: {},
     },
     'platform/runtime': {
       default: {},
@@ -249,9 +248,6 @@ module.exports = ({ name, metrics, currentDate, mock, tests }) => describeModule
         get: (k, d) => {
           if (k === 'developer') {
             return true;
-          }
-          if (k === 'session') {
-            return 'session';
           }
           if (k === 'signalQueue.sendInterval') {
             // Speed-up signal queue by waiting only 100ms between each interval

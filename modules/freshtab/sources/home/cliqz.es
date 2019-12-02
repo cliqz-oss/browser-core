@@ -6,8 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
-
 import RemoteActionProvider from '../../core/helpers/remote-action-provider';
 import createModuleWrapper from '../../core/helpers/action-module-wrapper';
 
@@ -24,18 +22,35 @@ class Cliqz {
 
     this.actions = new RemoteActionProvider('freshtab', {
       renderResults: (response) => {
-        this.storage.setState(() => ({
+        this.storage.setState({
           results: response.results,
-        }));
+        });
       },
       closeNotification: (messageId) => {
         this.storage.setState((prevState) => {
-          const messages = Object.assign({}, prevState.messages);
+          const messages = { ...prevState.messages };
           delete messages[messageId];
           return {
             messages,
           };
         });
+      },
+      updateSpeedDials: (dials, hasHidden) => {
+        this.storage.setState({
+          dials: {
+            ...dials,
+            isLoaded: true,
+          },
+          hasHistorySpeedDialsToRestore: hasHidden,
+        });
+      },
+      updateBrowserTheme: (browserTheme) => {
+        this.storage.setState(prevState => ({
+          config: {
+            ...prevState.config,
+            browserTheme,
+          },
+        }));
       },
       addMessage: (message) => {
         this.storage.setState(prevState => ({

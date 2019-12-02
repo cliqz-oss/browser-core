@@ -6,7 +6,6 @@ import logos from '../core/services/logos';
 import { isCliqzBrowser, isAMO } from '../core/platform';
 import config from '../core/config';
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin'];
 const BLACK_LIST = [
   'accounts-static.cdn.mozilla.net',
   'accounts.firefox.com',
@@ -82,6 +81,7 @@ export function products() {
   };
 }
 
+const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo'];
 export function chooseProduct(options = {}) {
   return ALLOWED_PRODUCTS.find(product => options[product]) || 'myoffrz';
 }

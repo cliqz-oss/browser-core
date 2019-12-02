@@ -119,6 +119,7 @@ export default {
     PREF_SEARCH_MODE: 'freshtab.search.mode',
     NO_BG: 'bg-default',
     MAX_SPOTS: 6,
+    MAX_PAGES: 3,
   },
   backgrounds: {
     CLIQZ: CLIQZ_BACKGROUNDS,

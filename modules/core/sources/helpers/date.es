@@ -39,3 +39,31 @@ export function isConfigTsDate(date) {
     && moment(date, CONFIG_TS_FORMAT).isValid()
   );
 }
+
+export function getLastVisited(date) {
+  return ({
+    exact: moment(date).format('HH:mm LL'),
+    fromNow: moment(date).fromNow(),
+  });
+}
+
+export function getFrames() {
+  const now = moment();
+  const yesterday = moment().subtract(1, 'day');
+  const lastWeek = moment().subtract(1, 'week');
+
+  return ({
+    today: {
+      frameStartsAt: now.startOf('day').valueOf() * 1000,
+      frameEndsAt: now.endOf('day').valueOf() * 1000,
+    },
+    yesterday: {
+      frameStartsAt: yesterday.startOf('day').valueOf() * 1000,
+      frameEndsAt: yesterday.endOf('day').valueOf() * 1000,
+    },
+    lastWeek: {
+      frameStartsAt: lastWeek.startOf('day').valueOf() * 1000,
+      frameEndsAt: now.endOf('day').valueOf() * 1000,
+    },
+  });
+}

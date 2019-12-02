@@ -6,8 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
-
 import RemoteActionProvider from '../../core/helpers/remote-action-provider';
 import createModuleWrapper from '../../core/helpers/action-module-wrapper';
 

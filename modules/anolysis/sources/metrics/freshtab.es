@@ -65,7 +65,7 @@ export default () => [
     sendToBackend: true,
     generate: async () => {
       try {
-        const { active } = await inject.module('freshtab').action('getState');
+        const active = await inject.module('freshtab').isEnabled();
         return [{
           is_freshtab_on: !!active,
         }];

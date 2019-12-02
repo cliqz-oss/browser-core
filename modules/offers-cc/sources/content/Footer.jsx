@@ -6,7 +6,7 @@ const _css = css('footer__');
 export default function Footer(props) {
   const { products } = props;
   const lang = getUILanguage() !== 'de' ? 'en/' : '';
-  const prefix = chooseProduct(products, { cliqz: true });
+  const prefix = chooseProduct(products);
   const feedbackURL = prefix === 'chip'
     ? 'https://sparalarm.chip.de/feedback/'
     : `https://myoffrz.com/${lang}feedback/?p=${prefix}`;

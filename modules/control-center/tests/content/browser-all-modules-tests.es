@@ -61,7 +61,7 @@ describe('Extension, all modules are present', function () {
     });
 
     it('renders antiphishing module', function () {
-      const antiphishingSelector = '#control-center #settings #anti-phising';
+      const antiphishingSelector = '#control-center #settings #anti-phishing';
       expect(subject.query(antiphishingSelector)).to.exist;
     });
 
@@ -83,12 +83,12 @@ describe('Extension, all modules are present', function () {
     });
 
     it('renders Search options', function () {
-      const searchSelector = '#control-center #othersettings .accordion .accordion-section-title[href="#accordion-2"]';
+      const searchSelector = '#control-center #othersettings .accordion .accordion-section-content.settings';
       expect(subject.query(searchSelector)).to.exist;
     });
 
     it('renders MyOffrz options', function () {
-      const myOffrzSelector = '#control-center #othersettings .accordion .accordion-section-title[href="#accordion-4"]';
+      const myOffrzSelector = '#control-center #othersettings .accordion .accordion-section-content.offrz';
       expect(subject.query(myOffrzSelector)).to.exist;
     });
   });

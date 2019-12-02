@@ -36,6 +36,9 @@ if (env.BRANCH_NAME.startsWith('v3.')) {
     matrix['cliqz-ios'] = [
         'config': 'cliqz-ios.js',
     ]
+    matrix['user-agent-ios'] = [
+        'config': 'user-agent-ios.js',
+    ]
     matrix['ghostery-ios'] = [
         'config': 'ghostery-ios.js',
     ]
@@ -150,6 +153,10 @@ if (isIntegrationBranch) {
 
     matrix['cliqz-ios'] = [
         'config': 'cliqz-ios.js',
+    ]
+
+    matrix['user-agent-ios'] = [
+        'config': 'user-agent-ios.js',
     ]
 
     matrix['ghostery-ios'] = [

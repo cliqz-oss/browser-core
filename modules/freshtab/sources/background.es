@@ -9,63 +9,41 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint func-names: 'off' */
 
-import { chrome } from '../platform/globals';
+import { browser } from '../platform/globals';
 import inject from '../core/kord/inject';
 import telemetry from '../core/services/telemetry';
-import NewTabPage from './main';
 import News from './news';
 import config from './config';
 import { getWallpapers, getDefaultWallpaper } from './wallpapers';
-import History from '../platform/freshtab/history';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
 import logos from '../core/services/logos';
 import events from '../core/events';
-import SpeedDial from './speed-dial';
+import SpeedDials from './speed-dials';
 import background from '../core/base/background';
-import {
-  forEachWindow,
-  Window,
-  getActiveTab,
-} from '../core/browser';
-import { queryTabs, reloadTab } from '../core/tabs';
-import console from '../core/console';
+import { queryTabs, reloadTab, getTabsWithUrl } from '../core/tabs';
 import {
   getResourceUrl,
   isCliqzBrowser,
   isChromium,
-  isAMO,
   product,
 } from '../core/platform';
 import prefs from '../core/prefs';
 import { pauseMessage, dismissMessage, countMessageClick, saveMessageDismission } from './actions/message';
 import i18n, { getLanguageFromLocale, getMessage } from '../core/i18n';
-import hash from '../core/helpers/hash';
 import HistoryService from '../platform/history-service';
 import HistoryManager from '../core/history-manager';
 import * as searchUtils from '../core/search-engines';
-import {
-  equals as areUrlsEqual,
-  stripTrailingSlash,
-  tryEncodeURIComponent,
-  tryDecodeURIComponent,
-  getCleanHost,
-} from '../core/url';
+import { getCleanHost } from '../core/url';
 import { URLInfo } from '../core/url-info';
 import extChannel from '../platform/ext-messaging';
 import { isBetaVersion } from '../platform/platform';
 import moment from '../platform/lib/moment';
 import formatTime from './utils';
 
-const DIALUPS = 'extensions.cliqzLocal.freshtab.speedDials';
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
 const DISMISSED_ALERTS = 'dismissedAlerts';
-
-const blackListedEngines = [
-  'Google Images',
-  'Google Maps'
-];
 
 const COMPONENT_STATE_VISIBLE = {
   visible: true,
@@ -89,13 +67,6 @@ if (config.settings.frameScriptWhitelist) {
 
 function isHistoryDependentPage(url) {
   return historyWhitelist.some(u => url.indexOf(u) === 0);
-}
-
-function makeErrorObject(reason) {
-  return {
-    error: true,
-    reason: typeof reason === 'object' ? reason.toString() : reason
-  };
 }
 
 /**
@@ -129,45 +100,47 @@ export default background({
   * @method init
   */
   init(settings) {
-    if (isAMO && (prefs.get('freshtab.amo.rollout', false) === false)) {
-      // no rollout done so we:
-      //  1. turn it on for everybody who has it off
-      //  2. reset their background to spring (all users)
-
-      // we only do it once
-      prefs.set('freshtab.amo.rollout', true);
-
-      if (prefs.get('freshtab.state', false) === false) {
-        prefs.set('freshtab.state', true);
-      }
-
-      this.actions.saveBackgroundImage('bg-spring');
-    }
-
-    this.newTabPage = NewTabPage;
-    this.newTabPage.NEW_TAB_URL = NEW_TAB_URL;
-
-    this.newTabPage.startup();
-
     this.settings = settings;
     this.messages = {};
     this.onVisitRemoved = this._onVisitRemoved.bind(this);
+    this.onSpeedDialsChanged = this._onSpeedDialsChanged.bind(this);
+    this.onThemeChanged = this._onThemeChanged.bind(this);
 
     HistoryService.onVisitRemoved.addListener(this.onVisitRemoved);
+    SpeedDials.onChanged.addListener(this.onSpeedDialsChanged);
+    if (browser.cliqz) {
+      browser.cliqz.onPrefChange.addListener(this.onThemeChanged, 'extensions.', 'activeThemeID');
+    }
   },
   /**
   * @method unload
   */
-  unload({ quick = false } = {}) {
+  unload() {
     News.unload();
 
-    if (quick) {
-      this.newTabPage.shutdown();
-    } else {
-      this.newTabPage.rollback();
-    }
-
     HistoryService.onVisitRemoved.removeListener(this.onVisitRemoved);
+    SpeedDials.onChanged.removeListener(this.onSpeedDialsChanged);
+    if (browser.cliqz) {
+      browser.cliqz.onPrefChange.removeListener(this.onThemeChanged);
+    }
+  },
+
+  status() {
+    return {
+      visible: true,
+      enabled: true,
+    };
+  },
+
+  async _onThemeChanged() {
+    const theme = await this.browserTheme();
+    this.core.action(
+      'callContentAction',
+      'freshtab',
+      'updateBrowserTheme',
+      { url: NEW_TAB_URL },
+      theme,
+    );
   },
 
   _onVisitRemoved(removed) {
@@ -191,8 +164,8 @@ export default background({
   },
 
   async browserTheme() {
-    if (chrome.cliqz) {
-      let browserTheme = await chrome.cliqz.getTheme();
+    if (browser.cliqz) {
+      let browserTheme = await browser.cliqz.getTheme();
       if (browserTheme === undefined) {
         browserTheme = 'light';
       }
@@ -265,21 +238,22 @@ export default background({
     const backgroundName = (freshtabConfig.background && freshtabConfig.background.image)
       || getDefaultWallpaper(product);
     return {
-      historyDials: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.historyDials),
-      customDials: Object.assign({},
-        this.actions.hasCustomDialups() ? COMPONENT_STATE_VISIBLE : COMPONENT_STATE_INVISIBLE,
-        freshtabConfig.customDials),
+      historyDials: { ...COMPONENT_STATE_VISIBLE, ...freshtabConfig.historyDials },
+      customDials: {
+        ...(this.hasCustomDialups() ? COMPONENT_STATE_VISIBLE : COMPONENT_STATE_INVISIBLE),
+        ...freshtabConfig.customDials,
+      },
       search: {
         ...COMPONENT_STATE_VISIBLE,
         ...freshtabConfig.search,
         mode: prefs.get(config.constants.PREF_SEARCH_MODE, 'urlbar'),
       },
-      news: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.news),
+      news: { ...COMPONENT_STATE_VISIBLE, ...freshtabConfig.news },
       background: {
         image: backgroundName,
         index: getWallpapers(product).findIndex(bg => bg.name === backgroundName),
       },
-      stats: Object.assign({}, COMPONENT_STATE_VISIBLE, freshtabConfig.stats),
+      stats: { ...COMPONENT_STATE_VISIBLE, ...freshtabConfig.stats },
     };
   },
 
@@ -313,8 +287,24 @@ export default background({
 
   updateComponentState(component, state) {
     const _config = prefs.getObject(FRESHTAB_CONFIG_PREF);
-    _config[component] = Object.assign({}, _config[component], state);
+    _config[component] = { ..._config[component], ...state };
     prefs.setObject(FRESHTAB_CONFIG_PREF, _config);
+  },
+
+  async _onSpeedDialsChanged() {
+    const dials = await SpeedDials.get();
+    this.core.action(
+      'callContentAction',
+      'freshtab',
+      'updateSpeedDials',
+      { url: NEW_TAB_URL },
+      dials,
+      SpeedDials.hasHidden
+    );
+  },
+
+  hasCustomDialups() {
+    return SpeedDials.hasCustom;
   },
 
   actions: {
@@ -360,10 +350,10 @@ export default background({
     toggleComponent(component) {
       const _config = prefs.getObject(FRESHTAB_CONFIG_PREF);
       // component might be uninitialized
-      const COMPONENT_DEFAULT_STATE = component !== 'customDials' || this.actions.hasCustomDialups()
+      const COMPONENT_DEFAULT_STATE = component !== 'customDials' || this.hasCustomDialups()
         ? COMPONENT_STATE_VISIBLE
         : COMPONENT_STATE_INVISIBLE;
-      _config[component] = Object.assign({}, COMPONENT_DEFAULT_STATE, _config[component]);
+      _config[component] = { ...COMPONENT_DEFAULT_STATE, ..._config[component] };
       _config[component].visible = !_config[component].visible;
       prefs.setObject(FRESHTAB_CONFIG_PREF, _config);
     },
@@ -389,116 +379,15 @@ export default background({
     saveMessageDismission,
 
     checkForHistorySpeedDialsToRestore() {
-      const history = JSON.parse(prefs.get(DIALUPS, '{}')).history || {};
-      return Object.keys(history).length > 0;
-    },
-
-    hasCustomDialups() {
-      return (JSON.parse(prefs.get(DIALUPS, '{}')).custom || []).length;
+      return SpeedDials.hasHidden;
     },
 
     /**
     * Get history based & user defined speedDials
     * @method getSpeedDials
     */
-    async getSpeedDials() {
-      const start = Date.now();
-      const speedDialsTimers = { customDials: 0, historyDials: 0 };
-      const dialUps = prefs.has(DIALUPS) ? JSON.parse(prefs.get(DIALUPS, '')) : [];
-      let historyDialups = [];
-      let customDialups = dialUps.custom ? dialUps.custom : [];
-      await searchUtils.isSearchServiceReady();
-      const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
-
-      historyDialups = History.getTopUrls().then((results) => {
-        console.log('History', JSON.stringify(results));
-        // hash history urls
-        results = results.map(r =>
-          ({
-            ...r,
-            hashedUrl: hash(r.url),
-            custom: false
-          }));
-
-        function isDeleted(url) {
-          return dialUps.history
-            && (url in dialUps.history)
-            && dialUps.history[url].hidden === true;
-        }
-
-        function isCustom(url) {
-          url = stripTrailingSlash(url);
-
-          let _isCustom = false;
-
-          if (dialUps && dialUps.custom) {
-            dialUps.custom.some((dialup) => {
-              if (stripTrailingSlash(tryDecodeURIComponent(dialup.url)) === url) {
-                _isCustom = true;
-                return true;
-              }
-              return false;
-            });
-          }
-          return _isCustom;
-        }
-
-        function isCliqz(url) {
-          return url.indexOf(config.settings.SUGGESTIONS_URL) === 0;
-        }
-
-        function isMozUrl(url) {
-          return url.startsWith('moz-extension://');
-        }
-
-        results = results
-          .filter(history =>
-            !isDeleted(history.hashedUrl) && !isCustom(history.url)
-                    && !history.isAdult && !isCliqz(history.url)
-                    && !isMozUrl(history.url))
-          .map((r) => {
-            const dialSpecs = {
-              url: r.url,
-              title: r.title,
-              isCustom: false
-            };
-            return new SpeedDial(dialSpecs, searchEngines);
-          });
-        speedDialsTimers.historyDials = Date.now() - start;
-        return results;
-      });
-
-      if (customDialups.length > 0) {
-        customDialups = customDialups.map((dialup) => {
-          const dialSpecs = {
-            url: tryDecodeURIComponent(dialup.url),
-            title: dialup.title,
-            isCustom: true,
-          };
-          return new SpeedDial(dialSpecs, searchEngines);
-        });
-        speedDialsTimers.customDials = Date.now() - start;
-      }
-
-      // Promise all concatenate results and return
-      return Promise.all([historyDialups, customDialups]).then(results =>
-      // TODO EX-4276: uncomment when moving Freshtab to WebExtensions
-      // const urls = new Set();
-
-      // const history = results[0].filter((dial) => {
-      //   if (urls.has(dial.id)) {
-      //     return false;
-      //   } else {
-      //     urls.add(dial.id);
-      //     return true;
-      //   }
-      // });
-
-        ({
-          history: results[0],
-          custom: results[1],
-          speedDialsTimers,
-        }));
+    getSpeedDials() {
+      return SpeedDials.get();
     },
 
     /**
@@ -506,22 +395,8 @@ export default background({
      * @method removeSpeedDial
      * @param {item}  The item to be removed.
      */
-    removeSpeedDial(item) {
-      const isCustom = item.custom;
-      const url = isCustom ? item.url : hash(item.url);
-      const dialUps = JSON.parse(prefs.get(DIALUPS, '{}'));
-
-      if (isCustom) {
-        dialUps.custom = dialUps.custom.filter(dialup =>
-          tryDecodeURIComponent(dialup.url) !== url);
-      } else {
-        if (!dialUps.history) {
-          dialUps.history = {};
-        }
-        dialUps.history[url] = { hidden: true };
-      }
-
-      prefs.set(DIALUPS, JSON.stringify(dialUps));
+    removeSpeedDial(...args) {
+      return SpeedDials.remove(...args);
     },
 
     /**
@@ -529,49 +404,8 @@ export default background({
     * @method editSpeedDial
     * @params dial_to_edit, {url, title}
     */
-
-    async editSpeedDial(item, { url, title = '' }) {
-      const urlToAdd = stripTrailingSlash(url);
-      const validUrl = SpeedDial.getValidUrl(urlToAdd);
-      await searchUtils.isSearchServiceReady();
-      const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
-
-      if (!validUrl) {
-        return makeErrorObject('invalid');
-      }
-
-      const dials = await this.getVisibleDials(config.constants.MAX_SPOTS);
-      const allDials = [...dials.history, ...dials.custom];
-      const isDuplicate = allDials
-        .map(dial => ({ ...dial, url: tryDecodeURIComponent(dial.url) }))
-        .filter(dial => !areUrlsEqual(dial.url, item.url))
-        .some(dial => areUrlsEqual(validUrl, dial.url));
-
-      if (isDuplicate) {
-        return makeErrorObject('duplicate');
-      }
-
-      const savedDials = prefs.getObject(DIALUPS);
-      if (!savedDials.custom) {
-        savedDials.custom = [];
-      }
-      const index = savedDials.custom.findIndex(
-        dial => areUrlsEqual(tryDecodeURIComponent(dial.url), item.url)
-      );
-
-      prefs.setObject(DIALUPS, {
-        ...savedDials,
-        custom: [
-          ...savedDials.custom.slice(0, index),
-          {
-            url: validUrl,
-            title,
-          },
-          ...savedDials.custom.slice(index + 1),
-        ],
-      });
-
-      return new SpeedDial({ url: validUrl, title }, searchEngines);
+    editSpeedDial(urlToEdit, newDial) {
+      return SpeedDials.editCustom(urlToEdit, newDial);
     },
 
     /**
@@ -579,73 +413,8 @@ export default background({
     * @method addSpeedDial
     * @param url {string}
     */
-
-    async addSpeedDial({ url, title = '' }, index) {
-      const urlToAdd = stripTrailingSlash(url);
-      const validUrl = SpeedDial.getValidUrl(urlToAdd);
-      await searchUtils.isSearchServiceReady();
-      const searchEngines = searchUtils.getSearchEngines(blackListedEngines);
-
-      if (!validUrl) {
-        return makeErrorObject('invalid');
-      }
-
-      // history returns most frequest 15 results, but we display up to 6
-      // so we need to validate only against visible results
-      const dials = await this.getVisibleDials(config.constants.MAX_SPOTS);
-      const allDials = [...dials.history, ...dials.custom];
-
-      const isDuplicate = allDials
-        .map(dial => ({ ...dial, url: tryDecodeURIComponent(dial.url) }))
-        .some(dial => areUrlsEqual(validUrl, dial.url));
-
-      if (isDuplicate) {
-        return makeErrorObject('duplicate');
-      }
-
-      const savedDials = prefs.getObject(DIALUPS);
-      if (!savedDials.custom) {
-        savedDials.custom = [];
-      }
-
-      const dialup = {
-        url: tryEncodeURIComponent(validUrl),
-        title
-      };
-      const dialSpecs = {
-        url: validUrl,
-        title,
-        isCustom: true,
-      };
-
-      if (index !== null) {
-        savedDials.custom.splice(index, 0, dialup);
-      } else {
-        savedDials.custom.push(dialup);
-      }
-
-      prefs.setObject(DIALUPS, {
-        ...savedDials
-      });
-      // prefs.set(DIALUPS, JSON.stringify(dialUps), '');
-      return new SpeedDial(dialSpecs, searchEngines);
-    },
-
-    /**
-    * Parse speedDials
-    * @method parseSpeedDials
-    */
-    parseSpeedDials() {
-      return JSON.parse(prefs.get(DIALUPS, '{}'));
-    },
-
-    /**
-    * Save speedDials
-    * @method saveSpeedDials
-    * @param dialUps object
-    */
-    saveSpeedDials(dialUps) {
-      prefs.set(DIALUPS, JSON.stringify(dialUps));
+    addSpeedDial(url) {
+      return SpeedDials.addCustom(url);
     },
 
     /**
@@ -654,9 +423,7 @@ export default background({
     * @param url string
     */
     revertHistorySpeedDial(url) {
-      const dialUps = this.actions.parseSpeedDials();
-      delete dialUps.history[hash(url)];
-      this.actions.saveSpeedDials(dialUps);
+      return SpeedDials.restore(url);
     },
 
     /**
@@ -674,10 +441,8 @@ export default background({
     * @method resetAllHistory
     */
     resetAllHistory() {
-      const dialUps = this.actions.parseSpeedDials();
-      dialUps.history = {};
-      this.actions.saveSpeedDials(dialUps);
-      return this.actions.getSpeedDials();
+      SpeedDials.restoreAll();
+      return SpeedDials.get();
     },
 
     removeFromHistory(url, { strict }) {
@@ -849,16 +614,7 @@ export default background({
     * @method getConfig
     */
     async getConfig(sender) {
-      const windowWrapper = Window.findByTabId(sender.tab.id);
-
-      if (windowWrapper) {
-        this.ui.windowAction(windowWrapper.window, 'setUrlbarValue', '', {
-          match: NEW_TAB_URL,
-          focus: true,
-        });
-      }
-
-      const { id: tabIndex } = await getActiveTab();
+      const tabIndex = sender.tab.id;
 
       // delete import bookmarks top notification in case of onboarding v4
       if (this.onboardingVersion() === 4) {
@@ -894,9 +650,9 @@ export default background({
     },
 
     async setBrowserTheme(theme) {
-      if (chrome.cliqz) {
+      if (browser.cliqz) {
         telemetry.push({ theme }, 'freshtab.prefs.browserTheme');
-        await chrome.cliqz.setTheme(`firefox-compact-${theme}@mozilla.org`);
+        await browser.cliqz.setTheme(`firefox-compact-${theme}@mozilla.org`);
       }
     },
 
@@ -911,14 +667,6 @@ export default background({
       } else {
         prefs.set(BLUE_THEME_PREF, true, 'extensions.cliqz.');
       }
-    },
-
-    /**
-    * revert back to old "new tab"
-    * @method revertBack
-    */
-    revertBack() {
-      this.newTabPage.rollback();
     },
 
     shareLocation(decision) {
@@ -937,16 +685,9 @@ export default background({
       });
     },
 
-    refreshFrontend() {
-      forEachWindow((window) => {
-        const tabs = [...window.gBrowser.tabs];
-        tabs.forEach((tab) => {
-          const browser = tab.linkedBrowser;
-          if (browser.currentURI.spec === NEW_TAB_URL) {
-            browser.reload();
-          }
-        });
-      });
+    async refreshFrontend() {
+      const tabs = await getTabsWithUrl(NEW_TAB_URL);
+      tabs.forEach(({ id }) => reloadTab(id));
     },
 
     async refreshHistoryDependentPages() {
@@ -965,14 +706,11 @@ export default background({
     openImportDialog,
 
     openBrowserSettings() {
-      chrome.omnibox2.navigateTo('about:preferences', { target: 'tab' });
+      browser.omnibox2.navigateTo('about:preferences', { target: 'tab' });
     },
 
-    // The following three actions are used to emit Anolysis metrics about
-    // freshtab's state.
-
     getState() {
-      return { active: this.newTabPage.isActive };
+      return { active: true };
     },
 
     isBlueThemeEnabled() {
@@ -989,16 +727,6 @@ export default background({
   },
 
   events: {
-    'control-center:cliqz-tab': function () {
-      if (this.newTabPage.isActive) {
-        this.newTabPage.rollback();
-      } else {
-        this.newTabPage.enableNewTabPage();
-        this.newTabPage.enableHomePage();
-      }
-
-      this.newTabPage.setPersistentState(!this.newTabPage.isActive);
-    },
     'message-center:handlers-freshtab:new-message': function onNewMessage(message) {
       const id = message.id;
       if (!(id in this.messages)) {

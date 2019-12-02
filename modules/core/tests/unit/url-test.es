@@ -109,6 +109,13 @@ const URLS = [
   'cliqz.com. ',
   '192.168.1.1.',
 
+  // ALLCAPS
+  'HTTP://WWW.EXAMPLE.COM/FOO/?BAR=BAZ&INGA=42&QUUX',
+  'FILE:///ETC/PASSWD',
+  'MAILTO:CLIQZ <INFO@CLIQZ.COM>',
+  'VIEW-SOURCE:HTTPS://CLIQZ.COM',
+  'DATA:TEXT/PLAIN,HELLO',
+
   // special exception
   'localhost',
   'LOCALHOST',
@@ -130,6 +137,7 @@ const QUERIES = [
   'cliqz',
   'google.com is a suspicious site',
   'how do I go to facebook.com?',
+  'owner of someone@gmail.com',
   'undefined',
 
   // search alias
@@ -165,6 +173,73 @@ const QUERIES = [
 
   // unicode in hostname and no protocol or TLD
   'Wiedźmin_3:Dziki_Gon',
+];
+
+const URL_VARIANTS = [
+  {
+    title: 'trailing slash',
+    params: {
+      protocol: false,
+      www: false,
+    },
+    should: {
+      'http://cliqz.com/': ['http://cliqz.com/', 'http://cliqz.com'],
+      'http://cliqz.com/path/name/': ['http://cliqz.com/path/name/', 'http://cliqz.com/path/name'],
+      'http://cliqz.com/path/?search=1': ['http://cliqz.com/path/?search=1', 'http://cliqz.com/path?search=1'],
+      'http://cliqz.com/path/#hash=xxx': ['http://cliqz.com/path/#hash=xxx', 'http://cliqz.com/path#hash=xxx'],
+    },
+    shouldnt: {
+      'http://cliqz.com/': ['http://www.cliqz.com/', 'https://cliqz.com/'],
+      'http://cliqz.com/path?x=1': ['http://cliqz.com/path?x=1/', 'http://cliqz.com/path/?x=1/'],
+    }
+  },
+  {
+    title: 'www',
+    params: {
+      protocol: false,
+      www: true,
+    },
+    should: {
+      'http://cliqz.com': [
+        'http://cliqz.com', 'http://www.cliqz.com/',
+        'http://www.cliqz.com', 'http://cliqz.com/',
+      ],
+    },
+    shouldnt: {
+      'http://cliqz.com': ['https://cliqz.com'],
+    },
+  },
+  {
+    title: 'protocol',
+    params: {
+      protocol: true,
+      www: false,
+    },
+    should: {
+      'http://cliqz.com': ['http://cliqz.com', 'https://cliqz.com', 'http://cliqz.com/', 'https://cliqz.com/'],
+      'ftp://cliqz.com': ['ftp://cliqz.com', 'ftp://cliqz.com/'],
+    },
+    shouldnt: {
+      'http://cliqz.com': ['http://www.cliqz.com', 'https://www.cliqz.com'],
+      'ftp://cliqz.com': ['http://cliqz.com', 'https://www.cliqz.com'],
+    },
+  },
+  {
+    title: 'protocol, www, and trailing slash',
+    params: {
+      protocol: true,
+      www: true,
+    },
+    should: {
+      'http://cliqz.com': [
+        'http://cliqz.com', 'https://cliqz.com',
+        'http://cliqz.com/', 'https://cliqz.com/',
+        'http://www.cliqz.com', 'https://www.cliqz.com',
+        'http://www.cliqz.com/', 'https://www.cliqz.com/',
+      ],
+    },
+    shouldnt: {},
+  }
 ];
 
 export default describeModule('core/url',
@@ -221,6 +296,20 @@ export default describeModule('core/url',
         describe('should return false on non-URL-like strings', () => {
           QUERIES.forEach((queryStr) => {
             it(queryStr, () => chai.expect(isUrl(queryStr)).to.be.false);
+          });
+        });
+      });
+
+      describe('#fixURL', function () {
+        let fixURL;
+
+        beforeEach(function () {
+          fixURL = this.module().fixURL;
+        });
+
+        describe('should not return null for URL-like strings', () => {
+          URLS.forEach((urlStr) => {
+            it(urlStr, () => chai.expect(fixURL(urlStr)).not.to.be.null);
           });
         });
       });
@@ -481,6 +570,46 @@ export default describeModule('core/url',
           chai.expect(parts.query).to.equal('');
           chai.expect(parts.fragment).to.equal('');
           chai.expect(parts.port).to.equal('');
+        });
+      });
+
+      describe('#getUrlVariations', function () {
+        let getUrlVariations;
+
+        beforeEach(function () {
+          getUrlVariations = this.module().getUrlVariations;
+        });
+
+        describe('for invalid urls', function () {
+          const badURL = 'xxx bad url';
+          it('should return array with the original url-string', function () {
+            const variants = getUrlVariations(badURL, {});
+            chai.expect(variants).to.deep.equal([badURL]);
+          });
+        });
+
+        URL_VARIANTS.forEach((testCase) => {
+          describe(`creating url variants by adding/removing "${testCase.title}"`, function () {
+            // should
+            Object.keys(testCase.should).forEach((url) => {
+              const shouldUrls = testCase.should[url];
+              it(`should generate variants "${shouldUrls.join(', ')}" of url "${url}"`, function () {
+                const variants = getUrlVariations(url, testCase.params).sort();
+                // Sort both `variants` and `shouldUrls` before compating
+                //  because the order of the created variants doesn't matter.
+                chai.expect(variants.sort()).to.deep.equal(shouldUrls.sort());
+              });
+            });
+
+            // should not
+            Object.keys(testCase.shouldnt).forEach((url) => {
+              const shouldntUrls = testCase.shouldnt[url];
+              it(`should not generate variants "${shouldntUrls.join(', ')}" of url "${url}"`, function () {
+                const variants = new Set(getUrlVariations(url, testCase.params));
+                shouldntUrls.forEach(u => chai.expect(variants.has(u)).to.be.false);
+              });
+            });
+          });
         });
       });
     });

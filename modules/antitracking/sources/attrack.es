@@ -19,11 +19,10 @@ import events from '../core/events';
 
 import * as browser from '../platform/browser';
 import * as datetime from './time';
-import PageEventTracker from './tp_events';
 import Pipeline from '../webrequest-pipeline/pipeline';
 import QSWhitelist2 from './qs-whitelist2';
 import TempSet from './temp-set';
-import md5 from '../core/helpers/md5';
+import { truncatedHash } from '../core/helpers/md5';
 import telemetry from './telemetry';
 import { HashProb, shouldCheckToken } from './hash';
 import { getDefaultTrackerTxtRule } from './tracker-txt';
@@ -32,7 +31,8 @@ import { URLInfo, shuffle } from '../core/url-info';
 import { VERSION, TELEMETRY, COOKIE_MODE } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64 } from './compression';
-import { generateAttrackPayload, truncatedHash } from './utils';
+import { generateAttrackPayload } from './utils';
+import buildPageLoadObject from './page-telemetry';
 import AttrackDatabase from './database';
 import getTrackingStatus from './dnt';
 import TrackerCounter from '../core/helpers/tracker-counter';
@@ -45,8 +45,7 @@ import TokenChecker from './steps/token-checker';
 import TokenExaminer from './steps/token-examiner';
 import TokenTelemetry from './steps/token-telemetry';
 import OAuthDetector from './steps/oauth-detector';
-import { skipInternalProtocols, skipInvalidSource, checkSameGeneralDomain } from './steps/check-context';
-import webNavigation from '../platform/webnavigation';
+import { checkValidContext, checkSameGeneralDomain } from './steps/check-context';
 
 export default class CliqzAttrack {
   constructor() {
@@ -55,7 +54,6 @@ export default class CliqzAttrack {
     this.debug = false;
     this.msgType = 'attrack';
     this.similarAddon = false;
-    this.tp_events = null;
     this.recentlyModified = new TempSet();
     this.whitelistedRequestCache = new Set();
     this.urlWhitelist = new UrlWhitelist('attrack-url-whitelist');
@@ -173,12 +171,6 @@ export default class CliqzAttrack {
     this.hourChangedInterval = pacemaker.register(this.hourChanged.bind(this), {
       timeout: twoMinutes,
     });
-
-    this.tpEventInterval = pacemaker.register(() => {
-      this.tp_events.commit().then(() => {
-        this.tp_events.push();
-      });
-    }, { timeout: twoMinutes });
   }
 
   telemetry({ message, raw = false, compress = false, ts = undefined }) {
@@ -238,30 +230,7 @@ export default class CliqzAttrack {
 
     this.initPacemaker();
 
-    this.tp_events = new PageEventTracker((payloadData) => {
-      // take telemetry data to be pushed and add module metadata
-      const updateInTime = this.qs_whitelist.isUpToDate();
-      payloadData.forEach((pageload) => {
-        const payl = generateAttrackPayload([pageload], undefined, {
-          conf: {},
-          addons: this.similarAddon,
-          updateInTime,
-        });
-        this.telemetry({
-          message: {
-            type: telemetry.msgType,
-            action: 'attrack.tp_events',
-            payload: payl
-          },
-          raw: true,
-        });
-      });
-    }, this.config);
-
     initPromises.push(this.initPipeline());
-
-    this._onPageStaged = this.onPageStaged.bind(this);
-    this.tp_events.addEventListener('stage', this._onPageStaged);
 
     return Promise.all(initPromises);
   }
@@ -280,9 +249,9 @@ export default class CliqzAttrack {
     return this.unloadPipeline().then(() => {
       // Initialise classes which are used as steps in listeners
       const steps = {
-        pageLogger: new PageLogger(this.tp_events, webNavigation),
+        pageLogger: new PageLogger(this.config),
         blockRules: new BlockRules(this.config),
-        cookieContext: new CookieContext(this.config, this.tp_events, this.qs_whitelist),
+        cookieContext: new CookieContext(this.config, this.qs_whitelist),
         redirectTagger: new RedirectTagger(),
         oauthDetector: new OAuthDetector(),
       };
@@ -328,29 +297,19 @@ export default class CliqzAttrack {
       // ----------------------------------- \\
       this.pipelines.onBeforeRequest = new Pipeline('antitracking.onBeforeRequest', [
         {
+          name: 'checkState',
+          spec: 'break',
+          fn: checkValidContext,
+        },
+        {
           name: 'oauthDetector.checkMainFrames',
           spec: 'break',
           fn: state => steps.oauthDetector.checkMainFrames(state),
         },
         {
-          name: 'pageLogger.logMainDocument',
-          spec: 'break',
-          fn: state => steps.pageLogger.logMainDocument(state),
-        },
-        {
           name: 'redirectTagger.checkRedirect',
           spec: 'break',
           fn: state => steps.redirectTagger.checkRedirect(state),
-        },
-        {
-          name: 'skipInvalidSource',
-          spec: 'break',
-          fn: skipInvalidSource,
-        },
-        {
-          name: 'skipInternalProtocols',
-          spec: 'break',
-          fn: skipInternalProtocols,
         },
         {
           name: 'checkSameGeneralDomain',
@@ -363,14 +322,9 @@ export default class CliqzAttrack {
           fn: (state, response) => this.cancelRecentlyModified(state, response),
         },
         {
-          name: 'pageLogger.attachStatCounter',
+          name: 'pageLogger.onBeforeRequest',
           spec: 'annotate',
-          fn: state => steps.pageLogger.attachStatCounter(state),
-        },
-        {
-          name: 'pageLogger.logRequestMetadata',
-          spec: 'collect', // TODO - global state
-          fn: state => steps.pageLogger.logRequestMetadata(state),
+          fn: state => steps.pageLogger.onBeforeRequest(state),
         },
         {
           name: 'logIsTracker',
@@ -475,6 +429,11 @@ export default class CliqzAttrack {
       // --------------------------------------- \\
       this.pipelines.onBeforeSendHeaders = new Pipeline('antitracking.onBeforeSendHeaders', [
         {
+          name: 'checkState',
+          spec: 'break',
+          fn: checkValidContext,
+        },
+        {
           name: 'cookieContext.assignCookieTrust',
           spec: 'collect', // TODO - global state
           fn: state => steps.cookieContext.assignCookieTrust(state),
@@ -490,24 +449,14 @@ export default class CliqzAttrack {
           fn: state => !state.isMainFrame,
         },
         {
-          name: 'skipInvalidSource',
-          spec: 'break',
-          fn: skipInvalidSource,
-        },
-        {
-          name: 'skipInternalProtocols',
-          spec: 'break',
-          fn: skipInternalProtocols,
-        },
-        {
           name: 'checkSameGeneralDomain',
           spec: 'break',
           fn: checkSameGeneralDomain,
         },
         {
-          name: 'pageLogger.attachStatCounter',
+          name: 'pageLogger.onBeforeSendHeaders',
           spec: 'annotate',
-          fn: state => steps.pageLogger.attachStatCounter(state),
+          fn: state => steps.pageLogger.onBeforeSendHeaders(state),
         },
         {
           name: 'catchMissedOpenListener',
@@ -534,34 +483,10 @@ export default class CliqzAttrack {
           },
         },
         {
-          name: 'checkLeakedReferrer',
-          spec: 'collect',
-          fn: (state) => {
-            const referrer = state.getReferrer();
-            if (referrer && referrer.indexOf(state.tabUrl) > -1) {
-              state.incrementStat('referer_leak_header');
-            }
-            if (state.url.indexOf(state.tabUrlParts.hostname) > -1
-                || state.url.indexOf(encodeURIComponent(state.tabUrlParts.hostname)) > -1) {
-              state.incrementStat('referer_leak_site');
-              if (state.url.indexOf(state.tabUrlParts.pathname) > -1
-                  || state.url.indexOf(encodeURIComponent(state.tabUrlParts.pathname)) > -1) {
-                state.incrementStat('referer_leak_path');
-              }
-            }
-          }
-        },
-        {
           name: 'checkHasCookie',
           spec: 'break',
-          fn: (state) => {
-            state.cookieData = state.getCookieData();
-            const hasCookie = state.cookieData && state.cookieData.length > 5;
-            if (hasCookie) {
-              state.incrementStat('cookie_set');
-            }
-            return hasCookie === true;
-          },
+          // hasCookie flag is set by pageLogger.onBeforeSendHeaders
+          fn: state => state.hasCookie === true,
         },
         {
           name: 'checkIsCookieWhitelisted',
@@ -629,6 +554,7 @@ export default class CliqzAttrack {
             if (this.config.sendAntiTrackingHeader) {
               response.modifyHeader(this.config.cliqzHeader, ' ');
             }
+            state.page.counter += 1;
           },
         }
       ]);
@@ -639,53 +565,24 @@ export default class CliqzAttrack {
       // ------------------------------------- \\
       this.pipelines.onHeadersReceived = new Pipeline('antitracking.onHeadersReceived', [
         {
+          name: 'checkState',
+          spec: 'break',
+          fn: checkValidContext,
+        },
+        {
           name: 'checkMainDocumentRedirects',
           spec: 'break',
           fn: (state) => {
             if (state.isMainFrame) {
-              if ([300, 301, 302, 303, 307].indexOf(state.statusCode) !== -1) {
-                // redirect, update location for tab
-                // if no redirect location set, stage the tab id so we don't get false data
-                const redirectUrl = state.getResponseHeader('Location');
-                let redirectUrlParts = URLInfo.get(redirectUrl) || {};
-                // if redirect is relative, use source domain
-                if (!redirectUrlParts.hostname) {
-                  redirectUrlParts = URLInfo.get(`${state.urlParts.toString()}${redirectUrl}`);
-                }
-                this.tp_events.onRedirect(
-                  redirectUrlParts,
-                  state.tabId,
-                  state.isPrivate,
-                  state.requestId,
-                );
-              }
               // check for tracking status headers for first party
               const trackingStatus = getTrackingStatus(state);
               if (trackingStatus) {
-                const pageInfo = this.tp_events.getPageForTab(state.tabId);
-                if (pageInfo) {
-                  pageInfo.setTrackingStatus(trackingStatus);
-                }
+                state.page.setTrackingStatus(trackingStatus);
               }
               return false;
             }
             return true;
           },
-        },
-        {
-          name: 'skipInvalidSource',
-          spec: 'break',
-          fn: skipInvalidSource,
-        },
-        {
-          name: 'skipInternalProtocols',
-          spec: 'break',
-          fn: skipInternalProtocols,
-        },
-        {
-          name: 'skipBadSource',
-          spec: 'break',
-          fn: state => state.tabUrl && state.tabUrl !== '' && state.tabUrl.indexOf('about:') === -1,
         },
         {
           name: 'checkSameGeneralDomain',
@@ -698,19 +595,16 @@ export default class CliqzAttrack {
           fn: state => steps.redirectTagger.checkRedirectStatus(state),
         },
         {
-          name: 'pageLogger.attachStatCounter',
+          name: 'pageLogger.onHeadersReceived',
           spec: 'annotate',
-          fn: state => steps.pageLogger.attachStatCounter(state),
+          fn: state => steps.pageLogger.onHeadersReceived(state),
         },
         {
           name: 'logResponseStats',
           spec: 'collect',
           fn: (state) => {
             if (state.incrementStat) {
-              state.incrementStat('resp_ob');
-              state.incrementStat('content_length', parseInt(state.getResponseHeader('Content-Length'), 10) || 0);
-              state.incrementStat(`status_${state.statusCode}`);
-
+              // TSV stats
               if (this.qs_whitelist.isTrackerDomain(truncatedHash(state.urlParts.generalDomain))) {
                 const trackingStatus = getTrackingStatus(state);
                 if (trackingStatus) {
@@ -726,15 +620,7 @@ export default class CliqzAttrack {
         {
           name: 'checkSetCookie',
           spec: 'break',
-          fn: (state) => {
-            // if there is a set-cookie header, continue
-            const setCookie = state.getResponseHeader('Set-Cookie');
-            if (setCookie) {
-              state.incrementStat('set_cookie_set');
-              return true;
-            }
-            return false;
-          },
+          fn: state => state.hasSetCookie === true,
         },
         {
           name: 'shouldBlockCookie',
@@ -787,19 +673,24 @@ export default class CliqzAttrack {
           fn: (state, response) => {
             response.modifyResponseHeader('Set-Cookie', '');
             state.incrementStat('set_cookie_blocked');
+            state.page.counter += 1;
           },
         },
       ]);
 
       this.pipelines.onCompleted = new Pipeline('antitracking.onCompleted', [
         {
+          name: 'checkState',
+          spec: 'break',
+          fn: checkValidContext,
+        },
+        {
           name: 'logPrivateDocument',
           spec: 'break',
           fn: (state) => {
             if (state.isMainFrame && state.ip) {
               if (isPrivateIP(state.ip)) {
-                const pageInfo = this.tp_events.getPageForTab(state.tabId);
-                pageInfo.private = true;
+                state.page.isPrivateServer = true;
               }
               return false;
             }
@@ -822,6 +713,11 @@ export default class CliqzAttrack {
       ]);
 
       this.pipelines.onErrorOccurred = new Pipeline('antitracking.onError', [
+        {
+          name: 'checkState',
+          spec: 'break',
+          fn: checkValidContext,
+        },
         {
           name: 'pageLogger.reattachStatCounter',
           spec: 'annotate',
@@ -895,13 +791,6 @@ export default class CliqzAttrack {
     // Check is active usage, was sent
     this.hashProb.unload();
     this.qs_whitelist.destroy();
-
-    // force send tab telemetry data
-    // NOTE - this is an async operation
-    this.tp_events.commit(true, true);
-    this.tp_events.push(true);
-
-    this.tp_events.removeEventListener('stage', this._onPageStaged);
 
     this.unloadPipeline();
 
@@ -1000,6 +889,8 @@ export default class CliqzAttrack {
 
     response.redirectTo(tmpUrl);
     response.modifyHeader(this.config.cliqzHeader, ' ');
+
+    state.page.counter += 1;
     return true;
   }
 
@@ -1049,7 +940,7 @@ export default class CliqzAttrack {
    *    trackers: more detailed information about each tracker. Object with
    *      keys being tracker domain and values more detailed blocking data.
    */
-  getTabBlockingInfo(tabId, url) {
+  async getTabBlockingInfo(tabId, url) {
     const result = {
       url,
       tab: tabId,
@@ -1071,7 +962,9 @@ export default class CliqzAttrack {
       return Promise.resolve(result);
     }
 
-    if (!(tabId in this.tp_events._active)) {
+    const page = await this.webRequestPipeline.action('getPageForTab', tabId);
+
+    if (!page) {
       // no tp event, but 'active' tab = must reload for data
       // otherwise -> system tab
       return browser.checkIsWindowActive(tabId)
@@ -1085,30 +978,27 @@ export default class CliqzAttrack {
         });
     }
 
-    const tabData = this.tp_events._active[tabId];
-    const plainData = tabData.asPlainObject();
-    const trackers = Object.keys(plainData.tps).filter(domain => Promise.resolve(
-      this.qs_whitelist.isTrackerDomain(md5(getGeneralDomain(domain)).substring(0, 16))
-      || plainData.tps[domain].blocked_blocklist > 0
-    ));
+    const trackers = [...page.requestStats.entries()].filter(([domain, data]) =>
+      this.qs_whitelist.isTrackerDomain(truncatedHash(getGeneralDomain(domain)))
+      || data.blocked_blocklist > 0).map(pair => pair[0]);
 
     // const firstPartyCompany = domainInfo.domainOwners[getGeneralDomain(tabData.hostname)];
-    result.hostname = tabData.hostname;
-    result.path = tabData.path;
+    const urlInfo = URLInfo.get(page.url);
+    result.hostname = urlInfo.hostname;
+    result.path = urlInfo.path;
 
     trackers.forEach((dom) => {
       result.trackers[dom] = {};
       ['c', 'cookie_set', 'cookie_blocked', 'bad_cookie_sent', 'bad_qs', 'set_cookie_blocked', 'blocked_blocklist'].forEach((k) => {
-        result.trackers[dom][k] = plainData.tps[dom][k] || 0;
+        result.trackers[dom][k] = page.requestStats.get(dom)[k] || 0;
       });
 
       // actual block count can be in several different signals, depending on
       // configuration. Aggregate them into one.
       result.trackers[dom].tokens_removed = ['empty', 'replace', 'placeholder', 'block'].reduce(
-        (cumsum, action) => cumsum + (plainData.tps[dom][`token_blocked_${action}`] || 0), 0
+        (cumsum, action) => cumsum + (page.requestStats.get(dom)[`token_blocked_${action}`] || 0), 0
       );
-      result.trackers[dom].tokens_removed += plainData.tps[dom].blocked_blocklist || 0
-        + plainData.tps[dom].blocked_external || 0;
+      result.trackers[dom].tokens_removed += page.requestStats.get(dom).blocked_blocklist || 0;
 
       result.cookies.allowed += (
         result.trackers[dom].cookie_set - result.trackers[dom].cookie_blocked
@@ -1158,56 +1048,6 @@ export default class CliqzAttrack {
     });
   }
 
-  /**
-   * Returns bugIds for a tab (based on Ghostery schema)
-   */
-  getAppsForTab(tabId) {
-    const tabData = this.tp_events._active[tabId];
-    if (!tabData) {
-      return Promise.reject();
-    }
-    const apps = {
-      known: {},
-      unknown: {}
-    };
-
-    function actionName(blocked, unsafe) {
-      if (blocked) {
-        return 'blocked';
-      }
-      if (unsafe) {
-        return 'unsafe';
-      }
-      return 'safe';
-    }
-
-    // blocked by antitracking blocker
-    if (tabData.annotations.apps) {
-      tabData.annotations.apps.forEach((action, app) => {
-        apps.known[domainInfo.getBugOwner(app)] = actionName(action === 'BLOCK', action === 'ALLOW_UNSAFE');
-      });
-    }
-    // blocked/seen by antitracking
-    return this.getTabBlockingInfo(tabId).then((info) => {
-      Object.keys(info.trackers).forEach((domain) => {
-        const tld = getGeneralDomain(domain);
-        const id = domainInfo.domains[tld];
-        const blocked = info.trackers[domain].tokens_removed > 0
-          || info.trackers[domain].blocked_blocklist > 0;
-        const unsafe = info.trackers[domain].bad_qs > 0
-          || info.trackers[domain].cookie_blocked > 0
-          || info.trackers[domain].set_cookie_blocked > 0;
-        if (id) {
-          apps.known[id] = actionName(blocked || apps.known[id] === true, unsafe);
-        } else {
-          apps.unknown[tld] = actionName(blocked, unsafe);
-        }
-      });
-
-      return apps;
-    });
-  }
-
   /** Enables Attrack module with cookie, QS and referrer protection enabled.
    *  if module_only is set to true, will not set preferences for cookie, QS
    *  and referrer protection (for selective loading in AB tests)
@@ -1246,27 +1086,30 @@ export default class CliqzAttrack {
     }
   }
 
-  onPageStaged(tabId, page) {
-    if (!page) {
-      return;
-    }
-    let report = {
-      bugs: {},
-      others: {},
-    };
-    if (page && page.annotations && page.annotations.counter) {
-      report = page.annotations.counter.getSummary();
-    }
-    events.pub('antitracking:tracker-report', {
-      tabId,
-      ts: page.s,
-      url: page.url,
-      host: page.hostname,
-      report,
-    });
-  }
-
   shouldCheckToken(tok) {
     return shouldCheckToken(this.hashProb, this.config.shortTokenLength, tok);
+  }
+
+  onPageStaged(page) {
+    if (this.config.telemetryMode !== TELEMETRY.DISABLED
+        && page.state === 'complete'
+        && !page.isPrivate
+        && !page.isPrivateServer) {
+      const payload = buildPageLoadObject(page);
+      if (payload.scheme.startsWith('http') && Object.keys(payload.tps).length > 0) {
+        const wrappedPayload = generateAttrackPayload([payload], undefined, {
+          conf: {},
+          addons: this.similarAddon,
+        });
+        this.telemetry({
+          message: {
+            type: telemetry.msgType,
+            action: 'attrack.tp_events',
+            payload: wrappedPayload
+          },
+          raw: true,
+        });
+      }
+    }
   }
 }

@@ -308,9 +308,9 @@ const finalWithHistoryView = {
       }
     },
     {
-      url: getUrl('modules/cliqz-history/index.html#/?query=headphones'),
-      href: getUrl('modules/cliqz-history/index.html#/?query=headphones'),
-      friendlyUrl: getUrl('modules/cliqz-history/index.html#/?query=headphones#/?query=headphones'),
+      url: getUrl('modules/history/index.html#/?query=headphones'),
+      href: getUrl('modules/history/index.html#/?query=headphones'),
+      friendlyUrl: getUrl('modules/history/index.html#/?query=headphones#/?query=headphones'),
       kind: [
         'history-ui'
       ],
@@ -323,7 +323,7 @@ const finalWithHistoryView = {
         host: '8fc58578-99ce-404d-9e4d-dd0d4eacb410',
         hostAndPort: '8fc58578-99ce-404d-9e4d-dd0d4eacb410',
         port: '',
-        url: getUrl('modules/cliqz-history/index.html#/?query=headphones'),
+        url: getUrl('modules/history/index.html#/?query=headphones'),
         subType: {},
         completion: '',
         logo: {},
@@ -617,5 +617,5 @@ const results = {
   ],
 };
 
-export const withoutHistoryView = Object.assign({}, finalWithoutHistoryView, results);
-export const withHistoryView = Object.assign({}, finalWithHistoryView, results);
+export const withoutHistoryView = { ...finalWithoutHistoryView, ...results };
+export const withHistoryView = { ...finalWithHistoryView, ...results };

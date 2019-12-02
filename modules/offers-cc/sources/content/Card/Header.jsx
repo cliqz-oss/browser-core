@@ -5,16 +5,24 @@ import { css, i18n } from '../common/utils';
 const _css = css('card-header__');
 export default function Header(props) {
   const { voucher = {}, autoTrigger } = props;
-  const { template_data: templateData, offer_id: offerId } = voucher;
   const {
-    call_to_action: { url } = {},
-    logo_dataurl: logoDataurl,
-  } = templateData;
+    validity: { text = '', expired = {} } = {},
+    template_data: templateData,
+    offer_id: offerId
+  } = voucher;
+  const { call_to_action: { url } = {} } = templateData;
+
+  /* eslint-disable no-nested-ternary */
+  const expiredClass = expired.soon
+    ? 'till-soon'
+    : (expired.leftSome ? 'till-left-some' : '');
+  /* eslint-enable no-nested-ternary */
 
   /* eslint-disable jsx-a11y/no-static-element-interactions */
   return (
     <div className={_css('container')}>
       <div className={_css('left-item')}>
+        {templateData.logo_dataurl && (
         <div
           onClick={() => {
             send('openURL', {
@@ -25,14 +33,19 @@ export default function Header(props) {
             });
             send('sendTelemetry', { target: 'use' });
           }}
-          style={{ backgroundImage: `url(${logoDataurl})` }}
+          style={{ backgroundImage: `url(${templateData.logo_dataurl})` }}
           className={_css('image')}
         />
+        )}
       </div>
       <div className={_css('right-item')}>
-        <span className={_css('affiliate-link')}>
-          {i18n('affiliate_link')}
-        </span>
+        <div className={_css('expired-icon', `${expiredClass}-icon`)} />
+        <div className={_css('till-wrapper')}>
+          <div className={_css('till', expiredClass)}>{text}</div>
+          <div className={_css('affiliate-link')}>
+            {i18n('affiliate_link')}
+          </div>
+        </div>
         {!autoTrigger && (
           <div
             onClick={props.onRemove}

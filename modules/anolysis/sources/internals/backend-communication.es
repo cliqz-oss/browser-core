@@ -60,8 +60,6 @@ export default class Backend {
    */
   attachMetadata(payload) {
     const defaultMeta = {
-      session: this.config.get('session'),
-
       // This allows us to filter out signals coming from developers in the
       // backend. This is not privacy breaching because all normal users will
       // have `false` as value for this attribute.

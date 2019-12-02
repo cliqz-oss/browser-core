@@ -63,7 +63,7 @@ export default class Promo extends React.Component {
           />
           <span
             onClick={this.onClickCopyCode.bind(this)}
-            className={_css(`${product}-copy-code`)}
+            className={_css('copy-code', `${product}-copy-code`)}
           >
             {buttonText}
           </span>

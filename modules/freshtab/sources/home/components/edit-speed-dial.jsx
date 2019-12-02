@@ -12,7 +12,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import cliqz from '../cliqz';
-import sanitizeUrl from '../services/url-check';
 import t from '../i18n';
 import { favoriteEditSignal, editFormCloseSignal, editFormSubmitSignal } from '../services/telemetry/speed-dial';
 
@@ -51,7 +50,7 @@ export default class EditSpeedDial extends React.Component {
 
   handleEditSubmit = (ev) => {
     ev.preventDefault();
-    const url = sanitizeUrl(this.state.url);
+    const url = this.state.url.trim();
     const title = this.state.title;
 
     if (!url) {
@@ -63,7 +62,7 @@ export default class EditSpeedDial extends React.Component {
       return false;
     }
 
-    this.freshtab.editSpeedDial(this.props.dial, { url, title }).then((resp) => {
+    this.freshtab.editSpeedDial(this.props.dial.url, { url, title }).then((resp) => {
       if (resp.error) {
         this.props.updateModalState(true);
         this.setState({ showError: true, showModal: true });
@@ -78,7 +77,6 @@ export default class EditSpeedDial extends React.Component {
           showModal: false
         });
         editFormSubmitSignal();
-        this.props.updateDial(resp);
       }
     });
 
@@ -150,6 +148,5 @@ EditSpeedDial.propTypes = {
     url: PropTypes.string,
   }),
   removeDial: PropTypes.func,
-  updateDial: PropTypes.func,
   updateModalState: PropTypes.func,
 };

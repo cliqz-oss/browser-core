@@ -12,7 +12,6 @@ module.exports = {
   channel: '04',
   homepageURL: 'https://cliqz.com/',
   freshTabNews: true,
-  showDataCollectionMessage: true,
   suggestions: false,
   HW_CHANNEL: 'ff-amo',
   ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],

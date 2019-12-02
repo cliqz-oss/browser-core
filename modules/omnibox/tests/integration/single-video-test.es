@@ -103,7 +103,7 @@ export default function () {
           .querySelector(`${mainResultSelector} ${resultSelector} ${videoSelector} ${videoViewsSelector}`);
 
         expect($videoViews).to.exist;
-        expect($videoViews).to.contain.text(`${results[0].snippet.extra.rich_data.views} ${'views'}`);
+        expect($videoViews).to.contain.text(`${results[0].snippet.extra.rich_data.expected_views} views`);
       });
 
       it('renders correct domain', async function () {

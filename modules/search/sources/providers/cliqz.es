@@ -6,16 +6,20 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { from, empty, merge } from 'rxjs';
-import { share, map, delay } from 'rxjs/operators';
+import { from } from 'rxjs';
+import { mergeMap } from 'rxjs/operators';
+
 import { fetch } from '../../core/http';
 import prefs from '../../core/prefs';
 import cliqzConfig from '../../core/config';
 import CliqzLanguage from '../../core/language';
-import { isOnionModeFactory } from '../../core/platform';
 import inject from '../../core/kord/inject';
-import BackendProvider from './backend';
+
+import { PROVIDER_CLIQZ, PROVIDER_OFFERS, PROVIDER_SNIPPETS } from '../consts';
+import normalize from '../operators/normalize';
 import { getResponse, getEmptyResponse } from '../responses';
+
+import BackendProvider from './backend';
 import {
   encodeLocale,
   encodePlatform,
@@ -25,11 +29,9 @@ import {
   encodeLocation,
   encodeSessionParams,
 } from './cliqz-helpers';
-import { PROVIDER_CLIQZ, PROVIDER_OFFERS, PROVIDER_SNIPPETS } from '../consts';
 import { QuerySanitizerWithHistory } from './cliqz/query-sanitizer';
 
 const querySanitizer = new QuerySanitizerWithHistory();
-const isOnionMode = isOnionModeFactory(prefs);
 const hpnv2Available = cliqzConfig.modules.indexOf('hpnv2') !== -1;
 
 function getEmptyBackendResponse(query) {
@@ -44,22 +46,18 @@ function getEmptyBackendResponse(query) {
 
 const encodeResultCount = count => `&count=${count || 5}`;
 const encodeQuerySuggestionParam = () => {
-  const suggestionsEnabled = prefs.get('suggestionsEnabled', false)
-    || prefs.get('suggestionChoice', 0) === 1;
+  const suggestionsEnabled = prefs.get('suggestionsEnabled', false) || prefs.get('suggestionChoice', 0) === 1;
 
   return `&suggest=${suggestionsEnabled ? 1 : 0}`;
 };
 
-const getResultsProviderQueryString = (q, {
-  resultOrder,
-  backendCountry,
-  count,
-}) => {
+const getResultsProviderQueryString = (q, { resultOrder, backendCountry, count }) => {
   let numberResults = count || 5;
   if (prefs.get('modules.context-search.enabled', false)) {
     numberResults = 10;
   }
-  return encodeURIComponent(q)
+  return (
+    encodeURIComponent(q)
     + encodeSessionParams()
     + CliqzLanguage.queryString()
     + encodeLocale()
@@ -69,14 +67,11 @@ const getResultsProviderQueryString = (q, {
     + encodeFilter()
     + encodeLocation()
     + encodeResultCount(numberResults)
-    + encodeQuerySuggestionParam();
+    + encodeQuerySuggestionParam()
+  );
 };
 
 const getBackendResults = (originalQuery, config, params = {}) => {
-  if (isOnionMode()) {
-    return Promise.resolve(getEmptyBackendResponse(originalQuery));
-  }
-
   // Run some heuristics to prevent certain patterns like pasted or
   // edited URLs are unintentionally sent to the search. Either block
   // these queries completely, or replace them by a safe subset of the
@@ -87,7 +82,8 @@ const getBackendResults = (originalQuery, config, params = {}) => {
   // entries in private mode.)
   const rememberSafeQueries = !params.isPrivate;
   const q = prefs.get('query-sanitizer', true)
-    ? querySanitizer.sanitize(originalQuery, { rememberSafeQueries }) : originalQuery;
+    ? querySanitizer.sanitize(originalQuery, { rememberSafeQueries })
+    : originalQuery;
 
   if (!q) {
     return Promise.resolve(getEmptyBackendResponse(originalQuery));
@@ -105,7 +101,7 @@ const getBackendResults = (originalQuery, config, params = {}) => {
 
   // if the user sees the results more than 500ms we consider that he starts a new query
   const queryLastDraw = searchSessionService.getQueryLastDraw();
-  if (queryLastDraw && (Date.now() > queryLastDraw + 500)) {
+  if (queryLastDraw && Date.now() > queryLastDraw + 500) {
     searchSessionService.incrementQueryCount();
   }
   searchSessionService.setQueryLastDraw(0);
@@ -115,7 +111,7 @@ const getBackendResults = (originalQuery, config, params = {}) => {
   };
 
   // If private mode or query proxying is enabled, go through hpnv2
-  const fetchHandler = (hpnv2Available && (config.isPrivateMode || prefs.get('hpn-query', false)))
+  const fetchHandler = hpnv2Available && (config.isPrivateMode || prefs.get('hpn-query', false))
     ? (...args) => inject.module('hpnv2').action('search', ...args)
     : fetch;
 
@@ -129,22 +125,20 @@ const getBackendResults = (originalQuery, config, params = {}) => {
         const offerResults = response.results.filter(r => r.template === 'offer');
         const nonOfferResults = response.results.filter(r => r.template !== 'offer');
 
-        response.results = [
-          ...nonOfferResults,
-          ...offerResults,
-        ];
+        response.results = [...nonOfferResults, ...offerResults];
       }
-      if ((response.results && (response.results.length > 0 || !config.settings.suggestions))
-        || (response.offers && response.offers.length > 0)) {
+      if (
+        (response.results && (response.results.length > 0 || !config.settings.suggestions))
+        || (response.offers && response.offers.length > 0)
+      ) {
         return {
           response,
-          query: q
+          query: q,
         };
       }
 
       return { response: getEmptyResponse(this.id, config, q), query: q };
     });
-
 
   return backendPromise;
 };
@@ -174,76 +168,79 @@ export default class Cliqz extends BackendProvider {
       return this.getEmptySearch(config);
     }
 
-    const { providers: {
-      cliqz: { includeSnippets, includeOffers, count, jsonp } = {}
-    } = {} } = config;
+    const {
+      providers: { cliqz: { includeSnippets, includeOffers, count, jsonp } = {} } = {},
+    } = config;
 
-    // TODO: only get at beginning of search session
-    Object.assign(params, {
-      backendCountry: prefs.get('backend_country.override', prefs.get('backend_country', 'de')),
-      count,
-      jsonp,
-    });
-
-    const cliqz$ = from(this.fetch(query, config, params))
-      .pipe(share());
-
-    const results$ = cliqz$
-      .pipe(
-        map(({ results = [], latency, suggestions }) => getResponse({
-          provider: this.id,
-          config,
-          query,
-          suggestions,
-          results: this.mapResults({
-            results,
-            query,
-            provider: null,
-            latency,
-            backendCountry: params.backendCountry,
-          }),
-          state: 'done',
-        })),
-        this.getOperators()
-      );
-
-    // offers are optionally included depending on config;
-    // if included, any consumer of `search` needs to split
-    // the returned stream
-
-    const offersProvider = Object.assign({}, this, { id: PROVIDER_OFFERS });
-    const offers$ = cliqz$
-      .pipe(
-        map(({ offers = [] }) => getResponse({
-          provider: PROVIDER_OFFERS,
-          config,
-          query,
-          results: this.mapResults({ results: offers, query, provider: offersProvider.id }),
-          state: 'done',
-        })),
-        this.getOperators.call(offersProvider, config)
-      );
-
-    const snippetsProvider = Object.assign({}, this, { id: PROVIDER_SNIPPETS });
-    const snippets$ = cliqz$
-      .pipe(
-        map(({ snippets = [] }) => getResponse({
-          provider: PROVIDER_SNIPPETS,
-          config,
-          query,
-          results: this.mapResults({ results: snippets, query, provider: snippetsProvider.id }),
-          state: 'done',
-        })),
-        this.getOperators.call(snippetsProvider, config)
-      );
-
-    return merge(
-      results$,
-      includeOffers ? offers$ : empty(),
-      includeSnippets ? snippets$ : empty(),
-    ).pipe(
-      // TODO: check if this is really needed
-      delay(0)
+    const backendCountry = prefs.get(
+      'backend_country.override',
+      prefs.get('backend_country', 'de'),
     );
+
+    return from(
+      this.fetch(query, config, {
+        ...params,
+        backendCountry,
+        count,
+        jsonp,
+      }).then(({ results = [], offers = [], snippets = [], latency, suggestions = [] }) => {
+        // Always include Cliqz results in `responses`
+        const responses = [
+          getResponse({
+            provider: this.id,
+            config,
+            query,
+            suggestions,
+            results: this.mapResults({
+              results,
+              query,
+              provider: null,
+              latency,
+              backendCountry: params.backendCountry,
+            }).map(normalize),
+            state: 'done',
+          }),
+        ];
+
+        // *Optionally* include Offers results
+        if (includeOffers === true) {
+          // offers are optionally included depending on config;
+          // if included, any consumer of `search` needs to split
+          // the returned stream
+          responses.push(
+            getResponse({
+              provider: PROVIDER_OFFERS,
+              config,
+              query,
+              results: this.mapResults({
+                results: offers,
+                query,
+                provider: PROVIDER_OFFERS,
+              }).map(normalize),
+              state: 'done',
+            }),
+          );
+        }
+
+        // *Optionally* include snippets results
+        if (includeSnippets === true) {
+          responses.push(
+            getResponse({
+              provider: PROVIDER_SNIPPETS,
+              config,
+              query,
+              results: this.mapResults({
+                results: snippets,
+                query,
+                provider: PROVIDER_SNIPPETS,
+              }).map(normalize),
+              state: 'done',
+            }),
+          );
+        }
+
+        return responses;
+      }),
+    ).pipe(mergeMap(responses => from(responses)));
   }
 }

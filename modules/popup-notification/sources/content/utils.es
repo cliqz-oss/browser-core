@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import { getCouponsForm } from './shared-code';
 
-const ALLOWED_PRODUCTS = ['ghostery', 'chip', 'freundin'];
+const ALLOWED_PRODUCTS = ['ghostery', 'chip', 'freundin', 'cliqz', 'amo'];
 
 function createElement(window, { tag, className, textContent, id }) {
   const element = window.document.createElement(tag);

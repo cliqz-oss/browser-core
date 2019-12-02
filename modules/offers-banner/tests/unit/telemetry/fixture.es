@@ -306,9 +306,9 @@ const CURRENT_RESULTS = [{
     },
 },
 {
-  url: 'moz-extension://51f7204d-54a5-4cc4-9b8c-a92c047fe8de/modules/cliqz-history/index.html#/?query=fla',
-  href: 'moz-extension://51f7204d-54a5-4cc4-9b8c-a92c047fe8de/modules/cliqz-history/index.html#/?query=fla',
-  friendlyUrl: 'moz-extension://51f7204d-54a5-4cc4-9b8c-a92c047fe8de/modules/cliqz-history/index.html',
+  url: 'moz-extension://51f7204d-54a5-4cc4-9b8c-a92c047fe8de/modules/history/index.html#/?query=fla',
+  href: 'moz-extension://51f7204d-54a5-4cc4-9b8c-a92c047fe8de/modules/history/index.html#/?query=fla',
+  friendlyUrl: 'moz-extension://51f7204d-54a5-4cc4-9b8c-a92c047fe8de/modules/history/index.html',
   kind: ['history-ui'],
   template: 'sessions',
   text: 'fla',
@@ -320,7 +320,7 @@ const CURRENT_RESULTS = [{
       host: '51f7204d-54a5-4cc4-9b8c-a92c047fe8de',
       hostAndPort: '51f7204d-54a5-4cc4-9b8c-a92c047fe8de',
       port: '',
-      url: 'moz-extension://51f7204d-54a5-4cc4-9b8c-a92c047fe8de/modules/cliqz-history/index.html#/?query=fla',
+      url: 'moz-extension://51f7204d-54a5-4cc4-9b8c-a92c047fe8de/modules/history/index.html#/?query=fla',
       subType: {},
       completion: '',
       logo:

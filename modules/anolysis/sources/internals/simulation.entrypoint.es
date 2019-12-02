@@ -47,10 +47,6 @@ app.post('/', async (req, res) => {
     if (!clients.has(uid)) {
       // log('Create new client', uid, `(total: ${clients.size})`);
       client = new Anolysis(await createConfig({
-        // TODO - temporary, this will need to be removed in the future. For
-        // now, we send the session with Anolysis signals.
-        session: uid,
-
         // Use local server
         'backend.url': 'http://localhost:8342',
         useStaging: true,

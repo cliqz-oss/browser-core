@@ -45,14 +45,6 @@ export function enableChangeEvents() {}
 
 export function disableChangeEvents() {}
 
-export function waitWindowReady() {
-  return Promise.resolve();
-}
-
-export function mustLoadWindow() {
-  return true;
-}
-
 export function addWindowObserver() {
 }
 
@@ -71,10 +63,6 @@ export function addMigrationObserver() {
 export function removeMigrationObserver() {
 }
 
-export function mapWindows() {
-  return [];
-}
-
 export function getLocale() {
   return LocaleConstants ? LocaleConstants.lang : formattedLocale();
 }
@@ -91,14 +79,6 @@ export function getBrowserMajorVersion() {
 
 export function getCookies() {
   return Promise.reject(new Error('Not implemented'));
-}
-
-export class Window {
-  static _window = {};
-
-  static findByTabId() {
-    return this._window;
-  }
 }
 
 export function isDefaultBrowser() {

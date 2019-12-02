@@ -95,11 +95,17 @@
     "mobile_history_card_title": {
         "message": "Historique des résultats"
     },
+    "mobile_local_card_call": {
+      "message": "Appeler"
+    },
     "mobile_more_results_title": {
         "message": "Pas satisfait·e par les résultats ?"
     },
     "mobile_no_result_title": {
         "message": "Vous n'avez pas de résultat adéquat pour cette recherche."
+    },
+    "mobile_share_location": {
+      "message": "Montrer les informations locales"
     },
     "mobile_soccer_subscribe": {
         "message": "S'abonner"

@@ -14,7 +14,6 @@ import freshtabSignalDefinitions from './metrics/freshtab';
 import mobileSignalDefinitions from './metrics/mobile/favorites-migration-folders';
 import cookieMonsterDefinitions from './metrics/cookie-monster';
 import searchSignalDefinitions from './metrics/search';
-import experimentsSignalDefinitions from './metrics/experiments';
 import controlCenterSignalDefinitions from './metrics/control-center-interactions';
 import abtestsSignalDefinition from './metrics/abtests';
 import historyVisitsSignalDefinitions from './metrics/history-visits';
@@ -29,6 +28,7 @@ import resourceLoadersPerformanceMetrics from './metrics/performance/resource-lo
 import adblockerMetrics from './metrics/adblocker';
 import legacyMetrics from './metrics/legacy';
 import legacyCCMetrics from './metrics/legacy-control-center';
+import autoconsentMetrics from './metrics/autoconsent';
 
 // Analyses
 import freshtabActivity from './analyses/freshtab-activity';
@@ -41,8 +41,6 @@ import newsSnippets from './analyses/news-snippets';
 import cookieMonsterPerf from './analyses/cookie-monster';
 import searchSchemas from './analyses/search';
 import dropdownSchemas from './analyses/experiments/dropdown';
-import serpSchemas from './analyses/experiments/serp';
-import serpAlternativeSchemas from './analyses/experiments/serp-alternative';
 import controlCenter from './analyses/control-center-interactions';
 import mobile from './analyses/mobile/favorites-migration-folders';
 import newsSearchSchemas from './analyses/news-search';
@@ -53,6 +51,7 @@ import antitrackingTokenAnalyses from './analyses/performance/antitracking-token
 import consentric from './analyses/consentric';
 import legacyControlCenter from './analyses/legacy-control-center';
 import legacyNavigation from './analyses/navigations';
+import autoconsentOnboarding from './analyses/autoconsent';
 
 /**
  * This file is used to list all available metrics and analyses in use by
@@ -72,7 +71,6 @@ const metrics = () => [
   ...mobileSignalDefinitions,
   ...cookieMonsterDefinitions,
   ...searchSignalDefinitions(),
-  ...experimentsSignalDefinitions,
   ...historyVisitsSignalDefinitions,
   ...internalAnolysisMetrics,
   ...coreMetrics,
@@ -85,6 +83,7 @@ const metrics = () => [
   resourceLoadersPerformanceMetrics,
   ...legacyMetrics,
   ...legacyCCMetrics,
+  ...autoconsentMetrics,
 ].map(schema => ({
   ...schema,
   description: schema.description || 'missing description',
@@ -105,8 +104,6 @@ const analyses = () => [
   cookieMonsterPerf,
   ...searchSchemas(),
   ...dropdownSchemas,
-  ...serpSchemas(),
-  ...serpAlternativeSchemas,
   ...newsSearchSchemas(),
   ...historyVisitsSchemas,
   webrequestPipelinePerformances,
@@ -115,6 +112,7 @@ const analyses = () => [
   ...consentric(),
   ...legacyControlCenter,
   legacyNavigation,
+  autoconsentOnboarding,
 ].map(schema => ({
   ...schema,
   description: schema.description || 'missing description',

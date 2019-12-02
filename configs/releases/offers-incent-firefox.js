@@ -22,6 +22,6 @@ module.exports = Object.assign({}, configBase, {
   }),
   versionPrefix: '16',
   specific: 'offers',
-  OFFERS_PRODUCT_PREFIX: 'incent',
-  OFFERS_PRODUCT_TITLE: 'Incent Offers',
+  PRODUCT_PREFIX: 'incent',
+  PRODUCT_TITLE: 'Incent Offers',
 });

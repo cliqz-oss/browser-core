@@ -41,7 +41,7 @@ function otherSettingsTests(amo) {
     });
 
     it('renders title', function () {
-      const titleSelector = '#othersettings .header .title [data-i18n="control_center_othersettings"]';
+      const titleSelector = '#othersettings .header .title span';
       expect(subject.query(titleSelector)).to.exist;
       expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_othersettings');
     });
@@ -51,48 +51,47 @@ function otherSettingsTests(amo) {
     });
 
     it('renders "Support"', function () {
-      const supportSelector = '#othersettings .title #support [data-i18n="control_center_support"]';
+      const supportSelector = '#othersettings .title #support span.support';
       expect(subject.query(supportSelector)).to.exist;
       expect(subject.query(supportSelector).textContent.trim()).to.equal('control_center_support');
     });
 
     it('url for Support is correct', function () {
-      const supportSelector = '#othersettings .title #support [data-i18n="control_center_support"]';
-      expect(subject.query(supportSelector).hasAttribute('data-open-url')).to.be.true;
-      expect(subject.query(supportSelector).getAttribute('data-open-url')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
+      const supportSelector = '#othersettings .title #support span.support';
+      expect(subject.query(supportSelector).getAttribute('target')).to.equal('https://cliqz.com/feedback/1.19.0.dev-40');
     });
 
     it('renders "privacy"', function () {
-      const privacySelector = '#othersettings .title #support [data-i18n="control_center_privacy_policy"]';
+      const privacySelector = '#othersettings .title #support span.privacy';
       expect(subject.query(privacySelector)).to.exist;
       expect(subject.query(privacySelector).textContent.trim()).to.equal('control_center_privacy_policy');
     });
 
     it('url for privacy is correct', function () {
-      const privacySelector = '#othersettings .title #support [data-i18n="control_center_privacy_policy"]';
-      expect(subject.query(privacySelector).hasAttribute('data-open-url')).to.be.true;
-      expect(subject.query(privacySelector).getAttribute('data-open-url')).to.equal('privacy_policy_url');
+      const privacySelector = '#othersettings .title #support span.privacy';
+      expect(subject.query(privacySelector).hasAttribute('target')).to.be.true;
+      expect(subject.query(privacySelector).getAttribute('target')).to.equal('privacy_policy_url');
     });
 
     it('renders "Search options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control_center_searchoptions"]';
+      const titleSelector = '#othersettings .accordion .accordion-section-title.search span';
       expect(subject.query(titleSelector)).to.exist;
       expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_searchoptions');
     });
 
     it('renders arrow for search options', function () {
-      const arrowSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] #arrow';
+      const arrowSelector = '#othersettings .accordion .accordion-section-title.search #arrow';
       expect(subject.query(arrowSelector)).to.exist;
     });
 
     it('renders "MyOffrz options"', function () {
-      const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] [data-i18n="control_center_offers_options"]';
+      const titleSelector = '#othersettings .accordion .accordion-section-title[data-target="offrz"] span';
       expect(subject.query(titleSelector)).to.exist;
       expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_offers_options');
     });
 
     it('renders arrow for myoffrz options', function () {
-      const arrowSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-4"] #arrow';
+      const arrowSelector = '#othersettings .accordion .accordion-section-title[data-target="offrz"] #arrow';
       expect(subject.query(arrowSelector)).to.exist;
     });
   });

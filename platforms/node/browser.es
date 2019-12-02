@@ -27,9 +27,6 @@ export function enableChangeEvents() {}
 
 export function disableChangeEvents() {}
 
-export function waitWindowReady() {
-}
-
 export function setOurOwnPrefs() {
 }
 
@@ -49,10 +46,6 @@ export function addMigrationObserver() {
 }
 
 export function removeMigrationObserver() {
-}
-
-export function mapWindows() {
-  return [];
 }
 
 export function getLocale() {

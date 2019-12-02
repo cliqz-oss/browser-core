@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 const { JSDOM } = require('jsdom');
 
 export default describeModule('offers-v2/content/profile/serp',

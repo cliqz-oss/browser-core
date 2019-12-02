@@ -1,4 +1,4 @@
-/* global document, window, $, Handlebars */
+/* global $, Handlebars */
 
 import { chrome } from '../platform/content/globals';
 import { sendMessageToWindow } from './content/data';
@@ -30,9 +30,8 @@ function localizeDocument() {
   Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {
     const elArgs = el.dataset.i18n.split(',');
     const key = elArgs.shift();
-    /* eslint-disable */
+    // eslint-disable-next-line no-param-reassign
     el.innerHTML = chrome.i18n.getMessage(key, elArgs);
-    /* eslint-enable */
   });
 }
 
@@ -154,6 +153,11 @@ function draw(data) {
   });
 
   localizeDocument();
+
+  sendMessageToWindow({
+    handler: 'show',
+    data: { height: 115 }, // should be static, see plz offers-banner/sites-specific.js
+  });
 }
 
 window.draw = draw;

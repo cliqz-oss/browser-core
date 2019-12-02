@@ -6,11 +6,24 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
+import events from '../core/events';
 import App from '../core/app';
 import config from '../core/config';
+import sleep from '../core/helpers/sleep';
 
 const CLIQZ = {};
+
+async function onboarding(details) {
+  if (details.reason === 'install' && config.settings.channel !== '99'
+    && config.settings.SHOW_ONBOARDING_OVERLAY) {
+    await CLIQZ.app.ready();
+    chrome.tabs.create({}, async ({ id }) => {
+      await sleep(2000);
+      events.pub('lifecycle:onboarding', { tabId: id });
+    });
+  }
+}
+
 CLIQZ.app = new App({
   version: chrome.runtime.getManifest().version
 });
@@ -20,6 +33,7 @@ CLIQZ.app.start();
 
 window.addEventListener('unload', () => {
   CLIQZ.app.stop();
+  chrome.runtime.onInstalled.removeListener(onboarding);
 });
 
 const offboardingUrls = config.settings.offboardingURLs;
@@ -30,3 +44,5 @@ if (offboardingUrls && offboardingUrls.en) {
   const offboardingUrl = offboardingUrls[locale] || offboardingUrls.en;
   chrome.runtime.setUninstallURL(offboardingUrl);
 }
+
+chrome.runtime.onInstalled.addListener(onboarding);

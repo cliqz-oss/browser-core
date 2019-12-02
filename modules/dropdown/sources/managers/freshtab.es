@@ -13,6 +13,12 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     super();
     this.view = view;
     this.cliqz = cliqz;
+    document.addEventListener('visibilitychange', this.onBlur);
+  }
+
+  unload() {
+    document.removeEventListener('visibilitychange', this.onBlur);
+    super.unload();
   }
 
   get textInput() {

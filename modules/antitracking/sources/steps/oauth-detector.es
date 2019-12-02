@@ -38,7 +38,7 @@ function objectStreamToMap(observable, keyExtractor, valueExtractor) {
   return observable
     .pipe(
       map(value => state =>
-        Object.assign({}, state, { [keyExtractor(value)]: valueExtractor(value) }))
+        ({ ...state, [keyExtractor(value)]: valueExtractor(value) }))
     );
 }
 
@@ -53,7 +53,7 @@ function deleteMapEntriesFromStream(observable, keyExtractor) {
   return observable
     .pipe(
       map(value => (state) => {
-        const nextState = Object.assign({}, state);
+        const nextState = { ...state };
         delete nextState[keyExtractor(value)];
         return nextState;
       })

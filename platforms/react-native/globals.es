@@ -6,6 +6,5 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global global */
 /* eslint-disable import/prefer-default-export */
 export const chrome = global.chrome;

@@ -16,7 +16,6 @@ Each module:
 * should pass automatic code style guide check,
 * can use `sass` for stylesheet compilation,
 * can use `handlebars` for templates compilation,
-* can use `browserify` to include node module,
 * should not call platform dependent APIs in UI,
 * should provide unit tests that will run in full isolation on `nodejs`,
 * having UI, should provide UI tests called "content tests" that run in Chrome.

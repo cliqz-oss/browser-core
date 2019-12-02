@@ -20,9 +20,11 @@ const getDuplicateLinks = (target, reference) => {
     .filter(({ meta: { url } }) => urls.has(url));
 };
 
-const hasMainLink = ({ links }) => links
-  .slice(0, 1)
-  .some(({ meta: { type } }) => type === 'main');
+const hasMainLink = ({ links }) => (
+  (links === undefined || links.length === 0)
+    ? false
+    : links[0].meta.type === 'main'
+);
 
 const convertMainLinkToHistorySubLink = link => ({
   ...link,

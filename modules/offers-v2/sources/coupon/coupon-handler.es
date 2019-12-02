@@ -1,3 +1,4 @@
+import { isCliqzBrowser, isAMO } from '../../core/platform';
 import config from '../../core/config';
 import { getGeneralDomain } from '../../core/tlds';
 import Offer from '../offers/offer';
@@ -171,6 +172,8 @@ export default class CouponHandler {
         chip: config.settings.OFFERS_BRAND === 'chip',
         freundin: config.settings.OFFERS_BRAND === 'freundin',
         incent: config.settings.OFFERS_BRAND === 'incent',
+        cliqz: isCliqzBrowser,
+        amo: isAMO,
       },
       key: getGeneralDomain(url),
       url,

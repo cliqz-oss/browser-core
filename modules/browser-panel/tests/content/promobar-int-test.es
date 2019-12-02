@@ -59,9 +59,9 @@ describe('Promo bar interactions', function () {
         $domItem.click();
 
         if (element.isClickable === false) {
-          msgCount = 2;
+          msgCount = 3;
         } else {
-          msgCount = 4;
+          msgCount = 5;
         }
 
         return waitFor(function () {
@@ -89,7 +89,7 @@ describe('Promo bar interactions', function () {
     beforeEach(function () {
       $domItem = subject.query(selector);
       $domItem.click();
-      msgCount = 2;
+      msgCount = 3;
 
       return waitFor(function () {
         return subject.messages.length === msgCount;
@@ -163,7 +163,7 @@ describe('Promo bar interactions', function () {
     beforeEach(function () {
       $promoCloseBtn = $promoContainer.querySelector(promoCloseBtnSelector);
       $promoCloseBtn.click();
-      msgCount = 3;
+      msgCount = 4;
 
       return waitFor(function () {
         return subject.messages.length === msgCount;

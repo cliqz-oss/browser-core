@@ -71,6 +71,7 @@ export default function SpeedDialModal({
           <Button
             className="close-form"
             onClick={handleCloseModal}
+            tabIndex="0"
           />
           <div className="modal-header">
             {modalHeader}
@@ -121,6 +122,7 @@ export default function SpeedDialModal({
                     label={t('app_speed_dial_delete')}
                     onClick={handleDeleteClick}
                     onKeyPress={handleDeleteKeyPress}
+                    tabIndex="0"
                   />
                 )}
             </div>

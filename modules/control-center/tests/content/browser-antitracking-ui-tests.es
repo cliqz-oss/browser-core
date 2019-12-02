@@ -35,21 +35,17 @@ function antitrackingUiTests(amo) {
 
       it('renders cliqz logo', function () {
         expect(subject.query('#header .pause img')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .pause img')).display).to.not.equal('none');
         expect(subject.query('#header .pause img').getAttribute('src')).to.equal('./images/cliqz.svg');
       });
 
       it('renders "Your data is protected"', function () {
-        expect(subject.query('#header .title [data-i18n="control_center_txt_header"]')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header"]')).display).to.not.equal('none');
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="inactive"]')).display).to.equal('none');
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="critical"]')).display).to.equal('none');
-        expect(subject.query('#header .title [data-i18n="control_center_txt_header"]').textContent.trim()).to.equal('control_center_txt_header');
+        expect(subject.query('#header .title #noWarning')).to.exist;
+        expect(subject.query('#header .title #warning')).to.not.exist;
+        expect(subject.query('#header .title #noWarning').textContent.trim()).to.equal('control_center_txt_header');
       });
 
       it('doesn\'t render warning icon', function () {
-        expect(subject.query('#header .title img')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .title img')).display).to.equal('none');
+        expect(subject.query('#header .title img')).to.not.exist;
       });
     });
   }
@@ -64,12 +60,12 @@ function antitrackingUiTests(amo) {
     });
 
     it('renders title', function () {
-      expect(subject.query('#anti-tracking .title span[data-start-navigation=""]')).to.exist;
-      expect(subject.query('#anti-tracking .title span[data-start-navigation=""]').textContent.trim()).to.equal('Anti-Tracking');
+      expect(subject.query('#anti-tracking .title span.hover-highlighted')).to.exist;
+      expect(subject.query('#anti-tracking .title span.hover-highlighted').textContent.trim()).to.equal('Anti-Tracking');
     });
 
     it('renders arrow', function () {
-      expect(subject.query('#anti-tracking .title #smallarrow')).to.exist;
+      expect(subject.query('#anti-tracking .title .arrow')).to.exist;
     });
 
     it('renders switch', function () {
@@ -98,38 +94,23 @@ function antitrackingUiTests(amo) {
     });
 
     it('renders "ON"', function () {
-      expect(subject.query('#anti-tracking .switches [data-i18n="control_center_switch_on"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-i18n="control_center_switch_on"]')).display).to.not.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control_center_switch_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control_center_switch_off"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control_center_switch_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control_center_switch_off"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-i18n="control_center_switch_on"]').textContent.trim()).to.equal('control_center_switch_on');
+      expect(subject.query('#anti-tracking .switches [value="on"]')).to.exist;
+      expect(subject.query('#anti-tracking .switches [value="off"]')).to.not.exist;
+      expect(subject.query('#anti-tracking .switches [value="on"]').textContent.trim()).to.equal('control_center_switch_on');
     });
 
     it('renders text about private points', function () {
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control_center_datapoints"]')).to.exist;
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control_center_datapoints_inactive"]')).to.exist;
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control_center_datapoints_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control_center_datapoints"]')).display).to.not.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control_center_datapoints_inactive"]')).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control_center_datapoints_off"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control_center_datapoints"]').textContent.trim()).to.equal('control_center_datapoints');
+      expect(subject.query('#anti-tracking .row-text .description')).to.exist;
+      expect(subject.query('#anti-tracking .row-text .description').textContent.trim()).to.equal('control_center_datapoints');
     });
 
     it('dropdown is invisible', function () {
-      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .dropdown-btn')).display).to.equal('none');
+      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn')).to.not.exist;
     });
 
     it('renders correct amount of data points', function () {
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).to.exist;
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).to.exist;
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).display).to.not.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]').textContent.trim()).to.equal(dataOn.module.antitracking.totalCount.toString());
+      expect(subject.query('#anti-tracking #antitracker-counter #count span')).to.exist;
+      expect(subject.query('#anti-tracking #antitracker-counter #count span').textContent.trim()).to.equal(dataOn.module.antitracking.totalCount.toString());
     });
   });
 
@@ -155,15 +136,13 @@ function antitrackingUiTests(amo) {
 
       it('renders header with the correct text', function () {
         expect(subject.query('#header .title')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header"]')).display).to.equal('none');
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="critical"]')).display).to.equal('none');
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="inactive"]')).display).to.not.equal('none');
-        expect(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="inactive"]').textContent.trim()).to.equal('control_center_txt_header_not');
+        expect(subject.query('#header .title #warning')).to.exist;
+        expect(subject.query('#header .title #noWarning')).to.not.exist;
+        expect(subject.query('#header .title #warning').textContent.trim()).to.equal('control_center_txt_header_not');
       });
 
       it('renders warning icon', function () {
         expect(subject.query('#header .title img')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .title img')).display).to.not.equal('none');
         expect(subject.query('#header .title img').getAttribute('src')).to.equal('./images/alert-privacy.svg');
       });
     });
@@ -175,41 +154,24 @@ function antitrackingUiTests(amo) {
     });
 
     it('renders "OFF"', function () {
-      expect(subject.query('#anti-tracking .switches [data-i18n="control_center_switch_on"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-i18n="control_center_switch_on"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control_center_switch_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control_center_switch_off"]')).display).to.not.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control_center_switch_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control_center_switch_off"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control_center_switch_off"]').textContent.trim()).to.equal('control_center_switch_off');
+      expect(subject.query('#anti-tracking .switches [value="off"]')).to.exist;
+      expect(subject.query('#anti-tracking .switches [value="on"]')).to.not.exist;
+      expect(subject.query('#anti-tracking .switches [value="off"]').textContent.trim()).to.equal('control_center_switch_off');
     });
 
     it('renders "Turned off for this domain"', function () {
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control_center_datapoints"]')).to.exist;
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control_center_datapoints_inactive"]')).to.exist;
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control_center_datapoints_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control_center_datapoints"]')).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control_center_datapoints_inactive"]')).display).to.not.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control_center_datapoints_off"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control_center_datapoints_inactive"]').textContent.trim()).to.equal('control_center_datapoints_inactive');
+      expect(subject.query('#anti-tracking .row-text .description')).to.exist;
+      expect(subject.query('#anti-tracking .row-text .description').textContent.trim()).to.equal('control_center_datapoints_inactive');
     });
 
     it('renders dropdown with "This domain"', function () {
-      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]')).display).to.not.equal('none');
-      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]').textContent.trim()).to.equal('control_center_this_domain');
+      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn .dropdown-content-option-text')).to.exist;
+      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn .dropdown-content-option-text').textContent.trim()).to.equal('control_center_this_domain');
     });
 
     it('renders correct amount of data points', function () {
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).to.exist;
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).to.exist;
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).display).to.not.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]').textContent.trim()).to.equal('0');
+      expect(subject.query('#anti-tracking #antitracker-counter #count span')).to.exist;
+      expect(subject.query('#anti-tracking #antitracker-counter #count span').textContent.trim()).to.equal('0');
     });
   });
 
@@ -235,15 +197,13 @@ function antitrackingUiTests(amo) {
 
       it('renders header with the correct text', function () {
         expect(subject.query('#header .title')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header"]')).display).to.equal('none');
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="inactive"]')).display).to.equal('none');
-        expect(subject.getComputedStyle(subject.query('#header .title [data-i18n="control_center_txt_header_not"][data-visible-on-state="critical"]')).display).to.not.equal('none');
-        expect(subject.query('#header .title [data-i18n="control_center_txt_header_not"]').textContent.trim()).to.equal('control_center_txt_header_not');
+        expect(subject.query('#header .title #warning')).to.exist;
+        expect(subject.query('#header .title #noWarning')).to.not.exist;
+        expect(subject.query('#header .title #warning').textContent.trim()).to.equal('control_center_txt_header_not');
       });
 
       it('renders warning icon', function () {
         expect(subject.query('#header .title img')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#header .title img')).display).to.not.equal('none');
         expect(subject.query('#header .title img').getAttribute('src')).to.equal('./images/alert-privacy.svg');
       });
     });
@@ -255,41 +215,24 @@ function antitrackingUiTests(amo) {
     });
 
     it('renders "OFF"', function () {
-      expect(subject.query('#anti-tracking .switches [data-i18n="control_center_switch_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-i18n="control_center_switch_on"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control_center_switch_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control_center_switch_off"]')).display).to.not.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control_center_switch_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .switches [data-visible-on-state="inactive"][data-i18n="control_center_switch_off"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .switches [data-visible-on-state="critical"][data-i18n="control_center_switch_off"]').textContent.trim()).to.equal('control_center_switch_off');
+      expect(subject.query('#anti-tracking .switches [value="off"]')).to.exist;
+      expect(subject.query('#anti-tracking .switches [value="on"]')).to.not.exist;
+      expect(subject.query('#anti-tracking .switches [value="off"]').textContent.trim()).to.equal('control_center_switch_off');
     });
 
     it('renders "Turned off for all websites"', function () {
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control_center_datapoints"]')).to.exist;
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control_center_datapoints_inactive"]')).to.exist;
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control_center_datapoints_off"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="active"][data-i18n="control_center_datapoints"]')).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control_center_datapoints_inactive"]')).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .row-text [data-visible-on-state="critical"][data-i18n="control_center_datapoints_off"]')).display).to.not.equal('none');
-      expect(subject.query('#anti-tracking .row-text [data-visible-on-state="inactive"][data-i18n="control_center_datapoints_inactive"]').textContent.trim()).to.equal('control_center_datapoints_inactive');
+      expect(subject.query('#anti-tracking .row-text .description')).to.exist;
+      expect(subject.query('#anti-tracking .row-text .description').textContent.trim()).to.equal('control_center_datapoints_off');
     });
 
     it('renders dropdown with "All websites"', function () {
-      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="inactive"][data-i18n="control_center_this_domain"]')).display).to.equal('none');
-      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]')).display).to.not.equal('none');
-      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn [data-visible-on-state="critical"][data-i18n="control_center_all_sites"]').textContent.trim()).to.equal('control_center_all_sites');
+      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn .dropdown-content-option-text')).to.exist;
+      expect(subject.query('#anti-tracking .new-dropdown .dropdown-btn .dropdown-content-option-text').textContent.trim()).to.equal('control_center_all_sites');
     });
 
     it('renders correct amount of data points', function () {
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).to.exist;
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).to.exist;
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).to.exist;
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="active"]')).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="inactive"]')).display).to.equal('none');
-      expect(subject.getComputedStyle(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]')).display).to.not.equal('none');
-      expect(subject.query('#anti-tracking #antitracker-counter #count [data-visible-on-state="critical"]').textContent.trim()).to.equal('0');
+      expect(subject.query('#anti-tracking #antitracker-counter #count span')).to.exist;
+      expect(subject.query('#anti-tracking #antitracker-counter #count span').textContent.trim()).to.equal('0');
     });
   });
 }

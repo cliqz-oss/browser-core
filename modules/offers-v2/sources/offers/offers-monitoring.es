@@ -18,6 +18,8 @@
  */
 
 import moment from '../../platform/lib/moment';
+import { window } from '../../platform/globals';
+import { throttle } from '../../core/decorators';
 import logger from '../common/offers_v2_logger';
 import MonitorDBHandler from './monitor/monitor-db';
 import { buildMultiPatternIndexPatternAsID } from '../common/pattern-utils';
@@ -92,7 +94,7 @@ const selectActiveMonitors = (activeMonitors) => {
       return mit;
     }
 
-    const repMonitor = Object.assign({}, mit);
+    const repMonitor = { ...mit };
     repMonitor.signalID = `repeated_${mit.signalID}`;
     return repMonitor;
   });
@@ -158,6 +160,11 @@ export default class OffersMonitorHandler {
     // Register for webrequests
     this.webRequestCallback = this.webRequestCallback.bind(this);
 
+    this._getOffersAndRebuildMonitorsThrottle = throttle(
+      window,
+      () => this._getOffersAndRebuildMonitors(),
+      1000
+    );
     // Rebuild monitors. Only now, after `this` is bound.
     this._getOffersAndRebuildMonitors();
   }
@@ -228,11 +235,10 @@ export default class OffersMonitorHandler {
     const activeOffer = selectActiveMonitors(couponsMonitors)[0];
     const couponInfo = JSON.parse(JSON.stringify(activeOffer.couponInfo)); // deep copy
     couponInfo.pattern = activeOffer.patterns[0];
-    const pastDay = moment() - 24 * 60 * 60 * 1000;
+    const recentInteractionCutoff = moment() - 48 * 60 * 60 * 1000;
     const autoFillField = couponInfo.autoFillField
-      && (activeOffer.click > pastDay || activeOffer.view > pastDay);
+      && (activeOffer.click > recentInteractionCutoff);
     couponInfo.autoFillField = autoFillField;
-    logger.log('shouldActivateOfferForUrl: autoFillField:', autoFillField, ' for:', JSON.stringify(activeOffer));
     return {
       offerID: activeOffer.offerID,
       offerInfo: couponInfo,
@@ -504,6 +510,6 @@ export default class OffersMonitorHandler {
     // this is definitely excessive and probably expensive
     // still we would need to change a lot of messages to update all of them
     // with the missing information
-    this._getOffersAndRebuildMonitors();
+    this._getOffersAndRebuildMonitorsThrottle();
   }
 }

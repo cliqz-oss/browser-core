@@ -1,65 +1,127 @@
-# repository admins
-* @luciancor @chrmod @dominik-s @giota-cliqz @private-face
+# Please keep lists of modules and files sorted!
 
-/configs/ @luciancor
+# CONFIGS - Commons (default)
+/configs/ @private-face @sammacbeth @remusao @philipp-classen
 
-# please keep module list sorted
-/modules/**/tests/*.es @marta-cliqz @tamara-cliqz
-/modules/**/tests/content/ @marta-cliqz @tamara-cliqz
-/modules/**/tests/integration/ @marta-cliqz @tamara-cliqz
-/modules/adblocker/ @remusao @zhonghao-cliqz
+# CONFIGS - Mobile
+/configs/base/mobile-cards.js @chrmod
+/configs/ci/cliqz-ios.js @chrmod
+/configs/ci/mobile-cards.js @chrmod
+/configs/cliqz-android.js @chrmod
+/configs/cliqz-ios.js @chrmod
+/configs/common/urls-lumen.js @chrmod
+/configs/experiments/cliqzs.json @chrmod @sammacbeth
+/configs/ghostery-android-privacy.js @chrmod
+/configs/ghostery-android-search.js @chrmod
+/configs/ghostery-ios.js @chrmod
+/configs/instant-search.js @chrmod
+/configs/lumen-ios.js @chrmod
+
+# CONFIGS - MyOffrz
+/configs/offers-* @luciancor
+/configs/ci/offers-* @luciancor
+/configs/ci/offers-infrastructure-tests.js @luciancor
+/configs/ci/offers.js @luciancor
+/configs/common/urls-myoffrz.js @luciancor
+/configs/offers.js @luciancor
+/configs/releases/offers-chip-chrome.js @luciancor
+/configs/releases/offers-chip-firefox.js @luciancor
+/configs/releases/offers-chrome.js @luciancor
+/configs/releases/offers-edge.js @luciancor
+/configs/releases/offers-firefox.js @luciancor
+/configs/releases/offers-freundin-firefox.js @luciancor
+/configs/releases/offers-incent-firefox.js @luciancor
+
+# MODULES - Commons (default)
+/modules/ @private-face @sammacbeth @remusao @philipp-classen
+/modules/abtests-legacy/ @dominiks-cliqz @remusao
+/modules/adblocker/ @remusao
+/modules/anolysis-cc/ @remusao
+/modules/anolysis-remote/ @chrmod
 /modules/anolysis/ @remusao
 /modules/anti-phishing/ @zhonghao-cliqz
+/modules/antispy/ @sammacbeth
 /modules/antitracking/ @sammacbeth @zhonghao-cliqz @remusao
-/modules/autocomplete/ @dominik-s @luciancor
-/modules/browser-panel/ @luciancor @giota-cliqz
-/modules/context-search/ @alexandra-cliqz
-/modules/control-center/ @mai-cliqz @giota-cliqz
-/modules/core/ @chrmod @luciancor
-/modules/dropdown/ @chrmod @giota-cliqz
-/modules/freshtab/ @giota-cliqz @chrmod
+/modules/content-script-tests/ @remusao
+/modules/context-search/ @alexandra-cliqz # TODO
+/modules/control-center/ @tsl143
+/modules/cookie-monster/ @sammacbeth
+/modules/core-cliqz/ @private-face @remusao @chrmod @luciancor
+/modules/core/ @private-face @remusao @chrmod @luciancor
+/modules/dropdown-tests/ @private-face
+/modules/dropdown/ @private-face @chrmod
+/modules/freshtab/ @private-face @tsl143
 /modules/geolocation/ @chrmod
-/modules/green-ads/ @remusao
-/modules/history/ @chrmod
+/modules/history-search/ @mai-cliqz
+/modules/history/ @private-face @aleksei-cliqz
 /modules/hpnv2/ @philipp-classen @konark-cliqz
-/modules/https-everywhere/ @luciancor
-/modules/human-web/ @konark-cliqz @philipp-classen
-/modules/integration-tests/ @remusao @zhonghao-cliqz @chrmod @marta-cliqz @tamara-cliqz @sammacbeth
-/modules/mobile-cards/ @khaled-cliqz
-/modules/mobile-dev/ @khaled-cliqz
-/modules/mobile-history/ @khaled-cliqz
-/modules/mobile-ui/ @khaled-cliqz
+/modules/https-everywhere/ @private-face @luciancor
+/modules/human-web/ @philipp-classen @konark-cliqz
+/modules/insights/ @sammacbeth
+/modules/integration-tests/ @remusao @zhonghao-cliqz @chrmod @sammacbeth
+/modules/inter-ext-messaging/ @sammacbeth
+/modules/message-center/ @private-face
 /modules/notifications/ @chrmod
-/modules/offboarding/ @luciancor
-/modules/offers-banner/ @aleksandr-cliqz
-/modules/offers-cc/ @aleksandr-cliqz @gabriel-cliqz @giota-cliqz @mai-cliqz
-/modules/offers-v2/ @zhonghao-cliqz @eleniS @aleksandr-cliqz @olpa-cliqz
+/modules/omnibox/ @private-face
 /modules/onboarding-v3/ @mai-cliqz @luciancor
+/modules/onboarding-v4/ @private-face
+/modules/overlay/ @private-face
 /modules/p2p/ @philipp-classen
 /modules/pairing/ @philipp-classen
-/modules/popup-notification/ @aleksandr-cliqz @olpa-cliqz
 /modules/privacy-dashboard/ @private-face
+/modules/privacy-migration/ @sammacbeth
 /modules/privacy/ @ecnmst
-/modules/search/ @dominik-s @chrmod @private-face
+/modules/search/ @dominiks-cliqz @chrmod @private-face
+/modules/telemetry/ @dominiks-cliqz @remusao
 /modules/theme/ @gabriel-cliqz @mai-cliqz
+/modules/toolbox/ @tsl143 @private-face
 /modules/video-downloader/ @mai-cliqz
+/modules/webextension-specific/ @private-face
 /modules/webrequest-pipeline/ @remusao @zhonghao-cliqz
 
-/platforms/ @chrmod
-/platforms/firefox/ @chrmod @luciancor
-/platforms/react-native/ @sammacbeth @chrmod
+# MODULES - Mobile
+/modules/cliqz-android/ @chrmod
+/modules/mobile-cards-vertical/ @chrmod
+/modules/mobile-cards/ @chrmod
+/modules/mobile-pairing/ @chrmod
+/modules/mobile-ui/ @chrmod
+
+# MODULES - MyOffrz
+/modules/browser-panel/ @luciancor @giota-cliqz
+/modules/myoffrz-helper/ @olpa-cliqz @aleksandr-cliqz
+/modules/offers-banner/ @aleksandr-cliqz
+/modules/offers-cc/ @aleksandr-cliqz @gabriel-cliqz @giota-cliqz @mai-cliqz
+/modules/offers-reminder/ @aleksandr-cliqz @olpa-cliqz
+/modules/offers-v2/ @eleniS @aleksandr-cliqz @olpa-cliqz
+/modules/popup-notification/ @aleksandr-cliqz @olpa-cliqz
+
+# PLATFORMS
+/platforms/ @private-face @sammacbeth @remusao @philipp-classen
 /platforms/node/ @chrmod @sammacbeth
-/platforms/chromium/ @private-face @chrmod
-/platforms/mobile/ @khaled-cliqz
+/platforms/react-native/ @sammacbeth @chrmod
+/platforms/web/ @chrmod
+/platforms/webextension/ @private-face @chrmod @sammacbeth @remusao
 
-/specific/ @luciancor @chrmod
-/specific/mobile/ @khaled-cliqz @chrmod
-/specific/react-native/ @sammacbeth @khaled-cliqz @chrmod
+# SPECIFIC - Commons (default)
+/specific/ @private-face @sammacbeth @remusao @philipp-classen
+# /specific/amo/
+# /specific/browser/
+# /specific/cliqz-tab/
+# /specific/ghostery-tab/
+# /specific/node/
+# /specific/privacy/
 
-# Build tools
-/broccoli/ @chrmod
-/fern/ @chrmod
-/tests/ @chrmod @remusao
+# SPECIFIC - Mobile
+/specific/cliqz-android/ @chrmod
+/specific/react-native/ @sammacbeth @chrmod
+
+# SPECIFIC - MyOffrz
+/specific/offers/ @luciancor
+
+# Build tools (commons)
+/broccoli/ @remusao @chrmod @aleksei-cliqz
+/fern/ @remusao @chrmod
+/tests/ @remusao @chrmod
 Dockerfile.ci @chrmod @remusao
 run_tests_in_docker.sh @remusao
 Jenkinsfile @chrmod

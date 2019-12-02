@@ -6,8 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* globals chrome */
-
 export default function t(key) {
   return chrome.i18n.getMessage(key);
 }

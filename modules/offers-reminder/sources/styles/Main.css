@@ -2,29 +2,29 @@
   display: flex;
 }
 
-.main__myoffrz-floating-button {
-  background: url('../images/myoffrz-floating-button.svg') no-repeat center;
-}
-.main__chip-floating-button.main__floating-button-base {
-  border-radius: 25%;
-  background: url('../images/chip-floating-button.svg') no-repeat center;
-  width: 52px;
-  height: 52px;
-}
-.main__freundin-floating-button {
-  background: url('../images/freundin-floating-button.svg') no-repeat center;
-}
-
-.main__floating-button-base {
+.main__floating-button {
+  background: url('../images/floating-button.svg') no-repeat center;
   border-radius: 50%;
   width: 55px;
   height: 55px;
   box-shadow: rgba(0, 0, 0, 0.12) 2px 3px 3px;
 }
 
-.main__freundin-floating-button:hover,
-.main__chip-floating-button:hover,
-.main__myoffrz-floating-button:hover {
+.main__floating-button.main__myoffrz-floating-button {
+  background: url('../images/myoffrz-floating-button.svg') no-repeat center;
+  border-radius: 47%;
+}
+.main__floating-button.main__chip-floating-button {
+  border-radius: 25%;
+  background: url('../images/chip-floating-button.svg') no-repeat center;
+  width: 52px;
+  height: 52px;
+}
+.main__floating-button.main__freundin-floating-button {
+  background: url('../images/freundin-floating-button.svg') no-repeat center;
+}
+
+.main__floating-button:hover {
   cursor: pointer;
 }
 

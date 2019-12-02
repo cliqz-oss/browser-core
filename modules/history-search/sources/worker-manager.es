@@ -22,6 +22,7 @@ const isValidUrl = url => (url.indexOf('chrome://cliqz') !== 0
 
 const isValidBookmarkUrl = url => url && url.startsWith('http');
 
+/* eslint-disable no-mixed-operators */
 const confidence = (matchingScore, length) => {
   const z = 1.281551565545;
   const p = matchingScore / length;
@@ -30,6 +31,7 @@ const confidence = (matchingScore, length) => {
   const under = 1 + 1 / length * z * z;
   return (left - right) / under;
 };
+/* eslint-enable no-mixed-operators */
 
 const redditScore = (count, time, matchingScore, fieldLength, isBookmarked, typedCount) => {
   const rankingScore = Math.log10(count) + (3600 / (Date.now() - time));

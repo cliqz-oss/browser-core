@@ -11,36 +11,29 @@ import { StyleSheet, View } from 'react-native';
 import Icon from './Icon';
 import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import { withStyles } from '../../withTheme';
-import {
-  snippetTitleLineHeight,
-  snippetMainIconSize,
-  snippetHistoryIconSize,
-  snippetBulletIconSize,
-  snippetIconMarginRight,
-} from '../../themes';
 
-const styles = (theme, themeDetails) => StyleSheet.create({
+const styles = theme => StyleSheet.create({
   history: {
-    width: snippetHistoryIconSize,
-    height: snippetHistoryIconSize,
-    marginTop: (snippetTitleLineHeight - snippetHistoryIconSize) / 2,
+    width: theme.snippet.historyIconSize,
+    height: theme.snippet.historyIconSize,
+    marginTop: (theme.snippet.titleLineHeight - theme.snippet.historyIconSize) / 2,
   },
   symbolContainer: {
-    width: snippetMainIconSize,
+    width: theme.snippet.mainIconSize,
     backgroundColor: 'transparent',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    marginRight: snippetIconMarginRight,
+    marginRight: theme.snippet.iconMarginRight,
   },
   iconARGB: {
-    color: themeDetails[theme].snippet.iconColorARGB,
+    color: theme.snippet.iconColorARGB,
   },
   bullet: {
-    backgroundColor: themeDetails[theme].snippet.iconColor,
-    borderColor: themeDetails[theme].snippet.iconColor,
-    width: snippetBulletIconSize,
-    height: snippetBulletIconSize,
-    marginTop: (snippetTitleLineHeight - snippetBulletIconSize) / 2,
+    backgroundColor: theme.snippet.iconColor,
+    borderColor: theme.snippet.iconColor,
+    width: theme.snippet.bulletIconSize,
+    height: theme.snippet.bulletIconSize,
+    marginTop: (theme.snippet.titleLineHeight - theme.snippet.bulletIconSize) / 2,
     borderRadius: 1,
   },
 });

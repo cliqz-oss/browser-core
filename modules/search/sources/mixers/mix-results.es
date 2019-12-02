@@ -35,6 +35,7 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
     historyView: Object.create(null),
     cliqz: Object.create(null),
     querySuggestions: Object.create(null),
+    tabs: Object.create(null),
   };
 
   const searchParams = [query, config, params];
@@ -46,8 +47,9 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
     ...searchParams
   );
   results.cliqz.source$ = providers.cliqz.search(...searchParams).pipe(share());
-  results.instant.source$ = providers.instant.search(...searchParams);
-  results.calculator.source$ = providers.calculator.search(...searchParams);
+  results.instant.source$ = providers.instant.search(...searchParams).pipe(share());
+  results.calculator.source$ = providers.calculator.search(...searchParams).pipe(share());
+  results.tabs.source$ = providers.tabs.search(...searchParams).pipe(share());
 
   results.cliqz.results$ = results.cliqz.source$.pipe(
     filter(({ provider }) => provider === 'cliqz'),
@@ -121,6 +123,7 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
 
   results.instant.latest$ = results.instant.source$;
   results.calculator.latest$ = results.calculator.source$;
+  results.tabs.latest$ = results.tabs.source$;
   results.history.latest$ = results.history.annotated$;
   results.historyView.latest$ = results.historyView.source$;
   results.cliqz.latest$ = results.cliqz.deduplicated$;

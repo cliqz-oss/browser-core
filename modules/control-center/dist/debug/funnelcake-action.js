@@ -419,7 +419,6 @@ DATA.push({
     "offers-v2": null,
     "browser-panel": null,
     "message-center": null,
-    "offboarding": null,
     "adult": {
       "visible": true,
       "state": {

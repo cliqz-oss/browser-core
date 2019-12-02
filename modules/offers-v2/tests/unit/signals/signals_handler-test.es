@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 /* global sinon */
 
 const commonMocks = require('../utils/common');
@@ -100,7 +99,7 @@ export default describeModule('offers-v2/signals/signals_handler',
         return Promise.all([p1, p2, p3]).then((mods) => {
           OffersConfigs = mods[0].default;
           OffersConfigs.MAX_RETRIES = 3;
-          PatternsStat = mods[2].default;
+          PatternsStat = mods[2].PatternsStat;
         });
       });
 

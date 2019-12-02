@@ -26,7 +26,7 @@ function Radio({
         onChange={onChange}
         type="radio"
         value={value}
-        defaultChecked={checked}
+        checked={checked}
       />
       <label className="input-label" htmlFor={id}>
         {labelValue}

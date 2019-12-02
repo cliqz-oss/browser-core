@@ -45,10 +45,6 @@ class ModuleWrapper {
     return !!this.module;
   }
 
-  isWindowReady(window) {
-    return this.isReady().then(() => this.module.getWindowLoadingPromise(window));
-  }
-
   isReady() {
     if (!this.module) {
       return Promise.reject(new ModuleMissingError(this.moduleName));
@@ -72,17 +68,6 @@ class ModuleWrapper {
       throw new ActionMissingError(this.module.name, actionName);
     }
     return action(...args);
-  }
-
-  windowAction(window, actionName, ...args) {
-    return this.isWindowReady(window).then(() => {
-      const windowModule = this.module.getWindowModule(window);
-      const action = windowModule.actions[actionName];
-      return Promise.resolve(action(...args));
-    }).catch((e) => {
-      Logger.get('core').error(`window action "${actionName}" for module "${this.module.name}" failed`, e);
-      throw e;
-    });
   }
 }
 

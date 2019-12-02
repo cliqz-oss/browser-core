@@ -26,5 +26,12 @@ module.exports = Object.assign({}, configBase, {
   settings: Object.assign({}, configBase.settings, {
     id,
     channel: 'GT02',
+    SHOW_ONBOARDING_OVERLAY: true,
   }),
+  modules: configBase.modules.concat([
+    'onboarding-overlay',
+  ]),
+  bundles: configBase.bundles.concat([
+    'onboarding-overlay/app.bundle.js',
+  ]),
 });

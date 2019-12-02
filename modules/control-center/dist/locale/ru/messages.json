@@ -17,14 +17,23 @@
     "control_center_adblock_description_off_domain": {
         "message": "Turned off for this domain"
     },
-    "control_center_adblock_description_off_website": {
-        "message": "Turned off for this page"
-    },
     "control_center_adblock_title": {
         "message": "Ad-block"
     },
     "control_center_all_sites": {
         "message": "All websites"
+    },
+    "control_center_autoconsent": {
+        "message": "Dialogs are blocked"
+    },
+    "control_center_autoconsent_deny": {
+        "message": "Deny consent requests if possible"
+    },
+    "control_center_autoconsent_inactive": {
+        "message": "Turned off for this domain"
+    },
+    "control_center_autoconsent_off": {
+        "message": "Dialogs will not be hidden"
     },
     "control_center_backend_country": {
         "message": "Результаты поиска для"
@@ -70,6 +79,12 @@
     },
     "control_center_info_ads_title": {
         "message": "Ad-block"
+    },
+    "control_center_info_autoconsent": {
+        "message": "This feature removes annoying cookie pop-ups from websites. If possible, consent requests for data collection are automatically denied. Otherwise, the cookie pop-up is simply hidden. If the option “Deny consent requests if possible” is deactivated, consent for data collection will be given automatically."
+    },
+    "control_center_info_autoconsent_title": {
+        "message": "Cookie Pop-up Blocker"
     },
     "control_center_info_cliqz_tab": {
         "message": "Cliqz Tab enhances new tabs with short-cuts to your most visited and favorite websites, and curated top news to keep you up to speed."

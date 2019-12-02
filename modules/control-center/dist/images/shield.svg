@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="32px" height="39px" viewBox="0 0 32 39" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <polygon id="path-1" points="0 35.2 0 0.3 28.8094585 0.3 28.8094585 35.2 14.4047293 35.2"></polygon>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="anti-tracking-Gshield-dropdown">
+            <rect id="Rectangle-12" fill-opacity="0.0143229167" fill="#FFFFFF" fill-rule="nonzero" x="0.44057291" y="0.808292" width="31" height="38"></rect>
+            <g id="Group-3-Copy-36" transform="translate(1.291065, 2.808292)">
+                <g id="Fill-1-Clipped">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <g id="path-1"></g>
+                    <path d="M14.40472,0.3 C14.40472,0.3 10.48952,7.2272 1.04312,7.2272 C0.70392,7.2272 0.35832,7.2184 0.00472,7.2 L0.00392,7.2 C-0.08888,7.1984 1.33592,27.8176 14.40472,35.2 C27.47272,27.8184 28.89752,7.2 28.80552,7.2 L28.80472,7.2 C28.45192,7.2184 28.10552,7.2272 27.76632,7.2272 C18.31832,7.2272 14.40472,0.3 14.40472,0.3 L14.40472,0.3 Z M25.95112,9.7112 C25.17272,14.8512 22.53752,26.6248 14.40472,32.1864 C6.26712,26.6232 3.63592,14.8504 2.85832,9.7112 C8.52952,9.2272 12.26952,6.5376 14.40472,4.376 C16.53912,6.5376 20.27992,9.2272 25.95112,9.7112 Z" id="Fill-1" stroke="#54BF30" stroke-width="0.4" fill="#54BF30" fill-rule="nonzero" mask="url(#mask-2)"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

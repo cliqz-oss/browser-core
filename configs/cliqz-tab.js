@@ -61,7 +61,7 @@ module.exports = {
     'webextension-specific/app.bundle.js',
     'freshtab/home.bundle.js',
     'dropdown/dropdown.bundle.js',
-    'control-center/control-center.bundle.js',
+    'control-center/control-center-react.bundle.js',
     'human-web/page.bundle.js',
     'human-web/rusha.bundle.js',
   ],

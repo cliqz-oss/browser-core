@@ -20,6 +20,9 @@ import EngineManager from './manager';
  * instance as expected by the adblocker engine.
  */
 function makeRequestFromContext({
+  tabId,
+  requestId,
+
   type,
   url = '',
   urlParts,
@@ -28,6 +31,9 @@ function makeRequestFromContext({
   frameUrlParts,
 } = {}) {
   return new AdblockerLib.Request({
+    tabId,
+    requestId,
+
     type,
 
     domain: urlParts.generalDomain || '',
@@ -147,7 +153,7 @@ export default class Adblocker {
       return false;
     }
 
-    // Make sure page is not white-listed
+    // Make sure page is not whitelisted
     if (
       context.tabUrl
       && context.tabUrlParts !== null
@@ -169,12 +175,28 @@ export default class Adblocker {
    * engine decides.
    */
   onBeforeRequest(context, response) {
-    if (context.isMainFrame) {
-      this.stats.addNewPage(context);
+    if (this.shouldProcessRequest(context, response) === false) {
       return false;
     }
 
-    if (this.shouldProcessRequest(context, response) === false) {
+
+    if (context.isMainFrame) {
+      this.stats.addNewPage(context);
+
+      // HTML filtering is a feature from the adblocker which is able to
+      // intercept streaming responses from main documents before they are
+      // parsed by the browser. This means that we have a chance to remove
+      // elements (e.g.: script tags) before they get a chance to be evaluated.
+      // This is a powerful feature which needs to be wielded with extra care.
+      // It is only possible thanks to the `filterResponseData` API from
+      // Firefox' webRequest. It is thus not enabled for any browser other than
+      // Firefox.
+      //
+      // There is currently only one kind of filters which are supported:
+      // ##^script:has-text(...) which allows to remove script tags if a
+      // substring or RegExp is found within.
+      this.manager.engine.performHTMLFiltering(makeRequestFromContext(context));
+
       return false;
     }
 

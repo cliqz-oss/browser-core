@@ -15,7 +15,7 @@ import TableHeader from './partials/table-header';
 class Telemetry extends React.Component {
   state = {
     telemetryStatus: [],
-  }
+  };
 
   componentDidMount() {
     this.updateID = setInterval(this.syncState, 500);

@@ -82,7 +82,7 @@ export default function () {
       });
     });
 
-    context(' user selection', () => {
+    context('user selection', () => {
       beforeEach(async () => {
         await blurUrlBar();
         withHistory([]);
@@ -108,6 +108,18 @@ export default function () {
         await waitFor(async () => {
           const urlbarValue = await urlbar.textValue;
           return urlbarValue === 'https://onedrive.live.com/a/en-us/';
+        });
+      });
+
+      it('should be correctly replaced when edited (EX-9348)', async () => {
+        await mockSearch({ results: [] });
+        fillIn('www');
+        await waitForPopup();
+        await setUrlbarSelection(0, 3);
+        await press({ key: 'w', code: 'KeyW' });
+        await waitFor(async () => {
+          const urlbarValue = await urlbar.textValue;
+          return urlbarValue === 'w';
         });
       });
     });

@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global chai, describeModule, require */
+/* global chai, describeModule */
 const urlImports = require('../utils/url-parser');
 
 export default describeModule('core/app/module', () => ({
@@ -16,10 +16,8 @@ export default describeModule('core/app/module', () => ({
   'core/app/modules': {
     default: {
       test: {
-        Background: {
-          init: () => Promise.resolve(),
-          unload: () => {},
-        },
+        init: () => Promise.resolve(),
+        unload: () => {},
       }
     },
   },

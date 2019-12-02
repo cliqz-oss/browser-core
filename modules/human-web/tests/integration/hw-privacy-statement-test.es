@@ -14,6 +14,7 @@ import {
   getResourceUrl,
   newTab,
   prefs,
+  mockPref,
   queryHTML,
   waitFor,
   waitForPrefChange,
@@ -65,14 +66,9 @@ export default function () {
 
     [true, false].forEach((prefState) => {
       context(`when "humanWebOptOut" pref is set to ${prefState}`, function () {
+        let unmockPref;
         beforeEach(async function () {
-          // waitForPrefChange will not resolve if we change pref
-          // to the default one
-          if (prefs.get('humanWebOptOut') !== prefState) {
-            const prefChanged = waitForPrefChange('humanWebOptOut');
-            prefs.set('humanWebOptOut', prefState);
-            await prefChanged;
-          }
+          unmockPref = await mockPref('humanWebOptOut', prefState);
 
           await newTab(privacyStatementUrl);
           await waitFor(async () => {
@@ -82,20 +78,15 @@ export default function () {
         });
 
         afterEach(async function () {
-          if (prefs.get('humanWebOptOut') !== prefState) {
-            const prefChanged = waitForPrefChange('humanWebOptOut');
-            prefs.set('humanWebOptOut', !prefState);
-            await prefChanged;
-          }
+          unmockPref();
         });
 
         it(`renders with consent checkbox ${prefState ? '' : 'not'} checked`, async function () {
           await waitFor(async () => {
             privacyCheckboxState = await queryHTML(privacyStatementUrl, privacyCheckboxSelector, 'checked');
-            return ((privacyCheckboxState.length === 1) && (privacyCheckboxState[0] !== undefined));
+            return ((privacyCheckboxState.length === 1)
+              && (privacyCheckboxState[0] === !prefState));
           });
-
-          await waitFor(() => expect(privacyCheckboxState[0]).to.equal(!prefState));
         });
       });
     });

@@ -203,7 +203,7 @@ export default () => {
         tabUrl: getUrl('302'),
         isMainFrame: true,
         isPrivate: false,
-        isRedirect: true,
+        isRedirect: false,
         method: 'GET',
         parentFrameId: -1,
         type: 'main_frame',
@@ -240,6 +240,111 @@ export default () => {
       });
     });
 
+    if (!isChromium) {
+      // This test is not run in chrome because it the unload event does not trigger the requests
+      // when a cross-origin navigation is made. This then only works for the iframe test.
+      it('Beacon', async () => {
+        await addPipeline((ctx) => {
+          collectRequestDetails(ctx);
+        });
+
+        await Promise.all([
+          testServer.registerPathHandler(getSuffix(), {
+            result: `<html><body><script>
+              navigator.sendBeacon('${getSuffix('beacon')}', 'foo');
+              window.addEventListener('unload', () => {
+                var client = new XMLHttpRequest();
+                client.open('GET', '${getSuffix('beacon')}', false);
+                client.send(null);
+                navigator.sendBeacon('${getSuffix('beacon')}', 'bar');
+              }, false);
+            </script></body></html>`,
+          }),
+          testServer.registerPathHandler(getSuffix('beacon'), {
+            result: '{}',
+          }),
+          testServer.registerPathHandler(getSuffix('ready'), {
+            result: '{}',
+          }),
+          testServer.registerPathHandler(getSuffix('landing'), {
+            result: `<html><body><script>
+              window.addEventListener('load', () => fetch('${getSuffix('ready')}'))
+            </script></body></html>`,
+          }),
+        ]);
+        const filterBeacons = r => r.url.endsWith('beacon');
+
+        // open a page and wait for the 'ready' beacon
+        const tabId = await openTab(getUrl('landing'));
+        await waitFor(() => details.filter(r => r.url.endsWith('ready').length === 1), 1000);
+        // switch to the test page and wait for the first beacon to trigger
+        updateTab(tabId, { url: getUrl() });
+        await waitFor(() => details.filter(filterBeacons).length >= 1, 1000);
+        // go back to the other page and wait for the beacons on page unload
+        updateTab(tabId, { url: getUrl('landing') });
+        await waitFor(() => details.filter(filterBeacons).length >= 3, 10000);
+
+        const beacons = details.filter(filterBeacons);
+        expect(beacons).to.have.length(3);
+        beacons.forEach((req) => {
+          expect(req).to.deep.include({
+            tabUrl: getUrl(),
+          });
+        });
+      });
+    }
+
+    it('Beacon in iframe', async () => {
+      await addPipeline((ctx) => {
+        collectRequestDetails(ctx);
+      });
+
+      await Promise.all([
+        testServer.registerPathHandler(getSuffix(), {
+          result: `<html><body><iframe src="${getSuffix('frame')}"></iframe></body></html>`,
+        }),
+        testServer.registerPathHandler(getSuffix('frame'), {
+          result: `<html><body><script>
+            navigator.sendBeacon('${getSuffix('beacon')}', 'foo');
+            window.addEventListener('unload', () => {
+              navigator.sendBeacon('${getSuffix('beacon')}', 'bar');
+              var client = new XMLHttpRequest();
+              client.open('GET', '${getSuffix('beacon')}', ${isChromium ? 'true' : 'false'});
+              client.send(null);
+            }, false);
+          </script></body></html>`
+        }),
+        testServer.registerPathHandler(getSuffix('beacon'), {
+          result: '{}',
+        }),
+        testServer.registerPathHandler(getSuffix('ready'), {
+          result: '{}',
+        }),
+        testServer.registerPathHandler(getSuffix('landing'), {
+          result: `<html><body><script>
+            window.addEventListener('load', () => fetch('${getSuffix('ready')}'))
+          </script></body></html>`,
+        }),
+      ]);
+      const filterBeacons = r => r.url.endsWith('beacon');
+
+      // open a page and wait for the 'ready' beacon
+      const tabId = await openTab(getUrl('landing'));
+      await waitFor(() => details.filter(r => r.url.endsWith('ready').length === 1), 1000);
+      // switch to the test page and wait for the first beacon to trigger
+      updateTab(tabId, { url: getUrl() });
+      await waitFor(() => details.filter(filterBeacons).length >= 1, 1000);
+      // go to a new page on a different origin and wait for the beacons on page unload
+      updateTab(tabId, { url: 'http://example.com' });
+      await waitFor(() => details.filter(filterBeacons).length >= 3, 10000);
+      const beacons = details.filter(filterBeacons);
+      expect(beacons).to.have.length(3);
+      beacons.forEach((req) => {
+        expect(req).to.deep.include({
+          tabUrl: getUrl(),
+        });
+      });
+    });
 
     if (!isChromium) {
       describe('Service workers', () => {

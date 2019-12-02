@@ -6,7 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
 /* eslint import/no-extraneous-dependencies: 'off' */
 
 import 'node_modules/core-js/client/core.min.js';
@@ -17,17 +16,15 @@ import osAPI from 'specific/js/osAPI.js';
 import config from '../core/config';
 
 /* modules */
-import core from '../core/index';
-import dev from '../mobile-dev/index';
-import pairing from '../mobile-pairing/index';
+import core from '../core/background';
+import dev from '../mobile-dev/background';
+import pairing from '../mobile-pairing/background';
 import console from '../core/console';
 
 window.CLIQZ = {};
 
-const loadModule = module => Promise.resolve(module.Background.init()).then(() => {
-  window.CLIQZ.pairing = module.Background; // For debug purposes, temporal
-  const moduleWindow = new module.Window({ window });
-  return moduleWindow.init();
+const loadModule = module => Promise.resolve(module.init()).then(() => {
+  window.CLIQZ.pairing = module; // For debug purposes, temporal
 });
 
 window.document.addEventListener('DOMContentLoaded', () => {

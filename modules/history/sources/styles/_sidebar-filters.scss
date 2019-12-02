@@ -1,0 +1,41 @@
+.filters-container {
+  padding: 0 25px;
+  background-color: #F7F7F7;
+  flex: 0 0 150px;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  font-size: 24px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+  color: $color-dark-gray;
+  white-space: nowrap;
+  font-weight: 500;
+  flex: 0 0 auto;
+
+  .beta {
+    font-style: italic;
+    color: #00AEF0;
+    font-family: 'Times serif', serif;
+  }
+}
+
+.filter-btn {
+  display: block;
+  border: 0;
+  background-color: transparent;
+  float: left;
+  clear: both;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  font-size: 13.5px;
+  padding: 0;
+  line-height: 1.4;
+  cursor: pointer;
+
+  &.active {
+    font-weight: bold;
+  }
+}

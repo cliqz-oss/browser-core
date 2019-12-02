@@ -424,7 +424,6 @@ export default {
     'offers-cc': null,
     'browser-panel': null,
     'message-center': null,
-    offboarding: null,
     anolysis: null,
     abtests: null,
     adult: {

@@ -34,12 +34,15 @@ const DEFAULT_CONFIG = {
     calculator: {
       order: 1,
     },
-    history: {
+    tabs: {
       order: 2,
+    },
+    history: {
+      order: 3,
     },
     historyView: {
       isEnabled: config.modules.indexOf('history') > -1,
-      order: 3,
+      order: 4,
     },
     cliqz: {
       isEnabled: true,
@@ -49,7 +52,7 @@ const DEFAULT_CONFIG = {
       includeOffers: true,
       count: config.settings['search.config.providers.cliqz.count'] || 5,
       jsonp: config.settings['search.config.providers.cliqz.jsonp'] || false,
-      order: 4,
+      order: 5,
     },
     'rich-header': {
       retry: {
@@ -59,7 +62,7 @@ const DEFAULT_CONFIG = {
     },
     querySuggestions: {
       isEnabled: true,
-      order: 5,
+      order: 6,
     },
   },
   operators: {
@@ -135,13 +138,16 @@ export default function ({ isPrivateMode }, settings = {}) {
     },
     providers: {
       ...DEFAULT_CONFIG.providers,
+      tabs: {
+        ...DEFAULT_CONFIG.providers.tabs,
+        get isEnabled() {
+          return prefs.get('tabSearchEnabled', false);
+        },
+      },
       history: {
         ...DEFAULT_CONFIG.providers.history,
         get isHistoryLookupEnabled() {
           return prefs.get('historyLookupEnabled', false);
-        },
-        get isTabSearchEnabled() {
-          return prefs.get('tabSearchEnabled', false);
         },
       },
       historyView: {

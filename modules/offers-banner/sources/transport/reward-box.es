@@ -65,20 +65,6 @@ export function seenOffer(providedOfferId, data, autoTrigger) {
   send(msg, 'offers');
 }
 
-export function hideTooltipIfShould(data = {}) {
-  const { hideTooltip } = data;
-  if (hideTooltip) {
-    ['tooltip_clicked', 'tooltip_closed'].forEach((actionId) => {
-      const msg = {
-        origin: REAL_ESTATE_ID,
-        type: 'action-signal',
-        data: { action_id: actionId }
-      };
-      send(msg, 'offers');
-    });
-  }
-}
-
 const _removeTabIfNeeded = (tab, patterns) => (_, __, tabInfo) => {
   if (tab.id !== tabInfo.id) { return; }
   if (tabInfo.status === 'complete' && matchPatternsByUrl(patterns, tabInfo.url || '')) {

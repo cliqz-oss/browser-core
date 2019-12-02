@@ -26,7 +26,7 @@ export default class SingleVideoResult extends GenericResult {
       title: this.title,
       thumbnail: richData.thumbnail,
       duration: richData.duration,
-      views: richData.views,
+      views: Number(richData.views).toLocaleString(),
       isSingleVideo: true,
       text: this.query,
       friendlyUrl: this.friendlyUrl,

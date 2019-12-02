@@ -8,24 +8,8 @@
 
 import { window } from './globals';
 
-export class Window {
-
-}
-
-export function mapWindows(cb) {
-  return [cb(window)];
-}
-
 export function forEachWindow(cb) {
   cb(window);
-}
-
-export function mustLoadWindow() {
-  return true;
-}
-
-export function waitWindowReady() {
-  return Promise.resolve();
 }
 
 export function enableChangeEvents() {}
@@ -67,8 +51,6 @@ export function getBrowserMajorVersion() {
 export function getCookies() {
 
 }
-
-export function reportError() {}
 
 export function disableChangeEvents() {}
 

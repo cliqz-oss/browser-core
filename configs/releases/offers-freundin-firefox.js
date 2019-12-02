@@ -23,6 +23,6 @@ module.exports = Object.assign({}, configBase, {
   }),
   versionPrefix: '15',
   specific: 'offers',
-  OFFERS_PRODUCT_PREFIX: 'freundin',
-  OFFERS_PRODUCT_TITLE: 'Freundin Offers',
+  PRODUCT_PREFIX: 'freundin',
+  PRODUCT_TITLE: 'Freundin Offers',
 });

@@ -20,10 +20,6 @@ export default background({
 
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   status() {
     if (config.settings.channel !== '40') { // not browser
       return Promise.resolve({});

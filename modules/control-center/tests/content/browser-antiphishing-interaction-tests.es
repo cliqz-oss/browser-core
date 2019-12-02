@@ -51,14 +51,14 @@ function antiphishingInteractionTests(amo) {
     });
 
     it('renders antiphishing box', function () {
-      expect(subject.query('#anti-phising')).to.exist;
+      expect(subject.query('#anti-phishing')).to.exist;
     });
 
     describe('click on antiphishing switch', function () {
-      updateGeneralStateTest('#anti-phising .cqz-switch-box');
+      updateGeneralStateTest('#anti-phishing .cqz-switch-box');
 
       it('sends message to deactivate antiphishing', function () {
-        subject.query('#anti-phising .cqz-switch-box').click();
+        subject.query('#anti-phishing .cqz-switch-box').click();
 
         return waitFor(
           () => subject.messages.find(message => message.action === 'anti-phishing-activator')
@@ -66,7 +66,6 @@ function antiphishingInteractionTests(amo) {
           (message) => {
             expect(message).to.have.nested.property('args[0].type', 'switch');
             expect(message).to.have.nested.property('args[0].state', 'inactive');
-            expect(message).to.have.nested.property('args[0].status', 'inactive');
             expect(message).to.have.nested.property('args[0].url', dataOn.activeURL);
           }
         );
@@ -85,14 +84,14 @@ function antiphishingInteractionTests(amo) {
     });
 
     it('renders antiphishing box', function () {
-      expect(subject.query('#anti-phising')).to.exist;
+      expect(subject.query('#anti-phishing')).to.exist;
     });
 
     describe('click on antiphishing switch', function () {
-      updateGeneralStateTest('#anti-phising .cqz-switch-box');
+      updateGeneralStateTest('#anti-phishing .cqz-switch-box');
 
       it('sends message to activate antiphishing', function () {
-        subject.query('#anti-phising .cqz-switch-box').click();
+        subject.query('#anti-phishing .cqz-switch-box').click();
 
         return waitFor(
           () => subject.messages.find(message => message.action === 'anti-phishing-activator')
@@ -100,7 +99,6 @@ function antiphishingInteractionTests(amo) {
           (message) => {
             expect(message).to.have.nested.property('args[0].type', 'switch');
             expect(message).to.have.nested.property('args[0].state', 'active');
-            expect(message).to.have.nested.property('args[0].status', 'active');
             expect(message).to.have.nested.property('args[0].url', dataOffSite.activeURL);
           }
         );
@@ -109,33 +107,30 @@ function antiphishingInteractionTests(amo) {
 
     describe('click on dropdown', function () {
       beforeEach(function () {
-        subject.query('#anti-phising .new-dropdown .dropdown-btn').click();
-        return waitFor(() => subject.query('#anti-phising .new-dropdown .new-dropdown-content').classList.contains('visible'));
+        subject.query('#anti-phishing .new-dropdown .dropdown-btn').click();
+        return waitFor(() => subject.query('#anti-phishing .new-dropdown .new-dropdown-content').classList.contains('visible'));
       });
 
       it('renders "This domain"', function () {
-        expect(subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]')).display).to.not.equal('none');
+        expect(subject.query('#anti-phishing .new-dropdown .new-dropdown-content .dropdown-content-option[value="inactive"]')).to.exist;
       });
 
       it('renders "All websites"', function () {
-        expect(subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]')).display).to.not.equal('none');
+        expect(subject.query('#anti-phishing .new-dropdown .new-dropdown-content .dropdown-content-option[value="critical"]')).to.exist;
       });
 
       context('click on "All websites"', function () {
-        updateGeneralStateTest('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]');
+        updateGeneralStateTest('#anti-phishing .new-dropdown .new-dropdown-content .dropdown-content-option[value="critical"]');
 
         it('sends message to deactivate antiphishing', function () {
-          subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]').click();
+          subject.query('#anti-phishing .new-dropdown .new-dropdown-content .dropdown-content-option[value="critical"]').click();
 
           return waitFor(
             () => subject.messages.find(message => message.action === 'anti-phishing-activator')
           ).then(
             (message) => {
               expect(message).to.have.nested.property('args[0].type', 'off_select');
-              expect(message).to.have.nested.property('args[0].state', 'off_all');
-              expect(message).to.have.nested.property('args[0].status', 'critical');
+              expect(message).to.have.nested.property('args[0].state', 'critical');
               expect(message).to.have.nested.property('args[0].url', dataOffSite.activeURL);
             }
           );
@@ -155,14 +150,14 @@ function antiphishingInteractionTests(amo) {
     });
 
     it('renders antiphishing box', function () {
-      expect(subject.query('#anti-phising')).to.exist;
+      expect(subject.query('#anti-phishing')).to.exist;
     });
 
     describe('click on antiphishing switch', function () {
-      updateGeneralStateTest('#anti-phising .cqz-switch-box');
+      updateGeneralStateTest('#anti-phishing .cqz-switch-box');
 
       it('sends message to activate antiphishing', function () {
-        subject.query('#anti-phising .cqz-switch-box').click();
+        subject.query('#anti-phishing .cqz-switch-box').click();
 
         return waitFor(
           () => subject.messages.find(message => message.action === 'anti-phishing-activator')
@@ -170,7 +165,6 @@ function antiphishingInteractionTests(amo) {
           (message) => {
             expect(message).to.have.nested.property('args[0].type', 'switch');
             expect(message).to.have.nested.property('args[0].state', 'active');
-            expect(message).to.have.nested.property('args[0].status', 'active');
             expect(message).to.have.nested.property('args[0].url', dataOffAll.activeURL);
           }
         );
@@ -179,33 +173,30 @@ function antiphishingInteractionTests(amo) {
 
     describe('click on dropdown', function () {
       beforeEach(function () {
-        subject.query('#anti-phising .new-dropdown .dropdown-btn').click();
-        return waitFor(() => subject.query('#anti-phising .new-dropdown .new-dropdown-content').classList.contains('visible'));
+        subject.query('#anti-phishing .new-dropdown .dropdown-btn').click();
+        return waitFor(() => subject.query('#anti-phishing .new-dropdown .new-dropdown-content').classList.contains('visible'));
       });
 
       it('renders "This domain"', function () {
-        expect(subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]')).display).to.not.equal('none');
+        expect(subject.query('#anti-phishing .new-dropdown .new-dropdown-content .dropdown-content-option[value="inactive"]')).to.exist;
       });
 
       it('renders "All websites"', function () {
-        expect(subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]')).to.exist;
-        expect(subject.getComputedStyle(subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="all"]')).display).to.not.equal('none');
+        expect(subject.query('#anti-phishing .new-dropdown .new-dropdown-content .dropdown-content-option[value="critical"]')).to.exist;
       });
 
       context('click on "This domain"', function () {
-        updateGeneralStateTest('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]');
+        updateGeneralStateTest('#anti-phishing .new-dropdown .new-dropdown-content .dropdown-content-option[value="inactive"]');
 
         it('sends message to deactivate antiphishing', function () {
-          subject.query('#anti-phising .new-dropdown .new-dropdown-content .dropdown-content-option[value="this"]').click();
+          subject.query('#anti-phishing .new-dropdown .new-dropdown-content .dropdown-content-option[value="inactive"]').click();
 
           return waitFor(
             () => subject.messages.find(message => message.action === 'anti-phishing-activator')
           ).then(
             (message) => {
               expect(message).to.have.nested.property('args[0].type', 'off_select');
-              expect(message).to.have.nested.property('args[0].state', 'off_website');
-              expect(message).to.have.nested.property('args[0].status', 'inactive');
+              expect(message).to.have.nested.property('args[0].state', 'inactive');
               expect(message).to.have.nested.property('args[0].url', dataOffAll.activeURL);
             }
           );

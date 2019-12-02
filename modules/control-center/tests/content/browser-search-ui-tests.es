@@ -38,24 +38,24 @@ describe('Search options UI browser', function () {
     });
 
     it('exists', function () {
-      const sectionSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"]';
+      const sectionSelector = '#othersettings .accordion .accordion-section-title.search';
       expect(subject.query(sectionSelector)).to.exist;
     });
 
     describe('click on the search section', function () {
       beforeEach(function () {
-        subject.query('#othersettings .accordion .accordion-section-title[href="#accordion-2"]').click();
-        return waitFor(() => subject.query('#othersettings .accordion .accordion-section-title[href="#accordion-2"]').classList.contains('active'));
+        subject.query('#othersettings .accordion .accordion-section-title.search').click();
+        return waitFor(() => subject.query('#othersettings .accordion .accordion-section-title.search').classList.contains('active'));
       });
 
       it('renders "Search options"', function () {
-        const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control_center_searchoptions"]';
+        const titleSelector = '#othersettings .accordion .accordion-section-title.search span';
         expect(subject.query(titleSelector)).to.exist;
         expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_searchoptions');
       });
 
       it('renders arrow for search options', function () {
-        const arrowSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] #arrow';
+        const arrowSelector = '#othersettings .accordion .accordion-section-title.search #arrow';
         expect(subject.query(arrowSelector)).to.exist;
       });
 
@@ -66,19 +66,19 @@ describe('Search options UI browser', function () {
 
       context('"Alternative search engine" block', function () {
         it('renders "Alternative search engine"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_search_engine"]';
+          const titleSelector = '#accordion-2 .bullet.defaultSearch span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_search_engine');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="complementary_search"]';
+          const dropdownSelector = '#accordion-2 .bullet.defaultSearch .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
         function supplementaryEngines(currentValue) {
           it(`changed to engine ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="complementary_search"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.defaultSearch .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="Google"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -104,13 +104,13 @@ describe('Search options UI browser', function () {
 
       context('"Block adult websites" block', function () {
         it('renders "Block adult websites"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_explicit"]';
+          const titleSelector = '#accordion-2 .bullet.adultStatus > span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_explicit');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search_adult"]';
+          const dropdownSelector = '#accordion-2 .bullet.adultStatus.adultStatus .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -121,7 +121,7 @@ describe('Search options UI browser', function () {
 
         function explicitContent(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_adult"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.adultStatus .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="moderate"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -141,7 +141,7 @@ describe('Search options UI browser', function () {
           });
 
           it(`renders "${data.module.adult.state[currentValue].name}"`, function () {
-            const optionSelector = `.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_adult"] option[value="${currentValue}"]`;
+            const optionSelector = `.accordion #accordion-2 .bullet.adultStatus .custom-dropdown option[value="${currentValue}"]`;
             expect(subject.query(optionSelector).textContent.trim())
               .to.equal(data.module.adult.state[currentValue].name);
           });
@@ -154,13 +154,13 @@ describe('Search options UI browser', function () {
 
       context('"Share location" block', function () {
         it('renders "Share location"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_location"]';
+          const titleSelector = '#accordion-2 .bullet.geoEnabled span';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_location');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_info_share_location_title');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search_location"]';
+          const dropdownSelector = '#accordion-2 .bullet.geoEnabled .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -176,12 +176,12 @@ describe('Search options UI browser', function () {
 
         it('url is correct', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
-          expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
+          expect(locationObject.querySelector('.location-more').getAttribute('target')).to.equal('https://cliqz.com/support/local-results');
         });
 
         function shareLocation(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_location"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.geoEnabled .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="yes"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -201,7 +201,7 @@ describe('Search options UI browser', function () {
           });
 
           it(`renders "${data.module.geolocation.state[currentValue].name}"`, function () {
-            const optionSelector = `.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_location"] option[value="${currentValue}"]`;
+            const optionSelector = `.accordion #accordion-2 .bullet.geoEnabled .custom-dropdown option[value="${currentValue}"]`;
             expect(subject.query(optionSelector).textContent.trim())
               .to.equal(data.module.geolocation.state[currentValue].name);
           });
@@ -214,13 +214,13 @@ describe('Search options UI browser', function () {
 
       context('"Search results for" block', function () {
         it('renders "Search results for"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_backend_country"]';
+          const titleSelector = '#accordion-2 .bullet.defaultCountry span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_backend_country');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search-index-country"]';
+          const dropdownSelector = '#accordion-2 .bullet.defaultCountry .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -231,7 +231,7 @@ describe('Search options UI browser', function () {
 
         function countryBackend(currentValue) {
           it(`changed to country ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search-index-country"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.defaultCountry .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
             const evt = document.createEvent('HTMLEvents');
@@ -248,7 +248,7 @@ describe('Search options UI browser', function () {
           });
 
           it(`renders "${data.module.search.supportedIndexCountries[currentValue].name}"`, function () {
-            const optionSelector = `.accordion #accordion-2 .bullet .custom-dropdown[data-target="search-index-country"] option[value="${currentValue}"]`;
+            const optionSelector = `.accordion #accordion-2 .bullet.defaultCountry .custom-dropdown option[value="${currentValue}"]`;
             expect(subject.query(optionSelector).textContent.trim())
               .to.equal(data.module.search.supportedIndexCountries[currentValue].name);
           });
@@ -261,13 +261,13 @@ describe('Search options UI browser', function () {
 
       context('"Search via proxy" block', function () {
         it('renders "Search via proxy"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_proxy"]';
+          const titleSelector = '#accordion-2 .bullet.searchProxy > span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_proxy');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search_proxy"]';
+          const dropdownSelector = '#accordion-2 .bullet.searchProxy .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -278,7 +278,7 @@ describe('Search options UI browser', function () {
 
         function proxy(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.searchProxy .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="false"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -301,8 +301,8 @@ describe('Search options UI browser', function () {
         proxy('false');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet.searchProxy .custom-dropdown option[value="true"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet.searchProxy .custom-dropdown option[value="false"]';
           expect(subject.query(enabledSelector)).to.exist;
           expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
@@ -312,13 +312,13 @@ describe('Search options UI browser', function () {
 
       context('"Human Web" block', function () {
         it('renders "Human Web"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_humanweb"]';
+          const titleSelector = '#accordion-2 .bullet.humanWebOptOut > span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_humanweb');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"]';
+          const dropdownSelector = '#accordion-2 .bullet.humanWebOptOut .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -329,7 +329,7 @@ describe('Search options UI browser', function () {
 
         function humanWeb(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.humanWebOptOut .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="enabled"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -352,8 +352,8 @@ describe('Search options UI browser', function () {
         humanWeb('disabled');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet.humanWebOptOut .custom-dropdown option[value="enabled"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet.humanWebOptOut .custom-dropdown option[value="disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
           expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
@@ -363,19 +363,19 @@ describe('Search options UI browser', function () {
 
       context('"Transparency monitor" block', function () {
         it('renders "Transparency monitor"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_transparency"]';
+          const titleSelector = '#accordion-2 .bullet.search_transparency span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_transparency');
         });
 
         it('renders button', function () {
-          const buttonSelector = '#accordion-2 .bullet button[data-target="search_transparency"]';
+          const buttonSelector = '#accordion-2 .bullet.search_transparency button';
           expect(subject.query(buttonSelector)).to.exist;
         });
 
         it('url is correct', function () {
-          const buttonSelector = '#accordion-2 .bullet button[data-target="search_transparency"]';
-          expect(subject.query(buttonSelector).getAttribute('data-open-url')).to.equal('about:transparency');
+          const buttonSelector = '#accordion-2 .bullet.search_transparency button';
+          expect(subject.query(buttonSelector).getAttribute('target')).to.equal('about:transparency');
         });
 
         it('does not render info button', function () {
@@ -411,24 +411,24 @@ describe('AMO Search options tests', function () {
     });
 
     it('exists', function () {
-      const sectionSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"]';
+      const sectionSelector = '#othersettings .accordion .accordion-section-title.search';
       expect(subject.query(sectionSelector)).to.exist;
     });
 
     describe('click on the search section', function () {
       beforeEach(function () {
-        subject.query('#othersettings .accordion .accordion-section-title[href="#accordion-2"]').click();
-        return waitFor(() => subject.query('#othersettings .accordion .accordion-section-title[href="#accordion-2"]').classList.contains('active'));
+        subject.query('#othersettings .accordion .accordion-section-title.search').click();
+        return waitFor(() => subject.query('#othersettings .accordion .accordion-section-title.search').classList.contains('active'));
       });
 
       it('renders "Search options"', function () {
-        const titleSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] [data-i18n="control_center_searchoptions"]';
+        const titleSelector = '#othersettings .accordion .accordion-section-title.search span';
         expect(subject.query(titleSelector)).to.exist;
         expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_searchoptions');
       });
 
       it('renders arrow for search options', function () {
-        const arrowSelector = '#othersettings .accordion .accordion-section-title[href="#accordion-2"] #arrow';
+        const arrowSelector = '#othersettings .accordion .accordion-section-title.search #arrow';
         expect(subject.query(arrowSelector)).to.exist;
       });
 
@@ -439,19 +439,19 @@ describe('AMO Search options tests', function () {
 
       context('"Alternative search engine" block', function () {
         it('renders "Alternative search engine"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_search_engine"]';
+          const titleSelector = '#accordion-2 .bullet.defaultSearch span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_search_engine');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="complementary_search"]';
+          const dropdownSelector = '#accordion-2 .bullet.defaultSearch .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
         function supplementaryEngines(currentValue) {
           it(`changed to engine ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="complementary_search"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.defaultSearch .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="Google"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -477,13 +477,13 @@ describe('AMO Search options tests', function () {
 
       context('"Block adult websites" block', function () {
         it('renders "Block adult websites"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_explicit"]';
+          const titleSelector = '#accordion-2 .bullet.adultStatus > span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_explicit');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search_adult"]';
+          const dropdownSelector = '#accordion-2 .bullet.adultStatus .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -494,7 +494,7 @@ describe('AMO Search options tests', function () {
 
         function explicitContent(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_adult"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.adultStatus .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="moderate"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -514,7 +514,7 @@ describe('AMO Search options tests', function () {
           });
 
           it(`renders "${dataAmo.module.adult.state[currentValue].name}"`, function () {
-            const optionSelector = `.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_adult"] option[value="${currentValue}"]`;
+            const optionSelector = `.accordion #accordion-2 .bullet.adultStatus .custom-dropdown option[value="${currentValue}"]`;
             expect(subject.query(optionSelector).textContent.trim())
               .to.equal(dataAmo.module.adult.state[currentValue].name);
           });
@@ -527,13 +527,13 @@ describe('AMO Search options tests', function () {
 
       context('"Share location" block', function () {
         it('renders "Share location"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_location"]';
+          const titleSelector = '#accordion-2 .bullet.geoEnabled > span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_location');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search_location"]';
+          const dropdownSelector = '#accordion-2 .bullet.geoEnabled .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -549,12 +549,12 @@ describe('AMO Search options tests', function () {
 
         it('url is correct', function () {
           const locationObject = subject.queryAll('#accordion-2 .bullet')[4];
-          expect(locationObject.querySelector('.location-more').getAttribute('data-open-url')).to.equal('https://cliqz.com/support/local-results');
+          expect(locationObject.querySelector('.location-more').getAttribute('target')).to.equal('https://cliqz.com/support/local-results');
         });
 
         function shareLocation(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_location"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.geoEnabled .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="yes"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -574,7 +574,7 @@ describe('AMO Search options tests', function () {
           });
 
           it(`renders "${dataAmo.module.geolocation.state[currentValue].name}"`, function () {
-            const optionSelector = `.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_location"] option[value="${currentValue}"]`;
+            const optionSelector = `.accordion #accordion-2 .bullet.geoEnabled .custom-dropdown option[value="${currentValue}"]`;
             expect(subject.query(optionSelector).textContent.trim())
               .to.equal(dataAmo.module.geolocation.state[currentValue].name);
           });
@@ -587,13 +587,13 @@ describe('AMO Search options tests', function () {
 
       context('"Search results for" block', function () {
         it('renders "Search results for"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_backend_country"]';
+          const titleSelector = '#accordion-2 .bullet.defaultCountry span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_backend_country');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search-index-country"]';
+          const dropdownSelector = '#accordion-2 .bullet.defaultCountry .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -604,7 +604,7 @@ describe('AMO Search options tests', function () {
 
         function countryBackend(currentValue) {
           it(`changed to country ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search-index-country"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.defaultCountry .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
             const evt = document.createEvent('HTMLEvents');
@@ -621,7 +621,7 @@ describe('AMO Search options tests', function () {
           });
 
           it(`renders "${dataAmo.module.search.supportedIndexCountries[currentValue].name}"`, function () {
-            const optionSelector = `.accordion #accordion-2 .bullet .custom-dropdown[data-target="search-index-country"] option[value="${currentValue}"]`;
+            const optionSelector = `.accordion #accordion-2 .bullet.defaultCountry .custom-dropdown option[value="${currentValue}"]`;
             expect(subject.query(optionSelector).textContent.trim())
               .to.equal(dataAmo.module.search.supportedIndexCountries[currentValue].name);
           });
@@ -634,13 +634,13 @@ describe('AMO Search options tests', function () {
 
       context('"Search via proxy" block', function () {
         it('renders "Search via proxy"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_proxy"]';
+          const titleSelector = '#accordion-2 .bullet.searchProxy span';
           expect(subject.query(titleSelector)).to.exist;
-          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_proxy');
+          expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_info_hpn_title');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search_proxy"]';
+          const dropdownSelector = '#accordion-2 .bullet.searchProxy .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -651,7 +651,7 @@ describe('AMO Search options tests', function () {
 
         function proxy(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.searchProxy .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="false"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -665,6 +665,7 @@ describe('AMO Search options tests', function () {
               (message) => {
                 expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.hpn-query');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
+                expect(message).to.have.nested.property('args[0].prefType', 'boolean');
                 expect(message).to.have.nested.property('args[0].target', 'search_proxy');
               }
             );
@@ -674,8 +675,8 @@ describe('AMO Search options tests', function () {
         proxy('false');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_proxy"] [data-i18n="control_center_disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet.searchProxy .custom-dropdown option[value="true"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet.searchProxy .custom-dropdown option[value="false"]';
           expect(subject.query(enabledSelector)).to.exist;
           expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
@@ -685,13 +686,13 @@ describe('AMO Search options tests', function () {
 
       context('"Human Web" block', function () {
         it('renders "Human Web"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_humanweb"]';
+          const titleSelector = '#accordion-2 .bullet.humanWebOptOut > span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_humanweb');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"]';
+          const dropdownSelector = '#accordion-2 .bullet.humanWebOptOut .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -702,7 +703,7 @@ describe('AMO Search options tests', function () {
 
         function humanWeb(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.humanWebOptOut .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="enabled"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -725,8 +726,8 @@ describe('AMO Search options tests', function () {
         humanWeb('disabled');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="search_humanweb"] [data-i18n="control_center_disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet.humanWebOptOut .custom-dropdown option[value="enabled"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet.humanWebOptOut .custom-dropdown option[value="disabled"]';
           expect(subject.query(enabledSelector)).to.exist;
           expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;
@@ -734,15 +735,16 @@ describe('AMO Search options tests', function () {
         });
       });
 
+
       context('"Send usage data" block', function () {
         it('renders "Send usage data"', function () {
-          const titleSelector = '#accordion-2 .bullet [data-i18n="control_center_telemetry"]';
+          const titleSelector = '#accordion-2 .bullet.telemetry span';
           expect(subject.query(titleSelector)).to.exist;
           expect(subject.query(titleSelector).textContent.trim()).to.equal('control_center_telemetry');
         });
 
         it('renders dropdown', function () {
-          const dropdownSelector = '#accordion-2 .bullet .custom-dropdown[data-target="telemetry"]';
+          const dropdownSelector = '#accordion-2 .bullet.telemetry .custom-dropdown';
           expect(subject.query(dropdownSelector)).to.exist;
         });
 
@@ -753,7 +755,7 @@ describe('AMO Search options tests', function () {
 
         function usageData(currentValue) {
           it(`changed pref to ${currentValue}`, function () {
-            const dropdownSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"]';
+            const dropdownSelector = '.accordion #accordion-2 .bullet.telemetry .custom-dropdown';
             const select = subject.query(dropdownSelector);
             select.querySelector('[value="true"]').removeAttribute('selected');
             select.querySelector(`[value="${currentValue}"]`).setAttribute('selected', '');
@@ -776,8 +778,8 @@ describe('AMO Search options tests', function () {
         usageData('false');
 
         it('text for options is correct', function () {
-          const enabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"] [data-i18n="control_center_enabled"]';
-          const disabledSelector = '.accordion #accordion-2 .bullet .custom-dropdown[data-target="telemetry"] [data-i18n="control_center_disabled"]';
+          const enabledSelector = '.accordion #accordion-2 .bullet.telemetry .custom-dropdown option[value="true"]';
+          const disabledSelector = '.accordion #accordion-2 .bullet.telemetry .custom-dropdown option[value="false"]';
           expect(subject.query(enabledSelector)).to.exist;
           expect(subject.query(enabledSelector).textContent.trim()).to.equal('control_center_enabled');
           expect(subject.query(disabledSelector)).to.exist;

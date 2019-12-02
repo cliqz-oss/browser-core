@@ -6,9 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const ONE_HOUR = 1000 * 60 * 60; // one hour
-const ONE_WEEK = 1000 * 60 * 60 * 24 * 7; // one week
-const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30; // 30 days
+export const ONE_HOUR = 1000 * 60 * 60; // one hour
+export const ONE_WEEK = 1000 * 60 * 60 * 24 * 7; // one week
+export const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30; // 30 days
 
 export class TrackerCookiePolicy {
   appliesTo(cookie, isTracker) {

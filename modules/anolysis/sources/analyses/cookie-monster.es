@@ -12,7 +12,7 @@ const number = { type: 'number' };
 
 export default {
   name: 'cookie-monster-performance',
-  version: 2,
+  version: 3,
   generate: ({ records }) => {
     const cookieBatchSignals = records.get('cookie-monster.cookieBatch');
     const cookiePruneSignals = records.get('cookie-monster.prune');
@@ -42,6 +42,7 @@ export default {
         deleted: sum(batchSignals.deleted),
         modified: sum(batchSignals.modified),
         expired: sum(batchSignals.expired),
+        localStorageDeleted: sum(batchSignals.localStorageDeleted || []),
       });
     }
 
@@ -51,6 +52,9 @@ export default {
         visitsSize: Math.max(...cookiePruneSignals.map(s => s.visitsCount)),
         visitsPruned: sum(cookiePruneSignals.map(s => s.visitsPruned)),
         cookiesPruned: sum(cookiePruneSignals.map(s => s.cookiesPruned)),
+        sessionsPruned: sum(cookiePruneSignals.map(s => s.sessionsPruned)),
+        totalCookies: Math.max(...cookiePruneSignals.map(s => s.totalCookies)),
+        totalOrigins: Math.max(...cookiePruneSignals.map(s => s.totalOrigins)),
       });
     }
 
@@ -79,8 +83,13 @@ export default {
       cookiesPruned: number,
       sessionExpiryEnabled: { type: 'boolean' },
       nonTrackerEnabled: { type: 'boolean' },
+      trackerLocalStorageEnabled: { type: 'boolean' },
       cookieMode: { type: 'string', enum: ['thirdparty', 'trackers', 'ghostery'] },
       cookieBehavior: { type: 'number', enum: [0, 1, 2, 3, 4, 5] },
+      localStorageDeleted: number,
+      sessionsPruned: number,
+      totalCookies: number,
+      totalOrigins: number,
     },
   }
 };

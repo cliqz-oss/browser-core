@@ -19,7 +19,6 @@ const artifactUrl = `${artifactUrlPrefix}latest-${platform}.xpi`;
 
 // beta only modules are removed from the release build
 const BETA_MODULES = [
-  'privacy',
   'privacy-migration',
   'toolbox'
 ];

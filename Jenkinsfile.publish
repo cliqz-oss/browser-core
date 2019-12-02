@@ -29,10 +29,6 @@ node('docker') {
               sh './fern.js build --no-debug --environment=production'
             }
           }
-
-          stage('npm run doc') {
-            sh 'npm run doc'
-          }
         }
       }
 
@@ -79,21 +75,23 @@ node('docker') {
         }
       }
 
-      if (env.BRANCH_NAME == 'master') {
-        stage('upload docs') {
-          withCredentials([[
-              $class: 'UsernamePasswordMultiBinding',
-              credentialsId: '06ec4a34-9d01-46df-9ff8-64c79eda8b14',
-              passwordVariable: 'AWS_SECRET_ACCESS_KEY',
-              usernameVariable: 'AWS_ACCESS_KEY_ID']]) {
+      // NOTE: doc generation has been broken for a while. Let's keep it
+      // disabled until someone has time to fix it properly.
+      // if (env.BRANCH_NAME == 'master') {
+      //   stage('upload docs') {
+      //     withCredentials([[
+      //         $class: 'UsernamePasswordMultiBinding',
+      //         credentialsId: '06ec4a34-9d01-46df-9ff8-64c79eda8b14',
+      //         passwordVariable: 'AWS_SECRET_ACCESS_KEY',
+      //         usernameVariable: 'AWS_ACCESS_KEY_ID']]) {
 
-            def s3DocPath = 's3://internal.clyqz.com/docs/browser-core'
+      //       def s3DocPath = 's3://internal.clyqz.com/docs/browser-core'
 
-            sh "aws s3 rm $s3DocPath --recursive"
-            sh "aws s3 cp docs $s3DocPath --recursive"
-          }
-        }
-      }
+      //       sh "aws s3 rm $s3DocPath --recursive"
+      //       sh "aws s3 cp docs $s3DocPath --recursive"
+      //     }
+      //   }
+      // }
     }
   }
 }

@@ -41,14 +41,11 @@ class ContextSearchReranker {
       }
       const newResponse = this.contextSearch.doRerank(results, originalResults.query);
 
-      const response = Object.assign({}, originalResults.response, {
+      const response = { ...originalResults.response,
         results: newResponse.response,
-        telemetrySignal: newResponse.telemetrySignal,
-      });
+        telemetrySignal: newResponse.telemetrySignal };
 
-      resolve(Object.assign({}, originalResults, {
-        response,
-      }));
+      resolve({ ...originalResults, response });
     });
   }
 }

@@ -61,7 +61,7 @@ const frameScript = () => {
     },
   });
 
-  // eslint-disable-next-line mozilla/balanced-listeners, no-undef
+  // eslint-disable-next-line no-undef
   addEventListener('message', (ev) => {
     const message = ev.data;
     try {
@@ -78,6 +78,17 @@ const frameScript = () => {
     sendAsyncMessage('Dropdown:MessageOut', message);
   }, true, true);
 };
+
+function createUrlbarControllerProxy(controller, expansion) {
+  return new Proxy(controller, {
+    get(obj, prop) {
+      if (expansion[prop]) {
+        return expansion[prop];
+      }
+      return obj[prop];
+    }
+  });
+}
 
 export default class Dropdown extends EventEmitter {
   _oldPlaceholder = null;
@@ -163,8 +174,6 @@ export default class Dropdown extends EventEmitter {
 
     const readyPromises = [];
     this._url = url;
-    this.onWindowOpened = this._onWindowOpened.bind(this);
-    this.onWindowClosed = this._onWindowClosed.bind(this);
     this._themePref = Services.prefs.getBranch('lightweightThemes.selectedThemeID');
     this._themePref.addObserver('', this);
     windowTracker.addOpenListener(this.onWindowOpened);
@@ -215,31 +224,29 @@ export default class Dropdown extends EventEmitter {
     windowTracker.removeCloseListener(this.onWindowClosed);
     windowTracker.removeOpenListener(this.onWindowOpened);
     for (const [window] of this._windows) {
-      this._onWindowClosed(window);
+      this.onWindowClosed(window);
     }
     this._url = null;
     this._overriden = null;
     this._windows.clear();
   }
 
-  _onWindowOpened(window) {
+  onWindowOpened = (window) => {
     const dropdown = this._replaceDropdown(window);
     if (dropdown) {
       this._windows.set(window, dropdown);
-      this.emit('dropdownreplaced', dropdown);
       return dropdown.isReady;
     }
     return Promise.resolve();
   }
 
-  _onWindowClosed(window) {
+  onWindowClosed = (window) => {
     const dropdown = this._windows.get(window);
     if (!dropdown) {
       return;
     }
     this._revertDropdown(dropdown);
     this._windows.delete(window);
-    this.emit('dropdowndestroyed', dropdown);
   }
 
   updateMaxHeight(window) {
@@ -249,14 +256,39 @@ export default class Dropdown extends EventEmitter {
     }
   }
 
+  _unregisterQuantumBarProviders(window) {
+    const { controller } = window.gURLBar;
+    const providers = controller.manager.providers.concat();
+    providers.forEach(p => controller.manager.unregisterProvider(p));
+    return providers;
+  }
+
+  _reregisterQuantumBarProviders(window, providers) {
+    const { controller } = window.gURLBar;
+    providers.forEach(p => controller.manager.registerProvider(p));
+  }
+
   _overrideDefaultAutocomplete(window) {
     const windowId = this._getWindowId(window);
     const document = window.document;
     const urlbar = window.gURLBar.textbox || window.gURLBar;
+    const controller = window.gURLBar.controller;
+    let qbProviders = null;
+    let qbController = null;
 
-    if (urlbar.getAttribute('quantumbar') === 'true') {
-      // For compatibility with older versions of Firefox, switch to legacy urlbar
-      urlbar.setAttribute('quantumbar', 'false');
+    if (controller && controller.manager) {
+      qbProviders = this._unregisterQuantumBarProviders(window);
+      qbController = controller;
+      // eslint-disable-next-line no-param-reassign
+      window.gURLBar.controller = createUrlbarControllerProxy(controller, {
+        handleKeyNavigation: () => {}
+      });
+
+      // For compatibility with Firefox 68-69 (which have both legacy and quantumbar),
+      // switching to legacy urlbar.
+      if (urlbar.getAttribute('quantumbar') === 'true') {
+        urlbar.setAttribute('quantumbar', 'false');
+      }
     }
 
     const autocompletesearch = urlbar.getAttribute('autocompletesearch');
@@ -266,8 +298,14 @@ export default class Dropdown extends EventEmitter {
     urlbar.style.margin = '0px 0px';
 
     // create BrowserDropdownManager and LastQuery
+    const { startupReason } = this._extension;
     const lastQuery = new LastQuery(window);
-    const dropdownManager = new BrowserDropdownManager({ window, windowId, lastQuery }, this);
+    const dropdownManager = new BrowserDropdownManager({
+      window,
+      windowId,
+      lastQuery,
+      startupReason
+    }, this);
 
     // create a new panel for cliqz to avoid inconsistencies at FF startup
     const popup = document.createElementNS('http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul', 'panel');
@@ -282,7 +320,7 @@ export default class Dropdown extends EventEmitter {
     };
     popup.openAutocompletePopup = () => {};
     popup.setAttribute('id', 'PopupAutoCompleteRichResultCliqz');
-    document.getElementById('PopupAutoCompleteRichResult').parentElement.appendChild(popup);
+    document.getElementById('mainPopupSet').appendChild(popup);
 
     const autocompletepopup = urlbar.getAttribute('autocompletepopup');
     urlbar.setAttribute('autocompletepopup', 'PopupAutoCompleteRichResultCliqz');
@@ -306,6 +344,8 @@ export default class Dropdown extends EventEmitter {
       autocompletepopup,
       disableKeyNavigation,
       searchShortcutElements,
+      qbProviders,
+      qbController,
     };
   }
 
@@ -318,6 +358,8 @@ export default class Dropdown extends EventEmitter {
     autocompletepopup,
     disableKeyNavigation,
     searchShortcutElements,
+    qbProviders,
+    qbController,
   }) {
     [].forEach.call(searchShortcutElements, (item) => {
       item.setAttribute('command', item.getAttribute('original_command'));
@@ -329,14 +371,19 @@ export default class Dropdown extends EventEmitter {
     urlbar.setAttribute('autocompletepopup', autocompletepopup);
     urlbar.style.maxWidth = '';
     urlbar.style.margin = '';
-    /* eslint-enable no-param-reassign */
 
     if (popup && popup.parentNode) {
       popup.parentNode.removeChild(popup);
     }
 
     lastQuery.unload();
-    dropdownManager.destroy();
+    dropdownManager.unload();
+
+    if (qbProviders) {
+      this._reregisterQuantumBarProviders(urlbar.ownerGlobal, qbProviders);
+      urlbar.ownerGlobal.gURLBar.controller = qbController;
+    }
+    /* eslint-enable no-param-reassign */
   }
 
   _createToolbarAndBrowser(document) {
@@ -392,8 +439,13 @@ export default class Dropdown extends EventEmitter {
     const cliqzToolbar = document.createElement('toolbar');
     cliqzToolbar.setAttribute('fullscreentoolbar', 'true');
     cliqzToolbar.id = 'cliqz-toolbar';
-    cliqzToolbar.style.height = '0px';
+    // Default height of `toolbar` and `browser` elements should be set to 0,
+    // otherwise they will be visible during extension init/update (see EX-9266)
     cliqzToolbar.style.display = 'block';
+    browser.style.display = 'block';
+    cliqzToolbar.style.height = 0;
+    cliqzToolbar.style.minHeight = 0;
+    cliqzToolbar.style.padding = 0;
     cliqzToolbar.appendChild(container);
     parentElement.insertBefore(cliqzToolbar, navToolbar.nextSibling);
 
@@ -446,6 +498,8 @@ export default class Dropdown extends EventEmitter {
       autocompletepopup,
       disableKeyNavigation,
       searchShortcutElements,
+      qbProviders,
+      qbController,
     } = this._overrideDefaultAutocomplete(window);
 
     // create a browser
@@ -459,8 +513,8 @@ export default class Dropdown extends EventEmitter {
     // update placeholder
     this._setURLBarPlaceholder(urlbar, this._placeholder);
 
-    // update dropdown dimensions on resize
     window.addEventListener('resize', this, PASSIVE_LISTENER_OPTIONS);
+    window.gNavToolbox.addEventListener('customizationstarting', this);
 
     initialized = true;
 
@@ -476,6 +530,8 @@ export default class Dropdown extends EventEmitter {
       disableKeyNavigation,
       initialized,
       searchShortcutElements,
+      qbProviders,
+      qbController,
       cliqzToolbar,
       browser,
       isReady,
@@ -493,10 +549,12 @@ export default class Dropdown extends EventEmitter {
 
     if (!initialized) return;
 
+    window.gNavToolbox.removeEventListener('customizationstarting', this);
     window.removeEventListener('resize', this, PASSIVE_LISTENER_OPTIONS);
 
     if (this._oldPlaceholder !== null) {
-      urlbar.mInputField.placeholder = this._oldPlaceholder;
+      const inputField = urlbar.ownerGlobal.gURLBar.inputField;
+      inputField.placeholder = this._oldPlaceholder;
     }
     this._destroyToolbarAndBrowser(dropdown);
     this._restoreDefaultAutocomplete(dropdown);
@@ -548,11 +606,12 @@ export default class Dropdown extends EventEmitter {
     if (!placeholder) {
       return;
     }
+    const inputField = urlbar.ownerGlobal.gURLBar.inputField;
 
     if (this._oldPlaceholder === null) {
-      this._oldPlaceholder = urlbar.mInputField.placeholder;
+      this._oldPlaceholder = inputField.placeholder;
     }
-    urlbar.mInputField.placeholder = placeholder; // eslint-disable-line
+    inputField.placeholder = placeholder;
   }
 
   getURLBarAttributes(window) {
@@ -601,9 +660,24 @@ export default class Dropdown extends EventEmitter {
   }
 
   handleEvent(event) {
-    if (event.type === 'resize') {
-      const window = event.view || windowTracker.getCurrentWindow();
-      this._updateURLBarAttributes(window);
+    const window = event.target.ownerGlobal;
+    switch (event.type) {
+      case 'resize':
+        // Update dropdown dimensions on resize
+        this._updateURLBarAttributes(window);
+        break;
+      case 'customizationstarting':
+        // EX-9303: During browser customization a new `gURLBar` will be created.
+        // Destroy exising dropdown override on `customizationstarting`...
+        window.gNavToolbox.addEventListener('customizationending', this, { once: true });
+        this.onWindowClosed(window);
+        break;
+      case 'customizationending':
+        // ... and create a new one on `customizationending`.
+        this.onWindowOpened(window);
+        break;
+      default:
+        // This handler cannot be called for any events other than those we subscribed to
     }
   }
 
@@ -675,9 +749,11 @@ export default class Dropdown extends EventEmitter {
   navigateTo(windowId, url, options) {
     const { urlbar } = this._getDropdown(windowId);
     const gURLBar = urlbar.ownerGlobal.gURLBar;
+    const inputField = gURLBar.inputField;
+
     const controller = gURLBar.controller;
-    const { selectionStart, selectionEnd, value, focused } = urlbar;
-    const visibleValue = urlbar.mInputField.value;
+    const { selectionStart, selectionEnd, value, focused } = gURLBar;
+    const visibleValue = inputField.value;
 
     urlbar.value = url;
     if (controller.input) {
@@ -688,10 +764,10 @@ export default class Dropdown extends EventEmitter {
       if (focused) {
         urlbar.focus();
       }
-      urlbar.value = value;
-      urlbar.mInputField.value = visibleValue;
-      urlbar.selectionStart = selectionStart;
-      urlbar.selectionEnd = selectionEnd;
+      gURLBar.value = value;
+      inputField.value = visibleValue;
+      gURLBar.selectionStart = selectionStart;
+      gURLBar.selectionEnd = selectionEnd;
     }
   }
 

@@ -1,24 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="28px" height="30px" viewBox="0 0 28 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-    <!-- Generator: Sketch 51.2 (57519) - http://www.bohemiancoding.com/sketch -->
-    <title>Rectangle-39-Copy-6</title>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 58 (84663) - https://sketch.com -->
+    <title>Group 49</title>
     <desc>Created with Sketch.</desc>
-    <defs>
-        <filter x="-5.1%" y="-3.3%" width="109.6%" height="107.7%" filterUnits="objectBoundingBox" id="filter-1">
-            <feOffset dx="0" dy="3" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
-            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
-            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.3 0" type="matrix" in="shadowBlurOuter1" result="shadowMatrixOuter1"></feColorMatrix>
-            <feMerge>
-                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
-                <feMergeNode in="SourceGraphic"></feMergeNode>
-            </feMerge>
-        </filter>
-    </defs>
-    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="2_Black-Friday_offers-Copy-36" transform="translate(-1166.000000, -932.000000)" fill="#909090" fill-rule="nonzero">
-            <g id="Group" filter="url(#filter-1)" transform="translate(945.000000, 918.506097)">
-                <g id="trash-visit-copy-4" transform="translate(228.206845, 18.139406)">
-                    <path d="M2.9,0.7 L10.1,0.7 L10.1,2.3 L12.5,2.3 L12.5,4.7 L10.9,4.7 L10.9,14.5 L2.1,14.5 L2.1,4.7 L0.5,4.7 L0.5,2.3 L2.9,2.3 L2.9,0.7 Z M1.3,3.9 L11.7,3.9 L11.7,3.1 L1.3,3.1 L1.3,3.9 Z M3.7,2.3 L9.3,2.3 L9.3,1.5 L3.7,1.5 L3.7,2.3 Z M2.9,13.7 L10.1,13.7 L10.1,4.7 L2.9,4.7 L2.9,13.7 Z" id="Rectangle-39-Copy-6"></path>
+    <g id="New-Offer" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-29" transform="translate(-290.000000, -118.000000)">
+            <g id="Group-25">
+                <g id="Group-49" transform="translate(290.000000, 118.000000)">
+                    <path d="M2.86891425,2.86891425 L2.86891425,13.7605124 C2.86891425,14.6752548 3.61045948,15.4168 4.52520187,15.4168 L11.4747981,15.4168 C12.3895405,15.4168 13.1310858,14.6752548 13.1310858,13.7605124 L13.1310858,2.86891425 L2.86891425,2.86891425 Z" id="Rectangle" stroke="#B3B3B3" stroke-width="1.16639992"></path>
+                    <rect id="Rectangle" stroke="#B3B3B3" stroke-width="1.11974379" x="5.13130047" y="0.559871897" width="5.73739906" height="2.30882763" rx="1.11974379"></rect>
+                    <rect id="Rectangle" fill="#B3B3B3" x="0" y="2.28571429" width="16" height="1.14285714" rx="0.571428571"></rect>
                 </g>
             </g>
         </g>

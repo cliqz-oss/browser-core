@@ -1,0 +1,35 @@
+@import 'variables.scss';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+.app,
+.history-container,
+.navigation {
+  height: 100vh;
+}
+
+.app {
+  font-family: "-apple-system", "Helvetica Neue", Roboto, "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: $color-black;
+  display: flex;
+  flex-direction: row;
+  overflow: auto;
+
+  @import 'sidebar-nav.scss';
+  @import 'sidebar-filters.scss';
+  @import 'sidebar-feedback.scss';
+  @import 'top-bar.scss';
+  @import 'history-results.scss';
+  @import 'preloader.scss';
+}

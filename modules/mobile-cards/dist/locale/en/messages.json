@@ -95,11 +95,17 @@
     "mobile_history_card_title": {
         "message": "History Results"
     },
+    "mobile_local_card_call": {
+      "message": "Call"
+    },
     "mobile_more_results_title": {
         "message": "No result you liked?"
     },
     "mobile_no_result_title": {
         "message": "We don't have great results this time."
+    },
+    "mobile_share_location": {
+      "message": "Show local info"
     },
     "mobile_soccer_subscribe": {
         "message": "Subscribe"

@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 const prefsMock = require('./utils/prefs');
 
 export default describeModule('offers-v2/features/geo_checker',

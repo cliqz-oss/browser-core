@@ -22,6 +22,7 @@ $firefox-red: #DD3C32;
 
 body,
 html {
+    background-color: #e5e5e5;
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;
@@ -86,10 +87,33 @@ html {
     }
 }
 
-#control-center {
+.switch-label {
+    margin: 0 5px;
+}
+
+svg.arrow {
+    margin-left: 3px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.noPointer {
+    cursor: default !important;
+}
+
+.dropdown-arrow {
+    background: url("../images/arrow.svg") no-repeat right;
+    height: 7px;
+}
+
+.hidden {
+    display: none;
+}
+
+#cliqz-control-center, #control-center {
     @import 'ghostery';
 
-    width: 390px;
+    width: 400px;
     font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: 300;
     overflow: hidden;
@@ -150,7 +174,7 @@ html {
         color: #FFF;
         background-color: $cliqz-blue;
         height: 29px;
-        font-size: 13px;
+        font-size: 12px;
         padding-right: 22px;
         line-height: 22px;
         border-bottom: 0.5px solid #E9E9E9;
@@ -208,12 +232,12 @@ html {
         }
 
         .reportsite {
-            display: inline-block;
             font-size: 13px;
             cursor: pointer;
             float: right;
             margin-top: 12px;
             color: #858585;
+            text-decoration: none;
 
             &:hover {
                 color: #515151;
@@ -259,7 +283,7 @@ html {
                 display: inline-block;
                 vertical-align: sub;
 
-                svg {
+                img {
                     vertical-align: calc(-4%);
                 }
             }
@@ -269,7 +293,15 @@ html {
             }
 
             .row-text {
-                max-width: 180px;
+                max-width: 250px;
+
+                .description {
+                    cursor: pointer;
+                }
+            }
+
+            .checkbox {
+                font-size: 12px;
             }
         }
 
@@ -299,12 +331,13 @@ html {
             color: #000;
 
             #count {
+                margin-left: 10px;
             }
         }
 
         .switches {
             margin-right: 20px;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: #A4A4A4;
             display: inline-block;
@@ -387,6 +420,26 @@ html {
         }
 
         .adblock {
+            &:hover {
+              background-color: #fff;
+            }
+
+            &.active {
+                border-bottom: 0px;
+            }
+        }
+
+        .activehover {
+            &:hover {
+              background-color: #fff;
+            }
+
+            &.active {
+                border-bottom: 0px;
+            }
+        }
+
+        .autoconsenter {
             &:hover {
               background-color: #fff;
             }
@@ -497,8 +550,9 @@ html {
                         }
                     }
                     svg.cross {
-                        padding: 14px 6px 16px 30px;
+                        margin: 14px 5px 16px 30px;
                         float: left;
+                        transform: rotate(180deg);
                         &:hover {
                             cursor: pointer;
 
@@ -527,6 +581,7 @@ html {
                       margin: 10px 10px 10px 0px;
                     }
                     .description {
+                        float: left;
                         padding: 20px 0px 9px 32px;
                         width: 185px;
                     }
@@ -891,6 +946,10 @@ html {
         margin-right: 8px;
         font-weight: 300;
     }
+
+    &.open svg {
+        transform: rotate(90deg);
+    }
 }
 
 .accordion-section-title {
@@ -899,9 +958,17 @@ html {
 
 .accordion-section-content {
     font-size: 13px;
-    display: none;
-    &.open {
-        display: block;
+    height: 0;
+    position: relative;
+    overflow: hidden;
+    transition: height linear 0.15s;
+    &.open.settings {
+        // exact height not auto, so as to allow height transition
+        height: 206px;
+    }
+    &.open.offrz {
+        // exact height not auto, so as to allow height transition
+        height: 38px;
     }
 
     .bullet {
@@ -954,7 +1021,7 @@ html {
 
         button {
             position: absolute;
-            left: 221px;
+            left: 231px;
             margin-top: 3px;
             cursor: pointer;
             margin-left: 5px;
@@ -1284,7 +1351,7 @@ html {
     }
 }
 
-#control-center .settings-section .dropdown-scope {
+#cliqz-control-center  .settings-section .dropdown-scope, #control-center .settings-section .dropdown-scope {
     background-image: url("../images/dropmarker.png");
     background-repeat: no-repeat;
     background-position: 95% center;
@@ -1353,14 +1420,13 @@ html {
     #strict {
         font-size: 12px;
         color: #595959;
-        margin-left: 5px;
         font-weight: 400;
     }
 
     #hideMyIP {
       font-size: 13px;
       color: #595959;
-      margin-left: 3px;
+      margin-left: 5px;
       font-weight: 400;
     }
 
@@ -1401,6 +1467,13 @@ html {
 
 .clickableLabel {
     cursor: pointer;
+    display: inline-block;
+    margin-left: 20px;
+    vertical-align: top;
+}
+
+#autoconsentDenyLabel {
+    margin-left: 8px;
 }
 
 .clear-Tracking-Cache-Button {
@@ -1414,7 +1487,7 @@ html {
   transition: all 0.2s;
   cursor: pointer;
   width: auto;
-  margin-left: 25px;
+  margin-left: 70px;
 
   &:hover {
     background-color: #EBEBEB;

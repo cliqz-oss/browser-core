@@ -8,22 +8,11 @@
 
 import React from 'react';
 
-export default class SearchSettings extends React.Component {
-  loadSettingsIframe() {
-    if (this.iframe.src) {
-      return Promise.resolve();
-    }
-    return new Promise((resolve) => {
-      this.iframe.onload = () => {
-        this.iframe.contentWindow.addEventListener('message', resolve, { once: true });
-      };
-      this.iframe.src = '../control-center/index.html?pageAction=true&compactView=true';
-    });
-  }
+const src = '../control-center/index.html?pageAction=true&compactView=true';
 
+export default class SearchSettings extends React.Component {
   async componentDidUpdate(prevProps) {
     if (!prevProps.isOpen && this.props.isOpen) {
-      await this.loadSettingsIframe();
       const controlCenter = this.iframe.contentWindow.document.getElementById('control-center');
       controlCenter.style.width = 'auto';
       controlCenter.querySelector('.footer').style.width = 'auto';
@@ -41,6 +30,7 @@ export default class SearchSettings extends React.Component {
             id="cliqz-control-center-iframe"
             tabIndex="-1"
             title="Settings"
+            src={src}
             ref={(iframe) => { this.iframe = iframe; }}
           />
         </div>

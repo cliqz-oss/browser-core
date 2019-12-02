@@ -216,7 +216,6 @@ global.browserAction2 = class extends BrowserAction {
       return this.tabContext.get(window);
     });
 
-    // eslint-disable-next-line mozilla/balanced-listeners
     this.tabContext.on('location-change', this.handleLocationChange.bind(this));
 
     this.build();

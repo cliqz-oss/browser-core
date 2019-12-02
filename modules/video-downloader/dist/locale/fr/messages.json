@@ -47,12 +47,6 @@
     "video_downloader_uitour_description": {
         "message": "Regardez cette vidéo hors ligne. Téléchargez-la vers votre ordinateur or votre périphérique."
     },
-    "video_downloader_uitour_downloads_description": {
-        "message": "Téléchargez des vidéos aussi sur votre mobile. Essayez maintenant!"
-    },
-    "video_downloader_uitour_downloads_title": {
-        "message": "Téléchargement..."
-    },
     "video_downloader_uitour_title": {
         "message": "Video Downloader"
     },

@@ -44,7 +44,6 @@ export default background({
     deleteUITourTarget('downloads-button');
   },
 
-  beforeBrowserShutdown() { },
   actions: {
     async getVideoLinks(originalUrl) {
       const url = originalUrl || (await getActiveTab()).url;

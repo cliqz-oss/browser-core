@@ -1,5 +1,9 @@
 {
-    "extends": "airbnb",
+    "extends": [
+        "airbnb",
+        "airbnb/hooks",
+        "plugin:compat/recommended",
+    ],
     "parser": "babel-eslint",
     "env": {
         "browser": true,
@@ -12,11 +16,14 @@
         "worker": true
     },
     "globals": {},
-    "plugins": [
-        "compat",
-        "class-property"
-    ],
     "rules": {
+        "arrow-parens": [
+            "error",
+            "as-needed",
+            { "requireForBlockBody": true }
+        ],
+        "max-classes-per-file": "off",
+        "jsx-a11y/control-has-associated-label": "off",
         "jsx-a11y/mouse-events-have-key-events": "off",
         "jsx-a11y/click-events-have-key-events": "off",
         "jsx-a11y/label-has-for": "off",
@@ -66,9 +73,31 @@
         "import/no-unresolved": "off",
         "no-restricted-globals": ["error", "Worker"],
         "react/sort-comp": "off",
-        "react/forbid-prop-types": "off"
+        "react/forbid-prop-types": "off",
+        "react/jsx-fragments": "off",
+        "react/jsx-props-no-spreading": "off",
+        "react/state-in-constructor": "off",
+        "react/jsx-curly-newline": "off",
+        "react/jsx-one-expression-per-line": "off"
     },
     "overrides": [
+        {
+            files: ["**/*.ts", "**/*.tsx"],
+            "extends": [
+                "airbnb",
+                "airbnb/hooks",
+                "plugin:compat/recommended",
+                "plugin:@typescript-eslint/recommended",
+                "plugin:@typescript-eslint/recommended-requiring-type-checking"
+            ],
+            parser: "@typescript-eslint/parser",
+            plugins: ["@typescript-eslint"],
+            rules: {
+                "lines-between-class-members": "off",
+                "react/jsx-filename-extension": "off",
+                "react/prop-types": "off"
+            }
+        },
         {
             "files": [
                 "modules/mobile-cards/**/*.*"
@@ -81,7 +110,9 @@
             "files": [
                 "modules/**/tests/**/*.*",
                 "modules/**/*tests.bundle.*",
-                "modules/**/*helpers.*"
+                "modules/**/*helpers.*",
+                "fern.js",
+                "fern/**/*.js"
             ],
             "rules": {
                 "import/no-extraneous-dependencies": "off",

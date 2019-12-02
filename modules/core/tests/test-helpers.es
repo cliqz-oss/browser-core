@@ -101,7 +101,7 @@ export class GenericSubject {
   load(buildUrl) {
     this.iframe = document.createElement('iframe');
     this.iframe.src = buildUrl;
-    this.iframe.width = 270;
+    this.iframe.width = 307;
     this.iframe.height = 700;
     document.body.appendChild(this.iframe);
 

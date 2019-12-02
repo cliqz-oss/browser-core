@@ -23,12 +23,12 @@ module.exports = {
     name: 'ghosteryTabAppNameNightly',
     channel: 'GT12', // Ghostery Tab Chrome Beta
     MSGCHANNEL: 'ghostery-tab',
+    HW_CHANNEL: 'ghostery',
     freshTabNews: true,
     freshTabStats: true,
     browserAction: 'quicksearch',
     OFFERS_CHANNEL: 'ghostery-tab',
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
-    DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
     FRESHTAB_TITLE: 'Ghostery Tab',
     offboardingURLs: {
       en: 'https://www.surveymonkey.de/r/StartTabEng',
@@ -37,7 +37,7 @@ module.exports = {
     INSIGHTS_INTERNAL: true,
   }),
   default_prefs: {
-    'modules.human-web.enabled': false,
+    'modules.human-web.enabled': true,
     'modules.hpnv2.enabled': true,
     'freshtab.search.mode': 'search',
   },
@@ -50,7 +50,7 @@ module.exports = {
     'search',
     'dropdown',
     'freshtab',
-    'offers-v2',
+    'news',
     'human-web',
     'insights',
     'hpnv2',
@@ -70,7 +70,7 @@ module.exports = {
     'webextension-specific/app.bundle.js',
     'freshtab/home.bundle.js',
     'dropdown/dropdown.bundle.js',
-    'control-center/control-center.bundle.js',
+    'control-center/control-center-react.bundle.js',
     'human-web/rusha.bundle.js',
     'toolbox/toolbox.bundle.js',
   ],
@@ -80,4 +80,5 @@ module.exports = {
       '@cliqz-oss/dexie': 'Dexie',
     }),
   }),
+  PRODUCT_PREFIX: 'ghosterytab',
 };

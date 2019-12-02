@@ -53,10 +53,11 @@ export default function getEnabledRegions() {
       }
     }
 
-    logger.log('Use regions from Language API', userLang);
-    return userLang;
+    const filteredUserLang = userLang.filter(lang => lang !== 'en').slice(0, 3);
+    logger.log('Use regions from Language API', filteredUserLang);
+    return filteredUserLang;
   }
 
   logger.log('Use regions default: en');
-  return ['en'];
+  return [];
 }

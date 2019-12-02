@@ -36,7 +36,6 @@ export default describeModule('core/url-whitelist',
     'platform/platform': {
       default: {},
       isBetaVersion: () => false,
-      isOnionModeFactory: () => (() => false),
     },
     ...urlImports,
   }), function () {

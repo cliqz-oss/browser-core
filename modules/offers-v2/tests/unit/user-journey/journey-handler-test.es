@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global require */
 /* global sinon */
 const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');

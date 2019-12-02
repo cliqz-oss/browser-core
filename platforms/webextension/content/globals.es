@@ -6,8 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window, browser, chrome */
-
 const newChrome = (typeof browser !== 'undefined') ? browser : chrome;
 const newWindow = window;
 

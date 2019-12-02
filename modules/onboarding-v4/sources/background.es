@@ -41,10 +41,6 @@ export default background({
     deleteUITourTarget('onboarding-v4');
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   events: {
 
   },

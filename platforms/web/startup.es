@@ -7,7 +7,6 @@
  */
 
 /* global System */
-/* global window */
 import config from '../core/config';
 import console from '../core/console';
 

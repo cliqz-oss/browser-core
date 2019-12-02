@@ -23,7 +23,8 @@ module.exports = {
   publish: publish.toPrerelease('cliqz_privacy', 'cliqz_privacy', 'zip'),
   sourceMaps: false,
   versionPrefix: '12',
-  settings: Object.assign({}, urls, {
+  settings: {
+    ...urls,
     channel: 'MA60',
     MSGCHANNEL: 'web-extension',
     OFFERS_CHANNEL: 'ghostery',
@@ -32,9 +33,9 @@ module.exports = {
     HW_CHANNEL: 'ghostery',
     antitrackingPlaceholder: 'ghostery',
     antitrackingHeader: 'Ghostery-AntiTracking',
-  }),
+  },
   default_prefs: {
-    'modules.webextension-specific.enabled': false,
+    'modules.webextension-specific.enabled': true,
     'cliqz-adb': 1,
     'cliqz-adb-strict': true,
     attrackBloomFilter: false,
@@ -43,7 +44,10 @@ module.exports = {
     sendAntiTrackingHeader: false,
     attrackCookieTrustReferers: true,
     'attrack.cookieMode': 'trackers',
-    attrackBlockCookieTracking: false,
+    attrackBlockCookieTracking: true,
+    'modules.cookie-monster.enabled': true,
+    'cookie-monster.expireSession': true,
+    'cookie-monster.nonTracker': true,
   },
   bundles: [
     'webextension-specific/app.bundle.js',
@@ -60,5 +64,6 @@ module.exports = {
     'webextension-specific',
     'telemetry',
     'cookie-monster',
+    'autoconsent',
   ],
 };

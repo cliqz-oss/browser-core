@@ -60,9 +60,6 @@ export default background({
           isEnabled: moduleStatus.isEnabled,
           loadingTime: moduleStatus.loadingTime,
           loadingTimeSync: moduleStatus.loadingTimeSync,
-          windows: Object.keys(moduleStatus.windows).map(id => ({
-            id, loadingTime: moduleStatus.windows[id].loadingTime,
-          }))
         };
       }),
       'metrics.performance.app.startup',

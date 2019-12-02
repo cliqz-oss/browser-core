@@ -36,10 +36,6 @@ export default background({
   unload() {
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   events: {
     'msg_center:show_message': function (...args) {
       this.messageCenter.showMessage.call(this.messageCenter, ...args);

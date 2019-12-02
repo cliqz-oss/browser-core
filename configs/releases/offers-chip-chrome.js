@@ -24,9 +24,10 @@ module.exports = Object.assign({}, configBase, {
     ONBOARDING_URL: 'https://sparalarm.chip.de/onboarding',
     OFFBOARDING_URL: 'https://sparalarm.chip.de/offboarding',
     SUPPORTED_LANGS: ['de'],
+    'dynamic-offers.enabled': false,
   }),
   versionPrefix: '14',
   specific: 'offers',
-  OFFERS_PRODUCT_PREFIX: 'chip',
-  OFFERS_PRODUCT_TITLE: 'CHIP Sparalarm',
+  PRODUCT_PREFIX: 'chip',
+  PRODUCT_TITLE: 'CHIP Sparalarm',
 });

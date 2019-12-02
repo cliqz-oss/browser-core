@@ -35,9 +35,6 @@ function getPrefWithDefault(pref, defaultValue) {
 async function getDefaultConfig() {
   const useStaging = await shouldUseStaging();
   return {
-    // TODO - temporary, send session with signals
-    ...getPrefWithDefault('session'),
-
     // Backend communication
     'backend.url': (useStaging
       ? config.settings.ANOLYSIS_STAGING_BACKEND_URL

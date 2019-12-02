@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import md5 from '../../core/helpers/md5';
+import { truncatedHash } from '../../core/helpers/md5';
 import pacemaker from '../../core/services/pacemaker';
 import { URLInfo } from '../../core/url-info';
 import { sameGeneralDomain, getGeneralDomain } from '../../core/tlds';
@@ -14,9 +14,8 @@ import { sameGeneralDomain, getGeneralDomain } from '../../core/tlds';
 import { cleanTimestampCache } from '../utils';
 
 export default class CookieContext {
-  constructor(config, pageMeta, qsWhitelist) {
+  constructor(config, qsWhitelist) {
     this.config = config;
-    this.pageMeta = pageMeta;
     this.qsWhitelist = qsWhitelist;
     this.visitCache = {};
     this.contextFromEvent = null;
@@ -64,7 +63,7 @@ export default class CookieContext {
       return;
     }
     // don't trust trackers
-    if (this.qsWhitelist.isTrackerDomain(md5(getGeneralDomain(toThirdParty)).substring(0, 16))) {
+    if (this.qsWhitelist.isTrackerDomain(truncatedHash(getGeneralDomain(toThirdParty)))) {
       return;
     }
     const key = `${fromFirstParty}:${toThirdParty}`;
@@ -85,13 +84,6 @@ export default class CookieContext {
 
       // this domain is now trusted by the referrer
       this._addTrustLink(trustedOn, trustedHost);
-
-      // check redirect chain for this page to see if we should back-propagate the trust chain
-      if (this.pageMeta._active[state.tabId]) {
-        this.pageMeta._active[state.tabId].redirects.forEach((domain) => {
-          this._addTrustLink(domain, trustedHost);
-        });
-      }
     }
     return true;
   }

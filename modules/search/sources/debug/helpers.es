@@ -33,7 +33,7 @@ export const COLOR_MAP = Object.keys(RESULT_SOURCE_MAP)
       }, {});
 
 
-    return Object.assign({}, acc, kinds);
+    return { ...acc, ...kinds };
   }, {});
 
 export const IMAGE_PATHS = [

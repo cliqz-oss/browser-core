@@ -21,7 +21,6 @@ import {
 
 describe('Freshtab interactions with most visited', function () {
   const dialSelector = '#section-most-visited a.dial';
-  const dialTitleSelector = '.title';
   const deleteBtnSelector = 'button.delete';
   const undoBoxSelector = '.undo-notification-box';
   const areaSelector = '#section-most-visited';
@@ -30,9 +29,7 @@ describe('Freshtab interactions with most visited', function () {
   let $initialDials;
   let $dialToDelete;
   let $2ndDialToDelete;
-  let deletedTitle;
   let $deletedBtn;
-  let $afterClickDials;
   let subject;
 
   beforeEach(function () {
@@ -162,8 +159,6 @@ describe('Freshtab interactions with most visited', function () {
 
     describe('clicking on a delete button of the element', function () {
       beforeEach(function () {
-        deletedTitle = $dialToDelete
-          .querySelector(dialTitleSelector).textContent;
         $deletedBtn = $dialToDelete.querySelector(deleteBtnSelector);
 
         subject.startListening();
@@ -172,14 +167,6 @@ describe('Freshtab interactions with most visited', function () {
       });
 
       describe('of the first element', function () {
-        it('removes the element', function () {
-          expect(deletedTitle).to.equal(historyResponse[0].history[0].displayTitle);
-        });
-
-        it('does not render any other elements', function () {
-          expect(subject.queryAll(dialSelector).length).to.equal(0);
-        });
-
         it('renders a popup with undo message', function () {
           expect(subject.query(undoBoxSelector)).to.exist;
         });
@@ -208,15 +195,10 @@ describe('Freshtab interactions with most visited', function () {
           beforeEach(async function () {
             subject.query(undoPopupCloseBtnSelector).click();
             await waitFor(() => expect(subject.query(undoBoxSelector)).to.not.have.class('visible'), 500);
-            $afterClickDials = subject.queryAll(dialSelector);
           });
 
           it('removes the popup', function () {
             expect(subject.query(undoBoxSelector)).to.not.have.class('visible');
-          });
-
-          it('total amount of rendered elements equals to 0', function () {
-            expect($afterClickDials.length).to.equal(0);
           });
 
           it('sends a "notification > close > click" telemetry signal', function () {
@@ -229,115 +211,6 @@ describe('Freshtab interactions with most visited', function () {
             });
           });
         });
-
-        describe('then clicking on an undo button of the undo popup', function () {
-          const undoPopupUndoBtnSelector = '.undo-notification-box button.undo';
-
-          beforeEach(async function () {
-            subject.query(undoPopupUndoBtnSelector).click();
-            await waitFor(() => expect(subject.query(undoBoxSelector)).to.not.have.class('visible'), 500);
-            $afterClickDials = subject.queryAll(dialSelector);
-          });
-
-          it('removes the popup', function () {
-            expect(subject.query(undoBoxSelector)).to.not.have.class('visible');
-          });
-
-          it('renders the previously deleted element', function () {
-            let deletedDialExists = false;
-
-            expect($afterClickDials.length).to.be.above(0);
-            [...$afterClickDials].forEach(function (dial) {
-              if (dial.querySelector(dialTitleSelector).textContent
-                      === deletedTitle) {
-                deletedDialExists = true;
-              }
-            });
-            expect(deletedDialExists).to.equal(true);
-          });
-
-          it('total amount of rendered elements equals to 1', function () {
-            expect($afterClickDials.length).to.equal(1);
-          });
-
-          it('renders the previously deleted element on correct position', function () {
-            expect([...$afterClickDials][0]
-              .querySelector(dialTitleSelector).textContent)
-              .to.equal(deletedTitle);
-          });
-
-          checkMessages({
-            messageName: 'revertHistorySpeedDial',
-            subject: () => subject,
-          });
-
-          it('sends a "notification > undo_delete_topsite > click" telemetry signal', function () {
-            checkTelemetry({
-              action: 'click',
-              subject: () => subject,
-              target: 'undo_delete_topsite',
-              type: 'home',
-              view: 'notification',
-            });
-          });
-        });
-      });
-    });
-  });
-
-  context('when most visited has six elements', function () {
-    beforeEach(function () {
-      subject.respondsWith({
-        module: 'freshtab',
-        action: 'getSpeedDials',
-        response: historyResponse[5],
-      });
-      return subject.load();
-    });
-
-    afterEach(function () {
-      subject.unload();
-    });
-
-    describe('clicking on a delete button of the first element', function () {
-      beforeEach(async function () {
-        $initialDials = subject.queryAll(dialSelector);
-        $dialToDelete = $initialDials[0];
-        deletedTitle = $dialToDelete
-          .querySelector(dialTitleSelector).textContent;
-        $deletedBtn = $dialToDelete.querySelector(deleteBtnSelector);
-        $deletedBtn.click();
-        await waitFor(() => (subject.queryAll(dialSelector).length === 5));
-        $afterClickDials = subject.queryAll(dialSelector);
-      });
-
-      it('removes the element', function () {
-        expect(deletedTitle).to.equal(historyResponse[1].history[0].displayTitle);
-      });
-
-      it('keeps rendering a full list consisting of 5 elements', function () {
-        expect(subject.queryAll(dialSelector).length).to.equal(5);
-      });
-    });
-
-    describe('clicking on a delete button of the fifth element', function () {
-      beforeEach(async function () {
-        $initialDials = subject.queryAll(dialSelector);
-        $dialToDelete = $initialDials[4];
-        deletedTitle = $dialToDelete
-          .querySelector(dialTitleSelector).textContent;
-        $deletedBtn = $dialToDelete.querySelector(deleteBtnSelector);
-        $deletedBtn.click();
-        await waitFor(() => (subject.queryAll(dialSelector).length === 5));
-        $afterClickDials = subject.queryAll(dialSelector);
-      });
-
-      it('removes the element', function () {
-        expect(deletedTitle).to.equal(historyResponse[5].history[4].displayTitle);
-      });
-
-      it('keeps rendering a full list consisting of 5 elements', function () {
-        expect(subject.queryAll(dialSelector).length).to.equal(5);
       });
     });
   });

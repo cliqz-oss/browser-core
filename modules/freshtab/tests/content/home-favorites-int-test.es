@@ -189,22 +189,6 @@ describe('Freshtab interactions with favorites', function () {
         subject.query('form.addDialForm button.submit').click();
       });
 
-      it('renders a new favorite in the list', function () {
-        expect(subject.queryAll('#section-favorites .dial:not(.dial-plus)').length)
-          .to.equal(2);
-        expect(subject.queryAll('#section-favorites .dial')[1].href)
-          .to.equal(amazonDial.url);
-        expect(subject.queryAll('#section-favorites .dial')[1]
-          .querySelector('.title')).to.contain.text(amazonDial.displayTitle);
-      });
-
-      it('renders the "+" button as the last element', function () {
-        const allDialsSelector = '#section-favorites .dial';
-        const allDialsItems = subject.queryAll(allDialsSelector);
-        expect(allDialsItems.length).to.equal(3);
-        expect(allDialsItems[2].className).to.contain('dial-plus');
-      });
-
       it('sends a "home > add_favorite > click" telemetry signal', function () {
         checkTelemetry({
           action: 'click',
@@ -316,14 +300,6 @@ describe('Freshtab interactions with favorites', function () {
         subject.testUtils.Simulate.change(editedDial.url);
         subject.testUtils.Simulate.change(editedDial.displayTitle);
         subject.query('form.editForm button.submit').click();
-      });
-
-      it('renders the edited favorite in the list', function () {
-        expect(subject.queryAll('#section-favorites .dial:not(.dial-plus)').length)
-          .to.equal(1);
-        expect(subject.queryAll('#section-favorites .dial')[0].href).to.equal(editedDial.url);
-        expect(subject.queryAll('#section-favorites .dial')[0].querySelector('.title'))
-          .to.contain.text(editedDial.displayTitle);
       });
 
       it('sends "home > edit_favorite > click" telemetry', function () {

@@ -12,6 +12,7 @@ import TabsharingApp from '../pairing/apps/tabsharing';
 import PairingObserver from '../pairing/apps/pairing-observer';
 import BookmarksImport from '../pairing/apps/bookmarks-import';
 import LocalStorage from '../platform/storage';
+import window from '../platform/window';
 import osAPI from '../platform/os-api';
 import background from '../core/base/background';
 import { getDeviceName } from '../platform/device-info';
@@ -57,8 +58,51 @@ export default background({
     const storagePromise = typeof storage.load === 'function' ? storage.load() : Promise.resolve();
 
     return storagePromise
-      .then(() => CliqzMasterComm.init(storage));
+      .then(() => CliqzMasterComm.init(storage))
+      .then(() => this.initGlobals());
   },
+
+  initGlobals() {
+    const peerMaster = this.peerMaster;
+    const peerBridge = {
+      checkConnections() {
+        peerMaster.checkConnections();
+      },
+      receiveQRValue(data) {
+        peerMaster.qrCodeValue(data);
+      },
+      requestPairingData() {
+        window.osAPI.pushPairingData(peerMaster.pairingData);
+        window.peerBridge.checkConnections();
+      },
+      unpairDevice(deviceID) {
+        peerMaster.unpair(deviceID);
+      },
+      renameDevice(peerId, newName) {
+        peerMaster.changeDeviceName(peerId, newName);
+      },
+      sendTabs(peerID, tabs) {
+        const name = (peerMaster.slaves.find(x => x.peerID === peerID) || {}).name;
+        peerMaster.getObserver('TABSHARING').sendTab(tabs, peerID)
+          .then(() => {
+            window.osAPI.notifyTabSuccess({ peerID, name, msg: tabs });
+          })
+          .catch(() => {
+            window.osAPI.notifyTabError({ peerID, name, msg: tabs });
+          });
+      },
+    };
+
+    window.peerBridge = peerBridge;
+    window.setDeviceARN = (arn) => {
+      if (arn) {
+        const s = arn.split('/');
+        const shortARN = s[s.length - 1];
+        peerMaster.setDeviceARN(shortARN);
+      }
+    };
+  },
+
   unload() {
     this.peerMaster.unload();
   },

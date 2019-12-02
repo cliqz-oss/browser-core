@@ -227,5 +227,13 @@ export default background({
         }
       }
     },
+
+    getPageStore() {
+      return this.pageStore;
+    },
+
+    getPageForTab(tabId) {
+      return this.pageStore.tabs.get(tabId);
+    },
   },
 });

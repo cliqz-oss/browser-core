@@ -1,7 +1,4 @@
 {
-    "hw_data_collection": {
-        "message": "Cliqz for Firefox übermittelt anonyme Daten über Web-Suchen und Website-Besuche an Server von Cliqz um die Such- und Browser-Funktionen zu verbessern."
-    },
     "hw_page_choice": {
         "message": "Du kannst bestimmen, ob Human Web von dir die oben beschriebenen anonymen statistischen Daten zur Verbesserung von Cliqz sammeln darf."
     },

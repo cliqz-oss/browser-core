@@ -61,9 +61,7 @@ function getNewsLanguage() {
 function getNewsPreferedCountryParam() {
   const ftConfig = JSON.parse(prefs.get(FRESHTAB_CONFIG_PREF, '{}'));
   if (!ftConfig.news || !ftConfig.news.preferedCountry) {
-    ftConfig.news = Object.assign({}, ftConfig.news, {
-      preferedCountry: getNewsLanguage()
-    });
+    ftConfig.news = { ...ftConfig.news, preferedCountry: getNewsLanguage() };
 
     prefs.set(FRESHTAB_CONFIG_PREF, JSON.stringify(ftConfig));
   }

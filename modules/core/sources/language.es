@@ -239,7 +239,7 @@ const CliqzLanguage = {
       }
     }
 
-    CliqzLanguage.currentState = Object.assign({}, cleanState);
+    CliqzLanguage.currentState = { ...cleanState };
     CliqzLanguage.saveCurrentState();
   },
 

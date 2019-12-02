@@ -37,7 +37,7 @@ import OffersConfigs from './offers_configs';
 import EventHandler from './event_handler';
 import ShopReminder from './shop_reminder';
 import patternsStatMigrationCheck from './patterns_stat_migration_check';
-import PatternsStat from './patterns_stat';
+import { PatternsStat } from './patterns_stat';
 import ChipdeHandler from './whitelabel/chipde/handler';
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -340,26 +340,6 @@ export default background({
     };
   },
 
-  // ///////////////////////////////////////////////////////////////////////////
-
-  // No guarantee it is called. And if called, no guarantee that browser
-  // resources (such as index db) are still initialized and usable.
-  beforeBrowserShutdown() {
-    // check if we have the feature  enabled
-    if (!this.initialized) {
-      return;
-    }
-
-    logger.info('unloading background');
-
-    if (this.signalsHandler) {
-      this.signalsHandler.destroy();
-      this.signalsHandler = null;
-    }
-
-    logger.info('background script unloaded');
-  },
-
   /**
    * @nethod onCategoriesHit
    * @param {CategoriesMatchTraits} matches
@@ -596,7 +576,7 @@ export default background({
       const urlData = new UrlData(url);
       const matches = this.categoryHandler.getMatches(urlData.getPatternRequest());
       return this.offersHandler
-        .getStoredOffersWithMarkRelevant(filters, { catMatches: matches, url });
+        .getStoredOffersWithMarkRelevant(filters, { catMatches: matches, urlData });
     },
 
     createExternalOffer(args) {

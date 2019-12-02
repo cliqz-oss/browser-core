@@ -2210,9 +2210,9 @@ const finalWithHistoryView = {
       }
     },
     {
-      url: getUrl('modules/cliqz-history/index.html#/?query=water'),
-      href: getUrl('modules/cliqz-history/index.html#/?query=water'),
-      friendlyUrl: getUrl('modules/cliqz-history/index.html'),
+      url: getUrl('modules/history/index.html#/?query=water'),
+      href: getUrl('modules/history/index.html#/?query=water'),
+      friendlyUrl: getUrl('modules/history/index.html'),
       kind: [
         'history-ui'
       ],
@@ -2225,7 +2225,7 @@ const finalWithHistoryView = {
         host: 'de49e5ac-04ee-2c45-b985-f6bed223a3ac',
         hostAndPort: 'de49e5ac-04ee-2c45-b985-f6bed223a3ac',
         port: '',
-        url: getUrl('modules/cliqz-history/index.html#/?query=water'),
+        url: getUrl('modules/history/index.html#/?query=water'),
         subType: {},
         completion: '',
         logo: {},
@@ -2666,5 +2666,5 @@ const results = {
   ]
 };
 
-export const withoutHistoryView = Object.assign({}, finalWithoutHistoryView, results);
-export const withHistoryView = Object.assign({}, finalWithHistoryView, results);
+export const withoutHistoryView = { ...finalWithoutHistoryView, ...results };
+export const withHistoryView = { ...finalWithHistoryView, ...results };

@@ -1,18 +1,19 @@
-.content__container-base {
+.content__container {
   border-radius: 4px;
   background: white;
   width: 226px;
   max-height: 405px;
   padding: 10px 15px 15px;
-}
-
-.content__myoffrz-container {
   border-left: 9px solid #00AEF6;
 }
-.content__chip-container {
+
+.content__container.content__myoffrz-container {
+  border-left: 9px solid var(--myoffrz-primary-color, #f67057);
+}
+.content__container.content__chip-container {
   border-left: 9px solid var(--chip-primary-color, #eb443f);
 }
-.content__freundin-container {
+.content__container.content__freundin-container {
   border-left: 9px solid var(--freundin-primary-color, #cd071e);
 }
 

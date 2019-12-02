@@ -1,8 +1,7 @@
 import { getResourceUrl, isCliqzBrowser, isWebExtension } from '../../core/platform';
-import config from '../../core/config';
 import { getMessage } from '../../core/i18n';
 import prefs from '../../core/prefs';
-import { getTitleColor, products } from '../utils';
+import { products } from '../utils';
 import { calculateValidity } from './helpers';
 
 function commonData() {
@@ -24,17 +23,16 @@ function popup(uiInfo, {
   attrs: { state: offerState = 'new', isCodeHidden, landing },
 }) {
   const { template_data: templateData = {}, template_name: templateName = {} } = uiInfo;
-  const backgroundColor = getTitleColor(templateData);
   const { logo_class: logoClass = 'normal' } = templateData;
   const expirationTime = expirationMs // Expect this to be always greater than Date.now();
     ? (createdTs + expirationMs) / 1000
     : templateData.validity;
 
-  const [diff, diffUnit, isExpiredSoon] = calculateValidity(expirationTime);
-  const validity = expirationTime && diff != null
+  const { diff, diffUnit, expired = {} } = calculateValidity(expirationTime);
+  const validity = expirationTime && diff !== undefined
     ? {
       text: `${getMessage('offers_expires_in')} ${diff} ${getMessage(diffUnit)}`,
-      isExpiredSoon,
+      expired,
     } : {};
 
   return {
@@ -45,7 +43,6 @@ function popup(uiInfo, {
     template_name: templateName,
     template_data: templateData,
     offer_id: offerId,
-    backgroundColor,
     logoClass,
     validity,
     notif_type: uiInfo.notif_type || 'tooltip',
@@ -54,7 +51,7 @@ function popup(uiInfo, {
   };
 }
 
-function tooltip(uiInfo) {
+function tooltip(offerId, uiInfo) {
   const {
     template_data: templateData,
     notif_type: notifType
@@ -69,7 +66,6 @@ function tooltip(uiInfo) {
     headline,
     title,
   } = templateData;
-  const backgroundColor = getTitleColor(templateData);
 
   if (notifType === 'tooltip_extra') {
     return {
@@ -79,9 +75,9 @@ function tooltip(uiInfo) {
       headline: headline || title,
       benefit,
       labels,
-      backgroundColor,
       logoClass,
       backgroundImage: logoDataurl,
+      offerId,
     };
   }
 
@@ -89,8 +85,7 @@ function tooltip(uiInfo) {
     ...commonData(),
     showTooltip: true,
     isGeneric: true,
-    headline: getMessage('offers_hub_tooltip_new_offer'),
-    icon: `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`,
+    offerId,
   };
 }
 
@@ -129,7 +124,7 @@ function tooltipWrapper(offerId, {
   const payload = {
     data: {
       isPair: true,
-      tooltip: tooltip(uiInfo),
+      tooltip: tooltip(offerId, uiInfo),
       popup: {
         ...commonData(),
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],

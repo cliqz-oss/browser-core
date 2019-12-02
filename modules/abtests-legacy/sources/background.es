@@ -28,10 +28,6 @@ export default background({
     ABTests.stop();
   },
 
-  beforeBrowserShutdown() {
-
-  },
-
   events: {
 
   },

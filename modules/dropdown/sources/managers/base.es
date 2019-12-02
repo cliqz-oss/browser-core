@@ -311,6 +311,7 @@ export default class BaseDropdownManager {
     if (this.iframe) {
       this.iframe.contentWindow.removeEventListener('message', this.onMessage);
     }
+    clearTimeout(this._delayedBlur);
   }
 
   onInput() {
@@ -339,7 +340,7 @@ export default class BaseDropdownManager {
     this.iframeWrapperReady.then(() => this.dropdownAction.setSearchSession());
   }
 
-  onBlur() {
+  onBlur = () => {
     // Clicking on elements in dropdown takes focus away from input field
     // in some versions of Firefox, triggering 'blur' event which we should ignore.
     // (See EX-7709 and EX-7291).
@@ -366,6 +367,8 @@ export default class BaseDropdownManager {
         preventDefault = true;
         if (!this.isOpen) {
           this._syncQueryWithUrlbar();
+          // Put cursor at the end of the query
+          this._setSelectionRange(this.query.length, this.query.length);
           this._queryCliqz('', { allowEmptyQuery: true });
           break;
         }
@@ -466,9 +469,10 @@ export default class BaseDropdownManager {
   }
 
   _autocompleteQuery(query, completion) {
+    const urlbarValue = this._getUrlbarValue();
     const { selectionEnd } = this._getSelectionRange();
     if (query === this.query
-      && selectionEnd < this.query.length) {
+      && selectionEnd < urlbarValue.length) {
       // We should not apply completion if user is editing the query.
       return;
     }

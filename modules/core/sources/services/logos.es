@@ -10,12 +10,9 @@ import loadLogoDb from '../../platform/services/logos';
 import config from '../config';
 import Logger from '../logger';
 import inject from '../kord/inject';
-import prefs from '../prefs';
-import { isOnionModeFactory } from '../platform';
 import { URLInfo } from '../url-info';
 import { getGeneralDomainMinusTLD } from '../url';
 
-const isOnionMode = isOnionModeFactory(prefs);
 const logger = Logger.get('core', {
   level: 'log',
   prefix: '[logos]',
@@ -87,11 +84,6 @@ export async function service() {
 
       result.buttonsClass = `cliqz-brands-button-${buttonClass}`;
       result.style = `background-color: #${result.backgroundColor};color:${(result.color || '#fff')};`;
-
-      // We want to avoid sending calls to CDN in Tor mode even for logos.
-      if (isOnionMode()) {
-        result.backgroundImage = '';
-      }
 
       if (result.backgroundImage) {
         result.style += `background-image:${result.backgroundImage}; text-indent: -10em;`;

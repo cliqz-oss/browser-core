@@ -65,7 +65,7 @@ export const getChannelFromURLs = (urls) => {
       ) {
         return {
           channel: url.searchParams.get(store.queryUtmSource),
-          subchannel: url.searchParams.get(store.queryUtmSubChannel)
+          subchannel: url.searchParams.get(store.queryUtmCampaign)
         };
       }
     }
@@ -115,12 +115,13 @@ async function _guessDistributionChannel() {
         // the URL is something like:
         //      -> https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test
         // and 'source' would be 'external-test'
-        // to mittigate this typeof DISTRIBUTION_CHANNELS is a Map
+        // to mitigate this typeof DISTRIBUTION_CHANNELS is a Map
         const cleanChannel = DISTRIBUTION_CHANNELS.get(channelDetails.channel) || '';
         return {
           clean: cleanChannel,
-          ID: DISTROS_TO_SESSION[cleanChannel] || '',
-          sub: channelDetails.subchannel || ''
+          ID: DISTROS_TO_SESSION.get(cleanChannel) || '',
+          // we only use the subchannel if the channel is known
+          sub: DISTROS_TO_SESSION.has(cleanChannel) ? channelDetails.subchannel || '' : ''
         };
       }
     }
@@ -139,7 +140,7 @@ export async function guessDistributionChannel() {
   return Promise.race([_guessDistributionChannel(), wait(2000, EMPTY_CHANNEL)]);
 }
 
-export default async function guessDistributionDetails() {
+export async function guessDistributionDetails() {
   try {
     const knownChampaigns = query({ url: 'https://myoffrz.com/lp*' });
     knownChampaigns.forEach((tab) => {

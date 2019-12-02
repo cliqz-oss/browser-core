@@ -94,14 +94,13 @@ async function instantiateAnolysis() {
  */
 export default background({
   // to be able to read the config prefs
-  requiresServices: ['cliqz-config', 'session', 'telemetry', 'pacemaker'],
+  requiresServices: ['cliqz-config', 'telemetry', 'pacemaker'],
 
   isBackgroundInitialized: false,
-  app: null,
   settings: null,
   anolysis: null,
 
-  async init(settings, app) {
+  async init(settings) {
     logger.debug('init');
 
     // Prevent calling `init` two times in a row
@@ -118,7 +117,6 @@ export default background({
       return;
     }
 
-    this.app = app;
     this.settings = settings;
 
     // Listen to telemetry service for opt-out/in events
@@ -218,8 +216,6 @@ export default background({
     }
   },
 
-  beforeBrowserShutdown() {},
-
   isAnolysisInitialized() {
     return this.isBackgroundInitialized && this.anolysis && this.anolysis.running;
   },
@@ -308,7 +304,7 @@ export default background({
     // Life-cycle handlers
     onTelemetryEnabled() {
       if (shouldEnableModule('anolysis')) {
-        this.init(this.settings, this.app);
+        this.init(this.settings);
       }
     },
     onTelemetryDisabled() {

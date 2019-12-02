@@ -64,7 +64,7 @@ const TESTS = [
       await page.evaluate(() => {
         const newElement = document.createElement('div');
         newElement.id = 'integration-tests';
-        newElement.className = 'ads-ad';
+        newElement.className = 'GGQPGYLCD5';
         newElement.innerText = 'This is an ad';
         document.body.appendChild(newElement);
       });

@@ -60,10 +60,6 @@ const subprojects = {
     include: ['moment.min.js'],
     dest: 'vendor',
   },
-  'cliqz-history': {
-    src: 'node_modules/cliqz-history/dist',
-    dest: 'cliqz-history'
-  },
   '@cliqz-oss/dexie': {
     src: 'node_modules/@cliqz-oss/dexie/dist',
     include: ['dexie.min.js'],

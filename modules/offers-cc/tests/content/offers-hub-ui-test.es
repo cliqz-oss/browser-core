@@ -26,7 +26,7 @@ describe('Offers Hub UI tests', function () {
     it('renders gift icon', function () {
       const iconSelector = '.header__myoffrz-logo';
       expect(subject.query(iconSelector)).to.exist;
-      expect(subject.getComputedStyle(iconSelector).background).to.contain('offers-cc-icon.svg');
+      expect(subject.getComputedStyle(iconSelector).background).to.contain('myoffrz-icon-logo.svg');
     });
 
     it('renders three dot menu', function () {
@@ -47,12 +47,6 @@ describe('Offers Hub UI tests', function () {
       expect(subject.query('.footer__face')).to.exist;
       expect(subject.query('.footer__feedback')).to.exist;
       expect(subject.query('.footer__feedback')).to.have.text('offers_hub_feedback_title');
-    });
-
-    it('renders logo', function () {
-      const logoSelector = '.footer__myoffrz-logo';
-      expect(subject.query(logoSelector)).to.exist;
-      expect(subject.getComputedStyle(logoSelector).background).to.contain('myoffrz-logo.svg');
     });
   }
 
@@ -186,8 +180,9 @@ describe('Offers Hub UI tests', function () {
 
     context('renders welcome message', function () {
       it('renders gift icon', function () {
-        expect(subject.query('.empty__image')).to.exist;
-        expect(subject.query('.empty__image').src).to.contain('/images/offers-cc-icon.svg');
+        expect(subject.query('.empty__stars')).to.exist;
+        expect(subject.getComputedStyle('.empty__stars').background)
+          .to.contain('hello-stars.svg');
       });
 
       it('renders title', function () {
@@ -218,21 +213,6 @@ describe('Offers Hub UI tests', function () {
       expect(subject.query('.card__wrapper')).to.exist;
     });
 
-    it('with labels', function () {
-      const exclusiveSelector = '.card__exclusive';
-      const bestSelector = '.card__best_offer';
-
-      expect(subject.query(exclusiveSelector)).to.exist;
-      expect(subject.query(exclusiveSelector)).to.have.text('offers_exclusive');
-      expect(subject.getComputedStyle(exclusiveSelector).backgroundImage)
-        .to.contain('exclusive.svg');
-
-      expect(subject.query(bestSelector)).to.exist;
-      expect(subject.query(bestSelector)).to.have.text('offers_best_offer');
-      expect(subject.getComputedStyle(bestSelector).backgroundImage)
-        .to.contain('best-offer.svg');
-    });
-
     it('with picture', function () {
       expect(subject.query('.card__image')).to.exist;
       expect(subject.query('.card__image').src)
@@ -251,56 +231,40 @@ describe('Offers Hub UI tests', function () {
         .to.equal(data.vouchers[0].template_data.headline);
     });
 
-    it('headline has correct color', function () {
-      expect(hex(subject.query('.card__headline').style.color))
-        .to.equal(data.vouchers[0].backgroundColor);
-    });
-
     it('with description', function () {
       expect(subject.query('.card__description')).to.exist;
-      expect(subject.query('.card__description'))
-        .to.have.text(data.vouchers[0].template_data.desc);
+      const conditions = data.vouchers[0].template_data.conditions.substr(0, 80);
+      const result = subject.query('.card__description').textContent.trim().substr(0, 80);
+      expect(result).to.equal(conditions);
     });
 
     it('with promocode', function () {
-      expect(subject.query('.card-promo__input')).to.exist;
-      expect(subject.query('.card-promo__input').value)
+      expect(subject.query('.card-promo-ab__input')).to.exist;
+      expect(subject.query('.card-promo-ab__input').value)
         .to.equal(data.vouchers[0].template_data.code);
     });
 
     it('with "copy code" button', function () {
-      expect(subject.query('.card-promo__myoffrz-copy-code')).to.exist;
-      expect(subject.query('.card-promo__myoffrz-copy-code').textContent.trim())
-        .to.equal('offers_hub_copy_btn');
+      expect(subject.query('.card-promo-ab__copy-code')).to.exist;
+      expect(subject.query('.card-promo-ab__copy-code').textContent.trim())
+        .to.equal('copy_and_go');
     });
 
     it('with expires time', function () {
-      expect(subject.query('.card-conditions__till')).to.exist;
-      expect(subject.query('.card-conditions__till').textContent.trim())
+      expect(subject.query('.card-header__till')).to.exist;
+      expect(subject.query('.card-header__till').textContent.trim())
         .to.equal(data.vouchers[0].validity.text);
     });
 
     it('expires time text has correct color', function () {
-      expect(subject.query('.card-conditions__till'))
-        .to.have.class('card-conditions__myoffrz-red-label');
-      expect(hex(subject.getComputedStyle('.card-conditions__till').color))
-        .to.equal('#ff0000');
-    });
-
-    it('with "conditions"', function () {
-      expect(subject.query('.card-conditions__label')).to.exist;
-      expect(subject.query('.card-conditions__label').textContent.trim())
-        .to.equal('offers_conditions');
-    });
-
-    it('with button for "conditions"', function () {
-      expect(subject.query('.card-conditions__icon')).to.exist;
+      expect(subject.query('.card-header__till'))
+        .to.have.class('card-header__till-soon');
+      expect(hex(subject.getComputedStyle('.card-header__till').color))
+        .to.equal('#ff3b30');
     });
 
     it('with action button', function () {
-      expect(subject.query('.card__button')).to.exist;
-      expect(subject.query('.card__button').textContent.trim())
-        .to.equal(data.vouchers[0].template_data.call_to_action.text);
+      expect(subject.query('.card-promo-ab__copy-code')).to.exist;
     });
   });
 
@@ -345,44 +309,37 @@ describe('Offers Hub UI tests', function () {
         .to.equal(data.vouchers[0].template_data.headline || '');
     });
 
-    it('headline has correct color', function () {
-      expect(hex(subject.query('.card__headline').style.color))
-        .to.equal(data.vouchers[0].backgroundColor);
-    });
-
     it('with description', function () {
       expect(subject.query('.card__description')).to.exist;
-      expect(subject.query('.card__description'))
-        .to.have.text(data.vouchers[0].template_data.desc);
+      expect(subject.query('.card__description').textContent.trim())
+        .to.equal(data.vouchers[0].template_data.conditions || '');
     });
 
     it('with promocode', function () {
-      expect(subject.query('.card-promo__input')).to.exist;
-      expect(subject.query('.card-promo__input').value)
+      expect(subject.query('.card-promo-ab__input')).to.exist;
+      expect(subject.query('.card-promo-ab__input').value)
         .to.equal(data.vouchers[0].template_data.code);
     });
 
     it('with "copy code" button', function () {
-      expect(subject.query('.card-promo__myoffrz-copy-code')).to.exist;
-      expect(subject.query('.card-promo__myoffrz-copy-code').textContent.trim())
-        .to.equal('offers_hub_copy_btn');
+      expect(subject.query('.card-promo-ab__copy-code')).to.exist;
+      expect(subject.query('.card-promo-ab__copy-code').textContent.trim())
+        .to.equal('copy_and_go');
     });
 
     it('with expires time', function () {
-      expect(subject.query('.card-conditions__till')).to.exist;
-      expect(subject.query('.card-conditions__till').textContent.trim())
+      expect(subject.query('.card-header__till')).to.exist;
+      expect(subject.query('.card-header__till').textContent.trim())
         .to.equal(data.vouchers[0].validity.text);
     });
 
     it('expires time text has not correct color', function () {
-      expect(subject.query('.card-conditions__till'))
-        .to.not.have.class('.card-conditions__myoffrz-red-label');
+      expect(subject.query('.card-header__till'))
+        .to.not.have.class('.card-header__till-soon');
     });
 
     it('with action button', function () {
-      expect(subject.query('.card__button')).to.exist;
-      expect(subject.query('.card__button').textContent.trim())
-        .to.equal(data.vouchers[0].template_data.call_to_action.text);
+      expect(subject.query('.card-promo-ab__copy-code')).to.exist;
     });
   });
 });

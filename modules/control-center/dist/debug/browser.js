@@ -1057,7 +1057,6 @@ DATA.push({
     },
     "browser-panel": null,
     "message-center": null,
-    "offboarding": null,
     "anolysis": null,
     "abtests": null,
     "theme": null,
@@ -1069,7 +1068,6 @@ DATA.push({
       "visible": true,
       "enabled": false,
       "optimized": false,
-      "disabledForUrl": false,
       "disabledForDomain": true,
       "disabledEverywhere": false,
       "totalCount": 5,
@@ -1083,12 +1081,6 @@ DATA.push({
       "active": true
     },
     "onboarding-v3": null,
-    "type-filter": {
-      "visible": true,
-      "type1": true,
-      "type2": true,
-      "type3": true
-    },
     "history": null,
     "offers-cc": null,
     "video-downloader": null,

@@ -16,7 +16,9 @@ export default class Feedback extends React.Component {
     const { text, vote } = this.state;
     const disabled = !text && !vote;
     const prefix = chooseProduct(products);
-    const cls = disabled ? ['disabled', `${prefix}-disabled`] : ['', `${prefix}-primary`];
+    const cls = disabled
+      ? ['disabled', `${prefix}-disabled`]
+      : ['primary', `${prefix}-primary`];
     return (
       <li className={_css('buttons')}>
         <button
@@ -30,7 +32,7 @@ export default class Feedback extends React.Component {
         <button
           type="button"
           onClick={() => this.props.onSkip({ text: '' })}
-          className={_css('button', `${prefix}-secondary`)}
+          className={_css('button', 'secondary', `${prefix}-secondary`)}
         >
           {i18n('feedback_skip')}
         </button>
@@ -41,7 +43,7 @@ export default class Feedback extends React.Component {
   render() {
     return (
       <div className={_css('wrapper')}>
-        <div className={_css('container')}>
+        <div className={_css('container', this.props.shouldPad ? 'padding' : '')}>
           <div className={_css('notification')}>
             {i18n('offers_offer_removed')}
           </div>

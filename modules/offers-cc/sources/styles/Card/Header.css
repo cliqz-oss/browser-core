@@ -6,7 +6,6 @@
 }
 
 .card-header__left-item {
-  padding-left: 5px;
 }
 
 .card-header__right-item {
@@ -16,8 +15,9 @@
 
 .card-header__affiliate-link {
   text-transform: uppercase;
-  font-size: 9px;
+  font-size: 8px;
   color: silver;
+  text-align: right;
 }
 
 .card-header__title {
@@ -47,9 +47,40 @@
   background-size: contain;
   cursor: pointer;
   width: 28px;
-  height: 34px;
+  height: 16px;
   margin-right: -9px;
+  filter: brightness(119%);
 }
 .card-header__trash:hover {
   filter: brightness(0);
+}
+
+.card-header__till-wrapper {
+  padding-right: 4px;
+}
+.card-header__till {
+  font-size: 11px;
+  color: silver;
+}
+.card-header__till-soon {
+  color: #FF3B30;
+}
+.card-header__till-left-some {
+  color: #F7B500;
+}
+.card-header__expired-icon {
+  background: url('../images/expired-grey.svg') no-repeat center;
+  background-size: contain;
+  width: 13px;
+  height: 12px;
+  margin-right: 4px;
+  align-self: baseline;
+}
+.card-header__expired-icon.card-header__till-soon-icon {
+  background: url('../images/expired-red.svg') no-repeat center;
+  background-size: contain;
+}
+.card-header__expired-icon.card-header__till-left-some-icon {
+  background: url('../images/expired-yellow.svg') no-repeat center;
+  background-size: contain;
 }

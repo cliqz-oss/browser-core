@@ -1,17 +1,19 @@
 .footer__container {
-  height: 19px;
+  height: 35px;
   display: flex;
   justify-content: space-between;
-  margin: 5px;
   align-items: center;
   padding-bottom: 1px;
+  border-top: 2px #edebeb solid;
 }
 .footer__left-item {
   display: flex;
   align-items: center;
+  padding-left: 8px;
 }
 .footer__right-item {
   display: flex;
+  padding-right: 8px;
 }
 .footer__face {
   background: url('../images/feedback-face.svg') no-repeat center;
@@ -23,29 +25,15 @@
 
 .footer__logo {
   cursor: pointer;
-}
-
-.footer__cliqz-logo {
-  background: url('../images/cliqz-logo.svg') no-repeat center;
-  width: 19px;
-  height: 19px;
-}
-
-.footer__myoffrz-logo {
-  background: url('../images/myoffrz-logo.svg') no-repeat center;
-  background-size: contain;
-  width: 18px;
-  height: 19px;
-}
-
-.footer__chip-logo,
-.footer__incent-logo,
-.footer__freundin-logo {
   background: url('../images/freundin-powered-by.svg') no-repeat center;
   background-size: contain;
   width: 72px;
   height: 21px;
   margin-bottom: 3px;
+}
+.footer__logo.footer__myoffrz-logo {
+  width: 0px;
+  height: 0px;
 }
 
 .footer__space {

@@ -58,6 +58,9 @@ const tests = () => {
 export default describeModule('core/app',
   function () {
     return {
+      'webextension-polyfill': {
+        default: {},
+      },
       'core/events': {
         default: {},
       },
@@ -89,7 +92,6 @@ export default describeModule('core/app',
       },
       'core/platform': {
         default: {},
-        isOnionModeFactory: () => (() => false),
       },
       'platform/sqlite': {
         openDBHome: () => {},

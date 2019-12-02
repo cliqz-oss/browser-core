@@ -12,7 +12,7 @@ import NativeDrawable, { normalizeUrl } from '../custom/NativeDrawable';
 import { getMessage } from '../../../core/i18n';
 import { withStyles } from '../../withTheme';
 
-const styles = (theme, themeDetails) => StyleSheet.create({
+const styles = theme => StyleSheet.create({
   list: {
     marginTop: 4
   },
@@ -22,12 +22,12 @@ const styles = (theme, themeDetails) => StyleSheet.create({
     paddingBottom: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    borderTopColor: themeDetails[theme].snippet.separatorColor,
+    borderTopColor: theme.snippet.separatorColor,
     borderTopWidth: 0.5,
   },
   footerText: {
     fontSize: 12.5,
-    color: themeDetails[theme].snippet.descriptionColor,
+    color: theme.snippet.descriptionColor,
   },
   arrow: {
     height: 8,
@@ -37,7 +37,7 @@ const styles = (theme, themeDetails) => StyleSheet.create({
   separatorStyle: {
     marginTop: 0,
     marginBottom: 0,
-    borderTopColor: themeDetails[theme].snippet.separatorColor,
+    borderTopColor: theme.snippet.separatorColor,
     borderTopWidth: 0.5,
     marginLeft: 29,
   }
