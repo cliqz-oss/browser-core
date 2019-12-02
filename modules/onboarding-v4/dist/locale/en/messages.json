@@ -1,42 +1,51 @@
 {
-    "adblocking_headline": {
-        "message": "Ads distract you and steal your precious time?"
+    "adblocking_description_off_1": {
+        "message": "Did you know?"
     },
-    "adblocking_toggle_off": {
-        "message": "Remove them"
+    "adblocking_description_off_2": {
+        "message": "Ads not only distract you but can also steal your precious time"
     },
-    "adblocking_toggle_on": {
-        "message": "Now you can browse undisturbed and websites load faster"
+    "adblocking_description_on_1": {
+        "message": "Now you can browse"
     },
-    "antiphishing_headline": {
-        "message": "Phishing sites try to steal your passwords and credit card information"
+    "adblocking_description_on_2": {
+        "message": "undisturbed and websites load faster"
     },
-    "antiphishing_headline_on": {
-        "message": "******** ***** *** ** ***** **** ******** *** ****** **** ************"
+    "adblocking_header": {
+        "message": "Cliqz AdBlock"
     },
-    "antiphishing_toggle_off": {
-        "message": "Protect yourself"
+    "antiphishing_description_off_1": {
+        "message": "Did you know?"
     },
-    "antiphishing_toggle_on": {
-        "message": "You are now protected from phishing sites and identity theft"
+    "antiphishing_description_off_2": {
+        "message": "Phishing sites try to steal your passwords and credit cards info"
     },
-    "antitracking_headline": {
+    "antiphishing_description_on_1": {
+        "message": "Now you're protected"
+    },
+    "antiphishing_description_on_2": {
+        "message": "from phishing and identity theft"
+    },
+    "antiphishing_header": {
+        "message": "Cliqz Anti-Phishing"
+    },
+    "antitracking_description_off_1": {
+        "message": "Did you know?"
+    },
+    "antitracking_description_off_2": {
         "message": "Trackers monitor everything you do on the Internet"
     },
-    "antitracking_toggle_off": {
-        "message": "Block nosy trackers"
+    "antitracking_description_on_1": {
+        "message": "Now you're protected"
     },
-    "antitracking_toggle_on": {
-        "message": "Now you're invisible to trackers"
+    "antitracking_description_on_2": {
+        "message": "from the spying eyes of data collectors. Enjoy digital freedom!"
     },
-    "antitracking_tooltip_headline": {
-        "message": "We're blocking third-party trackers"
+    "antitracking_header": {
+        "message": "Cliqz Anti-Tracking"
     },
-    "antitracking_tooltip_learn_more": {
-        "message": "Learn more"
-    },
-    "antitracking_tooltip_text": {
-        "message": "This means that they can no longer collect private data to create a personal profile of you."
+    "button_back": {
+        "message": "Back"
     },
     "button_next": {
         "message": "Next"
@@ -44,14 +53,17 @@
     "button_skip": {
         "message": "Skip"
     },
+    "enjoy_cliqz": {
+        "message": "Enjoy Cliqz"
+    },
     "import_data_button": {
         "message": "Import now"
     },
-    "import_data_description": {
-        "message": "Import bookmarks, passwords and history"
+    "import_data_description_1": {
+        "message": "Make youself at home."
     },
-    "import_data_headline": {
-        "message": "Make yourself at home"
+    "import_data_description_2": {
+        "message": "You can easily import bookmarks, passwords and history"
     },
     "popup_button_skip": {
         "message": "Skip"
@@ -72,10 +84,10 @@
         "message": "You are not fully protected yet"
     },
     "popup_protection_skip_button": {
-        "message": "proceed anyway"
+        "message": "Proceed anyway"
     },
     "popup_skip_action_button": {
-        "message": "continue"
+        "message": "Continue"
     },
     "popup_skip_description": {
         "message": "Skipping will set your browser to full protection."
@@ -84,7 +96,7 @@
         "message": "Skip setting up your browser?"
     },
     "popup_skip_skip_button": {
-        "message": "skip"
+        "message": "Skip"
     },
     "protection_explanation": {
         "message": "Here you can change your privacy and search settings at any time"
@@ -95,7 +107,28 @@
     "protection_partial_headline": {
         "message": "Setup complete"
     },
+    "status_off": {
+        "message": "Off"
+    },
+    "status_on": {
+        "message": "On"
+    },
     "welcome": {
-        "message": "Welcome"
+        "message": "Welcome to Cliqz!"
+    },
+    "welcome_ctrl": {
+        "message": "Let's get started"
+    },
+    "welcome_data_collection": {
+        "message": "By sending anonymized usage statistics to Cliqz, you help us improve your browsing experience."
+    },
+    "welcome_data_share": {
+        "message": "Choose what to share"
+    },
+    "welcome_description": {
+        "message": "We create a European independent alternative to the market-dominating US platforms. Thank you for your trust and for taking the path into the digital era with us."
+    },
+    "welcome_skip": {
+        "message": "Skip Welcome Tour"
     }
 }

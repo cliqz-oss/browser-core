@@ -6,34 +6,37 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-@import 'variables.scss'; 
- 
-.final {
-    background-color: $cliqz-blue;
+@import 'variables.scss';
 
-    &:after {
-        position: absolute;
-        content: "";
-        background: url('../images/matterhorn-bg.jpg') center center no-repeat fixed;
-        background-size: cover;
-        height: 100%;
-        width: 100%;
-        top: 0;
-        left: 0;
+.final {
+    &-block-content {
+        margin-top: 0;
+
+        &:before {
+            vertical-align: middle;
+        }
     }
 
-    .info {
-        left: calc(50% - #{$final-info-x-offset});
-        width: $final-info-width;
+    &-headline {
+        position: relative;
+        display: inline-block;
+        vertical-align: middle;
+        margin-top: 180px;
+        font-size: 42px;
 
-
-        .check {
-            height: 100px;
-            width: 100px;
-            display: block;
-            margin: 30px auto 0;
-            border: none;
-            background: url('../images/final-check.svg') center no-repeat;
+        &:before {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -65px;
+            margin-bottom: 60px;
+            background-image: url('../images/final-check.svg');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: 100% auto;
+            width: 129px;
+            height: 120px;
         }
     }
 }

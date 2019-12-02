@@ -29,6 +29,7 @@ import adblockerMetrics from './metrics/adblocker';
 import legacyMetrics from './metrics/legacy';
 import legacyCCMetrics from './metrics/legacy-control-center';
 import autoconsentMetrics from './metrics/autoconsent';
+import onboardingv4Metrics from './metrics/onboarding-v4';
 
 // Analyses
 import freshtabActivity from './analyses/freshtab-activity';
@@ -65,6 +66,7 @@ import autoconsentOnboarding from './analyses/autoconsent';
 //
 // This behavior can be overriden in each signal, by setting "sendToBackend" to true.
 const metrics = () => [
+  ...onboardingv4Metrics,
   abtestsSignalDefinition,
   ...controlCenterSignalDefinitions,
   ...freshtabSignalDefinitions(),

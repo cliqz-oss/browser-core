@@ -276,7 +276,7 @@ export default background({
   onboardingVersion() {
     // if we set the onboardingVersion pref via AB test then it will be set later
     // than we call this function (on which onboarding version depends)
-    const onboardingVersion = prefs.get('onboardingVersion', 3);
+    const onboardingVersion = prefs.get('onboardingVersion', config.settings.onboardingVersion);
     if (onboardingVersion) {
       return onboardingVersion;
     }

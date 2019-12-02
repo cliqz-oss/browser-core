@@ -243,12 +243,6 @@ const CliqzABTests = {
         prefs.set('cliqz-anti-phishing', true);
         prefs.set('cliqz-anti-phishing-enabled', true);
         break;
-      case '1071_A':
-        prefs.set('browser.privatebrowsing.apt', false, '');
-        break;
-      case '1071_B':
-        prefs.set('browser.privatebrowsing.apt', true, '');
-        break;
       case '1078_A':
         prefs.set('modules.anolysis.enabled', false);
         break;
@@ -442,10 +436,6 @@ const CliqzABTests = {
         }
         prefs.set('network.cookie.cookieBehavior', 4, '');
         break;
-      case '1126_A':
-      case '1126_B':
-        prefs.clear('browser.privatebrowsing.apt', '');
-        break;
       case '1127_A':
         prefs.set('offers-popup.image', 'with-image');
         break;
@@ -599,10 +589,6 @@ const CliqzABTests = {
       case '1070_B':
         prefs.clear('cliqz-anti-phishing');
         prefs.clear('cliqz-anti-phishing-enabled');
-        break;
-      case '1071_A':
-      case '1071_B':
-        prefs.clear('browser.privatebrowsing.apt', '');
         break;
       case '1072_A':
       case '1072_B':

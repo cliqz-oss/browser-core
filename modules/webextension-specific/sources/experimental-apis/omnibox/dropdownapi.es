@@ -562,10 +562,11 @@ export default class Dropdown extends EventEmitter {
     removeStylesheet(window.document, this._stylesheetURL);
   }
 
-  _reloadUrlbar(urlbar) {
-    const el = urlbar;
+  _reloadUrlbar(el) {
+    const urlbar = el.ownerGlobal.gURLBar;
     const oldVal = el.value;
 
+    /* eslint-disable no-param-reassign */
     if (el && el.parentNode) {
       el.blur();
       el.parentNode.insertBefore(el, el.nextSibling);
@@ -573,7 +574,6 @@ export default class Dropdown extends EventEmitter {
     }
     // We should keep current cursor position in case user already
     // started typed somehting by this moment (see EX-4940)
-    /* eslint-disable no-param-reassign */
     const { selectionStart, selectionEnd } = urlbar;
     urlbar.focus();
     urlbar.selectionStart = selectionStart;
@@ -748,7 +748,8 @@ export default class Dropdown extends EventEmitter {
 
   navigateTo(windowId, url, options) {
     const { urlbar } = this._getDropdown(windowId);
-    const gURLBar = urlbar.ownerGlobal.gURLBar;
+    const window = urlbar.ownerGlobal;
+    const gURLBar = window.gURLBar;
     const inputField = gURLBar.inputField;
 
     const controller = gURLBar.controller;
@@ -759,7 +760,7 @@ export default class Dropdown extends EventEmitter {
     if (controller.input) {
       controller.input.value = url;
     }
-    gURLBar.handleCommand(null, options.target);
+    gURLBar.handleCommand(new window.KeyboardEvent('keydown', { key: 'Enter' }), options.target);
     if (options.target === 'tabshifted') {
       if (focused) {
         urlbar.focus();
@@ -800,7 +801,7 @@ export default class Dropdown extends EventEmitter {
           command.doCommand();
         }
         urlbar.value = query;
-        urlbar.mInputField.value = query;
+        urlbar.ownerGlobal.gURLBar.value = query;
         dropdownManager.onInput();
       },
       navigateTo: (windowId, url, options) => this.navigateTo(windowId, url, options),

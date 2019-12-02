@@ -8,36 +8,40 @@
 
 @import 'variables.scss';
 
-.step.import-data {
-    background-color: #fff;
-    background: url('../images/import-bookmarks.svg') bottom/100% no-repeat;
+.import-data {
+    &-ctrl-content {
+        border: none;
+        background-color: $cliqz-blue;
+        font-size: 16px;
+        font-family: "SFUIDisplay-Semibold", sans-serif;
+        color: #fff;
+        padding: 14px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+    }
 
-    .info {
-        .headline {
-            margin-top: 10px;
-        }
+    &-headline {
+        position: relative;
 
-        button.import {
-            display: block;
-            height: 35px;
-            margin: 37px auto 0;
-            padding: 0 18px;
-            color: #fff;
-            background-color: $cliqz-blue;
-            border: none;
-            border-radius: 22px;
-            font-family: "Montserrat", sans-serif;
-            font-weight: 600;
-            font-size: 18px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            cursor: pointer;
-        }
-
-        .description-area {
-            margin-top: 25px;
-            transition: none;
+        &:before {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -158px;
+            background-image: url('../images/import_data.png');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: 100% auto;
+            width: 316px;
+            height: 200px;
         }
     }
+}
+
+.import-data-layout {
+    background-image: url('../images/import_data_img_1.svg'),
+        url('../images/import_data_img_2.svg');
+    background-position: 5% 60%, 90% 18%;
+    background-repeat: no-repeat, no-repeat;
 }

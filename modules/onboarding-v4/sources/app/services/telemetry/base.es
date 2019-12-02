@@ -10,12 +10,12 @@ import cliqz from '../../../cliqz';
 
 const isPrivateMode = !!(chrome && chrome.extension && chrome.extension.inIncognitoContext);
 
-export default function (signal) {
+export default function (name, signal) {
   if (!isPrivateMode) {
     cliqz.core.sendTelemetry(
-      { ...signal, version: '2.0' },
+      signal,
       false, // not instant push
-      '',
+      name,
     );
   }
 }

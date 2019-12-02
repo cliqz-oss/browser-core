@@ -64,7 +64,7 @@
 /modules/notifications/ @chrmod
 /modules/omnibox/ @private-face
 /modules/onboarding-v3/ @mai-cliqz @luciancor
-/modules/onboarding-v4/ @private-face
+/modules/onboarding-v4/ @aleksei-cliqz
 /modules/overlay/ @private-face
 /modules/p2p/ @philipp-classen
 /modules/pairing/ @philipp-classen

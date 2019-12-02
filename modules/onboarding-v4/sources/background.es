@@ -65,5 +65,13 @@ export default background({
       await this.deps.controlCenter.action('updateInstantly');
       return true;
     },
+
+    openPrivacyReport({ tab: { windowId } = {} } = {}) {
+      chrome.omnibox2.navigateTo(windowId, 'about:preferences#privacy-reports', { target: 'tab' });
+    },
+
+    openImportDialog() {
+      chrome.cliqz.openImportDialog();
+    }
   },
 });

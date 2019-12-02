@@ -13,33 +13,28 @@ export default function ImportData({
   onClick,
   visible,
 }) {
+  function getClassName() {
+    const infoBlockClass = visible ? 'info-block' : 'info-block-hidden';
+    return `${infoBlockClass} import-data`;
+  }
+
   return (
-    <div className={`step import-data ${visible ? 'show' : ''}`}>
-      {visible && (
-        <React.Fragment>
-          <div className="info">
-            <div className="headline">
-              <span>
-                {t('import_data_headline')}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              className="import"
-              onClick={onClick}
-            >
-              {t('import_data_button')}
-            </button>
-
-            <div className="description-area">
-              <span className="description">
-                {t('import_data_description')}
-              </span>
-            </div>
-          </div>
-        </React.Fragment>
-      )}
+    <div className={getClassName()}>
+      <div className="info-block-content">
+        <div className="info-headline import-data-headline">
+          <p>{t('import_data_description_1')}</p>
+          <p>{t('import_data_description_2')}</p>
+        </div>
+      </div>
+      <div className="info-block-ctrl">
+        <button
+          type="button"
+          className="import-data-ctrl-content"
+          onClick={onClick}
+        >
+          {t('import_data_button')}
+        </button>
+      </div>
     </div>
   );
 }
