@@ -14,6 +14,7 @@ const CUSTOM_MANIFEST_ENTRY = `
   ,"applications": {
     "gecko": {
       "id": "${id}"
+      "strict_min_version": "57"
     }
   }
 `;
@@ -34,4 +35,7 @@ module.exports = Object.assign({}, configBase, {
   bundles: configBase.bundles.concat([
     'onboarding-overlay/app.bundle.js',
   ]),
+  buildTargets: {
+    firefox: 57,
+  },
 });

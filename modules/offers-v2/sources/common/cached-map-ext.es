@@ -54,7 +54,7 @@ export default class CachedMapLocal {
  * on storage flag
  */
 /* eslint arrow-body-style: "off" */
-const buildCachedMap = (id, shouldPersist) => {
+const buildCachedMap = (id, shouldPersist = true) => {
   return (shouldPersist) ? new CachedMap(id) : new CachedMapLocal();
 };
 

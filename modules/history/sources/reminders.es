@@ -10,7 +10,7 @@
 // import { AsyncStorage } from 'react-native';
 /* global AsyncStorage */
 import events from '../core/events';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 
 export default class Reminders {
   constructor(store, updateState) {
@@ -49,7 +49,7 @@ export default class Reminders {
 
   addReminder(data) {
     const { title, url, timestamp } = data;
-    const urlParts = URLInfo.get(url);
+    const urlParts = parse(url);
     const domain = urlParts.hostname;
     if (!this.cache[domain]) {
       this.cache[domain] = [];

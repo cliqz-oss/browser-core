@@ -4,17 +4,7 @@ const createVisit = (title, url, baseUrl, host, sessionId) =>
   ({ title, url, baseUrl, host, sessionId });
 
 export default describeModule('history/helpers',
-  function () {
-    return {
-      '../core/url-info': {
-        URLInfo: {
-          get: function (url) {
-            return { hostname: url.split('//')[1].split(/(?:\?|\/)/)[0] };
-          }
-        }
-      },
-    };
-  },
+  () => ({}),
   function () {
     let worthShowing;
     let createHistoryCluster;

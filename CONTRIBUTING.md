@@ -1,9 +1,7 @@
 
 # Requirements
 
-* [Node.js](https://nodejs.org) `8` LTS is recommended, but version `9` will work as well.
-
-(*warning*: Node.js 10 is currently not supported)
+* [Node.js](https://nodejs.org) `12` LTS is recommended
 
 To manage multiple Node.js versions, you can use [nvm](https://github.com/creationix/nvm).
 
@@ -49,7 +47,7 @@ changes in the git history.
 # Installing dependencies
 
 1. `npm install -g broccoli-cli`
-2. `npm install` (or `yarn install`).
+2. `npm ci`
 
 # Building the Extension
 
@@ -75,22 +73,6 @@ Examples:
 
 * `./fern.js build ./configs/amo.js`
 * `./fern.js serve ./configs/browser.js`
-
-## Custom prefs
-
-If you want to load your browser with predefined preferences set, all
-you have to do is create a `.custom-prefs.json` file at the root of the
-project and add your custom prefs there.
-
-Example:
-
-```json
-{
-  "extensions.cliqz.triggersBE": " http://10.1.21.104",
-  "extensions.cliqz.offersDevFlag": true,
-  "extensions.cliqz.offersHubTrigger": "auto"
-}
-```
 
 # Testing
 

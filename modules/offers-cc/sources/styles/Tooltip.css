@@ -5,6 +5,9 @@
   background-color: white;
   height: 60px;
 }
+.tooltip__container.tooltip__ghostery-container {
+  background-color: var(--ghostery-primary-color, #5B005C);
+}
 
 .tooltip__left-item {
   padding-left: 5px;
@@ -36,6 +39,10 @@
   background: url(../images/freundin-tooltip-logo.svg) no-repeat center;
   background-size: contain;
 }
+.tooltip__image.tooltip__ghostery-image {
+  background: url(../images/ghosty-white-star.svg) no-repeat center;
+  background-size: unset;
+}
 
 .tooltip__right-item {
   display: flex;
@@ -66,6 +73,9 @@
   margin-right: -8px;
   color: #494949;
   font-size: 14px;
+}
+.tooltip__text.tooltip__ghostery-text {
+  color: white;
 }
 
 .tooltip__not-visible {

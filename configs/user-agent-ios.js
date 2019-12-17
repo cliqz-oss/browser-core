@@ -30,17 +30,24 @@ module.exports = {
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     RESULTS_PROVIDER_ORDER: ['calculator', 'history', 'cliqz', 'querySuggestions', 'instant'],
     CLEAR_RESULTS_AT_SESSION_START: false,
+
+    // (leave empty if you do not want to send messages)
+    HUMAN_WEB_LITE_COLLECTOR: 'https://collector-stub.test.cliqz.com',
+    HW_CHANNEL: 'ios',
   }),
   default_prefs: {
   },
   modules: [
     'core',
     'core-cliqz',
+    'human-web-lite',
     'search',
     'mobile-cards',
     'mobile-cards-vertical',
     'anolysis',
     'geolocation',
+    'news',
+    'inbox',
   ],
   bundles: [
   ],

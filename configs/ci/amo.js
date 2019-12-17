@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const base = require('../amo-webextension');
+const base = require('../releases/amo-webextension');
 const ciUrl = require('./common/urls');
 
 module.exports = Object.assign({}, base, {
@@ -17,7 +17,6 @@ module.exports = Object.assign({}, base, {
   default_prefs: Object.assign({}, base.default_prefs, {
     showConsoleLogs: true,
     developer: true,
-    historyLookupEnabled: false,
     'modules.anolysis.enabled': true,
   }),
   modules: base.modules.concat([

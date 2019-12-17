@@ -17,10 +17,8 @@
 @import 'settings.scss';
 @import 'switch.scss';
 @import 'tooltip.scss';
-@import 'top-notifications.scss';
 @import 'modal.scss';
 @import 'overlay.scss';
-@import 'cliqz-post.scss';
 @import "mixins";
 
 @mixin container($config, $theme)
@@ -30,14 +28,12 @@
     $url-bar-configs: map-merge($base-configs, map-get($config, url-bar));
     $news-configs: map-get($config, news);
     $stats-configs: map-merge($news-configs, map-get($config, stats));
-    $top-notifications-configs: map-get($config, top-notifications);
     $tooltip-configs: map-get($config, tooltip);
 
     $base-theme: map-get($theme, base);
     $speed-dials-theme: map-get($theme, speed-dials);
     $url-bar-theme: map-get($theme, url-bar);
     $news-theme: map-get($theme, news);
-    $top-notifications-theme: map-get($theme, top-notifications);
 
     #app {
         display: flex;
@@ -57,11 +53,6 @@
     }
 
     @include settings(map-get($base-theme, cliqz-settings-bg));
-
-    #cliqz-home {
-        opacity: 1;
-        background: map-get($base-theme, cliqz-home-bg);
-    }
 
     #cliqz-history {
         background: map-get($base-theme, cliqz-history-bg);
@@ -102,10 +93,6 @@
             width: 100%;
             height:100%;
             opacity: 0.75;
-
-            &:hover {
-                opacity: 1;
-            }
         }
 
         &:hover {
@@ -156,7 +143,6 @@
     }
 
     @include speed-dials(map-merge($speed-dials-configs, $speed-dials-theme)...);
-    @include top-notifications(map-merge($top-notifications-configs, $top-notifications-theme)...);
     @include url-bar(map-merge($url-bar-configs, $url-bar-theme)...);
     @include url-bar-with-results(map-merge($url-bar-configs, $url-bar-theme)...);
     @include news(map-merge($news-configs, $news-theme)...);

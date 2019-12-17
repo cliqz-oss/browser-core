@@ -28,14 +28,14 @@ export default {
                   description: 'Ungarns Ministerpräsident Viktor Orbán (54) hat Ost-Mitteleuropa zur „migrantenfreien Zone“ erklärt – und schockiert mit weiteren Aussagen, die stark an Verschwörungstheorien erinnern. ★ Die EU und',
                   domain: 'bild.de',
                   hash_url: 'fee355b1cd00e05849dff70db86e5b4747108b4a',
-                  media: 'http://bilder.bild.de/fotos/der-ungarische-ministerpraesident-viktor-orban-hat-ost-mitteleuropa-zur-migrantenfreien-zone-erklaer-200568180-53635320/Bild/2.bild.jpg',
+                  media: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg',
                   mobile_url: 'http://m.bild.de/politik/ausland/viktor-orban/erklaert-ost-mittel-europa-zur-migranten-freien-zone-53635338.bildMobile.html',
                   score: 33529.642528035685,
                   sources: [
                     'Cluster101',
                     'Twitter-Indexer'
                   ],
-                  thumbnail: 'http://bilder.bild.de/fotos/der-ungarische-ministerpraesident-viktor-orban-hat-ost-mitteleuropa-zur-migrantenfreien-zone-erklaer-200568180-53635320/Bild/2.bild.jpg',
+                  thumbnail: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg',
                   timestamp: 1508782338,
                   tweet_count: 0
                 },
@@ -49,14 +49,14 @@ export default {
                   description: 'Montabaur – Laub ist lästig?Laub macht Laune! Den Beweis liefert BILD-Leser-Reporter Maciej Czaplewski (50) aus Nassau (Rheinland-Pfalz). Er hatte den Auftrag, auf dem Schwimmbad-Gelände in Montabaur',
                   domain: 'bild.de',
                   hash_url: '0b95945199ab0d2f2c467078a8d3b44b1a6c6b80',
-                  media: 'http://bilder.bild.de/fotos/kuerbis-200567976-53633554/Bild/2.bild.jpg',
+                  media: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg',
                   mobile_url: 'http://m.bild.de/news/leserreporter/bild-leserreporter/wie-haben-sie-fuer-halloween-dekoriert-53633132.bildMobile.html',
                   score: 33529.4997260185,
                   sources: [
                     'Cluster101',
                     'Twitter-Indexer'
                   ],
-                  thumbnail: 'http://bilder.bild.de/fotos/kuerbis-200567976-53633554/Bild/2.bild.jpg',
+                  thumbnail: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg',
                   timestamp: 1508780625,
                   tweet_count: 0
                 },
@@ -70,14 +70,14 @@ export default {
                   description: 'Der 1. FC Köln hat sich überraschend von seinem Geschäftsführer Jörg Schmadtke (53) getrennt. Wie das Schlusslicht der Bundesliga am Montag mitteilte, wurde der bis 2023 laufende Vertrag in',
                   domain: 'bild.de',
                   hash_url: 'f2786c21e02e3f28327d4253c268aba5574fdc94',
-                  media: 'http://bilder.bild.de/fotos/schmadtke-und-der-1-fc-koeln-trennen-sich-200568198-53635510/Bild/2.bild.jpg',
+                  media: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg',
                   mobile_url: 'http://m.bild.de/sport/fussball/joerg-schmadtke/schmadtke-koeln-sport-eilmeldung--53635410.bildMobile.html',
                   score: 33529.48495902382,
                   sources: [
                     'Twitter-Indexer',
                     'Cluster101'
                   ],
-                  thumbnail: 'http://bilder.bild.de/fotos/schmadtke-und-der-1-fc-koeln-trennen-sich-200568198-53635510/Bild/2.bild.jpg',
+                  thumbnail: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg',
                   timestamp: 1508778260,
                   tweet_count: 0
                 },

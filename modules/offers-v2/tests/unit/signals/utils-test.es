@@ -50,10 +50,10 @@ export default describeModule('offers-v2/signals/utils',
         chai.expect(d.field).to.be.eql('abc123');
       });
 
-      it('limit size of a string signal', () => {
-        const d = { field: 'a'.repeat(512) };
-        addOrCreate(d, 'field', 'b');
-        chai.expect(d.field).to.eql(`*CUT*${'a'.repeat(127)}b`);
+      it('handle the special case of coupon journey', () => {
+        const d = { coupon_journey: 'N' };
+        addOrCreate(d, 'coupon_journey', 'N'); // repeated step is ignored
+        chai.expect(d.coupon_journey).to.eql('N'); // not 'NN'
       });
     });
 

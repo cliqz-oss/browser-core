@@ -312,7 +312,6 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
   await app.disableModule('offers-v2');
 
   if (dest === 'cliqz-tab') {
-    await app.disableModule('message-center');
     await app.disableModule('freshtab');
   }
 
@@ -344,7 +343,6 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
   await app.enableModule('offers-v2');
 
   if (dest === 'cliqz-tab') {
-    await app.enableModule('message-center');
     await app.enableModule('freshtab');
   }
 
@@ -365,5 +363,5 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
   }
 
   // Force call to /api/v1/categories
-  await app.modules['offers-v2'].background.categoryFetcher._performFetch();
+  await app.modules['offers-v2'].background.postInit();
 };

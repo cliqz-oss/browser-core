@@ -1,7 +1,5 @@
 {
-  "printWidth": 99,
   "semi": true,
-  "useTabs": false,
   "singleQuote": true,
   "trailingComma": "all",
   "bracketSpacing": true,

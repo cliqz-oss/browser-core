@@ -31,7 +31,6 @@ export default class History extends BaseProvider {
       //       duplicates (like http://cliqz.com and https://cliqz.com) and
       //       in enrich to remove rich data/history duplicates
       // filter out results without main link (clean above removes links)
-      // TODO - optimize `clean`, `normalize` and transitive core/url functions.
       //
       // NOTE: here it is safe to use 'unsafe' operators since results have not
       // been shared with outside yet (see docstring of 'unsafeClean' function

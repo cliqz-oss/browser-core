@@ -17,7 +17,7 @@ const SUPPORTED_DEEP_RESULTS = ['streaming', 'simple_links', 'buttons'];
 const cardStyle = theme => StyleSheet.create({
   container: {
     flexDirection: 'column',
-    paddingBottom: 5,
+    marginVertical: 10,
     paddingLeft: theme.card.sidePadding,
     paddingRight: theme.card.sidePadding,
     backgroundColor: theme.card.bgColor,

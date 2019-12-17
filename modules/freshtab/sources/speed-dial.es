@@ -9,12 +9,11 @@
 /* eslint no-param-reassign: 'off' */
 
 import logos from '../core/services/logos';
-import { URLInfo } from '../core/url-info';
-import { getCleanHost } from '../core/url';
+import { getCleanHost, parse } from '../core/url';
 
 export default class SpeedDial {
   constructor({ url, title = '', isCustom = true }) {
-    const details = URLInfo.get(url);
+    const details = parse(url);
     const logoDetails = logos.getLogoDetails(url);
     this.title = url;
     const displayTitle = title;

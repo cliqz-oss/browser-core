@@ -21,7 +21,12 @@ import { updateTimestamp } from './time';
 import { bindObjectFunctions } from '../core/helpers/bind-functions';
 import inject from '../core/kord/inject';
 import { isMobile, isEdge } from '../core/platform';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
+
+// Telemetry schemas
+import popupActionsMetrics from './telemetry/metrics/popup';
+import tokensMetrics from './telemetry/metrics/tokens';
+import tokensAnalyses from './telemetry/analyses/tokens';
 
 function humanwebExistsAndDisabled() {
   const humanweb = inject.module('human-web');
@@ -36,7 +41,7 @@ export default background({
   // Injected in window.es
   controlCenter: inject.module('control-center'),
 
-  requiresServices: ['cliqz-config', 'domainInfo', 'pacemaker'],
+  requiresServices: ['cliqz-config', 'domainInfo', 'pacemaker', 'telemetry'],
 
   attrack: null,
 
@@ -45,6 +50,12 @@ export default background({
   * @param settings
   */
   init(settings) {
+    telemetryService.register([
+      ...popupActionsMetrics,
+      ...tokensMetrics,
+      ...tokensAnalyses,
+    ]);
+
     // Create new attrack class
     this.settings = settings;
     this.core = inject.module('core');
@@ -116,7 +127,7 @@ export default background({
 
     return this.attrack.getTabBlockingInfo(id, u)
       .then((info) => {
-        const url = URLInfo.get(info.url);
+        const url = parse(info.url);
         const ps = info.ps;
         const hostname = url ? url.hostname : '';
         const isWhitelisted = url !== null && this.attrack.urlWhitelist.isWhitelisted(
@@ -336,7 +347,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'whitelist_domain'
-        }, 'metrics.legacy.antitracking');
+        }, 'metrics.antitracking.popup.action');
       }
     },
     'antitracking:whitelist:remove': function (hostname, isPrivateMode) {
@@ -345,7 +356,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'unwhitelist_domain'
-        }, 'metrics.legacy.antitracking');
+        }, 'metrics.antitracking.popup.action');
       }
     },
     'control-center:antitracking-strict': () => {
@@ -363,7 +374,7 @@ export default background({
         this.popupActions.telemetry({
           action: 'click',
           target: 'clearcache',
-        }, 'metrics.legacy.antitracking');
+        }, 'metrics.antitracking.popup.action');
       }
     },
     'webrequest-pipeline:stage': function (page) {
@@ -383,7 +394,9 @@ export default background({
         report,
       });
       // send page-load telemetry
-      this.attrack.onPageStaged(page);
+      if (this.attrack) {
+        this.attrack.onPageStaged(page);
+      }
     },
   },
 });

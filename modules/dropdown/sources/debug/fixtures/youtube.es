@@ -75,7 +75,7 @@ export default {
                   title: 'Ecken-Trick lässt Anfield beben | Liverpool - Barcelona 4:0 | Highlights - Champions League 2018/19',
                   extra: {
                     duration: null,
-                    thumbnail: 'https://imgr.cliqz.com/Fx-c2pfQiO6IqKVr5nw4TrpFxW-gGMNgx2odaX0aD5A/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9rem90VUVJbkRiby9tcWRlZmF1bHQuanBn.jpg',
+                    thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
                     views: '3783439'
                   },
                   kind: [
@@ -121,7 +121,7 @@ export default {
                   title: 'o2 Free - Jetzt auch nach Verbrauch des Datenvolumens mit LTE weitersurfen',
                   extra: {
                     duration: null,
-                    thumbnail: 'https://imgr.cliqz.com/3LCc0DCkfelobt_zcT_grbB7UU-pLl_NpyMaOtGRMJY/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9oM0tYakU4cjF6by9tcWRlZmF1bHQuanBn.jpg',
+                    thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
                     views: '235000'
                   },
                   kind: [
@@ -167,7 +167,7 @@ export default {
                   title: 'Jürgen Klopp im DAZN Interview nach Liverpool vs Barcelona',
                   extra: {
                     duration: null,
-                    thumbnail: 'https://imgr.cliqz.com/ADIJHtB0_O30igW8Kg4C08ElRbI6q6o-T48BVa1mD7c/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS83WnRBSDB4NkdZVS9tcWRlZmF1bHQuanBn.jpg',
+                    thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
                     views: '1159784'
                   },
                   kind: [
@@ -292,7 +292,7 @@ export default {
                   title: 'Ecken-Trick lässt Anfield beben | Liverpool - Barcelona 4:0 | Highlights - Champions League 2018/19',
                   extra: {
                     duration: null,
-                    thumbnail: 'https://imgr.cliqz.com/Fx-c2pfQiO6IqKVr5nw4TrpFxW-gGMNgx2odaX0aD5A/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9rem90VUVJbkRiby9tcWRlZmF1bHQuanBn.jpg',
+                    thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
                     views: '3783439'
                   },
                   kind: [
@@ -340,7 +340,7 @@ export default {
                   title: 'Jürgen Klopp im DAZN Interview nach Liverpool vs Barcelona',
                   extra: {
                     duration: null,
-                    thumbnail: 'https://imgr.cliqz.com/ADIJHtB0_O30igW8Kg4C08ElRbI6q6o-T48BVa1mD7c/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS83WnRBSDB4NkdZVS9tcWRlZmF1bHQuanBn.jpg',
+                    thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
                     views: '1159784'
                   },
                   kind: [
@@ -388,7 +388,7 @@ export default {
                   title: 'o2 Free - Jetzt auch nach Verbrauch des Datenvolumens mit LTE weitersurfen',
                   extra: {
                     duration: null,
-                    thumbnail: 'https://imgr.cliqz.com/3LCc0DCkfelobt_zcT_grbB7UU-pLl_NpyMaOtGRMJY/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9oM0tYakU4cjF6by9tcWRlZmF1bHQuanBn.jpg',
+                    thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
                     views: '235000'
                   },
                   kind: [

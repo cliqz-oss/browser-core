@@ -1,0 +1,32 @@
+{
+    "news_language_de": {
+        "message": "Немецкие СМИ"
+    },
+    "news_language_de_tr_en": {
+        "message": "Немецкие СМИ на английском"
+    },
+    "news_language_en": {
+        "message": "СМИ Великобритании и США"
+    },
+    "news_language_es": {
+        "message": "Испанские СМИ"
+    },
+    "news_language_fr": {
+        "message": "Француские СМИ"
+    },
+    "news_language_gb": {
+        "message": "СМИ Великобритании"
+    },
+    "news_language_it": {
+        "message": "Итальянские СМИ"
+    },
+    "news_language_pl": {
+        "message": "Polish media"
+    },
+    "news_language_ru": {
+        "message": "Русские СМИ"
+    },
+    "news_language_us": {
+        "message": "СМИ США"
+    }
+}

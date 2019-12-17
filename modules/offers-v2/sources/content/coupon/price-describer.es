@@ -17,6 +17,38 @@ function isStruckThrough(window, elem) {
 const _rePrePrice = /((\d+)[.,](\d+))(.)?/g;
 const skipTagsWhenPriceWalk = new Set(['SCRIPT', 'STYLE', 'IFRAME']);
 
+//
+// One and only one price should be inside the string.
+// Return a number or `undefined` if not found.
+//
+function _extractPriceFromString(string_) {
+  //
+  // One and only one price should be inside the tag.
+  //
+  _rePrePrice.lastIndex = 0;
+  const match = _rePrePrice.exec(string_);
+  if (!match) {
+    return undefined;
+  }
+  // The flag "g" of the regular expression says "start search from
+  // the last match". If something is found, it is the second price-alike
+  // substring in the text. Such nodes should be skipped.
+  if (_rePrePrice.test(string_)) {
+    return undefined;
+  }
+  //
+  // Reject a match that doesn't fit the desired regexp
+  //
+  if ((match[2].length > 5) // digits before comma
+    || (match[3].length !== 2) // digits after comma
+    || (match[4] === '.') // extra dot, may be a date
+  ) {
+    return undefined;
+  }
+  const priceAsString = match[1];
+  return parseFloat(priceAsString.replace(',', '.'));
+}
+
 function _pushPricesFromNode(node, pricesAccumulator) {
   //
   // Don't go inside technical elements.
@@ -28,30 +60,10 @@ function _pushPricesFromNode(node, pricesAccumulator) {
   if (node.nodeType !== 3) { // 3 is a text node
     return true;
   }
-  //
-  // One and only one price should be inside the tag.
-  //
-  const s = node.nodeValue;
-  const match = _rePrePrice.exec(s);
-  if (!match) {
+  const price = _extractPriceFromString(node.nodeValue);
+  if (price === undefined) {
     return false;
   }
-  // The flag "g" of the regular expression says "start search from
-  // the last match". If something is found, it is the second price-alike
-  // substring in the text. Such nodes should be skipped.
-  if (_rePrePrice.exec(s)) {
-    return false;
-  }
-  //
-  // Reject a match that doesn't fit the desired regexp
-  //
-  if ((match[2].length > 5) // digits before comma
-    || (match[3].length !== 2) // digits after comma
-    || (match[4] === '.') // extra dot, may be a date
-  ) {
-    return false;
-  }
-  const price = match[1];
   //
   // If text is struck through, ignore it
   //
@@ -165,20 +177,21 @@ function _extractPrices(rootElement) {
 }
 
 function describePrices(window, { totalSelector = undefined } = {}) {
-  const asNumber = s => parseFloat(s.replace(',', '.'));
   // If a hint is provided, use it
   if (totalSelector) {
     const totalRoot = window.document.querySelector(totalSelector);
     if (!totalRoot) {
       return {};
     }
-    const totals = _extractPrices(totalRoot);
-    return {
-      total: totals.length === 1 ? asNumber(totals[0]) : undefined
-    };
+    // `_extractPrices` doesn't support decorated prices that consist
+    // of several nodes, therefore we linearize the node content.
+    // It shouldn't be heavy because the hint points to a small area.
+    const price = _extractPriceFromString(totalRoot.textContent);
+    // The caller understands `{ total: undefined }` if there is no price
+    return { total: price };
   }
   // Otherwise, use heuristics
-  const prices = _extractPrices(window.document.body).map(asNumber);
+  const prices = _extractPrices(window.document.body);
   return guessTotal(prices);
 }
 

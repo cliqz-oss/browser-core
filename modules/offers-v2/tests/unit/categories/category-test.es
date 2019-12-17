@@ -21,7 +21,6 @@ export default describeModule('offers-v2/categories/category',
       function cmpCats(c1, c2) {
         const fieldsToCompare = [
           'name',
-          'patterns',
           'version',
           'getTimeRangeSecs',
           'activationData',

@@ -13,10 +13,7 @@ import {
   fillIn,
   mockPref,
   mockSearch,
-  press,
   testServer,
-  wait,
-  waitFor,
   waitForPopup,
   withHistory,
 } from './helpers';
@@ -39,7 +36,6 @@ async function getSearchParams(query, { resultsNumber = 1, blur = true } = {}) {
 export default function () {
   context('parameters test', function () {
     const query = 't';
-    let hits;
     let parameters;
     let restorePref;
     let restoreContextSearchPref;
@@ -97,64 +93,6 @@ export default function () {
 
         it('session changes', function () {
           expect(parameters.s).to.not.equal(session);
-        });
-      });
-    });
-
-    context('_sessionSeq and _queryCount', function () {
-      beforeEach(async function () {
-        parameters = await getSearchParams('t');
-      });
-
-      it('parameters n=0, qc=0 received by server', async function () {
-        expect(parameters.n).to.equal('0');
-        expect(parameters.qc).to.equal('0');
-      });
-
-      context('on typing second symbol', function () {
-        beforeEach(async function () {
-          await mockSearch({ results: [{ url: 'https://test.com' }] });
-          withHistory([]);
-
-          // need to wait 500 ms, because qc increases if there is more than 500 ms
-          // between the typing of symbols
-          await wait(500);
-          press({ key: 'a', code: 'KeyA' });
-          await waitForPopup(1);
-          await waitFor(async () => {
-            hits = await testServer.getLastHits();
-            parameters = hits.get('/api/v2/results').query;
-            return parameters.q === `${query}a`;
-          });
-        });
-
-        it('n=1, qc=0', function () {
-          expect(parameters.n).to.equal('1');
-          expect(parameters.qc).to.equal('0');
-        });
-
-        context('on typing third symbol', function () {
-          beforeEach(async function () {
-            await mockSearch({ results: [{ url: 'https://test.com' }] });
-            withHistory([]);
-
-            // need to wait 500 ms, because qc increases if there is more than 500 ms
-            // between the typing of symbols
-            await wait(500);
-
-            press({ key: 'a', code: 'KeyA' });
-            await waitForPopup(1);
-            await waitFor(async () => {
-              hits = await testServer.getLastHits();
-              parameters = hits.get('/api/v2/results').query;
-              return parameters.q === `${query}aa`;
-            });
-          });
-
-          it('n=2, qc=1', function () {
-            expect(parameters.n).to.equal('2');
-            expect(parameters.qc).to.equal('1');
-          });
         });
       });
     });

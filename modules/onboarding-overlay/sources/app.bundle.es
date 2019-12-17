@@ -18,15 +18,15 @@ document.body.classList.add(PRODUCT);
 const onboarding = createModuleWrapper('onboarding-overlay');
 
 function saveOptions() {
-  onboarding.saveConsentStatus({
+  return onboarding.saveConsentStatus({
     humanWebOptOut: !document.getElementById('humanWebOptOut').checked,
     telemetry: document.getElementById('telemetry').checked,
   });
 }
 
-function saveOptionsAndClose() {
-  saveOptions();
-  window.postMessage({ action: 'continue' }, '*');
+async function saveOptionsAndClose() {
+  await saveOptions();
+  window.parent.postMessage({ action: 'continue' }, '*');
 }
 
 async function restoreOptions() {

@@ -22,7 +22,7 @@ export default class Header extends React.Component {
   }
 
   render() {
-    const { products, onClickMenu, activeMenu } = this.props;
+    const { products, onClickMenu, activeMenu, shouldShowOptIn } = this.props;
     const prefix = chooseProduct(products);
     const labels = {
       cliqz: 'CLIQZ OFFERS',
@@ -39,10 +39,12 @@ export default class Header extends React.Component {
           <div className={_css('label', `${prefix}-label`)}>{labels[prefix] || ''}</div>
         </div>
         <div className={_css('right-item')}>
+          {!shouldShowOptIn && (
           <div
             onClick={onClickMenu}
             className={_css('menu', activeMenu ? 'menu-active' : '')}
           />
+          )}
           <div
             onClick={this.onClickClose}
             className={_css('close')}

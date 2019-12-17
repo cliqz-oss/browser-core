@@ -8,7 +8,7 @@
 
 import { truncatedHash } from '../../core/helpers/md5';
 import pacemaker from '../../core/services/pacemaker';
-import { URLInfo } from '../../core/url-info';
+import { parse } from '../../core/url';
 import { sameGeneralDomain, getGeneralDomain } from '../../core/tlds';
 
 import { cleanTimestampCache } from '../utils';
@@ -75,7 +75,7 @@ export default class CookieContext {
 
   assignCookieTrust(state) {
     if (state.isMainFrame && state.getReferrer()) {
-      const referrer = URLInfo.get(state.getReferrer());
+      const referrer = parse(state.getReferrer());
       if (!referrer) {
         return true;
       }
@@ -154,7 +154,7 @@ export default class CookieContext {
   }
 
   extractPossilbeContextGD(links) {
-    return new Set(links.map(link => URLInfo.get(link).generalDomain));
+    return new Set(links.map(link => parse(link).generalDomain));
   }
 
   setContextFromEvent(ev, contextHTML, herf, sender) {
@@ -163,8 +163,8 @@ export default class CookieContext {
     const html = contextHTML || '';
 
     try {
-      pageGD = URLInfo.get(sender.tab.url).generalDomain;
-      cGD = URLInfo.get(ev.target.baseURI).generalDomain;
+      pageGD = parse(sender.tab.url).generalDomain;
+      cGD = parse(ev.target.baseURI).generalDomain;
     } catch (ee) {
       // empty
     }

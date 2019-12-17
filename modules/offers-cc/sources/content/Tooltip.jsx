@@ -29,7 +29,7 @@ export default class Tooltip extends React.Component {
       <div
         onMouseEnter={() => this.setState({ mouseInside: true })}
         onMouseLeave={() => this.setState({ mouseInside: false })}
-        className={_css('container')}
+        className={_css('container', `${product}-container`)}
       >
         <div
           onClick={() => {
@@ -43,7 +43,9 @@ export default class Tooltip extends React.Component {
           className={_css('left-item')}
         >
           <div className={_css('image', `${product}-image`)} />
-          <div className={_css('text')}>{i18n('offers_hub_tooltip_new_offer')}</div>
+          <div className={_css('text', `${product}-text`)}>
+            {i18n(products.ghostery ? 'rewards_new' : 'tooltip_new_offer')}
+          </div>
         </div>
         <div
           onClick={() => {

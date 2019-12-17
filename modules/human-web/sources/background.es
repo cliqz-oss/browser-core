@@ -8,7 +8,6 @@
 
 /* eslint func-names: 'off' */
 
-import telemetry from '../core/services/telemetry';
 import prefs from '../core/prefs';
 import background from '../core/base/background';
 import HumanWeb from './human-web';
@@ -16,7 +15,7 @@ import history from '../core/history-service';
 import inject from '../core/kord/inject';
 import WebRequest from '../core/webrequest';
 import logger from './logger';
-import { fixURL, getDetailsFromUrl } from '../core/url';
+import { fixURL, parse, getCleanHost } from '../core/url';
 import { tryPromise } from '../core/decorators';
 
 /**
@@ -138,10 +137,6 @@ export default background({
       if (pref === 'humanWebOptOut') {
         try {
           await this.reload();
-          await telemetry.push({
-            type: 'humanWebStatus',
-            state: this.actions.getStatus(),
-          });
         } catch (e) {
           logger.error(e);
         }
@@ -211,7 +206,7 @@ export default background({
   actions: {
     // used by toolbox/sources/toolbox/components/humanweb.jsx
     async getURLCheckStatus(url) {
-      const cleanHost = getDetailsFromUrl(url).cleanHost;
+      const cleanHost = getCleanHost(parse(url));
       return {
         host: await HumanWeb.doublefetchHandler
           .anonymousHttpGet(`https://${cleanHost}`)

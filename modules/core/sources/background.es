@@ -28,16 +28,36 @@ import { getResourceUrl } from './platform';
 import { isUrl, fixURL } from '../core/url';
 import { getEngineByQuery } from '../core/search-engines';
 
+// Telemetry schemas
+import modulesStartupMetric from './telemetry/metrics/modules-startup';
+import performanceMetric from './telemetry/metrics/performance';
+import resourceLoadersMetric from './telemetry/metrics/resource-loaders';
+import versionsMetrics from './telemetry/metrics/versions';
+import performanceAnalysis from './telemetry/analyses/performance';
+
 /**
  * @module core
  * @namespace core
  * @class Background
  */
 export default background({
-  requiresServices: ['pacemaker', 'telemetry', 'domainInfo'],
+  requiresServices: [
+    'pacemaker',
+    'host-settings',
+    'telemetry',
+    'domainInfo',
+  ],
   providesServices,
 
   init(settings) {
+    telemetry.register([
+      modulesStartupMetric,
+      performanceMetric,
+      resourceLoadersMetric,
+      ...versionsMetrics,
+      performanceAnalysis,
+    ]);
+
     enableRequestSanitizer();
 
     this.settings = settings;
@@ -68,7 +88,7 @@ export default background({
   getWindowStatusFromModules() {
     let currentTab;
     return Object.keys(this.app.modules).map(async (module) => {
-      const backgroundModule = this.app.modules[module].backgroundModule;
+      const backgroundModule = this.app.modules[module].background;
       let status = null;
       if (backgroundModule && backgroundModule.currentWindowStatus) {
         if (!currentTab) {
@@ -140,6 +160,10 @@ export default background({
         });
     },
 
+    /**
+     * WARNING: this action shall not be removed because it is needed by some
+     * external extensions to send telemetry (using inter extension messaging).
+     */
     sendTelemetry(signal, instant, schema) {
       return telemetry.push(signal, schema, instant);
     },

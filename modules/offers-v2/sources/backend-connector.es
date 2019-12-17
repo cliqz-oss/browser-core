@@ -52,9 +52,7 @@ export default class BEConnector {
    * @param  {string} method [description]
    * @return {Promise}          [description]
    */
-  sendApiRequest(endpoint, params, method = 'POST') {
-    logger.info('backend_connector', 'sendApiRequest called');
-
+  sendApiRequest(endpoint, params, method = 'POST', { useCache: useCacheIn = true } = {}) {
     this._expireCache();
 
     params.t_eng_ver = OffersConfigs.TRIGGER_ENGINE_VERSION;
@@ -63,8 +61,9 @@ export default class BEConnector {
     const url = this._buildUrl(endpoint, params, method);
 
     // check if we have cache here
+    const useCache = (method !== 'POST') && useCacheIn;
     const cacheEntry = this._cache.get(url);
-    if (cacheEntry && !cacheEntry.expired()) {
+    if (useCache && cacheEntry && !cacheEntry.expired()) {
       logger.debug('we have data cached for ', url);
       // check if was a failed call or not to reject the promise or not and keep
       // the same behavior for the one who calls
@@ -87,13 +86,13 @@ export default class BEConnector {
       if (response.ok) {
         // set the cache
         return response.json().then((resultResponse) => {
-          if (method !== 'POST') {
+          if (useCache) {
             this._cache.set(url, new CacheEntry(resultResponse));
           }
           return Promise.resolve(resultResponse);
         });
       }
-      if (method !== 'POST') {
+      if (useCache) {
         this._cache.set(url, new CacheEntry(null, response.status));
       }
       return Promise.reject(new Error(`Status code ${response.status} for ${url}`));

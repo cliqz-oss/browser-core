@@ -68,7 +68,7 @@ export default [
         }
       },
       friendlyUrl: 'imdb.com/title/tt4287320',
-      title: 'The Circle (2017) - IMDb'
+      title: '> Title - The Circle (2017) - IMDb'
     },
     c_url: 'http://www.imdb.com/title/tt4287320',
     type: 'bm',

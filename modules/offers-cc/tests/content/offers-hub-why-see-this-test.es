@@ -29,17 +29,17 @@ context('Offers Hub Why do I see this', function () {
 
     it('renders "Why do I see these offers"', function () {
       expect(subject.query('.why-do-i-see__title')).to.exist;
-      expect(subject.query('.why-do-i-see__title')).to.have.text('why_see_these_offers');
+      expect(subject.query('.why-do-i-see__title')).to.have.text('myoffrz_why_see_these_offers');
     });
 
     it('renders text about offers', function () {
       expect(subject.query('.why-do-i-see__description')).to.exist;
-      expect(subject.query('.why-do-i-see__description')).to.have.text('why_offers_text');
+      expect(subject.query('.why-do-i-see__description')).to.have.text('myoffrz_why_offers_text');
     });
 
     it('renders link "Learn more"', function () {
       expect(subject.query('.why-do-i-see__link')).to.exist;
-      expect(subject.query('.why-do-i-see__link')).to.have.text('learn_more');
+      expect(subject.query('.why-do-i-see__link')).to.have.text('myoffrz_learn_more');
     });
   });
 

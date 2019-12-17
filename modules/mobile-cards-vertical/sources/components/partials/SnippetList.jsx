@@ -22,8 +22,6 @@ const styles = theme => StyleSheet.create({
     paddingBottom: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    borderTopColor: theme.snippet.separatorColor,
-    borderTopWidth: 0.5,
   },
   footerText: {
     fontSize: 12.5,

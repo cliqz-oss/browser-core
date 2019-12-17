@@ -43,6 +43,7 @@ module.exports = {
     'dropdown',
     'abtests-legacy',
     'freshtab',
+    'news',
     'offers-v2',
     'human-web',
     'hpnv2',
@@ -52,7 +53,6 @@ module.exports = {
     'anolysis-cc',
     'overlay',
     'control-center',
-    'message-center',
   ],
   bundles: [
     'hpnv2/worker.wasm.bundle.js',

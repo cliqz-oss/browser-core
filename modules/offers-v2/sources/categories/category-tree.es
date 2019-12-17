@@ -4,6 +4,10 @@ const getParentNodeFromCatName = (catName) => {
   nodeNames.pop();
   return nodeNames;
 };
+function getLeafName(catName) {
+  const names = getNodeNamesFromCatName(catName);
+  return names.pop();
+}
 
 /**
  * Category node on the tree
@@ -20,7 +24,7 @@ class CategoryNode {
   }
 
   hasCategory() {
-    return !!this.category;
+    return Boolean(this.category);
   }
 
   getCategory() {
@@ -68,7 +72,12 @@ export default class CategoryTree {
   }
 
   hasCategory(cname) {
-    return this._getNode(getNodeNamesFromCatName(cname)) !== null;
+    const node = this._getNode(getNodeNamesFromCatName(cname));
+    if (!node) {
+      return false;
+    }
+    const cat = node.getCategory();
+    return Boolean(cat);
   }
 
   clear() {
@@ -79,7 +88,8 @@ export default class CategoryTree {
     // we will remove all the children here?
     const parentNode = this._getNode(getParentNodeFromCatName(cname));
     if (parentNode !== null) {
-      parentNode.removeChild(cname);
+      const childName = getLeafName(cname);
+      parentNode.removeChild(childName);
     }
   }
 

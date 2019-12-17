@@ -22,13 +22,13 @@ export default [
                 description: 'Die Analyse eines exklusiven Satellitenbilds zeigt, dass die USA im Norden Syriens eine Luftwaffenbasis errichtet haben. Foto: , YouTube/BBC Newsnight, TERRA server',
                 domain: 'bild.de',
                 hash_url: '0a9d3374366d0e8850ba04799575d03c9c3f549c',
-                media: 'http://bilder.bild.de/fotos/qf-geheimbasis_200450378_mbqf-1499954661-52538792/Bild/1,club=bildplus.bild.jpg',
+                media: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg',
                 mobile_url: '',
                 score: 33342.01928888889,
                 sources: [
                   'Cluster101'
                 ],
-                thumbnail: 'http://bilder.bild.de/fotos/qf-geheimbasis_200450378_mbqf-1499954661-52538792/Bild/1,club=bildplus.bild.jpg',
+                thumbnail: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg',
                 timestamp: 1500390868,
                 tweet_count: 0
               },

@@ -51,6 +51,10 @@ body {
   padding-bottom: 20px;
 }
 
+.privacy-policy-chip {
+  display: none;
+}
+
 .form-title {
   color: #f67057;
   font-size: 16px;
@@ -129,6 +133,14 @@ body.chip .form-button {
 body.chip a {
   color: #eb443f;
   text-decoration: none;
+}
+
+body.chip .privacy-policy-default {
+  display: none;
+}
+
+body.chip .privacy-policy-chip {
+  display: initial;
 }
 
 body.freundin {

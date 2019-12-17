@@ -21,16 +21,16 @@ export default [
       extra: {
         _meta: [],
         image: {
-          src: 'http://bilder4.n-tv.de/img/incoming/crop20096451/3571323540-cImg_16_9-w1200/92243654.jpg'
+          src: 'http://localhost:3000/static/images/92243654.jpg'
         },
-        media: 'http://bilder4.n-tv.de/img/incoming/crop20096451/3571323540-cImg_16_9-w1200/92243654.jpg',
+        media: 'http://localhost:3000/static/images/92243654.jpg',
         rich_data: {
           discovery_timestamp: 1508695555,
           query_type: 'query: donald trump',
           source_name: 'n-tv.de'
         }
       },
-      title: '"Das sind Freunde": Trump findet deutsch-iranischen Handel okay'
+      title: '> Title - "Das sind Freunde": Trump findet deutsch-iranischen Handel okay'
     },
     type: 'bm',
     template: 'news'

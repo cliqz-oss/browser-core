@@ -1,5 +1,5 @@
 import { truncatedHash } from '../core/helpers/md5';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 
 function truncatePath(path) {
   // extract the first part of the page path
@@ -8,7 +8,7 @@ function truncatePath(path) {
 }
 
 export default function buildPageLoadObject(page) {
-  const urlParts = URLInfo.get(page.url);
+  const urlParts = parse(page.url);
   const tps = {};
   for (const [domain, stats] of page.requestStats.entries()) {
     tps[domain] = stats;

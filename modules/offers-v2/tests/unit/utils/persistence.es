@@ -63,12 +63,20 @@ module.exports = {
         return this.db.set(key, value);
       }
 
+      bulkSetFromMap(keys) {
+        keys.forEach((value, key) => this.set(key, value));
+      }
+
       has(key) {
         return this.db.has(key);
       }
 
       delete(key) {
         return this.db.delete(key);
+      }
+
+      bulkDelete(keys) {
+        keys.forEach(key => this.delete(key));
       }
 
       clear() {
@@ -105,5 +113,18 @@ module.exports = {
       persistenceMap = {};
       simpleDb = {};
     },
+    async dexieReset(system) {
+      const PersistentMap = (await system.import('platform/persistent-map')).default;
+      for (const dbname of ['cliqz-categories-data', 'cliqz-categories-patterns']) {
+        const map = new PersistentMap(dbname);
+        // eslint-disable-next-line no-await-in-loop
+        await (async () => {
+          await map.init();
+          await map.clear();
+          await map.destroy();
+          await map.unload();
+        })();
+      }
+    }
   },
 };

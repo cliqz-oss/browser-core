@@ -7,7 +7,7 @@
  */
 
 import telemetry from '../core/services/telemetry';
-import { nextTick } from '../core/decorators';
+import pacemaker from '../core/services/pacemaker';
 
 import logger from './logger';
 import LatencyMetrics from './latency-metrics';
@@ -194,7 +194,7 @@ export default class Pipeline {
           // the response either. Because of these constraints, we can safely
           // run these steps asynchronously to not block the processing of
           // requests.
-          nextTick(() => fn(webRequestContext));
+          pacemaker.nextIdle(fn, webRequestContext);
           break;
         case 'blocking':
           // A `blocking` step is used to alter the life-cycle of a request:

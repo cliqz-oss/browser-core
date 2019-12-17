@@ -17,27 +17,41 @@ export default class Service {
    * Service is initialized only once
    * Multiple calls to init return same promise
    */
-  init(app) {
+  init(app, browser) {
     if (this._readyDefer) {
       return this._readyDefer.promise;
     }
 
     this._readyDefer = new Defer();
+    const startLoading = Date.now();
 
     // wrap in promise to catch exceptions
     Promise.resolve()
-      .then(() => this._initializer(app))
+      .then(() => this._initializer(app, browser))
       .then(
         (service) => {
+          this.loadingTime = Date.now() - startLoading;
           this._readyDefer.resolve();
+
           this.api = service;
+          this._moduleFactory = this._initializer.moduleFactory;
         },
         (e) => {
           this._readyDefer.reject(e);
-          throw e;
         },
       );
 
+    return this._readyDefer.promise;
+  }
+
+  async moduleFactory(moduleName) {
+    if (!this._moduleFactory) {
+      return this.api;
+    }
+    return this._moduleFactory(moduleName);
+  }
+
+  isReady() {
     return this._readyDefer.promise;
   }
 

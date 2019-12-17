@@ -13,7 +13,6 @@ import {
 } from '../../core/test-helpers-freshtab';
 
 describe('Freshtab buttons UI', function () {
-  const homeButtonSelector = '#cliqz-home';
   const historyButtonSelector = '#cliqz-history';
   const settingsButtonSelector = '#settings-btn';
   let subject;
@@ -59,28 +58,6 @@ describe('Freshtab buttons UI', function () {
       subject.unload();
     });
 
-    describe('renders home icon', function () {
-      it('successfully', function () {
-        expect(subject.query(homeButtonSelector)).to.exist;
-      });
-
-      it('not hidden', function () {
-        expect(subject.getComputedStyle(subject.query(homeButtonSelector)).display).to.not.equal('none');
-      });
-
-
-      it('with correct text', function () {
-        expect(subject.query(homeButtonSelector)).to.have.text('Home');
-      });
-
-      // NOTE: not sure why the link should be empty. I set it to the correct
-      // URL to fix another issue in `freshtab/background.es`.
-      // it('with the link which is empty string', function () {
-      //   expect(subject.query(homeButtonSelector).href)
-      //     .to.equal('');
-      // });
-    });
-
     describe('renders history icon', function () {
       it('successfully', function () {
         expect(subject.query(historyButtonSelector)).to.exist;
@@ -124,16 +101,6 @@ describe('Freshtab buttons UI', function () {
 
     after(function () {
       subject.unload();
-    });
-
-    describe('renders home icon', function () {
-      it('successfully', function () {
-        expect(subject.query(homeButtonSelector)).to.exist;
-      });
-
-      it('hidden', function () {
-        expect(subject.getComputedStyle(subject.query(homeButtonSelector)).display).to.equal('none');
-      });
     });
 
     describe('renders history icon', function () {

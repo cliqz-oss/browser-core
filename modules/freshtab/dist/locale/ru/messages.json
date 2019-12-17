@@ -83,36 +83,6 @@
     "freshtab_app_settings_news_label": {
         "message": "Новости"
     },
-    "freshtab_app_settings_news_language_de": {
-        "message": "Немецкие СМИ"
-    },
-    "freshtab_app_settings_news_language_de_tr_en": {
-        "message": "Немецкие СМИ на английском"
-    },
-    "freshtab_app_settings_news_language_en": {
-        "message": "СМИ Великобритании и США"
-    },
-    "freshtab_app_settings_news_language_es": {
-        "message": "Испанские СМИ"
-    },
-    "freshtab_app_settings_news_language_fr": {
-        "message": "Француские СМИ"
-    },
-    "freshtab_app_settings_news_language_gb": {
-        "message": "СМИ Великобритании"
-    },
-    "freshtab_app_settings_news_language_it": {
-        "message": "Итальянские СМИ"
-    },
-    "freshtab_app_settings_news_language_pl": {
-        "message": "Polish media"
-    },
-    "freshtab_app_settings_news_language_ru": {
-        "message": "Русские СМИ"
-    },
-    "freshtab_app_settings_news_language_us": {
-        "message": "СМИ США"
-    },
     "freshtab_app_settings_privacy_stats": {
         "message": "Статистика конфиденциальности"
     },

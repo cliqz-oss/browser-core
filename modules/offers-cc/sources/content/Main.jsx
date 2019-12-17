@@ -10,9 +10,18 @@ const _css = css('main__');
 export default class Main extends React.Component {
   constructor(props) {
     super(props);
+    const {
+      data: {
+        autoTrigger = false,
+        shouldShowOptIn = false,
+      } = {}
+    } = this.props;
+
     this.state = {
       isMenuOpen: false,
-      currentView: 'cards', // or 'why-do-i-see'
+
+      // possible views: opt-in | cards | why-do-i-see
+      currentView: (shouldShowOptIn && autoTrigger) ? 'opt-in' : 'cards',
     };
   }
 
@@ -33,7 +42,7 @@ export default class Main extends React.Component {
 
   onClickMenuOption = (option) => {
     const { currentView } = this.state;
-    const { data: { products = {} } = {} } = this.props;
+    const { data: { products = {}, autoTrigger = false } = {} } = this.props;
     const prefix = chooseProduct(products);
     const url = prefix === 'chip'
       ? 'https://sparalarm.chip.de/kontakt/'
@@ -56,7 +65,7 @@ export default class Main extends React.Component {
     action();
     send('sendTelemetry', { target: telemetry });
     this.setState({ currentView: view, isMenuOpen: false }, () => {
-      if (option === 'why-do-i-see') { resize(); }
+      if (option === 'why-do-i-see') { resize({ products, autoTrigger }); }
     });
   }
 
@@ -67,11 +76,61 @@ export default class Main extends React.Component {
   }
 
   onChangeView = (option) => {
+    const { data: { products = {}, autoTrigger = false } = {} } = this.props;
     this.setState({
       currentView: option === 'why-do-i-see'
         ? 'why-do-i-see'
         : 'cards',
-    }, resize);
+    }, () => resize({ products, autoTrigger }));
+  }
+
+  renderHeader() {
+    const { isMenuOpen } = this.state;
+    const {
+      data: {
+        shouldShowOptIn = false,
+        vouchers = [],
+        products = {},
+        autoTrigger = false,
+      } = {}
+    } = this.props;
+
+    if (!autoTrigger && products.ghostery) { return null; }
+    const prefix = chooseProduct(products);
+
+    return (
+      <div className={_css('header', `${prefix}-header`)}>
+        <Header
+          shouldShowOptIn={shouldShowOptIn}
+          vouchers={vouchers}
+          products={products}
+          autoTrigger={autoTrigger}
+          activeMenu={isMenuOpen}
+          onClickMenu={this.onClickMenu}
+        />
+      </div>
+    );
+  }
+
+  renderFooter() {
+    const {
+      data: {
+        products = {},
+        autoTrigger = false,
+        shouldShowOptIn = false,
+      } = {}
+    } = this.props;
+    if (!autoTrigger && products.ghostery) { return null; }
+
+    return (
+      <div className={_css('footer')}>
+        <Footer
+          shouldShowOptIn={shouldShowOptIn}
+          products={products}
+          autoTrigger={autoTrigger}
+        />
+      </div>
+    );
   }
 
   render() {
@@ -82,21 +141,13 @@ export default class Main extends React.Component {
         vouchers = [],
         products = {},
         autoTrigger = false,
+        shouldShowOnboarding = false,
       } = {}
     } = this.props;
-    const prefix = chooseProduct(products);
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
       <div onClick={this.onOutsideClick} className={_css('container')}>
-        <div className={_css('header', `${prefix}-header`)}>
-          <Header
-            vouchers={vouchers}
-            products={products}
-            autoTrigger={autoTrigger}
-            activeMenu={isMenuOpen}
-            onClickMenu={this.onClickMenu}
-          />
-        </div>
+        {this.renderHeader()}
         {isMenuOpen && <Menu products={products} onClick={this.onClickMenuOption} />}
         <div className={_css('content')}>
           <Content
@@ -106,11 +157,10 @@ export default class Main extends React.Component {
             currentView={currentView}
             vouchers={vouchers}
             autoTrigger={autoTrigger}
+            shouldShowOnboarding={shouldShowOnboarding}
           />
         </div>
-        <div className={_css('footer')}>
-          <Footer products={products} />
-        </div>
+        {this.renderFooter()}
       </div>
     );
     /* eslint-enable jsx-a11y/no-static-element-interactions */

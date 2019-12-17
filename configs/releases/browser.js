@@ -34,7 +34,4 @@ module.exports = Object.assign({}, configBase, {
     id,
     name: 'browserAppName'
   }),
-  default_prefs: Object.assign({}, configBase.default_prefs, {
-    historyLookupEnabled: false,
-  })
 });

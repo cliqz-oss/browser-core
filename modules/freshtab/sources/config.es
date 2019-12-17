@@ -103,10 +103,7 @@ export default {
     history: { enabled: config.settings.channel !== '04' /* AMO */ },
   },
   settings: {
-    WORLDCUP_URL: 'https://sport.cliqz.com/',
-    HB_NEWS: 'hb-news.cliqz.com',
     HISTORY_URL: config.settings.HISTORY_URL,
-    ROTATED_TOP_NEWS: 'rotated-top-news.cliqz.com',
     SUGGESTIONS_URL: config.settings.SUGGESTIONS_URL,
     frameScriptWhitelist: config.settings.frameScriptWhitelist,
     onBoardingPref: config.settings.onBoardingPref,

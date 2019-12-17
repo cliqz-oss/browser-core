@@ -24,16 +24,11 @@
  * into `anolysis/tests/unit/analyses` for examples.
  */
 
-const UAParser = require('ua-parser-js');
-const ajv = require('ajv');
 const faker = require('json-schema-faker');
-const moment = require('moment');
+
 const mockDexie = require('../../core/unit/utils/dexie');
 
-const DATE_FORMAT = 'YYYY-MM-DD';
-const DAY_FORMAT = 'YYYY-DDD';
-const WEEK_FORMAT = 'YYYY-WW';
-const MONTH_FORMAT = 'YYYY-M';
+const mockAnolysis = require('./mocks');
 
 /**
  * Given a valid JSON schema, generate `n` random examples from it.
@@ -46,19 +41,19 @@ function generateSamples(schema, n) {
   return samples;
 }
 
-function onlyKeepAnalysisWithName(availableDefinitions, name, metrics = []) {
+function onlyKeepAnalysisWithName(availableDefinitions, analysis, metrics = []) {
+  const definitions = new Map();
+
   // Only keep analysis `name` (the one we want to tests) and metrics it depends
   // upon in the `availableDefinitions` Map. This makes sure we only start
   // generation of signal for the analysis we intend to test.
-  [...availableDefinitions.entries()].forEach(([schemaName, schema]) => {
-    if (
-      schema.generate !== undefined
-      && schemaName !== name
-      && metrics.indexOf(schemaName) === -1
-    ) {
-      availableDefinitions.delete(schemaName);
+  for (const [name, schema] of availableDefinitions) {
+    if (analysis === name || metrics.indexOf(name) !== -1) {
+      definitions.set(name, schema);
     }
-  });
+  }
+
+  return definitions;
 }
 
 
@@ -82,12 +77,13 @@ async function generateAnalysisResults({
   const metricsSignals = [];
   const addBehavior = anolysis.storage.behavior.add.bind(anolysis.storage.behavior);
   // eslint-disable-next-line no-param-reassign
-  anolysis.storage.behavior.add = (metric) => {
-    if (metric.type === name) {
+  anolysis.storage.behavior.add = (date, type, behavior) => {
+    const metric = { type, behavior };
+    if (type === name) {
       numberOfSignals += 1;
-      metricsSignals.push(JSON.stringify(metric));
+      metricsSignals.push(metric);
     }
-    return addBehavior(metric);
+    return addBehavior(date, type, behavior);
   };
 
   // We intercept messages going through `push` to know how many we expect to
@@ -152,7 +148,7 @@ async function generateAnalysisResults({
     return [];
   }
 
-  const collectUrl = `${anolysis.config.get('backend.url')}/collect`;
+  const collectUrl = `${anolysis.config.backend.url}/collect`;
   const getGeneratedSignals = () => [
     ...metricsSignals,
     ...(httpPostMessages.get(collectUrl) || []),
@@ -166,145 +162,101 @@ async function generateAnalysisResults({
     });
   }
 
-  const signals = getGeneratedSignals().map(JSON.parse);
-  signals.forEach((signal) => {
+  return getGeneratedSignals().map((signal) => {
     // Check metadata creation
-    if (schema.sendToBackend) {
-      chai.expect(signal.meta.version).to.be.eql(schema.version);
+    if (schema.sendToBackend !== undefined) {
+      chai.expect(signal.meta.dev, 'dev').to.be.false;
+      chai.expect(signal.meta.beta, 'beta').to.be.false;
 
-      chai.expect(signal.meta.dev).to.be.true;
-      chai.expect(signal.meta.date).to.be.eql(currentDate);
+      chai
+        .expect(signal.meta.version, 'version')
+        .to.be.eql(schema.sendToBackend.version);
+
+      chai
+        .expect(signal.meta.date, 'date')
+        .to.be.eql(currentDate.toString());
+
+      if (schema.sendToBackend.demographics) {
+        chai
+          .expect(signal.meta.demographics, 'demographics')
+          .to.have.all.keys(schema.sendToBackend.demographics);
+      }
     }
-  });
 
-  return signals.map(({ behavior }) => behavior);
+    return signal.behavior;
+  });
 }
 
-module.exports = ({ name, metrics, currentDate, mock, tests }) => describeModule('anolysis/telemetry-schemas',
-  () => ({
-    ...mockDexie,
-    'platform/globals': {
-      chrome: {},
-      browser: {},
-    },
-    'platform/runtime': {
-      default: {},
-    },
-    'core/http': {
-      httpPost: async (url, callback, payload) => {
-        // Keep track of `url`/`payload`
-        if (!httpPostMessages.has(url)) {
-          httpPostMessages.set(url, []);
-        }
-        httpPostMessages.get(url).push(payload);
+async function fakeHttpPost(url, payload) {
+  // Keep track of `url`/`payload`
+  if (!httpPostMessages.has(url)) {
+    httpPostMessages.set(url, []);
+  }
+  httpPostMessages.get(url).push(payload);
 
-        callback({ response: '{}' });
-      },
-    },
-    'platform/network': {
-      default: {
-        type: 'wifi',
-      },
-    },
-    'platform/lib/moment': {
-      default: moment,
-    },
-    'platform/lib/ua-parser': {
-      default: UAParser,
-    },
-    'platform/lib/ajv': {
-      default: ajv,
-    },
-    'core/crypto/random': {
-      randomInt() { return 0; },
-    },
-    'core/events': {
-      default: {
-        subscribe() {
-          return {
-            unsubscribe() {},
-          };
-        },
-      },
-    },
-    'core/platform': {},
-    'core/services/pacemaker': {
-      default: {
-        clearTimeout(timeout) { clearTimeout(timeout); },
-        sleep() { },
-        setTimeout() { return { stop() {} }; },
-        register(fn, { timeout }) { return setInterval(fn, timeout); },
-      }
-    },
-    'core/kord/inject': {
-      default: {
-        module: () => ({
-          isEnabled: () => true,
-        }),
-      },
-    },
-    'core/prefs': {
-      default: {
-        get: (k, d) => {
-          if (k === 'developer') {
-            return true;
-          }
-          if (k === 'signalQueue.sendInterval') {
-            // Speed-up signal queue by waiting only 100ms between each interval
-            return 100;
-          }
-          if (k === 'signalQueue.batchSize') {
-            return 100;
-          }
-          return d;
-        },
-        set() {},
-        has() {},
-        clear() {},
-      },
-    },
-    'anolysis/internals/synchronized-date': {
-      DATE_FORMAT,
-      DAY_FORMAT,
-      WEEK_FORMAT,
-      MONTH_FORMAT,
-      getSynchronizedDateFormatted() {
-        return currentDate || '2018-10-01';
-      },
-      default() {
-        return moment(currentDate || '2018-10-01', DATE_FORMAT);
-      },
-    },
-    'anolysis/internals/logger': {
-      default: {
-        // debug(...args) { console.log('DEBUG', ...args); },
-        // log(...args) { console.log('LOG', ...args); },
-        // error(...args) { console.log('ERROR', ...args); },
-        debug() { },
-        log() { },
-        error() { },
-      },
-    },
-    'platform/sqlite': {
-      openDBHome: () => {},
-      close: () => {},
-    },
-    ...(mock || {}),
-  }),
-  () => {
-    let anolysis;
-    let availableDefinitions;
 
+  return { response: '{}' };
+}
+
+function runTestsWithStorage(getStorage, {
+  name,
+  metrics,
+  schemas,
+  tests,
+}) {
+  let anolysis;
+  let availableDefinitions;
+
+  describe(name, () => {
     beforeEach(async function () {
-      const createConfig = (await this.system.import('anolysis/internals/config')).default;
-      const config = await createConfig({ demographics: {}, Storage: (await this.system.import('anolysis/internals/storage/dexie')).default });
+      const SafeDate = (await this.system.import('anolysis/internals/date')).default;
       const Anolysis = (await this.system.import('anolysis/internals/anolysis')).default;
-      anolysis = new Anolysis(config);
+
+      anolysis = new Anolysis(SafeDate.fromBackend('2018-10-01'), {
+        backend: {
+          url: '',
+          post: fakeHttpPost,
+        },
+        queue: {
+          batchSize: 1000,
+          sendInterval: 100,
+          maxAttempts: 1,
+        },
+        signals: {
+          meta: {
+            demographics: {
+              campaign: 'the/campaign',
+              country: 'the/country',
+              install_date: 'the/install_date',
+              platform: 'the/platform',
+              product: 'the/product',
+            },
+            dev: false,
+            beta: false,
+          },
+        },
+        storage: getStorage(),
+      });
 
       await anolysis.init();
 
+      await Promise.all(schemas.map(async (schemaPath) => {
+        const exportedSchemas = (await this.system.import(schemaPath)).default;
+        if (Array.isArray(exportedSchemas) === false) {
+          anolysis.register(exportedSchemas);
+        } else {
+          for (const schema of exportedSchemas) {
+            anolysis.register(schema);
+          }
+        }
+      }));
+
+      anolysis.availableDefinitions = onlyKeepAnalysisWithName(
+        anolysis.availableDefinitions,
+        name,
+        metrics,
+      );
       availableDefinitions = anolysis.availableDefinitions;
-      onlyKeepAnalysisWithName(availableDefinitions, name, metrics);
 
       // Reset list of signals received from httpPost
       httpPostMessages = new Map();
@@ -316,31 +268,108 @@ module.exports = ({ name, metrics, currentDate, mock, tests }) => describeModule
       anolysis.unload();
     });
 
-    describe(name, () => {
-      if (metrics) {
-        it('random metrics', async () => {
-          const definition = availableDefinitions.get(name);
-          if (definition.sendToBackend) {
-            chai.expect(definition.version).to.be.a('number');
-          }
-          chai.expect(await generateAnalysisResults({
-            name,
-            availableDefinitions,
-            anolysis,
-            metrics,
-            currentDate: currentDate || '2018-10-01',
-          })).to.not.throw;
-        });
-      }
-
-      if (tests) {
-        tests(customMetrics => generateAnalysisResults({
+    if (metrics) {
+      it('random metrics', async () => {
+        const definition = availableDefinitions.get(name);
+        if (definition.sendToBackend) {
+          chai.expect(definition.sendToBackend.version).to.be.a('number');
+        }
+        chai.expect(await generateAnalysisResults({
           name,
-          metrics: customMetrics || [],
           availableDefinitions,
           anolysis,
-          currentDate: currentDate || '2018-10-01',
-        }));
-      }
+          metrics,
+          currentDate: anolysis.currentDate,
+        })).to.not.throw;
+      });
+    }
+
+    if (tests) {
+      tests(customMetrics => generateAnalysisResults({
+        name,
+        metrics: customMetrics || [],
+        availableDefinitions,
+        anolysis,
+        currentDate: anolysis.currentDate,
+      }));
+    }
+  });
+}
+
+module.exports = ({ name, schemas, metrics, mock, tests }) => describeModule('anolysis/internals/anolysis',
+  () => ({
+    ...mockAnolysis,
+    'platform/globals': {},
+    'core/kord/inject': {
+      default: {
+        module: () => ({
+          isEnabled: () => true,
+        }),
+      },
+    },
+    'core/services/pacemaker': {
+      default: {
+        clearTimeout(timeout) { clearTimeout(timeout); },
+        sleep() { },
+        setTimeout() { return { stop() {} }; },
+        register(fn, { timeout }) { return setInterval(fn, timeout); },
+        nextIdle() {},
+      },
+    },
+    'anolysis/internals/logger': {
+      default: {
+        // debug(...args) { console.log('DEBUG', ...args); },
+        // log(...args) { console.log('LOG', ...args); },
+        // error(...args) { console.log('ERROR', ...args); },
+        debug() {},
+        log() {},
+        error() {},
+      },
+    },
+    ...(mock || {}),
+  }),
+  () => {
+    describe('dexie', () => {
+      let Dexie;
+      let Storage;
+
+      beforeEach(async function () {
+        if (Dexie === undefined) {
+          Dexie = await mockDexie['platform/lib/dexie'].default();
+        }
+
+        if (Storage === undefined) {
+          Storage = (await this.system.import('anolysis/internals/storage/dexie')).default;
+        }
+      });
+
+      runTestsWithStorage(() => new Storage(Dexie), {
+        name,
+        metrics,
+        schemas,
+        tests,
+      });
+    });
+
+    describe('async-storage', () => {
+      let Storage;
+      let AsyncStorage;
+
+      beforeEach(async function () {
+        if (AsyncStorage === undefined) {
+          AsyncStorage = (await this.system.import('core/helpers/memory-async-storage')).default;
+        }
+
+        if (Storage === undefined) {
+          Storage = (await this.system.import('anolysis/internals/storage/async-storage')).default;
+        }
+      });
+
+      runTestsWithStorage(() => new Storage(AsyncStorage), {
+        name,
+        metrics,
+        schemas,
+        tests,
+      });
     });
   });

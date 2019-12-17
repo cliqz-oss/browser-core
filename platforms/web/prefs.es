@@ -6,11 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import Storage from '../core/storage';
-
-export const PLATFORM_TELEMETRY_WHITELIST = [];
-
-const storage = new Storage();
+const storage = localStorage;
 
 export function getPref(pref, fallback) {
   // local storage saves only strings

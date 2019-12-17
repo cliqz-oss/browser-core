@@ -1,4 +1,9 @@
 import { getGeneralDomain } from '../../../core/tlds';
+import LRU from '../../../core/LRU';
+
+// Monitor web requests. If chip.de ad server is detected, then track
+// the chain of redirection. After the destination page is reached,
+// notify a listener.
 
 export default class RedirectTagger {
   /**
@@ -12,11 +17,14 @@ export default class RedirectTagger {
     this.pipeline = webrequestPipeline;
     this.onFinalDomain = onFinalDomain;
     this.onRequest = this.onRequest.bind(this);
-    this.referrers = new Map();
+    // We can't properly cleanup accounting for referrers. Instead, use
+    // a fixed-size storage, in which old entries are deleted automatically.
+    // The maximal number of redirects from chip is five.
+    this.referrers = new LRU(16);
   }
 
   init() {
-    this.referrers.clear();
+    this.referrers.reset();
     this.pipeline.action('addPipelineStep',
       'onHeadersReceived',
       {
@@ -32,6 +40,7 @@ export default class RedirectTagger {
       'onHeadersReceived',
       'offers-chipde-redirect-handler'
     );
+    this.referrers.reset();
   }
 
   onRequest(state) {
@@ -89,18 +98,6 @@ export default class RedirectTagger {
     const domain = getGeneralDomain(url);
     if (domain) {
       this.onFinalDomain(domain);
-    }
-    //
-    // Cleanup accounting for referrers. If redirection chain was broken
-    // in between, we don't to do the cleanup. However, the probability of
-    // the problem is low, and we can afford this simple solution instead
-    // of complications of using timestamped items.
-    //
-    let delUrl = url;
-    while (delUrl) {
-      const tmp = this.referrers.get(delUrl);
-      this.referrers.delete(delUrl);
-      delUrl = tmp;
     }
   }
 }

@@ -7,7 +7,7 @@
  */
 
 import { NativeModules, DeviceEventEmitter } from 'react-native';
-import { getDetailsFromUrl } from '../core/url';
+import { parse } from '../core/url';
 
 const SearchEnginesModule = NativeModules.SearchEnginesModule;
 const { locale } = NativeModules.LocaleConstants || { locale: 'en' };
@@ -76,7 +76,7 @@ export async function loadSearchEngines() {
     code: getEngineCode(e.name),
     alias: '', // todo
     default: e.default,
-    urlDetails: getDetailsFromUrl(e.base_url),
+    urlDetails: parse(e.base_url),
     getSubmissionForQuery(q, type = 'text/html') {
       const url = e.urls[type];
       // some engines cannot create submissions for all types

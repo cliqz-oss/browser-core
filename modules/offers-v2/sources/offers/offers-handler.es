@@ -4,7 +4,6 @@
 // Component description see the comment to `OffersHandler` class below
 
 import MessageQueue from '../../core/message-queue';
-import md5 from '../../core/helpers/md5';
 import events from '../../core/events';
 import prefs from '../../core/prefs';
 import config from '../../core/config';
@@ -22,7 +21,6 @@ import OffersMonitorHandler from './offers-monitoring';
 import ActionID from './actions-defs';
 import Blacklist from './blacklist';
 import OffersToPageRelationStats from './relation-stats/offers-to-page';
-import { mock as mockOffersToPageRelationStats } from './relation-stats/offers-to-page-utils';
 import chooseBestOffer from './best-offer';
 import { OfferMatchTraits } from '../categories/category-match';
 import { ImageDownloaderForPush } from './image-downloader';
@@ -33,10 +31,10 @@ import DBReplacer from './jobs/db-replacer';
 import HardFilters from './jobs/hard-filters';
 import SoftFilters from './jobs/soft-filters';
 import ContextFilter from './jobs/context-filters';
-import ThrottlePushToRewardsFilter from './jobs/throttle';
+import ThrottlePushToRewardsFilter, { THROTTLE_PER_DOMAIN, THROTTLE_IGNORE_DOMAIN } from './jobs/throttle';
 import ShuffleFilter from './jobs/shuffle';
 
-const REWARD_BOX_REAL_ESTATE_TYPE = 'offers-cc';
+const REWARD_BOX_REAL_ESTATE_TYPE = isGhostery ? 'ghostery' : 'offers-cc';
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Helper methods
@@ -135,9 +133,7 @@ export default class OffersHandler {
     this.blacklist = new Blacklist();
     this.blacklist.init();
 
-    this.offersToPageRelationStats = isGhostery
-      ? mockOffersToPageRelationStats()
-      : new OffersToPageRelationStats();
+    this.offersToPageRelationStats = new OffersToPageRelationStats();
 
     // manage the status changes here
     this.offerStatus = new OfferStatus();
@@ -169,7 +165,11 @@ export default class OffersHandler {
 
     // we build the process pipeline here that will basically produce the list
     // of prioritized offers
-    this.throttlePushRewardsBoxFilter = new ThrottlePushToRewardsFilter();
+    this.throttlePushRewardsBoxFilter = new ThrottlePushToRewardsFilter(
+      config.settings.THROTTLE_OFFER_APPEARANCE_MODE === 'PER_DOMAIN'
+        ? THROTTLE_PER_DOMAIN
+        : THROTTLE_IGNORE_DOMAIN
+    );
     this.jobsPipeline = [
       new IntentGatherer(),
       new DBReplacer(),
@@ -189,12 +189,10 @@ export default class OffersHandler {
   }
 
   async init() {
-    this.throttlePushRewardsBoxFilter.init();
-    return Promise.resolve(true);
+    return true;
   }
 
   destroy() {
-    this.throttlePushRewardsBoxFilter.unload();
     this.blacklist.unload();
     this.blacklist = null;
     this.offersToPageRelationStats = null;
@@ -239,9 +237,7 @@ export default class OffersHandler {
   }
 
   markOffersAsRead() {
-    const offers = isGhostery
-      ? []
-      : this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
+    const offers = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
     const [counter, action] = [1, 'offer_read'];
     offers.forEach(({ offer }) => this.offersDB.incOfferAction(offer.offer_id, action, counter));
     this.offersToPageRelationStats.invalidateCache();
@@ -251,9 +247,7 @@ export default class OffersHandler {
     if (!this.offersAPI) { return []; }
     const offers = this.offersAPI.getStoredOffers(filters);
     if (!urlData || !catMatches) { return offers; }
-    const offersForStats = isGhostery
-      ? []
-      : this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
+    const offersForStats = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
     const stats = this.offersToPageRelationStats.stats(offersForStats, catMatches, urlData);
     const relevant = stats.related.concat(stats.owned);
     return offers.map(o => ({ ...o, relevant: relevant.includes(o.offer_id) }));
@@ -266,9 +260,6 @@ export default class OffersHandler {
   getOffersForIntent(intentName) {
     return this.intentOffersHandler.getOffersForIntent(intentName);
   }
-
-  // ///////////////////////////////////////////////////////////////////////////
-  // Protected methods
 
   isUrlBlacklisted(url) {
     return this.blacklist.has(url);
@@ -305,12 +296,11 @@ export default class OffersHandler {
       url: [urlData.getRawUrl()],
       display_time_secs: offer.ruleInfo.display_time_secs,
     };
-    const domainHash = md5(urlData.getDomain() || '');
     const result = this.offersAPI.pushOffer(
       offer,
       displayRuleInfo,
       null, /* originID */
-      new OfferMatchTraits(catMatches, offer.categories, domainHash)
+      new OfferMatchTraits(catMatches, offer.categories, urlData.getDomain() || '')
     );
     return Promise.resolve(result);
   }
@@ -369,6 +359,7 @@ export default class OffersHandler {
     }
     await this._preloadImages(bestOffer);
     await this._pushOffersToRealEstates(bestOffer, urlData, catMatches);
+    this.throttlePushRewardsBoxFilter.onTriggerOffer(bestOffer, urlData.getDomain());
     return true;
   }
 
@@ -463,9 +454,7 @@ export default class OffersHandler {
   }
 
   _notifyAboutUnreadOffers(catMatches, urlData) {
-    const offers = isGhostery
-      ? []
-      : this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
+    const offers = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
     const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, urlData);
 
     const relevant = Array.from(new Set(stats.related.concat(stats.owned)));

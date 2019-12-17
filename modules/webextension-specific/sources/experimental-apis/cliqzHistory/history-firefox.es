@@ -335,10 +335,11 @@ export default class {
       const meta = {
         visitId,
         triggeringVisitId,
+        success: false,
       };
 
       if (!visitId || !triggeringVisitId) {
-        return Promise.reject(meta);
+        return meta;
       }
 
       await queryHistory(
@@ -349,8 +350,10 @@ export default class {
             AND from_visit = 0
         `, [], { triggeringVisitId, visitId },
       );
-
-      return meta;
+      return {
+        ...meta,
+        success: true
+      };
     });
   }
 

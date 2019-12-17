@@ -140,7 +140,7 @@ const CURRENT_RESULTS = [{
   url: 'https://www.google.com/search?client=firefox-b&q=fla',
   href: 'https://www.google.com/search?client=firefox-b&q=fla',
   friendlyUrl: 'google.com/search?client=firefox-b&q=fla',
-  kind: ['custom-search'],
+  kind: ['default-search'],
   provider: 'instant',
   suggestion: 'fla',
   text: 'fla',
@@ -187,7 +187,7 @@ const CURRENT_RESULTS = [{
         {
           searchEngineName: 'Google',
         },
-      kind: ['custom-search'],
+      kind: ['default-search'],
       suggestion: 'fla',
     },
 },

@@ -418,7 +418,6 @@ DATA.push({
     "control-center": null,
     "offers-v2": null,
     "browser-panel": null,
-    "message-center": null,
     "adult": {
       "visible": true,
       "state": {

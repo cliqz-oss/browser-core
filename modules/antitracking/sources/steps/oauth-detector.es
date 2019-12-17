@@ -9,7 +9,7 @@
 import { Subject, merge, fromEventPattern, asyncScheduler } from 'rxjs';
 import { map, groupBy, flatMap, scan, observeOn, debounceTime } from 'rxjs/operators';
 import events from '../../core/events';
-import { URLInfo } from '../../core/url-info';
+import { parse } from '../../core/url';
 
 /**
  * Takes an observable and returns a new observable which emits a event in the group (extracted
@@ -159,7 +159,7 @@ export default class OAuthDetector {
 
     if (isOAuthFlow
       && this.clickActivity[state.tabId] && this.siteActivitiy[state.urlParts.hostname]) {
-      const clickedPage = URLInfo.get(this.clickActivity[state.tabId]);
+      const clickedPage = parse(this.clickActivity[state.tabId]);
       if (clickedPage !== null && clickedPage.hostname === state.tabUrlParts.hostname) {
         state.incrementStat(`${type}_allow_oauth`);
         return false;

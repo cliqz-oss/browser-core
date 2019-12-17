@@ -206,7 +206,7 @@ export default class Settings extends React.Component {
               <select
                 className="custom-dropdown"
                 defaultValue={humanWebOptOut ? 'disabled' : 'enabled'}
-                onChange={e => this.handlePref(e, 'extensions.cliqz.humanWebOptOut', 'search_humanweb', 'humanWebOptOut')}
+                onChange={e => this.handlePref(e, 'humanWebOptOut', 'search_humanweb', 'humanWebOptOut')}
               >
                 <option key="e" value="enabled">{localize('control_center_enabled')}</option>
                 <option key="d" value="disabled">{localize('control_center_disabled')}</option>
@@ -254,7 +254,7 @@ export default class Settings extends React.Component {
             <select
               className="custom-dropdown"
               defaultValue={adultStatus}
-              onChange={e => this.handlePref(e, 'extensions.cliqz.adultContentFilter', 'search_adult', 'adultStatus')}
+              onChange={e => this.handlePref(e, 'adultContentFilter', 'search_adult', 'adultStatus')}
             >
               {
                 Object.keys(adult.state || [])
@@ -274,10 +274,10 @@ export default class Settings extends React.Component {
               </span>
               <select
                 className="custom-dropdown"
-                data-update-pref="extensions.cliqz.share_location"
+                data-update-pref="share_location"
                 data-target=""
                 defaultValue={geoEnabled}
-                onChange={e => this.handlePref(e, 'extensions.cliqz.share_location', 'search_location', 'geoEnabled')}
+                onChange={e => this.handlePref(e, 'share_location', 'search_location', 'geoEnabled')}
               >
                 {geoOptions.map(({ key, val }) => <option key={key} value={key}>{val}</option>)}
               </select>
@@ -313,7 +313,7 @@ export default class Settings extends React.Component {
               <select
                 className="custom-dropdown"
                 defaultValue={searchProxy}
-                onChange={e => this.handlePref(e, 'extensions.cliqz.hpn-query', 'search_proxy', 'searchProxy', true)}
+                onChange={e => this.handlePref(e, 'hpn-query', 'search_proxy', 'searchProxy', true)}
               >
                 <option value="true">{localize('control_center_enabled')}</option>
                 <option value="false">{localize('control_center_disabled')}</option>
@@ -343,7 +343,7 @@ export default class Settings extends React.Component {
               <select
                 className="custom-dropdown"
                 defaultValue={telemetry}
-                onChange={e => this.handlePref(e, 'extensions.cliqz.telemetry', 'telemetry', 'telemetry', true)}
+                onChange={e => this.handlePref(e, 'telemetry', 'telemetry', 'telemetry', true)}
               >
                 <option value="true">{localize('control_center_enabled')}</option>
                 <option value="false">{localize('control_center_disabled')}</option>

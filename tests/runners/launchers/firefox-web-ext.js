@@ -96,9 +96,6 @@ const prefsFromTalos = {
   // Disable download popup after automatic (script-triggered) downloads
   'browser.download.panel.shown': true,
 
-  // Enable Cliqz logs
-  'extensions.cliqz.showConsoleLogs': true,
-
   // Lower content sandbox to fix resource:// urls from exetnsion
   'security.sandbox.content.level': 2,
 
@@ -147,13 +144,10 @@ exports.Browser = class FirefoxBrowser {
         ...prefsFromTalos,
         'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
         'browser.link.open_newwindow': 3,
-        'extensions.cliqz.browserOnboarding': true,
-        'freshtab.tooltip.enabled': true,
         'dom.min_background_timeout_value': 50,
         ...this.prefs,
       },
     };
-    console.log('options', options);
     const runner = await webExt.cmd.run(options, {
       getValidatedManifest() {
         return {

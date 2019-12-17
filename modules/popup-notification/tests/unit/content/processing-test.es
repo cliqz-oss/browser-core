@@ -78,15 +78,15 @@ export default describeModule('popup-notification/content/processing',
           chai.expect(isFound.ok).to.be.true;
         });
 
-        it('/use IDs also to search over classes', () => { // vistaprint
+        it('/use IDs as a css selector', () => { // vistaprint
           const jsdom = new JSDOM(`<div>
               <input type="text" class="cl1 iid cl2" />
               <img src="#" alt="submit button" class="cl3 sid cl4" />
             </div>`);
 
           const isFound = tryToFindCoupon(jsdom.window, {
-            inputID: 'iid',
-            submitID: 'sid',
+            inputID: 'input.iid',
+            submitID: 'img.sid',
           });
 
           chai.expect(isFound.ok).to.be.true;

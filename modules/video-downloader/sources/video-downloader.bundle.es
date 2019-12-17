@@ -54,11 +54,6 @@ $(document).on('click', 'ul.vd-tabs li', function itemClick(e) {
 
   lastClickedId = tabId;
 
-  videoDownloader.telemetry({
-    action: 'click',
-    target: tabId,
-  });
-
   $('ul.vd-tabs li').removeClass('active');
   $(this).addClass('active');
 

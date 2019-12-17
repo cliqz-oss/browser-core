@@ -18,6 +18,7 @@ export default describeModule('offers-v2/coupon/coupon-handler',
 
         beforeEach(async function () {
           persistenceMocks.lib.reset();
+          await persistenceMocks.lib.dexieReset(this.system);
           Offer = (await this.system.import('offers-v2/offers/offer')).default;
           bg = (await this.system.import('offers-v2/background')).default;
           await bg.init();
@@ -128,52 +129,6 @@ export default describeModule('offers-v2/coupon/coupon-handler',
           const otherUsed = extractCouponSignalData(httpPostMock, 'coupon_other_used');
           chai.expect(ownUsed, 'signal coupon_own_used is sent').to.eq(1);
           chai.expect(otherUsed, 'signal coupon_other_used is sent').to.eq(1);
-        });
-
-        context('/calculate delta of prices', () => {
-          const prices1 = { total: 40.50 };
-          const prices2 = { total: 35.50, base: 40.50 };
-          let onCouponPrices;
-
-          beforeEach(() => {
-            onCouponPrices = bg.couponHandler._onCouponPrices.bind(bg.couponHandler);
-          });
-
-          it('/from no prices to some prices (only total)', () => {
-            const s = onCouponPrices(prices1, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('{D40.50}');
-          });
-
-          it('/from no prices to some prices (both total and base)', () => {
-            const s = onCouponPrices(prices2, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('{D35.50/40.50}');
-          });
-
-          it('/store prices, make zero delta', () => {
-            onCouponPrices(prices1, fixture.VALID_OFFER_OBJ.offer_id);
-
-            const s = onCouponPrices(prices1, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('Z');
-          });
-
-          it('/store prices, make delta (only total)', () => {
-            onCouponPrices({ total: 30.00 }, fixture.VALID_OFFER_OBJ.offer_id);
-
-            const s = onCouponPrices(prices1, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('{D10.50}');
-          });
-
-          it('/store prices, make delta (both total and base)', () => {
-            onCouponPrices({ total: 30.00, base: 33.00 }, fixture.VALID_OFFER_OBJ.offer_id);
-
-            const s = onCouponPrices(prices2, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('{D5.50/7.50}');
-          });
         });
       });
     });

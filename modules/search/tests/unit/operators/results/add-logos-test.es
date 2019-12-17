@@ -10,7 +10,6 @@
 
 const mock = {
   'core/services/logos': { default: { getLogoDetails: url => url } },
-  'core/url': { getDetailsFromUrl: url => url },
 };
 
 export default describeModule('search/operators/results/add-logos',

@@ -9,7 +9,7 @@
 import { browser, isContentScriptsSupported } from '../platform/globals';
 import config from '../core/config';
 import ResourceLoader from '../core/resource-loader';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 
 const COSMETICS_URL = `${config.settings.CDN_BASEURL}/autoconsent/cosmetics.json`;
 
@@ -74,7 +74,7 @@ export default class Cosmetics {
   }
 
   async applySiteSpecificCosmetics(cmp) {
-    const url = URLInfo.get(cmp.url.href);
+    const url = parse(cmp.url.href);
     const siteRules = this.rules.site[url.hostname] || this.rules.site[url.generalDomain] || [];
     const hidden = siteRules.length > 0 ? await cmp.applyCosmetics(siteRules) : [];
     return hidden;

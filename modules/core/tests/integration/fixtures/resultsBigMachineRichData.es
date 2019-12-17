@@ -16,16 +16,16 @@ export default [
         {
           links: [
             {
-              image: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/GitHub_logo_2013.svg',
-              url: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/GitHub_logo_2013.svg'
+              image: 'http://localhost:3000/static/images/GitHub_logo_2013.svg',
+              url: 'http://localhost:3000/static/images/GitHub_logo_2013.svg'
             },
             {
-              image: 'https://cdn.cliqz.com/snippets/wikipedia/images/en/Mapping_collaborative_software_on_GitHub.png',
-              url: 'https://cdn.cliqz.com/snippets/wikipedia/images/en/Mapping_collaborative_software_on_GitHub.png'
+              image: 'http://localhost:3000/static/images/Mapping_collaborative_software_on_GitHub.png',
+              url: 'http://localhost:3000/static/images/Mapping_collaborative_software_on_GitHub.png'
             },
             {
-              image: 'https://cdn.cliqz.com/snippets/wikipedia/images/en/GitHub_logo_2013_padded.svg',
-              url: 'https://cdn.cliqz.com/snippets/wikipedia/images/en/GitHub_logo_2013_padded.svg'
+              image: 'http://localhost:3000/static/images/GitHub_logo_2013_padded.svg',
+              url: 'http://localhost:3000/static/images/GitHub_logo_2013_padded.svg'
             }
           ],
           type: 'images'
@@ -36,49 +36,49 @@ export default [
               extra: {
                 m_url: 'http://de.m.wikipedia.org/wiki/GitHub#Eigenschaften'
               },
-              title: 'Eigenschaften',
+              title: '> Title - Eigenschaften',
               url: 'http://de.wikipedia.org/wiki/GitHub#Eigenschaften'
             },
             {
               extra: {
                 m_url: 'http://de.m.wikipedia.org/wiki/GitHub#Einzelnachweise'
               },
-              title: 'Einzelnachweise',
+              title: '> Title - Einzelnachweise',
               url: 'http://de.wikipedia.org/wiki/GitHub#Einzelnachweise'
             },
             {
               extra: {
                 m_url: 'http://de.m.wikipedia.org/wiki/GitHub#Geschichte'
               },
-              title: 'Geschichte',
+              title: '> Title - Geschichte',
               url: 'http://de.wikipedia.org/wiki/GitHub#Geschichte'
             },
             {
               extra: {
                 m_url: 'http://de.m.wikipedia.org/wiki/GitHub#Kritik'
               },
-              title: 'Kritik',
+              title: '> Title - Kritik',
               url: 'http://de.wikipedia.org/wiki/GitHub#Kritik'
             },
             {
               extra: {
                 m_url: 'http://de.m.wikipedia.org/wiki/GitHub#Literatur'
               },
-              title: 'Literatur',
+              title: '> Title - Literatur',
               url: 'http://de.wikipedia.org/wiki/GitHub#Literatur'
             },
             {
               extra: {
                 m_url: 'http://de.m.wikipedia.org/wiki/GitHub#Verwendung'
               },
-              title: 'Verwendung',
+              title: '> Title - Verwendung',
               url: 'http://de.wikipedia.org/wiki/GitHub#Verwendung'
             },
             {
               extra: {
                 m_url: 'http://de.m.wikipedia.org/wiki/GitHub#Weblinks'
               },
-              title: 'Weblinks',
+              title: '> Title - Weblinks',
               url: 'http://de.wikipedia.org/wiki/GitHub#Weblinks'
             }
           ],
@@ -109,7 +109,7 @@ export default [
         }
       },
       friendlyUrl: 'de.wikipedia.org/wiki/GitHub',
-      title: 'GitHub'
+      title: '> Title - GitHub'
     },
     c_url: 'https://de.wikipedia.org/wiki/GitHub',
     type: 'bm',
@@ -125,16 +125,16 @@ export const bmWithRichData = [
         {
           links: [
             {
-              image: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/GitHub_logo_2013.svg',
-              url: 'https://cdn.cliqz.com/snippets/wikipedia/images/de/GitHub_logo_2013.svg'
+              image: 'http://localhost:3000/static/images/GitHub_logo_2013.svg',
+              url: 'http://localhost:3000/static/images/GitHub_logo_2013.svg'
             },
             {
-              image: 'https://cdn.cliqz.com/snippets/wikipedia/images/en/Mapping_collaborative_software_on_GitHub.png',
-              url: 'https://cdn.cliqz.com/snippets/wikipedia/images/en/Mapping_collaborative_software_on_GitHub.png'
+              image: 'http://localhost:3000/static/images/Mapping_collaborative_software_on_GitHub.png',
+              url: 'http://localhost:3000/static/images/Mapping_collaborative_software_on_GitHub.png'
             },
             {
-              image: 'https://cdn.cliqz.com/snippets/wikipedia/images/en/GitHub_logo_2013_padded.svg',
-              url: 'https://cdn.cliqz.com/snippets/wikipedia/images/en/GitHub_logo_2013_padded.svg'
+              image: 'http://localhost:3000/static/images/GitHub_logo_2013_padded.svg',
+              url: 'http://localhost:3000/static/images/GitHub_logo_2013_padded.svg'
             }
           ],
           type: 'images'
@@ -145,49 +145,49 @@ export const bmWithRichData = [
               extra: {
                 m_url: 'https://de.m.wikipedia.org/wiki/GitHub#Geschichte'
               },
-              title: 'Geschichte',
+              title: '> Title - Geschichte',
               url: 'https://de.wikipedia.org/wiki/GitHub#Geschichte'
             },
             {
               extra: {
                 m_url: 'https://de.m.wikipedia.org/wiki/GitHub#Eigenschaften'
               },
-              title: 'Eigenschaften',
+              title: '> Title - Eigenschaften',
               url: 'https://de.wikipedia.org/wiki/GitHub#Eigenschaften'
             },
             {
               extra: {
                 m_url: 'https://de.m.wikipedia.org/wiki/GitHub#Verwendung'
               },
-              title: 'Verwendung',
+              title: '> Title - Verwendung',
               url: 'https://de.wikipedia.org/wiki/GitHub#Verwendung'
             },
             {
               extra: {
                 m_url: 'https://de.m.wikipedia.org/wiki/GitHub#Kritik'
               },
-              title: 'Kritik',
+              title: '> Title - Kritik',
               url: 'https://de.wikipedia.org/wiki/GitHub#Kritik'
             },
             {
               extra: {
                 m_url: 'https://de.m.wikipedia.org/wiki/GitHub#Literatur'
               },
-              title: 'Literatur',
+              title: '> Title - Literatur',
               url: 'https://de.wikipedia.org/wiki/GitHub#Literatur'
             },
             {
               extra: {
                 m_url: 'https://de.m.wikipedia.org/wiki/GitHub#Weblinks'
               },
-              title: 'Weblinks',
+              title: '> Title - Weblinks',
               url: 'https://de.wikipedia.org/wiki/GitHub#Weblinks'
             },
             {
               extra: {
                 m_url: 'https://de.m.wikipedia.org/wiki/GitHub#Einzelnachweise'
               },
-              title: 'Einzelnachweise',
+              title: '> Title - Einzelnachweise',
               url: 'https://de.wikipedia.org/wiki/GitHub#Einzelnachweise'
             }
           ],
@@ -203,10 +203,10 @@ export const bmWithRichData = [
         og: {
           description: 'GitHub is the best place to build software together. Over 4 million people use GitHub to share code.',
           image: 'https://assets-cdn.github.com/images/modules/open_graph/github-logo.png',
-          title: 'Build software better, together'
+          title: '> Title - Build software better, together'
         }
       },
-      title: 'GitHub · Build software better, together.'
+      title: '> Title - GitHub · Build software better, together.'
     },
     friendlyUrl: 'github.com',
     c_url: 'https://github.com/',
@@ -226,7 +226,7 @@ export const bmWithRichData = [
         m_url: 'https://de.m.wikipedia.org/wiki/GitHub',
         rich_data: {
           infobox_images: [
-            'https://cdn.cliqz.com/snippets/wikipedia/images/de/GitHub_logo_2013.svg'
+            'http://localhost:3000/static/images/GitHub_logo_2013.svg'
           ],
           langlinks: [
             'https://pl.wikipedia.org/wiki/GitHub',
@@ -240,7 +240,7 @@ export const bmWithRichData = [
           source_name: 'Wikipedia'
         }
       },
-      title: 'GitHub'
+      title: '> Title - GitHub'
     },
     c_url: 'https://de.wikipedia.org/wiki/GitHub',
     type: 'bm',

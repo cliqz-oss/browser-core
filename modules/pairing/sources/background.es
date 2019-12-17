@@ -7,7 +7,6 @@
  */
 
 import { openLink, getWindow } from '../core/browser';
-import telemetry from '../core/services/telemetry';
 import PeerSlave from './peer-slave';
 import YoutubeApp from './apps/youtube';
 import TabsharingApp from './apps/tabsharing';
@@ -31,7 +30,7 @@ function isValidURL(url) {
 
 export default background({
   core: inject.module('core'),
-  requiresServices: ['telemetry', 'pacemaker'],
+  requiresServices: ['pacemaker'],
 
   init() {
     this.initContextMenus();
@@ -51,17 +50,6 @@ export default background({
       });
     });
     PeerComm.addObserver('TABSHARING', tabsharing);
-
-    const observer = new PairingObserver();
-    observer.onpaired = () => {
-      telemetry.push({
-        type: 'connect',
-        version: 1,
-        action: 'connect',
-        is_success: true,
-      });
-    };
-    PeerComm.addObserver('TELEMETRY', observer);
 
     const sendToPreferenceTab = (obj) => {
       getTabsWithUrl('about:preferences#connect').then((tabs) => {
@@ -208,24 +196,7 @@ export default background({
   },
 
   sendTab(data) {
-    this.peerSlave.getObserver('TABSHARING').sendTab([data], this.peerSlave.masterID)
-      .then(() => {
-        telemetry.push({
-          type: 'connect',
-          version: 1,
-          action: 'send_tab',
-          is_success: true,
-        });
-      })
-      .catch((e) => {
-        telemetry.push({
-          type: 'connect',
-          version: 1,
-          action: 'send_tab',
-          is_success: false,
-        });
-        console.error('Failed to send tab:', e);
-      });
+    this.peerSlave.getObserver('TABSHARING').sendTab([data], this.peerSlave.masterID);
   },
 
   actions: {

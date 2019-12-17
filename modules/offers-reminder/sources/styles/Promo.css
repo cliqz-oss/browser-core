@@ -46,6 +46,9 @@
 .promo__chip-copy-code:hover {
   color: var(--chip-primary-hover-color, #c93636);
 }
+.promo__ghostery-copy-code:hover {
+  color: var(--ghostery-primary-hover-color);
+}
 .promo__freundin-copy-code:hover {
   color: var(--freundin-primary-hover-color, #da3434);
 }

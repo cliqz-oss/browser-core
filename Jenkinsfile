@@ -20,7 +20,7 @@ def matrix = [
     'amo': [
         'gpu': true,
         'config': 'configs/ci/amo.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox64/firefox/firefox',
     ],
     'browser: content': [
         'gpu': true,
@@ -37,25 +37,35 @@ def matrix = [
         'config': 'configs/ci/browser.js',
         'testParams': '-l firefox-web-ext --firefox ~/cliqzStable/cliqz/cliqz',
     ],
-    'firefox 62': [
+    'firefox 64': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox64/firefox/firefox',
     ],
-    'firefox 62 offers': [
+    'firefox 64 offers': [
         'gpu': true,
         'config': 'configs/ci/offers.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox62/firefox/firefox',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox64/firefox/firefox',
     ],
-    'firefox 66 offers': [
+    'firefox 69 offers': [
         'gpu': true,
         'config': 'configs/ci/offers.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox66/firefox/firefox',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox69/firefox/firefox',
     ],
-    'firefox 66': [
+    'firefox 69': [
         'gpu': true,
         'config': 'configs/ci/browser.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox66/firefox/firefox',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox69/firefox/firefox',
+    ],
+    'firefox 70 offers': [
+        'gpu': true,
+        'config': 'configs/ci/offers.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox70/firefox/firefox',
+    ],
+    'firefox 70': [
+        'gpu': true,
+        'config': 'configs/ci/browser.js',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox70/firefox/firefox',
     ],
     'firefox beta': [
         'gpu': true,
@@ -76,7 +86,7 @@ def matrix = [
     'mobile-cards': [
         'gpu': true,
         'config': 'configs/ci/mobile-cards.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox60/firefox/firefox',
+        'testParams': '-l firefox-web-ext --firefox ~/firefox64/firefox/firefox',
     ],
     'ghostery': [
         'gpu': false,
@@ -190,7 +200,7 @@ def build(Map m) {
                             sh """#!/bin/bash
                                 set -x
                                 cd /app
-                                ./fern.js build --include-tests --environment testing
+                                ./fern.js build --include-tests --environment development
                             """
                         }
                         stash includes: "${stashName}/**/*", name: "${stashName}"

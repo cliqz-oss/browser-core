@@ -80,6 +80,12 @@ export default function () {
         press({ key: 'ArrowRight' });
         await waitForPopupClosed();
       });
+
+      it('on deleting query', async () => {
+        await setUrlbarSelection(0, domain.length);
+        await press({ key: 'Backspace' });
+        await waitForPopupClosed();
+      });
     });
 
     context('user selection', () => {
@@ -120,6 +126,43 @@ export default function () {
         await waitFor(async () => {
           const urlbarValue = await urlbar.textValue;
           return urlbarValue === 'w';
+        });
+      });
+    });
+
+    context('open dropdown', async () => {
+      beforeEach(async () => {
+        await blurUrlBar();
+        await mockSearch({ results: [{ url }] });
+        withHistory([{ value: url }]);
+      });
+
+      const UP_DOWN = ['ArrowUp', 'ArrowDown'];
+      const LEFT_RIGHT = ['ArrowLeft', 'ArrowRight'];
+
+      UP_DOWN.forEach((key) => {
+        it(`for empty query on pressing ${key}`, async () => {
+          fillIn('');
+          await press({ key });
+          await waitForPopup(1);
+        });
+
+        it(`for non-empty query on pressing ${key}`, async () => {
+          fillIn(query);
+          await press({ key });
+          await waitForPopup(2);
+        });
+
+        LEFT_RIGHT.forEach((key2) => {
+          it(`on pressing ${key} after ${key2} (EX-9349)`, async () => {
+            fillIn(query);
+            await press({ key });
+            await waitForPopup(2);
+            await press({ key: key2 });
+            await waitForPopupClosed();
+            await press({ key });
+            await waitForPopup(2);
+          });
         });
       });
     });

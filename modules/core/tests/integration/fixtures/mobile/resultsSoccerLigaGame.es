@@ -25,7 +25,7 @@ export default [
                 description: 'Mit U-20-Nationalspieler Adrian Fein hat der SSV Jahn Regensburg eines der vielversprechendsten deutschen Talente kurz vor Transferschluss in die Oberpfalz gelockt. Von der Leihe sollen beide Seiten profitieren. Nur die Bayern-Fans können den Schachzug nicht ganz nachvollziehen.',
                 domain: 'kicker.de',
                 murl: 'http://www.kicker.de/news/fussball/2bundesliga/startseite/731159/artikel_fan-verdruss-bei-bayern_fein-nun-ein-regensburger.html',
-                thumbnail: 'https://imgr.cliqz.com/cBhr-BfJgIW-C7rbgDao-3ls4QAphT_b0dRvHO3-cPs/fill/0/200/no/1/aHR0cDovL21lZGlhZGIua2lja2VyLmRlL25ld3MvMTAwMC8xMDIwLzExMDAvNDAwMC9hcnRpa2VsMDMvMTAzMTE3MS9mXzgwMC0xNTM2MjIyMzc1LmpwZw.jpg'
+                thumbnail: 'http://localhost:3000/static/images/f_800-1536222375.jpg'
               },
               title: 'Fan-Verdruss beim FC Bayern München: U-20-Nationalspieler Adrian Fein nun ein Spieler von Jahn Regensburg - 2. Liga',
               url: 'http://www.kicker.de/news/fussball/2bundesliga/startseite/731159/artikel_fan-verdruss-bei-bayern_fein-nun-ein-regensburger.html'
@@ -37,7 +37,7 @@ export default [
                 description: 'Muss der FC Bayern bald riesige Millionentransfers tätigen, um auch in den nächsten Jahren mit Europas Spitze mithalten zu können? Ganz und gar nicht, findet Javi Martinez. Im Exklusiv-Interview mit dem kicker wirft der Spanier eine provokante Frage auf.',
                 domain: 'kicker.de',
                 murl: 'http://www.kicker.de/news/fussball/chleague/startseite/731158/artikel_javi-martinez_wen-sollen-wir-denn-holen.html',
-                thumbnail: 'https://imgr.cliqz.com/bk4Gln46dWg-1pdHgxhARjfMCwK4-6VL9ps_Hi2522Q/fill/0/200/no/1/aHR0cDovL21lZGlhZGIua2lja2VyLmRlL25ld3MvMTAwMC8xMDIwLzExMDAvOTAwMC9hcnRpa2VsMDMvMTAzMTE3MC9qYXZpMi0xNTM2MjE5ODY1X3pvb20yOV9jcm9wXzgwMHg2MDBfODAweDYwMCsxNDYrMTEuanBn.jpg'
+                thumbnail: 'http://localhost:3000/static/images/javi2-1536219865_zoom29_crop_800x600_800x600+146+11.jpg'
               },
               title: 'Champions League, Bayern München - Javi Martinez: "Wen sollen wir denn holen?" - Champions League',
               url: 'http://www.kicker.de/news/fussball/chleague/startseite/731158/artikel_javi-martinez_wen-sollen-wir-denn-holen.html'
@@ -49,7 +49,7 @@ export default [
                 description: 'Der Mittelfeldspieler kann die Kritik von Lothar Matthäus an seiner Nominierung für die DFB-Elf nicht nachvollziehen.',
                 domain: 'goal.com',
                 murl: 'http://www.goal.com/de/meldungen/dfb-team-julian-draxler-matthaeus-kritik-psg-bayern-muenchen/1s3wwhugrk5ip1x1sjrgbyyymx',
-                thumbnail: 'https://imgr.cliqz.com/8iG9KuXtwRhbva4UW4Rda5Asfox4J-J1BUjbtTlZRAk/fill/0/200/no/1/aHR0cHM6Ly9pbWFnZXMucGVyZm9ybWdyb3VwLmNvbS9kaS9saWJyYXJ5L0dPQUwvNzcvYzUvZHJheGxlci1kZmItMDIwNjIwMThfYjJuazd1djdhenFlMWtnMDB6MTN4cXp0Mi5qcGc_dD0tNjU2MDgxMDg1JnF1YWxpdHk9MTAwJmg9MzAw.png'
+                thumbnail: 'http://localhost:3000/static/images/draxler-dfb-02062018_b2nk7uv7azqe1kg00z13xqzt2.jpg?t=-656081085&quality=100&h=300'
               },
               title: 'Paris Saint-Germain: Julian Draxler dementiert Kontakt zu Bayern München',
               url: 'http://www.goal.com/de/meldungen/dfb-team-julian-draxler-matthaeus-kritik-psg-bayern-muenchen/1s3wwhugrk5ip1x1sjrgbyyymx'
@@ -113,7 +113,7 @@ export default [
           }
         ],
         og: {
-          image: 'https://imgr.cliqz.com/4nI-eFFid_eOEdpA-aM8wDzP-yp-NCTMBz7GveGb070/fill/0/200/no/1/aHR0cHM6Ly9mY2JheWVybi5jb20vZmNiL2ltYWdlcy9vcGVuZ3JhcGgvZmNiX3NvY2lhbF9tZWRpYS5wbmc.png',
+          image: 'http://localhost:3000/static/images/fcb_social_media.png',
           locale: 'en_GB',
           site_name: 'FC Bayern Munich',
           type: 'website'

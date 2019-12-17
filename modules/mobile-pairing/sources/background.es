@@ -11,12 +11,26 @@ import YoutubeApp from '../pairing/apps/youtube';
 import TabsharingApp from '../pairing/apps/tabsharing';
 import PairingObserver from '../pairing/apps/pairing-observer';
 import BookmarksImport from '../pairing/apps/bookmarks-import';
-import LocalStorage from '../platform/storage';
 import window from '../platform/window';
 import osAPI from '../platform/os-api';
 import background from '../core/base/background';
+import prefs from '../core/prefs';
 import { getDeviceName } from '../platform/device-info';
 import { openTab, importBookmarks } from '../platform/browser-actions';
+
+
+const STORAGE_PREFIX = 'modules.mobile-pairing.storage';
+const storage = {
+  getItem(key) {
+    return prefs.get(`${STORAGE_PREFIX}${key}`);
+  },
+  setItem(key, value) {
+    prefs.set(`${STORAGE_PREFIX}${key}`, value);
+  },
+  removeItem(key) {
+    prefs.clear(`${STORAGE_PREFIX}${key}`);
+  },
+};
 
 export default background({
   init() {
@@ -54,7 +68,6 @@ export default background({
     CliqzMasterComm.addObserver('__MOBILEUI', observer);
     CliqzMasterComm.addObserver('BOOKMARKS', new BookmarksImport(() => {}));
 
-    const storage = new LocalStorage('__MOBILE_PAIRING');
     const storagePromise = typeof storage.load === 'function' ? storage.load() : Promise.resolve();
 
     return storagePromise

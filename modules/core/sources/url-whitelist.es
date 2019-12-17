@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { URLInfo } from './url-info';
+import { parse } from './url';
 import prefs from './prefs';
 import { getGeneralDomain, extractHostname } from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';
@@ -78,7 +78,7 @@ export default class UrlWhitelist {
     }
 
     if (hostname === null || domain === null) {
-      const info = URLInfo.get(url);
+      const info = parse(url);
       if (info === null) {
         return false;
       }

@@ -1,22 +1,20 @@
 /* global chai */
 /* global describeModule */
 /* global sinon */
+
 const commonMocks = require('../utils/common');
 
 export default describeModule('offers-v2/features/history-feature',
-  () => ({
-    ...commonMocks,
-    'core/url': {},
-  }),
+  () => commonMocks,
   () => {
     describe('/History feature', function () {
       const historyMock = sinon.stub();
       let hfeature;
-      let buildSimplePatternIndex;
+      let buildMultiPatternIndex;
 
       beforeEach(async function () {
         const HistoryFeature = this.module().default;
-        buildSimplePatternIndex = (await this.system.import('offers-v2/common/pattern-utils')).buildSimplePatternIndex;
+        buildMultiPatternIndex = (await this.system.import('offers-v2/common/pattern-utils')).buildMultiPatternIndex;
         historyMock.reset();
         historyMock.returns([]);
         hfeature = new HistoryFeature({ queryVisitsForTimespan: historyMock });
@@ -37,7 +35,8 @@ export default describeModule('offers-v2/features/history-feature',
       function boilerplateQuery(urls) {
         return {
           pid: 'somePid',
-          index: buildSimplePatternIndex(urls),
+          categoryId: 'cid',
+          index: buildMultiPatternIndex([{ groupID: 'cid', patterns: urls }]),
           start_ms: Date.parse('2018-02-02T12:00:00'),
           end_ms: Date.parse('2019-02-02T12:00:00'),
         };

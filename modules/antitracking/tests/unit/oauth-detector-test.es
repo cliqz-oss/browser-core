@@ -11,7 +11,6 @@
 
 const Rx = require('rxjs');
 const operators = require('rxjs/operators');
-const urlImports = require('../../core/unit/utils/url-parser');
 
 function mockSender(tab, url) {
   return {
@@ -41,7 +40,6 @@ export default describeModule('antitracking/steps/oauth-detector',
     'core/console': {
       default: console,
     },
-    ...urlImports,
   }),
   () => {
     describe('OAuthDetector', () => {
@@ -148,7 +146,7 @@ export default describeModule('antitracking/steps/oauth-detector',
       });
 
       describe('checkIsOAuth', () => {
-        let URLInfo;
+        let parse;
         let events;
         let detectorInstance;
 
@@ -156,8 +154,8 @@ export default describeModule('antitracking/steps/oauth-detector',
           return {
             tabId,
             url,
-            urlParts: URLInfo.get(url),
-            tabUrlParts: URLInfo.get(tabUrl),
+            urlParts: parse(url),
+            tabUrlParts: parse(tabUrl),
             isMainFrame: fullPage,
             incrementStat: () => null,
           };
@@ -166,10 +164,10 @@ export default describeModule('antitracking/steps/oauth-detector',
         beforeEach(function () {
           return Promise.all([
             this.system.import('core/events'),
-            this.system.import('core/url-info')
+            this.system.import('core/url')
           ]).then((mods) => {
             events = mods[0].default;
-            URLInfo = mods[1].URLInfo;
+            parse = mods[1].parse;
             detectorInstance = new OAuthDetector({ CLICK_TIMEOUT: 10, VISIT_TIMEOUT: 8 });
             detectorInstance.init();
           });

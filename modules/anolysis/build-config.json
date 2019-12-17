@@ -1,6 +1,4 @@
 {
   "subprojects": [
-    "ajv",
-    "moment"
   ]
 }

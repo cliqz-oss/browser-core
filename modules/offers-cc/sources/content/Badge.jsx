@@ -5,6 +5,7 @@ const _css = css('badge__');
 export default function Badge(props) {
   const { voucher } = props;
   const { template_data: templateData = {} } = voucher;
+
   return (
     <div className={_css('wrapper')}>
       <div className={_css('container')}>

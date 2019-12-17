@@ -23,7 +23,7 @@ export default describeModule('offers-v2/content/coupon/price-describer',
 
           const prices = extractPrices(jsdom.window.document.body);
 
-          chai.expect(prices).to.eql(['11.11', '2,22', '44,44', '55.55']);
+          chai.expect(prices).to.eql([11.11, 2.22, 44.44, 55.55]);
         });
 
         it('/ignore number in <script/> tags', () => {
@@ -31,7 +31,7 @@ export default describeModule('offers-v2/content/coupon/price-describer',
 
           const prices = extractPrices(jsdom.window.document.body);
 
-          chai.expect(prices).to.eql(['11.11', '33.33']);
+          chai.expect(prices).to.eql([11.11, 33.33]);
         });
 
         it('/ignore too big numbers', () => {
@@ -39,7 +39,7 @@ export default describeModule('offers-v2/content/coupon/price-describer',
 
           const prices = extractPrices(jsdom.window.document.body);
 
-          chai.expect(prices).to.eql(['55555.55', '11.11']);
+          chai.expect(prices).to.eql([55555.55, 11.11]);
         });
 
         it('/ignore several prices inside one tag', () => {
@@ -63,13 +63,21 @@ export default describeModule('offers-v2/content/coupon/price-describer',
 
           const prices = extractPrices(jsdom.window.document.body);
 
-          chai.expect(prices).to.eql(['80.00']);
+          chai.expect(prices).to.eql([80.00]);
+        });
+
+        it('/regression: re-set matcher between calls to price extractor', () => {
+          const jd = new JSDOM('<div><span>aaa 10.10 20.20 bbb</span><span>14.44</span></div>');
+
+          const prices = extractPrices(jd.window.document.body);
+
+          chai.expect(prices).to.eql([14.44]);
         });
       });
 
       context('/describe prices', () => {
         const jsdom = new JSDOM(`<div>
-          <p id="total">Joker total: 6,00€, <span><strike>10,00€</strike></span></p>
+          <p id="total">Joker total: 6,00€</span></p>
           <p id="confused"><span>Lieferkosten 4.00€</span>, <span>total: 10,00€</span></p>
           <p>Zwischensumme: 50.00€</p> <p>Coupon: 5,00€</p> <p>Gesamtsumme: 45.00€</p>
           </div>`);
@@ -90,6 +98,14 @@ export default describeModule('offers-v2/content/coupon/price-describer',
           const prices = describePrices(jsdom.window);
 
           chai.expect(prices).to.eql({ total: 45, base: 50 });
+        });
+
+        it('/find multipart price if an explicit selector provided (cyberport)', () => {
+          const jd = new JSDOM('<div id="price"> € 164<span class="comma">,</span><sup>90</sup> </div>');
+
+          const prices = describePrices(jd.window, { totalSelector: '#price' });
+
+          chai.expect(prices).to.eql({ total: 164.90 });
         });
       });
 

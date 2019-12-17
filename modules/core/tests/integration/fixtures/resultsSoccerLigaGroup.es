@@ -202,14 +202,14 @@ export default [
         og: {
           description: 'Europe\'s football website, UEFA.com, is the official site of UEFA, the Union of European Football Associations, and the governing body of football in Europe. UEFA organises some of the most famous and prestigious football competitions on the European continent including the UEFA Champions League, the UEFA Europa League and the UEFA European Football Championship (UEFA EURO 2012, UEFA EURO 2016 etc). The website features live video streaming of many UEFA competitions together with an extensive vi',
           image: 'http://img.uefa.com/imgml/2016/ucl/social/og-default.jpg',
-          title: 'UEFA Champions League',
+          title: '> Title - UEFA Champions League',
           type: 'website'
         },
-        title: 'Champions League Tabelle',
+        title: '> Title - Champions League Tabelle',
         url: 'http://www.kicker.de/news/fussball/chleague/spielrunde/champions-league/2017-18/-1/0/spieltag.html'
       },
       friendlyUrl: 'uefa.com/uefachampionsleague',
-      title: 'UEFA Champions League'
+      title: '> Title - UEFA Champions League'
     },
     c_url: 'http://www.uefa.com/uefachampionsleague',
     type: 'rh',

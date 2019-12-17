@@ -22,8 +22,10 @@ import {
 } from './helpers';
 import { getResourceUrl } from '../../../tests/core/integration/helpers';
 
+const METRIC_NAME = 'search.metric.session.interaction';
+
 export default function () {
-  context('search.session signal test', function () {
+  context('search.metric.session.interaction signal test', function () {
     const freshtabUrl = getResourceUrl('freshtab/home.html');
 
     context('for backend result without autocomplete', function () {
@@ -31,7 +33,8 @@ export default function () {
       const query = 'test';
 
       beforeEach(async function () {
-        // trigger search.session signals that may left from previous tests and clear allTelemetry
+        // trigger search.metric.session.interaction signals that may be left from previous
+        // tests and clear allTelemetry
         await blurUrlBar();
         win.allTelemetry = [];
         await testServer.registerPathHandler('/url-test', { result: '<html><body><p>success</p></body></html>' });
@@ -55,11 +58,11 @@ export default function () {
         });
         press({ key: 'Enter' });
         await waitFor(async () => {
-          const searchSignals = win.allTelemetry.filter(el => el.schema === 'search.session');
+          const searchSignals = win.allTelemetry.filter(el => el.schema === METRIC_NAME);
           return expect(searchSignals).to.have.length(1);
         });
 
-        const signal = win.allTelemetry.filter(el => el.schema === 'search.session')[0].signal;
+        const signal = win.allTelemetry.filter(el => el.schema === METRIC_NAME)[0].signal;
         expect(signal).to.deep.include({
           version: 4,
           hasUserInput: true,
@@ -68,9 +71,9 @@ export default function () {
           results: [
             {
               sources: [
-                'custom-search'
+                'default-search'
               ],
-              classes: []
+              classes: ['google']
             },
             {
               sources: [
@@ -121,11 +124,11 @@ export default function () {
       it('on Enter sends correct metric', async function () {
         press({ key: 'Enter' });
         await waitFor(async () => {
-          const searchSignals = win.allTelemetry.filter(el => el.schema === 'search.session');
+          const searchSignals = win.allTelemetry.filter(el => el.schema === METRIC_NAME);
           return expect(searchSignals).to.have.length(1);
         });
 
-        const signal = win.allTelemetry.filter(el => el.schema === 'search.session')[0].signal;
+        const signal = win.allTelemetry.filter(el => el.schema === METRIC_NAME)[0].signal;
 
         expect(signal).to.deep.include({
           version: 4,

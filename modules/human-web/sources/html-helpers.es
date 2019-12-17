@@ -7,7 +7,7 @@
  */
 
 import inject from '../core/kord/inject';
-import getWindowApi from '../core/window-api';
+import window from '../core/globals-window';
 
 const core = inject.module('core');
 
@@ -22,11 +22,10 @@ function getHTML(originalURL) {
 
 export function parseHtml(html) {
   if (!parseHtml.domParser) {
-    parseHtml.domParser = getWindowApi().then(wAPI => new wAPI.DOMParser());
+    parseHtml.domParser = new window.DOMParser();
   }
 
-  return parseHtml.domParser
-    .then(domParser => domParser.parseFromString(html, 'text/html'));
+  return parseHtml.domParser.parseFromString(html, 'text/html');
 }
 
 /**

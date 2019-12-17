@@ -9,11 +9,16 @@
 import background from '../core/base/background';
 import WebRequest, { VALID_RESPONSE_PROPERTIES, EXTRA_INFO_SPEC } from '../core/webrequest';
 import { isWebExtension } from '../core/platform';
+import telemetry from '../core/services/telemetry';
 
 import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
 import logger from './logger';
+
+// Telemetry schemas
+import performanceMetrics from './telemetry/metrics/performance';
+import performanceAnalysis from './telemetry/analyses/performance';
 
 
 function modifyHeaderByType(headers, name, value) {
@@ -95,6 +100,11 @@ export default background({
     if (this.initialized) {
       return;
     }
+
+    telemetry.register([
+      performanceMetrics,
+      performanceAnalysis,
+    ]);
 
     this.pipelines = new Map();
     this.pageStore = new PageStore();

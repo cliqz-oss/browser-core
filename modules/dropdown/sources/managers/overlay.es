@@ -35,6 +35,7 @@ export default class OverlayDropdownManager extends FreshtabDropdownManager {
   constructor({ cliqz, debug }) {
     const view = {
       hideSettings() {},
+      setState() {},
     };
     super({ cliqz, view });
     this.isDebug = debug;

@@ -6,14 +6,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { RESULT_SOURCE_MAP } from '../../anolysis/metrics/search';
+import { RESULT_SOURCE_MAP } from '../telemetry/helpers';
 
 export const COLORS = {
   history: '990099',
   backend: '009900',
   cliqz: '009900',
   instant: 'ee2200',
-  'custom-search': 'ee2200',
+  'default-search': 'ee2200',
 };
 
 export const COLOR_MAP = Object.keys(RESULT_SOURCE_MAP)

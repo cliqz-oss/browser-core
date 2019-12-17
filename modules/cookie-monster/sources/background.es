@@ -30,6 +30,10 @@ import CookieMonster, { cookieId } from './cookie-monster';
 import logger from './logger';
 import { browser } from '../platform/globals';
 
+// Telemetry schemas
+import metrics from './telemetry/metrics';
+import analyses from './telemetry/analyses';
+
 const TELEMETRY_PREFIX = 'cookie-monster';
 
 const BATCH_UPDATE_FREQUENCY = 180000;
@@ -48,6 +52,11 @@ export default background({
   antitracking: inject.module('antitracking'),
 
   init() {
+    inject.service('telemetry', ['register']).register([
+      ...metrics,
+      ...analyses,
+    ]);
+
     this.cookieMonster = new CookieMonster(this.isTrackerDomain.bind(this), {
       expireSession: prefs.get('cookie-monster.expireSession', false),
       nonTracker: prefs.get('cookie-monster.nonTracker', false),

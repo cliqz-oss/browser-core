@@ -5,7 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-
+import browserPolyfill from 'webextension-polyfill';
 import {
   app,
   expect,
@@ -41,14 +41,14 @@ async function mockAnolysisBackend(
 
   const Anolysis = app.modules.anolysis.background;
   Anolysis.unload();
-  await Anolysis.init();
+  await Anolysis.init({}, browserPolyfill);
 }
 
 async function unMockAnolysisBackend() {
   app.config.settings.ANOLYSIS_STAGING_BACKEND_URL = stagingUrlOriginal;
   const Anolysis = app.modules.anolysis.background;
   Anolysis.unload();
-  await Anolysis.init();
+  await Anolysis.init({}, browserPolyfill);
   await testServer.reset();
 }
 
@@ -56,7 +56,7 @@ export default function () {
   const Anolysis = app.modules.anolysis.background;
   const reloadAnolysis = async () => {
     Anolysis.unload();
-    await Anolysis.init();
+    await Anolysis.init({}, browserPolyfill);
   };
 
   context('health check', function () {

@@ -7,42 +7,18 @@
  */
 
 import prefs from '../prefs';
-import { isDesktopBrowser } from '../platform';
 import { subscribe } from '../events';
 import { isPrivateMode, getWindow } from '../browser';
 import inject from '../kord/inject';
 import EventEmitter from '../event-emitter';
 import Logger from '../logger';
 import { deadline } from '../decorators';
+import { isDesktopBrowser } from '../platform';
 
 const logger = Logger.get('telemetry', {
   level: 'log',
   prefix: '[telemetry]',
 });
-
-function isBrowserTelemetryEnabled() {
-  // This check uses 'host prefs' which are present in Cliqz Browsers only.
-  // In non Cliqz products like Chrome or Firefox the default value will be used.
-  return isDesktopBrowser
-    ? prefs.get('uploadEnabled', true, 'datareporting.healthreport.')
-    // on Android different pref is in use
-    : prefs.get('enabled', true, 'toolkit.telemetry.');
-}
-
-function isTelemetryEnabled() {
-  if (!isBrowserTelemetryEnabled()) {
-    logger.log('Telemetry disabled because of user opt-out');
-    return false;
-  }
-
-  const telemetryPref = prefs.get('telemetry', true);
-  if (telemetryPref !== true) {
-    logger.log('Telemetry disabled because "telemetry" pref is false');
-  }
-
-  return telemetryPref;
-}
-
 
 class TelemetryManager extends EventEmitter {
   constructor() {
@@ -53,7 +29,65 @@ class TelemetryManager extends EventEmitter {
   }
 }
 
-export function service(app) {
+class TelemetrySettingWatcher {
+  static DEFAULT_SETTING = true;
+
+  isTelemetryEnabled = TelemetrySettingWatcher.DEFAULT_SETTING;
+
+  constructor(hostSettings) {
+    this.prefs = hostSettings;
+    // on Android different pref is in use
+    this.prefName = isDesktopBrowser ? 'datareporting.healthreport.uploadEnabled' : 'toolkit.telemetry.enabled';
+  }
+
+  async init() {
+    this.isTelemetryEnabled = await this.prefs.get(
+      this.prefName,
+      TelemetrySettingWatcher.DEFAULT_SETTING,
+    );
+    this.prefs.addListener(this._listener, this.prefName);
+  }
+
+  unload() {
+    this.prefs.removeListener(this._listener);
+  }
+
+  _listener = async () => {
+    this.isTelemetryEnabled = await this.prefs.get(
+      this.prefName,
+      TelemetrySettingWatcher.DEFAULT_SETTING,
+    );
+    if (this.onUpdate) {
+      this.onUpdate();
+    }
+  };
+}
+
+export async function service(app) {
+  const hostSettings = app.services['host-settings'];
+  await hostSettings.isReady();
+
+  const telemetrySettingWatcher = new TelemetrySettingWatcher(hostSettings.api);
+  await telemetrySettingWatcher.init();
+
+  function isBrowserTelemetryEnabled() {
+    return telemetrySettingWatcher.isTelemetryEnabled;
+  }
+
+  function isTelemetryEnabled() {
+    if (!isBrowserTelemetryEnabled()) {
+      logger.log('Telemetry disabled because of user opt-out');
+      return false;
+    }
+
+    const telemetryPref = prefs.get('telemetry', true);
+    if (telemetryPref !== true) {
+      logger.log('Telemetry disabled because "telemetry" pref is false');
+    }
+
+    return telemetryPref;
+  }
+
   let enabled = isTelemetryEnabled();
   const telemetryManager = new TelemetryManager();
 
@@ -69,6 +103,8 @@ export function service(app) {
     }
   };
 
+  telemetrySettingWatcher.onUpdate = updateTelemetryState;
+
   // Listen to pref changed regarding telemetry.
   const cliqzPrefListener = subscribe('prefchange', (pref) => {
     if (pref === 'telemetry') {
@@ -76,14 +112,16 @@ export function service(app) {
     }
   });
 
-  const healthReportPrefListener = subscribe('healthReportChange', () => {
-    updateTelemetryState();
-  });
-
   service.unload = () => {
+    telemetrySettingWatcher.unload();
     cliqzPrefListener.unsubscribe();
-    healthReportPrefListener.unsubscribe();
   };
+
+  // Keep track of all schemas which were registered into Anolysis. We need to
+  // keep this state in case telemetry is disabled then enabled again. Since any
+  // module can register schemas, we cannot expect they will re-register them on
+  // every telemetry reload.
+  const schemas = new Map();
 
   const providers = new Set();
   const send = async (...args) => {
@@ -141,6 +179,11 @@ export function service(app) {
   return {
     installProvider(provider) {
       providers.add(provider);
+      if (provider.register !== undefined) {
+        for (const schema of schemas.values()) {
+          provider.register(schema);
+        }
+      }
     },
     uninstallProvider(provider) {
       providers.delete(provider);
@@ -187,7 +230,23 @@ export function service(app) {
 
       return sendTelemetry(payload, schemaName, instant);
     },
+
+    /**
+     * Register one or several new telemetry schemas (metric or analysis for aggregation).
+     */
+    register(newSchemas) {
+      for (const schema of Array.isArray(newSchemas) === false ? [newSchemas] : newSchemas) {
+        schemas.set(schema.name, schema);
+        if (enabled) {
+          for (const provider of providers) {
+            if (provider.register !== undefined) {
+              provider.register(schema);
+            }
+          }
+        }
+      }
+    },
   };
 }
 
-export default inject.service('telemetry', ['push', 'isEnabled']);
+export default inject.service('telemetry', ['push', 'isEnabled', 'register']);

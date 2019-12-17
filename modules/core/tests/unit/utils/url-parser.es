@@ -12,8 +12,6 @@ const punycode = require('punycode');
 
 module.exports = {
   'platform/lib/tldts': tldts,
-  'platform/lib/cliqz-url-parser': urlParser,
-  'platform/lib/punycode': {
-    default: punycode,
-  },
+  '@cliqz/url-parser': urlParser,
+  punycode,
 };

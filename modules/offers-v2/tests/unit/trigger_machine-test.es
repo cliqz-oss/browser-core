@@ -760,6 +760,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             const DbProto = simpleDb.default;
             categoryHandler = new CategoryHandler(historyFeature);
             categoryHandler.init(new DbProto());
+            categoryHandler._acquireBuildResources();
             intentHandler = new IntentHandler();
             objs = {
               category_handler: categoryHandler,
@@ -778,6 +779,7 @@ export default describeModule('offers-v2/trigger_machine/trigger_machine',
             segmentCat = new Category('segment.mytoys_existing_customer', [], 1);
             segmentCat.timeRangeSecs = 60 * 60 * 24 * 30;
             categoryHandler.addCategory(segmentCat);
+            categoryHandler.build();
             chai.expect(segmentCat.isHistoryDataSettedUp()).to.be.false;
 
             // History

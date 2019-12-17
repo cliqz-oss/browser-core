@@ -6,9 +6,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import { extractHostname } from '../core/tlds';
+import { parse } from '../core/url';
+
 import logger from './logger';
 import { parseURL } from './network';
-import { URLInfo } from '../core/url-info';
 
 export function parseQueryString(query) {
   if (query.length === 0) {
@@ -263,7 +265,7 @@ export class ContentExtractor {
 
     for (let i = 0; i < rArray.length; i += 1) {
       if (rArray[i].test(url)) {
-        const baseURI = URLInfo.get(url).origin;
+        const baseURI = parse(url).origin;
         this._extractContent(i, pageContent, url, baseURI, ruleset);
 
         // Do not want to continue after search engines...
@@ -304,10 +306,10 @@ export class ContentExtractor {
       return { isSearchEngineUrl: false };
     }
 
-    const { hostname } = parseURL(url);
+    const hostname = extractHostname(url);
     const queryUrl = this._createAnonSearchQuery(hostname, query, index);
 
-    if (parseURL(queryUrl).hostname !== hostname) {
+    if (extractHostname(queryUrl) !== hostname) {
       // paranoid check: should not be possible to reach
       throw new Error('refusing to make a request to another host');
     }

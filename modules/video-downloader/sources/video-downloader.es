@@ -25,16 +25,16 @@ function getRawVideoInfo(url) {
   return Promise.reject();
 }
 
-function getSize(contentLength) {
-  let size = parseInt(contentLength, 10);
+function getSize(size) {
   if (size >= 1073741824) {
-    size = `${parseFloat((size / 1073741824).toFixed(1))} GB`;
-  } else if (size >= 1048576) {
-    size = `${parseFloat((size / 1048576).toFixed(1))} MB`;
-  } else {
-    size = `${parseFloat((size / 1024).toFixed(1))} KB`;
+    return `${parseFloat((size / 1073741824).toFixed(1))} GB`;
   }
-  return size;
+
+  if (size >= 1048576) {
+    return `${parseFloat((size / 1048576).toFixed(1))} MB`;
+  }
+
+  return `${parseFloat((size / 1024).toFixed(1))} KB`;
 }
 
 function getFormats(info) {
@@ -70,17 +70,32 @@ function getFormats(info) {
   return [];
 }
 
+/* eslint-disable no-param-reassign */
 function getSizes(formats) {
-  return Promise.all(formats.map((x) => {
-    const request = new Request(x.url, { method: 'HEAD' });
-    return fetch(request).then(response => response.headers.get('content-length'))
-      .then((size) => {
-        const _x = x;
-        _x.size = getSize(parseInt(size, 10));
-        return x;
-      });
+  return Promise.all(formats.map(async (x) => {
+    try {
+      let size = x.size;
+
+      // If size was not already found in response from ytdl library we try to
+      // get it by performing a HEAD request to the video's URL and use the
+      // content-length header.
+      if (!size) {
+        const response = await fetch(new Request(x.url, { method: 'HEAD' }));
+        if (!response.ok) {
+          throw new Error(response.statusText);
+        }
+        size = Number(response.headers.get('content-length')) || 0;
+      }
+
+      x.size = getSize(size);
+    } catch (ex) {
+      x.size = 0;
+    }
+
+    return x;
   }));
 }
+/* eslint-enable no-param-reassign */
 
 function getVideoInfo(url) {
   return getRawVideoInfo(url)

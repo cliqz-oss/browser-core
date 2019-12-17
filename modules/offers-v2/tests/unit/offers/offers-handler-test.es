@@ -18,12 +18,12 @@ const HistoryMatcherMock = beMocks['offers-v2/backend-connector'].HistoryMatcher
 const CategoryHandlerMock = beMocks['offers-v2/backend-connector'].CategoryHandlerMock;
 const EventHandlerMock = ehMocks.default;
 const buildUrlData = ehMocks.buildUrlData;
+const prefs = commonMocks['core/prefs'].default;
 
 const currentTS = Date.now();
 let latestOffersInstalledTs = 0;
 const currentDayHour = 0;
 const currentWeekDay = 0;
-let getDetailsFromUrlReal;
 let shouldFilterOfferID = '';
 
 let globalActiveCats = new Set();
@@ -115,13 +115,7 @@ export default describeModule('offers-v2/offers/offers-handler',
         return latestOffersInstalledTs;
       },
       shouldKeepResource: () => 1,
-      isDeveloper: () => true,
-    },
-    'core/url': {
-      getDetailsFromUrl: function (url) {
-        // we should extract the name here
-        return getDetailsFromUrlReal(url);
-      },
+      isDeveloper: () => prefs.get('developer'),
     },
     'offers-v2/offers/soft-filter': {
       default: (offer) => {
@@ -149,7 +143,6 @@ export default describeModule('offers-v2/offers/offers-handler',
         persistenceMocks['core/persistence/map'].reset();
         OffersHandler = this.module().default;
         events.clearAll();
-        getDetailsFromUrlReal = (await this.system.import('core/url')).getDetailsFromUrl;
         ImageDownloaderMod = await this.system.import('offers-v2/offers/image-downloader');
         ImageDownloader = ImageDownloaderMod.ImageDownloaderForPush;
         Offer = (await this.system.import('offers-v2/offers/offer')).default;
@@ -309,30 +302,39 @@ export default describeModule('offers-v2/offers/offers-handler',
             });
           });
 
-          it('/check if offer is fresh installed we do not show an offer', function () {
-            const mockData = {
-              backendResult: { 'intent-1': [VALID_OOTW_OFFER_OBJ] },
-            };
-            configureMockData(mockData);
+          context('/production version', () => {
+            const devFlag = prefs.get('developer');
+            before(() => {
+              prefs.set('developer', false);
+            });
+            after(() => {
+              prefs.set('developer', devFlag);
+            });
+            it('/check if offer is fresh installed we do not show an offer', function () {
+              const mockData = {
+                backendResult: { 'intent-1': [VALID_OOTW_OFFER_OBJ] },
+              };
+              configureMockData(mockData);
 
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // set the latest installed time to the same than current one =>
-            // this should produce freshInstalled = true => do not show offers
-            latestOffersInstalledTs = currentTS;
-            return waitForBEPromise().then(() => {
-              // wait for the fetch
-              const urls = [
-                'http://www.google.com',
+              // activate intents
+              const intents = [
+                { name: 'intent-1', active: true },
               ];
-              setActiveCategoriesFromOffers([VALID_OOTW_OFFER_OBJ]);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check no offer were pushed
-                checkZeroOfferPushed();
+              intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+
+              // set the latest installed time to the same than current one =>
+              // this should produce freshInstalled = true => do not show offers
+              latestOffersInstalledTs = currentTS;
+              return waitForBEPromise().then(() => {
+                // wait for the fetch
+                const urls = [
+                  'http://www.google.com',
+                ];
+                setActiveCategoriesFromOffers([VALID_OOTW_OFFER_OBJ]);
+                return simulateUrlEventsAndWait(urls).then(() => {
+                  // check no offer were pushed
+                  checkZeroOfferPushed();
+                });
               });
             });
           });

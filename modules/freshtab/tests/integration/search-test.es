@@ -39,15 +39,13 @@ const getIframeStyle = async (view) => {
 const fillIn = async ({
   query,
   view,
-  testUtils,
 }) => {
   await waitFor(() => view.document.querySelector('input'));
   const input = view.document.querySelector('input');
   input.dispatchEvent(new Event('focus'));
   await waitFor(() => checkIframeExists(view));
   input.value = query;
-  testUtils.Simulate.keyDown(input, {});
-  testUtils.Simulate.input(input);
+  input.dispatchEvent(new Event('input', {}));
 };
 
 const waitForFreshtab = tabId => waitFor(() => chrome.extension.getViews({ tabId })[0]);

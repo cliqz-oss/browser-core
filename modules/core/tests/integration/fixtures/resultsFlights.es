@@ -703,11 +703,11 @@ export const flightAndNormalResult = [
         },
         og: {
           image: 'https://de.aviability.com/images/fb.png',
-          title: 'LX3029 Flugplan und Flugpreise - Aviability.com',
+          title: '> Title - LX3029 Flugplan und Flugpreise - Aviability.com',
           type: 'website'
         }
       },
-      title: 'LX3029 Flugplan und Flugpreise'
+      title: '> Title - LX3029 Flugplan und Flugpreise'
     },
     c_url: 'https://de.aviability.com/flugnummer/flug-lx3029-swiss-international-air-lines',
     type: 'bm'

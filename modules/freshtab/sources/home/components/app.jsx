@@ -16,7 +16,6 @@ import UrlbarWithResults from './urlbar/urlbar-with-results';
 import News from './news';
 import Stats from './stats';
 import Tooltip from './tooltip';
-import MessageCenter from './message-center';
 import AppContext from './app-context';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
@@ -54,7 +53,6 @@ class App extends React.Component {
       isModalOpen: false,
       isOverlayOpen: false,
       isSettingsOpen: false,
-      messages: props.config.messages,
       modules: {},
       removedDials: [],
       results: [],
@@ -91,8 +89,7 @@ class App extends React.Component {
       this.onFinishedLoading();
     });
 
-    if (Object.keys(this.state.messages).length === 0
-      && this.state.config.tooltip === 'tooltip-settings') {
+    if (this.state.config.tooltip === 'tooltip-settings') {
       setTimeout(() => {
         this.setState({ tooltipShown: true });
         sendTooltipShowSignal();
@@ -132,23 +129,6 @@ class App extends React.Component {
         error: null,
       }
     });
-  }
-
-  onMessageClicked(message) {
-    const url = message.cta_url;
-    let action;
-    if (url.startsWith('home-action')) {
-      action = url.split(':')[1];
-      if (action === 'settings') {
-        this.toggleSettings();
-      }
-
-      if (action === 'openImportDialog') {
-        this.freshtab.openImportDialog();
-      }
-    } else {
-      window.location = url;
-    }
   }
 
   onBackgroundImageChanged(bg, index) {
@@ -472,7 +452,6 @@ class App extends React.Component {
     const {
       config: freshtabConfig,
       dials,
-      messages,
       modules,
       news,
       stats,
@@ -480,7 +459,6 @@ class App extends React.Component {
     } = this.state;
     const { isLoaded: isDialLoaded } = dials;
     const { data: newsData } = news;
-    const hasMessage = Object.keys(messages).length > 0;
 
     return (
       <div>
@@ -495,21 +473,6 @@ class App extends React.Component {
               undoRemoval={this.undoRemoval}
               visible={this.state.removedDials.length > 0}
             />
-
-            {hasMessage && (
-              <MessageCenter
-                handleLinkClick={msg => this.onMessageClicked(msg)}
-                messages={this.state.messages}
-                position="top"
-              />
-            )}
-            {hasMessage && (
-              <MessageCenter
-                messages={this.state.messages}
-                positioning={freshtabConfig.cliqzPostPosition}
-                position="post"
-              />
-            )}
 
             {freshtabConfig.tooltip === 'tooltip-settings' && (
               <Tooltip

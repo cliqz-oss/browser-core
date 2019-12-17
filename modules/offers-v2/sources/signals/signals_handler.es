@@ -6,14 +6,13 @@
  */
 import { chrome } from '../../platform/globals';
 
-import telemetry from '../../core/services/telemetry';
 import { httpPost } from '../../core/http';
 import SimpleDB from '../../core/persistence/simple-db';
 import pacemaker from '../../core/services/pacemaker';
 
 import logger from '../common/offers_v2_logger';
 import OffersConfigs from '../offers_configs';
-import { generateUUID, isDeveloper } from '../utils';
+import { generateUUID } from '../utils';
 import { constructSignal, addOrCreate } from './utils';
 import Behavior from '../behavior';
 import ActionID from '../offers/actions-defs';
@@ -400,20 +399,13 @@ export default class SignalHandler {
     this.sigsToSend[sigType].add(sigKey);
   }
 
-  sendSingle({ payload, signalType, sigID, numSignalsToSend }) {
-    const telMonitorSignal = {
-      type: 'offers_monitor',
-      is_developer: isDeveloper(),
-      batch_total: numSignalsToSend,
-      msg_delivered: true,
-    };
+  sendSingle({ payload, signalType, sigID }) {
     logger.debug('Sending signal:', payload);
     return new Promise((resolve) => {
       this.sender.httpPost(
         OffersConfigs.SIGNALS_HPN_BE_ADDR,
         () => {
           if (signalType && sigID) {
-            telemetry.push(telMonitorSignal);
             this._removeFromSigsToSend(signalType, sigID);
             this._removeNumRetriesRecord(signalType, sigID);
           }
@@ -422,8 +414,6 @@ export default class SignalHandler {
         payload,
         () => {
           if (signalType && sigID) {
-            telMonitorSignal.msg_delivered = false;
-            telemetry.push(telMonitorSignal);
             this._increaseNumRetriesRecord(signalType, sigID);
           }
           resolve();
@@ -465,7 +455,6 @@ export default class SignalHandler {
 
   async _sendSignalsToBEunguarded(typeToSend, sigIDToSend) {
     const sigsKeysToSend = Object.keys(this.sigsToSend);
-    const numSignalsToSend = sigsKeysToSend.length;
     const batch = [];
     const timestamp = await this.trustedClock.getMinutesSinceEpochAsync();
     sigsKeysToSend.forEach((signalType) => {
@@ -487,7 +476,7 @@ export default class SignalHandler {
         const payload = JSON.stringify(constructSignal(
           sigID, signalType, sigDataToSend, this.gid, timestamp
         ));
-        batch.push({ payload, signalType, sigID, numSignalsToSend });
+        batch.push({ payload, signalType, sigID });
       });
     });
 

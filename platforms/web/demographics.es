@@ -7,11 +7,11 @@
  */
 
 import { getPref } from './prefs';
-import getWindow from './window-api';
 import config from '../core/config';
+import window from '../core/globals-window';
 
 export function getUserAgent() {
-  return getWindow().then(win => win.navigator.userAgent);
+  return window.navigator.userAgent;
 }
 
 export function getDistribution() {

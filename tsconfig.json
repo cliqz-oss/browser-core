@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "allowJs": true,
+    "target": "es6",
     "noEmit": true,
     "composite": true,
     "jsx": "react",
@@ -21,5 +22,8 @@
     "strictFunctionTypes": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": true
-  }
+  },
+  "include": [
+    "./modules/**/*.ts"
+  ]
 }

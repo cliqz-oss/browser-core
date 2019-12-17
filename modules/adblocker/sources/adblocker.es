@@ -29,7 +29,11 @@ function makeRequestFromContext({
 
   frameUrl,
   frameUrlParts,
+
+  tabUrl,
+  tabUrlParts,
 } = {}) {
+  const subFrame = type === 'sub_frame';
   return new AdblockerLib.Request({
     tabId,
     requestId,
@@ -40,9 +44,12 @@ function makeRequestFromContext({
     hostname: urlParts.hostname || '',
     url,
 
-    sourceDomain: frameUrlParts.generalDomain || '',
-    sourceHostname: frameUrlParts.hostname || '',
-    sourceUrl: frameUrl || '',
+    // In case of a 'sub_frame' request, the partiness for the adblocker needs to
+    // be slightly different. Since it's possible that `url` and `frameUrl` are
+    // the same in this case, we use `tabUrl` as origin instead.
+    sourceDomain: (subFrame ? tabUrlParts.generalDomain : frameUrlParts.generalDomain) || '',
+    sourceHostname: (subFrame ? tabUrlParts.hostname : frameUrlParts.hostname) || '',
+    sourceUrl: (subFrame ? tabUrl : frameUrl) || '',
   });
 }
 

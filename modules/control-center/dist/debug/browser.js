@@ -1056,7 +1056,6 @@ DATA.push({
       "visible": true
     },
     "browser-panel": null,
-    "message-center": null,
     "anolysis": null,
     "abtests": null,
     "theme": null,

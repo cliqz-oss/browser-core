@@ -5,6 +5,7 @@ import Offer from '../offers/offer';
 import UrlData from '../common/url_data';
 import logger from '../common/offers_v2_logger';
 import { LANDING_MONITOR_TYPE } from '../common/constant';
+import CouponSignal from './coupon-signal';
 
 const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
 
@@ -13,9 +14,9 @@ export default class CouponHandler {
     this.offersHandler = offersHandler;
     this.core = core;
     this.popupNotification = popupNotification;
-    this.offersDB = offersDB;
     this._lastPopupNotificationMs = 0;
-    this._encodeCouponAction = this._encodeCouponAction.bind(this);
+    const couponSignal = new CouponSignal(offersDB);
+    this._encodeCouponAction = couponSignal.encodeCouponAction.bind(couponSignal);
   }
 
   // ------------------------------------------------------
@@ -80,53 +81,6 @@ export default class CouponHandler {
   // couponMsg is { type, couponValue, offerInfo }
   _onCouponActivity(couponMsg) {
     this.offersHandler.onCouponActivity(couponMsg, this._encodeCouponAction);
-  }
-
-  _encodeCouponAction({ type, couponValue }, { offerID }) {
-    const handlers = {
-      coupon_form_not_found: 'N',
-      coupon_form_found: 'F',
-      coupon_fail_minimal_basket_value: 'M',
-      coupon_form_prices: () => this._onCouponPrices(couponValue, offerID),
-      coupon_own_used: 'Y',
-      coupon_other_used: 'C',
-      coupon_empty: 'C',
-      popnot_pre_show: () => (couponValue ? 'f' : 'n'),
-      coupon_autofill_field_apply_action: 'y',
-    };
-    const code = handlers[type];
-    return code.call ? code() : code;
-  }
-
-  /**
-   * For prices:
-   *
-   * - generate delta from the last stored prices
-   * - store the current prices
-   * - serialize delta
-   *
-   * In the ideal world this function should be called from `_onCouponActivity`,
-   * but here it is a part of `_encodeCouponAction`. The reason is that
-   * the function needs `offerID`, which is revealed only inside monitor
-   * signal processing.
-   *
-   * @param {string[]} prices
-   * @param {string} offerID
-   */
-  _onCouponPrices(prices, offerID) {
-    const { total, base } = prices;
-    const oldPrices = this.offersDB.getShoppingCartDescribedPrices(offerID) || {};
-    const { total: oldTotal, base: oldBase } = oldPrices;
-    if ((total === oldTotal) && (base === oldBase)) {
-      return 'Z'; // Zero delta: prices have not been changed
-    }
-    this.offersDB.setShoppingCartDescribedPrices(offerID, prices);
-    const totalDelta = (total || 0) - (oldTotal || 0);
-    const baseDelta = (base || 0) - (oldBase || 0);
-    const baseDeltaStr = base === oldBase
-      ? ''
-      : `/${baseDelta.toFixed(2)}`;
-    return `{D${totalDelta.toFixed(2)}${baseDeltaStr}}`;
   }
 
   // ------------------------------------------------------

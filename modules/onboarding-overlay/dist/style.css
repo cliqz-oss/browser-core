@@ -19,6 +19,7 @@ h1, h2 {
 h1 {
   font-size: 30px;
   color: #20292A;
+  margin: 5px;
 }
 
 h2 {
@@ -66,7 +67,11 @@ h2 {
 }
 
 .more {
-  margin-top: 10px;
+  margin-top: 5px;
+}
+
+.more div {
+  height: 5px;
 }
 
 .description {

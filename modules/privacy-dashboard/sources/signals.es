@@ -19,7 +19,7 @@ import prefs from '../core/prefs';
 import { addListener, removeListener } from '../core/http';
 import { getMessage } from '../core/i18n';
 import CliqzHumanWeb from '../human-web/human-web';
-import { getDetailsFromUrl, tryDecodeURIComponent } from '../core/url';
+import { parse, tryDecodeURIComponent } from '../core/url';
 import telemetry from '../telemetry/background';
 
 const TELEMETRY_SERVICE = inject.service('telemetry', ['installProvider', 'uninstallProvider']);
@@ -71,8 +71,6 @@ const QUERY_LOG_PARAM = {
   o: 'resultOrder',
   e: 'extra',
   s: 'searchSession',
-  n: 'sessionSequence',
-  qc: 'queryCount'
 };
 
 const SignalListener = {
@@ -128,7 +126,8 @@ const SignalListener = {
     }
 
     const queryLog = {};
-    const qs = getDetailsFromUrl(url).query;
+    const uri = parse(url);
+    const qs = (uri !== null && uri.search) ? uri.search.slice(1) : '';
     const qsParams = parseQueryString(qs);
     Object.keys(qsParams).forEach((key) => {
       if (qsParams[key]) {

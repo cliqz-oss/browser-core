@@ -10,10 +10,19 @@
 /* eslint no-param-reassign: 'off' */
 
 import { queryActiveTabs } from '../core/tabs';
-import * as urlHelpers from '../core/url';
+import { strip } from '../core/url';
 import pacemaker from '../core/services/pacemaker';
 import { forEachWindow } from '../platform/browser';
 import CliqzHumanWeb from '../human-web/human-web';
+
+function stripProtocol(url) {
+  return strip(url, {
+    protocol: true,
+    www: true,
+    mobile: true,
+    trailingSlash: true,
+  });
+}
 
 // TODO:
 // what to do with private pages and words
@@ -214,7 +223,7 @@ class ContextSearch {
     let words = [];
     if (inputString) {
       if (type === 'u') {
-        words = urlHelpers.urlStripProtocol(inputString).toLowerCase().split(/[/.\-_]+/);
+        words = stripProtocol(inputString).toLowerCase().split(/[/.\-_]+/);
       }
       if (type === 't' || type === 'b') {
         words = inputString.trim().toLowerCase().split(/[^\w\u00C0-\u024f]+/)
@@ -494,7 +503,7 @@ class ContextSearch {
     if (this.validUrl(activeURL)
         && Object.keys(this.distribution).length > 0
         && !(this.sentUrls.has(activeURL))) {
-      const strippedUrl = urlHelpers.urlStripProtocol(url);
+      const strippedUrl = stripProtocol(url);
       this.sentUrls.add(activeURL);
 
       // check if we have url in our distribution
@@ -797,7 +806,7 @@ class ContextSearch {
    */
   updateDistribution(results, type, len) {
     results.forEach((res) => {
-      const strippedUrl = urlHelpers.urlStripProtocol(res.url);
+      const strippedUrl = stripProtocol(res.url);
       if (!(strippedUrl in this.distribution)) {
         this.distribution[strippedUrl] = {};
         this.distribution[strippedUrl][len] = new Set();

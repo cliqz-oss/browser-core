@@ -15,19 +15,19 @@ export default [
         {
           links: [
             {
-              title: 'Gronkh',
+              title: '> Title - Gronkh',
               url: 'https://www.youtube.com/user/Gronkh'
             },
             {
-              title: 'Verlauf',
+              title: '> Title - Verlauf',
               url: 'https://www.youtube.com/feed/history'
             },
             {
-              title: 'BibisBeautyPalace',
+              title: '> Title - BibisBeautyPalace',
               url: 'https://www.youtube.com/user/BibisBeautyPalace'
             },
             {
-              title: 'Rocket Beans TV',
+              title: '> Title - Rocket Beans TV',
               url: 'https://www.youtube.com/user/ROCKETBEANSTV'
             }
           ],
@@ -38,31 +38,31 @@ export default [
             {
               extra: {
                 duration: 719,
-                thumbnail: 'https://i.ytimg.com/vi/zTcNN-zwCog/hqdefault.jpg',
+                thumbnail: 'http://localhost:3000/static/images/hqdefault.jpg',
                 views: '251329',
                 expected_views: '251,329'
               },
-              title: 'Unge REAGIERT auf Kochen mit Tanzverbot! | ungeklickt',
+              title: '> Title - Unge REAGIERT auf Kochen mit Tanzverbot! | ungeklickt',
               url: 'https://www.youtube.com/watch?v=zTcNN-zwCog'
             },
             {
               extra: {
                 duration: 215,
-                thumbnail: 'https://i.ytimg.com/vi/7u6v3_pO-7E/hqdefault.jpg',
+                thumbnail: 'http://localhost:3000/static/images/hqdefault.jpg',
                 views: '29279',
                 expected_views: '29,279'
               },
-              title: 'Felix von der Laden Vlog Musik | Conro - Circus (feat. Beckii Power)🍂',
+              title: '> Title - Felix von der Laden Vlog Musik | Conro - Circus (feat. Beckii Power)🍂',
               url: 'https://www.youtube.com/watch?v=7u6v3_pO-7E'
             },
             {
               extra: {
                 duration: 252,
-                thumbnail: 'https://i.ytimg.com/vi/vOtqfhwvY94/hqdefault.jpg',
+                thumbnail: 'http://localhost:3000/static/images/broken_youtube_hqdefault.jpg',
                 views: '24764',
                 expected_views: '24,764'
               },
-              title: '100% Kostenlos Gutschein - Ihr wolltet immer Leben wie ein König? - Ich zeige euch wie VLOG03',
+              title: '> Title - 100% Kostenlos Gutschein - Ihr wolltet immer Leben wie ein König? - Ich zeige euch wie VLOG03',
               url: 'https://www.youtube.com/watch?v=vOtqfhwvY94'
             }
           ],
@@ -86,11 +86,11 @@ export default [
         language: {},
         name_cat: 'ez_video-recommended',
         og: {
-          image: 'http://s.ytimg.com/yts/img/youtube_logo_stacked-vfl225ZTx.png'
+          image: 'http://localhost:3000/static/images/youtube_logo_stacked-vfl225ZTx.png'
         }
       },
       friendlyUrl: 'youtube.com',
-      title: 'YouTube'
+      title: '> Title - YouTube'
     },
     c_url: 'https://www.youtube.com/?hl=de\u0026gl=DE',
     type: 'rh',
@@ -115,28 +115,28 @@ export const videosResults = [
             {
               extra: {
                 duration: 719,
-                thumbnail: 'https://i.ytimg.com/vi/zTcNN-zwCog/hqdefault.jpg',
+                thumbnail: 'http://localhost:3000/static/images/hqdefault.jpg',
                 views: '251329'
               },
-              title: 'Unge REAGIERT auf Kochen mit Tanzverbot! | ungeklickt',
+              title: '> Title - Unge REAGIERT auf Kochen mit Tanzverbot! | ungeklickt',
               url: 'https://www.youtube.com/watch?v=zTcNN-zwCog'
             },
             {
               extra: {
                 duration: 215,
-                thumbnail: 'https://i.ytimg.com/vi/7u6v3_pO-7E/hqdefault.jpg',
+                thumbnail: 'http://localhost:3000/static/images/hqdefault.jpg',
                 views: '29279'
               },
-              title: 'Felix von der Laden Vlog Musik | Conro - Circus (feat. Beckii Power)🍂',
+              title: '> Title - Felix von der Laden Vlog Musik | Conro - Circus (feat. Beckii Power)🍂',
               url: 'https://www.youtube.com/watch?v=7u6v3_pO-7E'
             },
             {
               extra: {
                 duration: 252,
-                thumbnail: 'https://i.ytimg.com/vi/vOtqfhwvY94/hqdefault.jpg',
+                thumbnail: 'http://localhost:3000/static/images/broken_youtube_hqdefault.jpg',
                 views: '24764'
               },
-              title: '100% Kostenlos Gutschein - Ihr wolltet immer Leben wie ein König? - Ich zeige euch wie VLOG03',
+              title: '> Title - 100% Kostenlos Gutschein - Ihr wolltet immer Leben wie ein König? - Ich zeige euch wie VLOG03',
               url: 'https://www.youtube.com/watch?v=vOtqfhwvY94'
             }
           ],
@@ -160,11 +160,11 @@ export const videosResults = [
         language: {},
         name_cat: 'ez_video-recommended',
         og: {
-          image: 'http://s.ytimg.com/yts/img/youtube_logo_stacked-vfl225ZTx.png'
+          image: 'http://localhost:3000/static/images/youtube_logo_stacked-vfl225ZTx.png'
         }
       },
       friendlyUrl: 'youtube.com',
-      title: 'YouTube'
+      title: '> Title - YouTube'
     },
     c_url: 'https://www.youtube.com/?hl=de\u0026gl=DE',
     type: 'rh',

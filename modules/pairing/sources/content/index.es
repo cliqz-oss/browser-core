@@ -15,7 +15,6 @@ import PairingUI from './ui';
 class Cliqz {
   constructor() {
     this.pairing = createModuleWrapper('pairing');
-    this.core = createModuleWrapper('core');
 
     const UI = new PairingUI();
 
@@ -45,7 +44,7 @@ class Cliqz {
 
     checkIfChromeReady().then(() => {
       this.actions.init();
-      UI.init(window, this.pairing, this.core.sendTelemetry.bind(this.core));
+      UI.init(window, this.pairing);
     }).catch((ex) => {
       // eslint-disable-next-line no-console
       console.error('Chrome was never ready', ex);

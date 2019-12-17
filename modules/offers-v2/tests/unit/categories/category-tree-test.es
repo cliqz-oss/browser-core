@@ -79,7 +79,7 @@ export default describeModule('offers-v2/categories/category-tree',
             'C4',
           ];
           buildTreeFromCatNameList(ct, catSample);
-          checkCatNameExistence(ct, catSample);
+          checkCatNameExistence(ct, [{ n: 'C1' }, { n: 'C2' }, { n: 'C3' }, { n: 'C4' }]);
         });
 
         it('/element exists works 2', function () {
@@ -101,7 +101,7 @@ export default describeModule('offers-v2/categories/category-tree',
           checkCatNameExistence(ct, check);
         });
 
-        it('/adding sub categories build the higher categories', function () {
+        it('/adding sub categories build the higher nodes', function () {
           const catSample = [
             'C1.c11.c111',
             'C2.c22.c222',
@@ -130,7 +130,10 @@ export default describeModule('offers-v2/categories/category-tree',
             { n: 'C1.c333', r: false },
             { n: 'C1.c111', r: false },
           ];
-          checkCatNameExistence(ct, check);
+          check.forEach((c) => {
+            const hasNode = !!ct._getNode(c.n.split('.'));
+            chai.expect(hasNode, `checking existence of node ${c.n}`).eql(c.r);
+          });
         });
 
         it('/element exists works 1', function () {
@@ -141,7 +144,8 @@ export default describeModule('offers-v2/categories/category-tree',
             'C4.c44.c444.c4444',
           ];
           const cats = buildTreeFromCatNameList(ct, catSample);
-          checkCatNameExistence(ct, catSample);
+          const check = catSample.map(cname => ({ n: cname }));
+          checkCatNameExistence(ct, check);
           checkCatListExistInTree(ct, cats);
         });
 

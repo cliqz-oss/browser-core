@@ -6,12 +6,20 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { urlStripProtocol, tryDecodeURI, getFriendlyUrl } from '../../core/url';
-import { URLInfo } from '../../core/url-info';
+import {
+  getFriendlyUrl,
+  parse,
+  strip,
+  tryDecodeURI,
+} from '../../core/url';
 
 const clean = (result) => {
-  const details = URLInfo.get(result.url);
-  const host = urlStripProtocol((details && details.hostname) || '');
+  const details = parse(result.url);
+  const host = strip((details && details.hostname) || '', {
+    spaces: false,
+    www: true,
+    mobile: true,
+  });
   let hostAndPort = host;
   const friendlyUrl = tryDecodeURI(result.friendlyUrl || getFriendlyUrl(details) || '');
   const url = result.url ? tryDecodeURI(result.url) : '';
@@ -45,7 +53,12 @@ const clean = (result) => {
       host,
       hostAndPort,
       port: details ? details.port : undefined,
-      url: urlStripProtocol(result.url || ''),
+      url: strip(result.url || '', {
+        protocol: true,
+        www: true,
+        mobile: true,
+        trailingSlash: true,
+      }),
       score: result.score,
       subType: result.subType || {},
       latency: result.latency,
@@ -63,7 +76,7 @@ const clean = (result) => {
 // TODO: just collect all non 'deepResults' data keys instead of naming them explicitly
 const normalize = ({
   data: { deepResults = [], extra = {}, kind, template, suggestion, friendlyUrl } = {},
-  ...result,
+  ...result
 }) => ({
   links: [
     {

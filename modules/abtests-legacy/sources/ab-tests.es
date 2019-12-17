@@ -461,18 +461,12 @@ const CliqzABTests = {
         ruleExecuted = false;
     }
     if (ruleExecuted) {
-      const action = {
-        type: 'abtest',
-        action: 'enter',
-        name: abtest
-      };
-      telemetry.push(action, 'metrics.legacy.abtests');
-
+      telemetry.push({ name: abtest }, 'metrics.abtests-legacy.enter');
       return true;
     }
     return false;
   },
-  leave(abtest, disable) {
+  leave(abtest, disable = false) {
     // Restore defaults after an AB test is finished.
     // DO NOT remove test cleanup code too quickly, a user
     // might not start the browser for a long time and
@@ -805,13 +799,7 @@ const CliqzABTests = {
         ruleExecuted = false;
     }
     if (ruleExecuted) {
-      const action = {
-        type: 'abtest',
-        action: 'leave',
-        name: abtest,
-        disable
-      };
-      telemetry.push(action, 'metrics.legacy.abtests');
+      telemetry.push({ name: abtest, disable }, 'metrics.abtests-legacy.leave');
       return true;
     }
     return false;

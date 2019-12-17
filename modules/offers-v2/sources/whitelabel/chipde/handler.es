@@ -28,7 +28,7 @@ class SuspendFilter extends OfferJob {
 
 export default class ChipdeHandler {
   constructor(db, webrequestPipeline) {
-    this.db = new SimpleDB(db);
+    this.db = new SimpleDB(db, logger);
     this.onRedirectTarget = this.onRedirectTarget.bind(this);
     this.redirectTagger = new RedirectTagger(webrequestPipeline, this.onRedirectTarget);
     // We do not cleanup `suspendedDomains`: the number of sites where

@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 import logger from './logger';
 
 
@@ -86,10 +86,10 @@ export default class WebRequestContext {
     this._requestHeadersMap = null;
     this._responseHeadersMap = null;
 
-    this.urlParts = URLInfo.get(this.url);
-    this.frameUrlParts = URLInfo.get(this.frameUrl);
-    this.tabUrlParts = URLInfo.get(this.tabUrl);
-    this.originUrlParts = URLInfo.get(this.originUrl);
+    this.urlParts = parse(this.url);
+    this.frameUrlParts = parse(this.frameUrl);
+    this.tabUrlParts = parse(this.tabUrl);
+    this.originUrlParts = parse(this.originUrl);
   }
 
   getRequestHeader(name) {

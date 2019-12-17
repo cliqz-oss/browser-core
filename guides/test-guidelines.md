@@ -405,6 +405,35 @@ In the following example we will try to load a module named `offers_db` located 
 
 After that you can create an object of type OfferDB as usual.
 
+## Tricks to debug integration tests
+
+### Stream the extension log
+
+The command `./fern.js` provides the parameter `--extension-log <filename>`. The logger messages of the extension are saved to the specified file. Other messages (for example, from direct use of console.log) are lost.
+
+If the script `run_tests_in_docker.sh` sees the parameter `--extension-log`, it additionally mounts the directory `report` in docker to the root of `navigation_extension` on the host.
+
+Sample use:
+
+```
+./fern.js test configs/ci/offers.js -l firefox-web-ext --firefox ~/firefox62/firefox/firefox --no-build --environment testing --ci report.xml --extension-log extlog.txt --keep-open
+./run_tests_in_docker.sh  './configs/ci/offers.js -l firefox-web-ext --firefox ~/firefox62/firefox/firefox --extension-log report/extllog.txt'
+```
+
+Practical use: add a lot of logging to tests, run the tests 100x over night and in the morning analyze the logs of failed tests.
+
+### Send messages to the extension log
+
+Content scripts print messages to a different place, to the web console instead of the extension console. To have a message in the extension console, send it there:
+
+```javascript
+chrome.runtime.sendMessage({
+  type: 'mixextlog',
+  msg: 'Hello from content script',
+  level: 'info', // or any other `console` method
+});
+```
+
 ## Name convention
 
 ### Unit

@@ -8,13 +8,11 @@
 
 import { AsyncStorage, NativeModules, DeviceEventEmitter } from 'react-native';
 import events from '../core/events';
-import config from '../core/config';
-
 
 let PREFIX = '@cliqzprefs:';
 export const PLATFORM_TELEMETRY_WHITELIST = ['lumen.protection.isEnabled', 'lumen.subscription'];
 
-const prefs = config.default_prefs || {};
+const prefs = {};
 
 let _setPref = (key, value) => AsyncStorage.setItem(key, JSON.stringify(value));
 let _getAllPrefs = () => {

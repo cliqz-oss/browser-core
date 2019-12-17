@@ -9,7 +9,6 @@
 /* global describeModule */
 
 const moment = require('moment');
-const urlImports = require('../../core/unit/utils/url-parser');
 
 export default describeModule('freshtab/background',
   function () {
@@ -24,6 +23,7 @@ export default describeModule('freshtab/background',
       'core/services/telemetry': {
         default: {
           push: () => {},
+          register: () => {},
         },
       },
       'core/http': {
@@ -74,11 +74,8 @@ export default describeModule('freshtab/background',
         },
       },
       'core/url': {
-        getDetailsFromUrl() { return {}; },
-        tryEncodeURIComponent: '[dynamic]',
         tryDecodeURIComponent: '[dynamic]',
         tryDecodeURI: '[dynamic]',
-        stripTrailingSlash: '[dynamic]',
         equals() { return true; },
         getCleanHost: s => s,
       },
@@ -116,7 +113,6 @@ export default describeModule('freshtab/background',
           },
         }
       },
-      ...urlImports,
     };
   },
   function () {
@@ -125,14 +121,6 @@ export default describeModule('freshtab/background',
     beforeEach(function () {
       subject = this.module().default;
       subject.init({});
-    });
-
-    describe('#unload', function () {
-      it('calls unload on News', function (done) {
-        const News = this.deps('freshtab/news').default;
-        News.unload = function () { done(); };
-        this.module().default.unload();
-      });
     });
 
     context('events', function () {

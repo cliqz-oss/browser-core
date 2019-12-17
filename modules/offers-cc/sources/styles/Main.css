@@ -4,7 +4,6 @@
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
-  max-width: 307px;
 }
 
 .main__header {
@@ -20,12 +19,14 @@
 .main__header.main__myoffrz-header {
   background-color: var(--myoffrz-primary-color, #f67057);
 };
+.main__header.main__ghostery-header {
+  background-color: var(--ghostery-primary-color, #5B005C);
+};
 
 .main__content {
   flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  min-height: 2em;
   background-color: white;
 }
 .main__footer {

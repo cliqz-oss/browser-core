@@ -10,7 +10,6 @@ import React from 'react';
 import events from '../../core/events';
 import { setDefaultSearchEngine } from '../../core/search-engines';
 import prefs from '../../core/prefs';
-import { addConnectionChangeListener, removeConnectionChangeListener } from '../../platform/network';
 import SearchUI from '../SearchUI';
 import Cliqz from './cliqz';
 import { Provider as CliqzProvider } from '../cliqz';
@@ -25,7 +24,6 @@ export default class MobileCards extends React.Component {
     events.sub('search:results', this.updateResults);
     events.sub('mobile-browser:notify-preferences', this.updatePreferences);
     events.sub('mobile-browser:set-search-engine', this.setSearchEngine);
-    addConnectionChangeListener();
   }
 
   state = {
@@ -40,7 +38,6 @@ export default class MobileCards extends React.Component {
     events.un_sub('mobile-browser:notify-preferences', this.updatePreferences);
     events.un_sub('mobile-browser:set-search-engine', this.setSearchEngine);
     events.un_sub('search:results', this.updateResults);
-    removeConnectionChangeListener();
   }
 
   setSearchEngine = (engine) => {

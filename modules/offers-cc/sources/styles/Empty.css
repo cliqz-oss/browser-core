@@ -38,6 +38,9 @@
 .empty__title.empty__chip-title {
   color: var(--chip-secondary-color, #eb443f);
 }
+.empty__title.empty__ghostery-title {
+  color: var(--ghostery-secondary-color, #5B005C);
+}
 .empty__title.empty__freundin-title {
   color: var(--freundin-secondary-color, #da3434);
 }

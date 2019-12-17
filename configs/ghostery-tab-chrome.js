@@ -9,8 +9,13 @@
 const ghosteryBase = require('./ghostery-tab-base');
 
 const id = 'ifnpgdmcliingpambkkihjlhikmbbjid';
+const CUSTOM_MANIFEST_ENTRY = `
+  ,"minimum_chrome_version": "55",
+`;
+
 
 module.exports = Object.assign({}, ghosteryBase, {
+  CUSTOM_MANIFEST_ENTRY,
   CUSTOM_MANIFEST_PERMISSIONS: '"commands",',
   CUSTOM_MANIFEST_PAGE_ACTION_POPUP: '"default_popup": "popup/popup.html",',
   QUICK_SEARCH_TOGGLE: 'Ctrl+K',
@@ -18,4 +23,7 @@ module.exports = Object.assign({}, ghosteryBase, {
   settings: Object.assign({}, ghosteryBase.settings, {
     channel: 'GT12',
   }),
+  buildTargets: {
+    chrome: 55,
+  }
 });

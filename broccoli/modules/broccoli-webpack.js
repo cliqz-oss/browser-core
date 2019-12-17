@@ -11,6 +11,9 @@ const path = require('path');
 const glob = require('glob');
 const webpack = require('webpack');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+
+const cliqzEnv = require('../cliqz-env');
 
 module.exports = class BroccoliWebpack extends Plugin {
   constructor(inputNode, options = {}) {
@@ -47,13 +50,13 @@ module.exports = class BroccoliWebpack extends Plugin {
       const t1 = new Date().getTime();
 
       webpack({
-        mode: process.env.CLIQZ_ENVIRONMENT === 'development' ? 'development' : 'production',
+        mode: cliqzEnv.DEVELOPMENT ? 'development' : 'production',
         entry: entries,
         output: {
           filename: '[name]',
           path: outputPath
         },
-        devtool: process.env.CLIQZ_ENVIRONMENT === 'development' ? 'source-map' : '',
+        devtool: cliqzEnv.SOURCE_MAPS ? 'source-map' : '',
         resolve: {
           symlinks: false,
           modules: [
@@ -61,6 +64,7 @@ module.exports = class BroccoliWebpack extends Plugin {
           ],
           alias: {
             '@cliqz-oss/dexie': '@cliqz-oss/dexie/dist/dexie.min.js',
+            '@cliqz/url-parser': '@cliqz/url-parser/dist/url-parser.esm.min.js',
             ajv: 'ajv/dist/ajv.min.js',
             chai: 'chai/chai.js',
             'chai-dom': 'chai-dom/chai-dom.js',
@@ -85,7 +89,7 @@ module.exports = class BroccoliWebpack extends Plugin {
         // Thus using this HardSourceWebpackPlugin might be useful.
         // Since it gets cached previous build results.
         // Unlike a production build where it gets compiled only once and we do need to cache it.
-        plugins: process.env.CLIQZ_ENVIRONMENT === 'development' ? [
+        plugins: cliqzEnv.DEVELOPMENT ? [
           new HardSourceWebpackPlugin({
             // Clean up large, old caches automatically.
             cachePrune: {
@@ -101,6 +105,11 @@ module.exports = class BroccoliWebpack extends Plugin {
         ] : [],
         externals: this.builderConfig.globalDeps,
         optimization: {
+          minimizer: [
+            new TerserPlugin({
+              sourceMap: cliqzEnv.SOURCE_MAPS,
+            }),
+          ],
           // For production build webpack normally combines all dependencies
           // within a single function.
           // Also it tries to optimize the code in a way of the less variables the better.

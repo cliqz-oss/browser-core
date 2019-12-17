@@ -9,8 +9,6 @@
 /* global chai, describeModule, sinon */
 /* eslint new-cap: off */
 
-const urlImports = require('../../core/unit/utils/url-parser');
-
 export default describeModule('dropdown/dropdown',
   function () {
     return {
@@ -23,7 +21,6 @@ export default describeModule('dropdown/dropdown',
         chrome: {},
       },
       '../platform/browser': {},
-      ...urlImports,
     };
   },
   function () {
@@ -47,6 +44,7 @@ export default describeModule('dropdown/dropdown',
               closest() {
                 return {
                   classList: {
+                    add() {},
                     contains() {
                       return true;
                     }
@@ -76,6 +74,7 @@ export default describeModule('dropdown/dropdown',
               closest() {
                 return {
                   classList: {
+                    add() {},
                     contains() {
                       return false;
                     }

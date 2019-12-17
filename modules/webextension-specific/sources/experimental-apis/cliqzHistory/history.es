@@ -7,8 +7,7 @@
  */
 
 /* global Components */
-import { URLInfo } from '../../../core/url-info';
-import { getCleanHost } from '../../../core/url';
+import { parse, getCleanHost } from '../../../core/url';
 import { queryHistory } from './history-firefox';
 
 export { default } from './history-firefox';
@@ -60,25 +59,25 @@ function topHistory({
 } = {}) {
   const excludeURLs = Array(exclude.length).fill('?').join(',');
   return queryHistory(`
-    select distinct rev_host as rev_host, title as title, url as url, max(total_count)  as total_count from ( 
-    select mzh.url as url, mzh.title as title, sum(mzh.days_count) as total_count, mzh.rev_host as rev_host 
-    from ( 
-    select moz_places.url, moz_places.title, moz_places.rev_host, moz_places.visit_count, 
-    moz_places.last_visit_date, moz_historyvisits.*, 
-    (moz_historyvisits.visit_date / (86400* 1000000) - (strftime('%s', date('now', '-6 months'))/86400) ) as days_count 
-    from moz_historyvisits, moz_places 
-    where moz_places.typed == 1 
-    and moz_places.hidden == 0 
-    and moz_historyvisits.visit_date > (strftime('%s', date('now', '-6 months'))*1000000) 
-    and moz_historyvisits.place_id == moz_places.id 
-    and moz_places.visit_count > 1 
-    and (moz_historyvisits.visit_type < 4 or moz_historyvisits.visit_type == 6) 
+    select distinct rev_host as rev_host, title as title, url as url, max(total_count)  as total_count from (
+    select mzh.url as url, mzh.title as title, sum(mzh.days_count) as total_count, mzh.rev_host as rev_host
+    from (
+    select moz_places.url, moz_places.title, moz_places.rev_host, moz_places.visit_count,
+    moz_places.last_visit_date, moz_historyvisits.*,
+    (moz_historyvisits.visit_date / (86400* 1000000) - (strftime('%s', date('now', '-6 months'))/86400) ) as days_count
+    from moz_historyvisits, moz_places
+    where moz_places.typed == 1
+    and moz_places.hidden == 0
+    and moz_historyvisits.visit_date > (strftime('%s', date('now', '-6 months'))*1000000)
+    and moz_historyvisits.place_id == moz_places.id
+    and moz_places.visit_count > 1
+    and (moz_historyvisits.visit_type < 4 or moz_historyvisits.visit_type == 6)
     and lower(moz_places.url) not like 'moz-extension:%'
     and moz_places.url not in (${excludeURLs})
-    ) as mzh 
-    group by mzh.place_id 
-    order by total_count desc, mzh.visit_count desc, mzh.last_visit_date desc 
-    ) group by rev_host order by total_count desc limit ${limit} 
+    ) as mzh
+    group by mzh.place_id
+    order by total_count desc, mzh.visit_count desc, mzh.last_visit_date desc
+    ) group by rev_host order by total_count desc limit ${limit}
   `, ['url', 'title'], exclude);
 }
 
@@ -134,7 +133,7 @@ export async function topDomains({ limit, exclude, includeAdult } = {}) {
   const history = await topHistory({ limit, exclude });
 
   return history.reduce((acc, curr) => {
-    const host = getCleanHost(URLInfo.get(curr.url));
+    const host = getCleanHost(parse(curr.url));
     // we only want to show one url per host
     if (!Object.prototype.hasOwnProperty.call(acc.domains, host)) {
       const isAdult = isAdultDomain(host);

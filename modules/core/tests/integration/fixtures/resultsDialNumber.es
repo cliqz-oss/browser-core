@@ -15,7 +15,7 @@ export default [
       extra: {
         country_name: 'Germany',
         dialing_prefix: 49,
-        flag_uri: 'https://cdn.cliqz.com/extension/countries/flags/svg/de.svg',
+        flag_uri: 'http://localhost:3000/static/images/de.svg',
         country_code: 'DE'
       }
     },

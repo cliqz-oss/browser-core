@@ -1,6 +1,6 @@
 [{
   "namespace": "testHelpers",
-  "description": "API giving read access to 'extensions.cliqz.' branch of firefox prefs (needed for migration).",
+  "description": "Test Helpers",
   "types": [
     {
       "id": "UrlbarOverrideDetails",

@@ -78,7 +78,7 @@ export default class Settings extends React.Component {
             </span>
             <select
               className="custom-dropdown"
-              onChange={e => this.handlePref(e, 'extensions.cliqz.offers2UserEnabled', 'offerz_main', 'userEnabled', true)}
+              onChange={e => this.handlePref(e, 'offers2UserEnabled', 'offerz_main', 'userEnabled', true)}
               defaultValue={userEnabled}
             >
               <option value="true">{localize('control_center_enabled')}</option>

@@ -51,13 +51,13 @@ function waitForImpl(fn, timeout) {
   // Reject after `timeout` ms
   timeoutId = timers.setTimeout(() => {
     stop();
-    reject(error ? `waitFor timeout: ${error}` : 'waitFor timeout');
+    reject(error || new Error('waitFor timeout'));
   }, timeout);
 
   return promise;
 }
 
-export function waitFor(fn, timeout = 20000) {
+export function waitFor(fn, timeout = 15000) {
   return waitForImpl(fn, timeout);
 }
 

@@ -83,10 +83,18 @@ export default class PersistentMap {
   }
 
   values() {
-    throw new Error('no implemented');
+    throw new Error('not implemented');
   }
 
   entries() {
-    throw new Error('no implemented');
+    throw new Error('not implemented');
+  }
+
+  bulkDelete() {
+    throw new Error('not implemented');
+  }
+
+  bulkSetFromMap() {
+    throw new Error('not implemented');
   }
 }

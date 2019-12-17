@@ -179,7 +179,7 @@ export default {
                     description: 'Irans Präsident setzt auf Eskalation - und den Europäern eine Frist: Deutschland, Frankreich und Großbritannien sollen binnen zwei Monaten das Atomabkommen retten. Er droht, sonst Flüchtlinge und Drogen aus Afghanistan durchzuwinken.',
                     domain: 'spiegel.de',
                     murl: 'https://m.spiegel.de/politik/ausland/iran-atomabkommen-hassan-rohani-setzt-den-europaeern-ein-ultimatum-a-1266356.html',
-                    thumbnail: 'https://imgr.cliqz.com/-7YOJCB5-yo0bUM_Gtlzvi5edhPTgjkI67QmMwX3c4c/fill/0/200/no/1/aHR0cHM6Ly9jZG4xLnNwaWVnZWwuZGUvaW1hZ2VzL2ltYWdlLTE0MjUwNzAtODYwX3Bvc3Rlcl8xNng5LW9seWMtMTQyNTA3MC5qcGc.jpg'
+                    thumbnail: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg'
                   },
                   kind: [
                     "X|{'class':'EntityNews'}"
@@ -228,7 +228,7 @@ export default {
                     description: 'Wegen einer drohenden Klassenschließung haben Eltern in Frankreich zu einer drastischen Methode gegriffen: Sie schrieben 15 Schafe in der Schule ihrer Kinder ein.',
                     domain: 'spiegel.de',
                     murl: 'https://m.spiegel.de/panorama/gesellschaft/frankreich-15-schafe-an-grundschule-eingeschrieben-a-1266295.html',
-                    thumbnail: 'https://imgr.cliqz.com/qkSQz1Sd6-WVNQUyN8ujDek89ts6WF-UJTGYO16Dy1c/fill/0/200/no/1/aHR0cHM6Ly93d3cuc3BpZWdlbC5kZS9pbWFnZXMvaW1hZ2UtMTQyNDk2Ni10aHVtYnNtYWxsLWV0bnkuanBn.jpg'
+                    thumbnail: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg'
                   },
                   kind: [
                     "X|{'class':'EntityNews'}"
@@ -2152,7 +2152,7 @@ export default {
                     description: 'Fecht-Legende Elmar Borrmann auf der Anklagebank im Landgericht Würzburg: Er soll bis zu 25000 Anleger um 10,911 Mio Euro betrogen haben!',
                     domain: 'bild.de',
                     murl: 'https://m.bild.de/sport/mehr-sport/sport-mix/elmar-borrmann-doppel-olympiasieger-wegen-anlage-betrug-vor-gericht-61755668.bildMobile.html',
-                    thumbnail: ''
+                    thumbnail: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg'
                   },
                   kind: [
                     "X|{'class':'EntityNews'}"
@@ -2201,7 +2201,7 @@ export default {
                     description: 'Bayerns Ministerpräsident Markus Söder (52, CSU) schenkt dem jüngsten Spross der britischen Königsfamilie eine bayerische Tracht.  Foto: @Markus_Soeder/Twitter',
                     domain: 'bild.de',
                     murl: 'https://m.bild.de/regional/muenchen/muenchen-aktuell/glueckwuensche-zur-geburt-soeder-schenkt-baby-sussex-eine-lederhose-61756534.bildMobile.html',
-                    thumbnail: 'https://imgr.cliqz.com/8MmdBdjTJ-5tmTOhslYn97yrkuE4p2eHStArsEdeigc/fill/0/200/no/1/aHR0cHM6Ly9iaWxkZXIuYmlsZC5kZS9mb3Rvcy9nbHVlY2t3dWVuc2NoZS16dXItZ2VidXJ0LS1zb2VkZXItc2NoZW5rdC1iYWJ5LXN1c3NleC1laW5lLWxlZGVyaG9zZS0yMDExMjUyODItNjE3NTcwMjQvQmlsZC8xLmJpbGQuanBn.jpg'
+                    thumbnail: 'http://locahost:3000/static/images/thumbnail_bild_de.jpg'
                   },
                   kind: [
                     "X|{'class':'EntityNews'}"
@@ -2250,7 +2250,7 @@ export default {
                     description: 'Ein Moment purer Genialität sorgt für eines der größten Fußball-Comebacks aller Zeiten – und bringt Liverpool ins Champions-League-Finale.',
                     domain: 'bild.de',
                     murl: 'https://m.bild.de/sport/fussball/champions-league/champions-league-historischer-trick-bringt-fc-liverpool-ins-finale-61753196.bildMobile.html',
-                    thumbnail: 'https://imgr.cliqz.com/aqOsUh7J0mB8zcOZc0-zZRwTLYJNfjKHfp9YC8yl_Uc/fill/0/200/no/1/aHR0cHM6Ly9iaWxkZXIuYmlsZC5kZS9mb3Rvcy9jaGFtcGlvbnMtbGVhZ3VlLWhpc3RvcmlzY2hlci10cmljay1icmluZ3QtZmMtbGl2ZXJwb29sLWlucy1maW5hbGUtMjAxMTI1MDg4LTYxNzU0NjcyL0JpbGQvNC5iaWxkLmpwZw.jpg'
+                    thumbnail: 'http://localhost:3000/static/images/thumbnail_bild_de.jpg'
                   },
                   kind: [
                     "X|{'class':'EntityNews'}"
@@ -2484,7 +2484,7 @@ export default {
         href: 'https://www.google.com/search?client=firefox-b-d&q=ne',
         friendlyUrl: 'google.com/search?client=firefox-b-d&q=ne',
         kind: [
-          'custom-search'
+          'default-search'
         ],
         provider: 'instant',
         suggestion: 'ne',
@@ -2527,7 +2527,7 @@ export default {
             searchEngineName: 'Google'
           },
           kind: [
-            'custom-search'
+            'default-search'
           ],
           suggestion: 'ne'
         }
@@ -4124,7 +4124,7 @@ export default {
         href: 'https://www.google.com/search?client=firefox-b-d&q=top ne',
         friendlyUrl: 'google.com/search?client=firefox-b-d&q=top ne',
         kind: [
-          'custom-search'
+          'default-search'
         ],
         provider: 'instant',
         suggestion: 'top ne',
@@ -4167,7 +4167,7 @@ export default {
             searchEngineName: 'Google'
           },
           kind: [
-            'custom-search'
+            'default-search'
           ],
           suggestion: 'top ne'
         }

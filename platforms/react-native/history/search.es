@@ -8,4 +8,6 @@
 
 import { historySearch } from '../browser-actions';
 
+export const openedURLs = new Set();
+
 export default historySearch;

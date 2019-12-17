@@ -65,7 +65,7 @@ export default {
             country_code: 'DE',
             country_name: 'Germany',
             dialing_prefix: 49,
-            flag_uri: 'https://cdn.cliqz.com/extension/countries/flags/svg/de.svg'
+            flag_uri: 'http://localhost:3000/static/images/de.svg'
           },
           kind: [
             'X|{"class":"EntityDialingCode"}'

@@ -8,19 +8,11 @@
 
 import events from '../core/events';
 import console from '../core/console';
-import { chrome, browser } from '../platform/globals';
+import { chrome } from '../platform/globals';
 
 const PREFS_KEY = 'cliqzprefs';
 let initialised = false;
 const prefs = {};
-
-export const PLATFORM_TELEMETRY_WHITELIST = (chrome === undefined || chrome.cliqz === undefined)
-  ? []
-  : [
-    'pref.cliqz.blue.theme',
-    'pref.search.quicksearch.enabled',
-    'searchui.cards.layout',
-  ];
 
 function syncToStorage() {
   chrome.storage.local.set({ [PREFS_KEY]: prefs });
@@ -36,28 +28,11 @@ export function init() {
   });
 }
 
-function cleanPref(pref) {
-  if (pref.startsWith('extensions.cliqz.')) {
-    return pref.substr('extensions.cliqz.'.length);
-  }
-  return pref;
-}
-
 export function getAllCliqzPrefs() {
   return Object.keys(prefs);
 }
 
-export function getPref(prefKey, notFound, browserPrefix = null) {
-  if (browserPrefix !== null) {
-    if (browser && browser.cliqz && browser.cliqz.getPref) {
-      return browser.cliqz.getPref(`${browserPrefix}${prefKey}`);
-    }
-
-    console.warn(`getting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
-    return notFound;
-  }
-
-  const pref = cleanPref(prefKey);
+export function getPref(pref, notFound) {
   if (!initialised) {
     console.warn(`loading pref ${pref} before prefs were initialised, you will not get the correct result`);
     return prefs[pref] || notFound;
@@ -69,15 +44,7 @@ export function getPref(prefKey, notFound, browserPrefix = null) {
   return notFound;
 }
 
-export function setPref(prefKey, value, browserPrefix = null) {
-  if (browserPrefix !== null) {
-    if (browser && browser.cliqz && browser.cliqz.setPref) {
-      return browser.cliqz.setPref(`${browserPrefix}${prefKey}`, value);
-    }
-    console.warn(`setting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
-  }
-
-  const pref = cleanPref(prefKey);
+export function setPref(pref, value) {
   const changed = prefs[pref] !== value;
 
   prefs[pref] = value;
@@ -98,31 +65,11 @@ export function setPref(prefKey, value, browserPrefix = null) {
   return Promise.resolve();
 }
 
-export function hasPref(prefKey, browserPrefix = null) {
-  if (browserPrefix !== null) {
-    if (browser && browser.cliqz && browser.cliqz.hasPref) {
-      return browser.cliqz.hasPref(`${browserPrefix}${prefKey}`);
-    }
-
-    console.warn(`getting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
-    return false;
-  }
-
-  const pref = cleanPref(prefKey);
+export function hasPref(pref) {
   return pref in prefs;
 }
 
-export function clearPref(prefKey, browserPrefix = null) {
-  if (browserPrefix !== null) {
-    if (browser && browser.cliqz && browser.cliqz.clearPref) {
-      return browser.cliqz.clearPref(`${browserPrefix}${prefKey}`);
-    }
-
-    console.warn(`getting pref ${browserPrefix}${prefKey} with browser prefix when chrome.cliqz is not available (ignored)`);
-    return false;
-  }
-
-  const pref = cleanPref(prefKey);
+export function clearPref(pref) {
   delete prefs[pref];
 
   // trigger prefchange event

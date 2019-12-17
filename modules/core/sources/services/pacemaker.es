@@ -28,7 +28,7 @@ import { setTimeout } from '../timers';
 // 1. You need to update a config fetched from CDN and it does not change more
 // than once an hour, then it's recommended to use `pacemaker.everyHour()`.
 //
-// 2. You need to run a check on the sate of your module every few seconds (and
+// 2. You need to run a check on the state of your module every few seconds (and
 // it does not matter exactly how many seconds as long as it's less or equal to
 // 10), then you should use `pacemaker.everyFewSeconds()`.
 
@@ -259,6 +259,15 @@ class Pacemaker {
     return this.register(fn, { timeout: ONE_HOUR });
   }
 
+  /**
+   * Whenever a function should run in the background without competing for
+   * resources needed by the browser, this helper can be used. It is an
+   * efficient way to batch processing.
+   */
+  nextIdle(fn, ...args) {
+    return this.register(fn, { timeout: this.freq, once: true, args });
+  }
+
   setTimeout(fn, timeout, ...args) {
     return this.register(fn, { timeout, once: true, args });
   }
@@ -292,6 +301,7 @@ export default inject.service('pacemaker', [
   'everyMinute',
   'everyFewMinutes',
   'everyHour',
+  'nextIdle',
   'setTimeout',
   'clearTimeout',
 ]);

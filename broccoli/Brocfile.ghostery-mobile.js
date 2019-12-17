@@ -15,13 +15,14 @@ const WatchedDir = broccoliSource.WatchedDir;
 
 const util = require('./util');
 const cliqzConfig = require('./config');
+const cliqzEnv = require('./cliqz-env');
 const modules = require('./modules-tree');
 
 const specific = new WatchedDir('specific/node');
 
 // cliqz.json should be saved after not transpiled modules are removed from configration
 const config = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
-console.log('Source maps:', cliqzConfig.sourceMaps);
+console.log('Source maps:', cliqzEnv.SOURCE_MAPS);
 console.log(cliqzConfig);
 // cliqz.json is finalized
 

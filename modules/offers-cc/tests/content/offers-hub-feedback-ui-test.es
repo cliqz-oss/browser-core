@@ -32,7 +32,7 @@ context('Offers Hub UI tests for feedback', function () {
   it('renders title', function () {
     expect(subject.query('.feedback__title')).to.exist;
     expect(subject.query('.feedback__title').firstChild.textContent.trim())
-      .to.equal('offers_hub_feedback_title');
+      .to.equal('myoffrz_feedback_title');
   });
 
   it('renders three unchecked radio buttons', function () {
@@ -51,7 +51,7 @@ context('Offers Hub UI tests for feedback', function () {
     expect(options).to.have.length(3);
 
     options.forEach(function (option, i) {
-      expect(option.textContent.trim()).to.equal(`offers_hub_feedback_option${i + 1}`);
+      expect(option.textContent.trim()).to.equal(`myoffrz_feedback_option${i + 1}`);
     });
   });
 
@@ -59,11 +59,11 @@ context('Offers Hub UI tests for feedback', function () {
     expect(subject.query('.feedback__field')).to.exist;
     expect(subject.query('.feedback__field').hasAttribute('placeholder')).to.be.true;
     expect(subject.query('.feedback__field').getAttribute('placeholder'))
-      .to.equal('offers_hub_feedback_option4');
+      .to.equal('myoffrz_feedback_option4');
   });
 
   it('renders "close" button', function () {
     expect(subject.query('.feedback__myoffrz-secondary')).to.exist;
-    expect(subject.query('.feedback__myoffrz-secondary').textContent.trim()).to.equal('feedback_skip');
+    expect(subject.query('.feedback__myoffrz-secondary').textContent.trim()).to.equal('myoffrz_skip');
   });
 });

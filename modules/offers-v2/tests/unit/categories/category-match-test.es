@@ -74,8 +74,7 @@ export default describeModule('offers-v2/categories/category-match',
         it('with URL pattern', () => {
           const cm = new CategoryMatch();
           // Three tokens, we want that '.de' is ignored
-          cm.addCategoryPatterns('c1', ['||amazon.de/dp/12345^$script']);
-          cm.build();
+          cm.build(new Map([['c1', ['||amazon.de/dp/12345^$script']]]));
           const urlData = new UrlData('https://www.amazon.de/dp/12345/extra/path');
 
           const cmt = cm.checkMatches(urlData.getPatternRequest());
@@ -86,8 +85,7 @@ export default describeModule('offers-v2/categories/category-match',
 
         it('with search pattern', () => {
           const cm = new CategoryMatch();
-          cm.addCategoryPatterns('c1', ['buy elephant$fuzzy']);
-          cm.build();
+          cm.build(new Map([['c1', ['buy elephant$fuzzy']]]));
           const urlData = new UrlData('http://google.com/search?q=let us buy an elephant');
 
           const cmt = cm.checkMatches(urlData.getPatternRequest());

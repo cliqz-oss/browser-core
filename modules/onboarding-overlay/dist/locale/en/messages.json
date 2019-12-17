@@ -3,7 +3,7 @@
         "message": "Chip Sparalarm works with the highest standards regarding data protection (without user profiling or collection of any PII). With Sparalarm, you as a user are always anonymous."
     },
     "onboarding_chip_description_more": {
-        "message": "The technology behind Sparalarm works solely on the user’s device. Among other things, it analyzes which websites the user visits and what the user has searched previously for on the Internet. This provides the basis for determining potential purchase intent.<br /><br />Sparalarm doesn’t send any information whatsoever to a server that identifies individual users. Instead, it sends out only anonymous and purely statistical data. More details can be found under: <a href='https://sparalarm.chip.de/datenschutzerklaerung/'>https://sparalarm.chip.de/datenschutzerklaerung/</a>."
+        "message": "The technology behind Sparalarm works solely on the user’s device. Among other things, it analyzes which websites the user visits and what the user has searched previously for on the Internet. This provides the basis for determining potential purchase intent.<div></div>Sparalarm doesn’t send any information whatsoever to a server that identifies individual users. Instead, it sends out only anonymous and purely statistical data. More details can be found under: <a href='https://sparalarm.chip.de/datenschutzerklaerung/'>https://sparalarm.chip.de/datenschutzerklaerung/</a>."
     },
     "onboarding_chip_human_web": {
         "message": "Participate in Human Web"
@@ -12,7 +12,7 @@
         "message": "More "
     },
     "onboarding_chip_ok": {
-        "message": "OK"
+        "message": "Next"
     },
     "onboarding_chip_settings_header": {
         "message": "You can change these settings anytime in the Add-on."
@@ -90,7 +90,7 @@
         "message": "MyOffrz works with the highest standards regarding data protection (without user profiling or collection of any PII). With MyOffrz, you as a user are always anonymous."
     },
     "onboarding_myoffrz_description_more": {
-        "message": "The technology behind MyOffrz works solely on the user’s device. Among other things, it analyzes which websites the user visits and what the user has searched previously for on the Internet. This provides the basis for determining potential purchase intent.<br /><br />MyOffrz doesn’t send any information whatsoever to a server that identifies individual users. Instead, it sends out only anonymous and purely statistical data. More details can be found under:  <a href='https://myoffrz.com/datenschutzerklaerung/ '>https://myoffrz.com/datenschutzerklaerung/ </a>."
+        "message": "The technology behind MyOffrz works solely on the user’s device. Among other things, it analyzes which websites the user visits and what the user has searched previously for on the Internet. This provides the basis for determining potential purchase intent.<div></div>MyOffrz doesn’t send any information whatsoever to a server that identifies individual users. Instead, it sends out only anonymous and purely statistical data. More details can be found under:  <a href='https://myoffrz.com/datenschutzerklaerung/ '>https://myoffrz.com/datenschutzerklaerung/ </a>."
     },
     "onboarding_myoffrz_human_web": {
         "message": "Participate in Human Web"

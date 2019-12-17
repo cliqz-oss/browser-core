@@ -106,7 +106,7 @@ function myOffrzTests(amo) {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.offers2UserEnabled');
+                expect(message).to.have.nested.property('args[0].pref', 'offers2UserEnabled');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'offerz_main');
                 expect(message).to.have.nested.property('args[0].prefType', 'boolean');

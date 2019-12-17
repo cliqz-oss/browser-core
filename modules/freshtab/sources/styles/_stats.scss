@@ -192,9 +192,12 @@
 
         .with-icon {
             background-repeat: no-repeat;
-            background-size: contain;
-            background-position: left center;
+            background-size: 16px 16px;
+            background-position: left top;
             padding-left: 25px;
+            font-size: 14px;
+            min-height: 16px;
+            line-height: 16px;
         }
 
         .description {

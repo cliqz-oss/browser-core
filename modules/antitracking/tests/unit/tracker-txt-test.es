@@ -7,7 +7,6 @@
  */
 
 /* global chai, describeModule */
-const urlImports = require('../../core/unit/utils/url-parser');
 
 export default describeModule('antitracking/tracker-txt',
   () => ({
@@ -20,16 +19,15 @@ export default describeModule('antitracking/tracker-txt',
         set() {}
       }
     },
-    ...urlImports,
   }), function () {
     let TT;
     let parser;
-    let URL;
+    let parse;
 
     beforeEach(async function () {
       TT = this.module();
       parser = TT.trackerRuleParser;
-      URL = (await this.system.import('core/fast-url-parser')).default;
+      parse = (await this.system.import('core/url')).parse;
     });
 
     it('parse rules correctly', function () {
@@ -64,7 +62,7 @@ export default describeModule('antitracking/tracker-txt',
 
     it('apply correct rule to 3rd party', function () {
       const txt = '# comment\n! pass\nR aaa.site1.com empty\nR site1.com placeholder\nnot a rule';
-      const r = TT.TrackerTXT.get(new URL('http://www.google.com/'));
+      const r = TT.TrackerTXT.get(parse('http://www.google.com/'));
       TT.trackerRuleParser(txt, r.rules);
       r.status = 'update';
       chai.expect(r.getRule('bbbaaa.site1.com')).to.equal('empty');

@@ -15,7 +15,7 @@
 import console from '../core/console';
 import i18n from '../core/i18n';
 import prefs from '../core/prefs';
-import { cleanUrlProtocol } from '../core/url';
+import { strip } from '../core/url';
 import pacemaker from '../core/services/pacemaker';
 
 const fallbackWhitelist = JSON.stringify([
@@ -159,7 +159,10 @@ const CliqzLanguage = {
     if (url === '' || url === undefined || url === null) return;
 
     // extract domain from url, hash it and update the value
-    const urlHash = CliqzLanguage.hashCode(cleanUrlProtocol(url, true).split('/')[0]) % 256;
+    const urlHash = CliqzLanguage.hashCode(strip(url, {
+      protocol: true,
+      www: true,
+    }).split('/')[0]) % 256;
 
     if (!CliqzLanguage.currentState[locale]) {
       CliqzLanguage.currentState[locale] = [];

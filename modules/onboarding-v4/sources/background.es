@@ -17,12 +17,16 @@ import {
   deleteUITourTarget,
 } from '../core/ui-tour';
 
+import metrics from './telemetry/metrics';
+
 /**
   @namespace onboarding-v4
   @module onboarding-v4
   @class Background
  */
 export default background({
+  requiresServices: ['telemetry'],
+
   deps: {
     controlCenter: inject.module('control-center'),
   },
@@ -31,7 +35,9 @@ export default background({
     @method init
     @param settings
   */
-  init() {
+  init(_settings, _browser, { services: { telemetry } }) {
+    telemetry.register(metrics);
+
     const styleUrl = getResourceUrl('onboarding-v4/styles/popup.css');
     chrome.cliqz.initTheme(styleUrl, 'onboarding-v4-stylesheet');
     createUITourTarget('onboarding-v4', '#cliqz_cliqz_com-browser-action2', 'cliqz_cliqz_com-browser-action2');

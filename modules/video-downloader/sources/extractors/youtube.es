@@ -12,19 +12,13 @@ import getYoutubeID from '../utils/get-youtube-id';
 
 // This takes a bit, not perfect... Will it be blocked if too much traffic?
 function handleFormats(formats) {
-  return formats.map((data) => {
-    const keys = [
-      'audioBitrate',
-      'audioEncoding',
-      'container',
-      'encoding',
-      'resolution',
-      'url',
-    ];
-    const output = {};
-    keys.forEach((x) => { output[x] = data[x]; });
-    return output;
-  });
+  return formats.map(data => ({
+    audioBitrate: data.audioBitrate,
+    container: data.container,
+    size: data.contentLength ? (Number(data.contentLength) || 0) : undefined,
+    resolution: data.qualityLabel,
+    url: data.url,
+  }));
 }
 
 export default class YoutubeExtractor {

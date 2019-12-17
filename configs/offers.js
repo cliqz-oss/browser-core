@@ -30,9 +30,11 @@ module.exports = {
     OFFERS_BRAND: 'myoffrz',
     HW_CHANNEL: 'myoffrz',
     ALLOWED_COUNTRY_CODES: ['de'],
+    MAX_NUM_OFFERS_PER_DAY: 20,
     ONBOARDING_URL: 'https://myoffrz.com/on-boarding/',
     OFFBOARDING_URL: 'https://myoffrz.com/off-boarding/',
     SHOW_ONBOARDING_OVERLAY: true,
+    THROTTLE_OFFER_APPEARANCE_MODE: 'PER_DOMAIN',
   }),
   versionPrefix: '11',
   default_prefs: {

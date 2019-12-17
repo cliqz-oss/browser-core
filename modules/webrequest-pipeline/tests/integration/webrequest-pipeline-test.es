@@ -6,7 +6,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { app, expect, newTab, updateTab, getTab, testServer, waitFor } from '../../../tests/core/integration/helpers';
+import {
+  app,
+  expect,
+  newTab,
+  updateTab,
+  getTab,
+  testServer,
+  waitFor,
+} from '../../../tests/core/integration/helpers';
 import { isChromium } from '../../../core/platform';
 
 export default () => {
@@ -21,9 +29,20 @@ export default () => {
 
     const openTab = async (url) => {
       const tabId = await newTab('about:blank');
-      await waitFor(() => pipeline.pageStore.tabs.has(tabId), 2000);
-      updateTab(tabId, { url });
-      await waitFor(async () => (await getTab(tabId)).url !== 'about:blank', 2000);
+      await waitFor(
+        () =>
+          expect(
+            pipeline.pageStore.tabs.has(tabId),
+            `expect ${tabId} in ${JSON.stringify(
+              [...pipeline.pageStore.tabs.entries()],
+              null,
+              2,
+            )}`,
+          ).to.eql(true),
+        2000,
+      );
+      await updateTab(tabId, { url });
+      await waitFor(async () => expect((await getTab(tabId)).url).to.not.eql('about:blank'), 2000);
       return tabId;
     };
 
@@ -40,41 +59,36 @@ export default () => {
       pipeline.unload();
       await pipeline.init();
 
-      addPipeline = cb => pipeline.actions.addPipelineStep('onBeforeRequest', {
-        name: 'test',
-        spec: 'blocking',
-        fn: cb,
-      });
+      addPipeline = cb =>
+        pipeline.actions.addPipelineStep('onBeforeRequest', {
+          name: 'test',
+          spec: 'blocking',
+          fn: cb,
+        });
     });
 
-    afterEach(() => pipeline.actions.removePipelineStep(
-      'onBeforeRequest',
-      'test',
-    ));
+    afterEach(() => pipeline.actions.removePipelineStep('onBeforeRequest', 'test'));
 
     describe('details', () => {
       it('main_frame', async () => {
         addPipeline(collectRequestDetails);
         await testServer.registerPathHandler(getSuffix(), { result: '<html>foo</html>' });
         await openTab(getUrl());
-        await waitFor(() => {
-          expect(details).to.have.length(1);
-          expect(details[0]).to.deep.include({
-            frameAncestors: [],
-            frameId: 0,
-            url: getUrl(),
-            frameUrl: getUrl(),
-            tabUrl: getUrl(),
-            isMainFrame: true,
-            isPrivate: false,
-            isRedirect: false,
-            method: 'GET',
-            parentFrameId: -1,
-            type: 'main_frame',
-          });
-          return true;
+        await waitFor(() => expect(details).to.have.length(1), 10000);
+        expect(details[0]).to.deep.include({
+          frameAncestors: [],
+          frameId: 0,
+          url: getUrl(),
+          frameUrl: getUrl(),
+          tabUrl: getUrl(),
+          isMainFrame: true,
+          isPrivate: false,
+          isRedirect: false,
+          method: 'GET',
+          parentFrameId: -1,
+          type: 'main_frame',
         });
-      }, 10000);
+      });
 
       it('sub_frame', async () => {
         addPipeline(collectRequestDetails);
@@ -85,42 +99,38 @@ export default () => {
           }),
         ]);
         await openTab(getUrl());
-        await waitFor(() => {
-          expect(details).to.have.length(2);
+        await waitFor(() => expect(details).to.have.length(2));
 
-          // main_frame
-          expect(details[0]).to.deep.include({
-            frameAncestors: [],
-            frameId: 0,
-            url: getUrl(),
-            frameUrl: getUrl(),
-            tabUrl: getUrl(),
-            isMainFrame: true,
-            isPrivate: false,
-            isRedirect: false,
-            method: 'GET',
-            parentFrameId: -1,
-            type: 'main_frame',
-          });
+        // main_frame
+        expect(details[0]).to.deep.include({
+          frameAncestors: [],
+          frameId: 0,
+          url: getUrl(),
+          frameUrl: getUrl(),
+          tabUrl: getUrl(),
+          isMainFrame: true,
+          isPrivate: false,
+          isRedirect: false,
+          method: 'GET',
+          parentFrameId: -1,
+          type: 'main_frame',
+        });
 
-          // sub_frame
-          expect(details[1].frameId).to.not.eql(0);
-          expect(details[1]).to.deep.include({
-            frameAncestors: [{ frameId: 0, url: getUrl() }],
-            // frameId: 0,
-            url: getUrl('iframe'),
-            frameUrl: getUrl('iframe'),
-            tabUrl: getUrl(),
-            isMainFrame: false,
-            isPrivate: false,
-            isRedirect: false,
-            method: 'GET',
-            parentFrameId: 0,
-            type: 'sub_frame',
-          });
-
-          return true;
-        }, 10000);
+        // sub_frame
+        expect(details[1].frameId).to.not.eql(0);
+        expect(details[1]).to.deep.include({
+          frameAncestors: [{ frameId: 0, url: getUrl() }],
+          // frameId: 0,
+          url: getUrl('iframe'),
+          frameUrl: getUrl('iframe'),
+          tabUrl: getUrl(),
+          isMainFrame: false,
+          isPrivate: false,
+          isRedirect: false,
+          method: 'GET',
+          parentFrameId: 0,
+          type: 'sub_frame',
+        });
       });
     });
 
@@ -159,10 +169,7 @@ export default () => {
         testServer.registerPathHandler(getSuffix('target'), { result: body }),
       ]);
       await openTab(getUrl());
-      await waitFor(() => {
-        expect(details).to.have.length(5);
-        return true;
-      }, 10000);
+      await waitFor(() => expect(details).to.have.length(5), 10000);
 
       // starting point, which should be redirected via webrequest answer
       expect(details[0], '/').to.deep.include({
@@ -276,13 +283,34 @@ export default () => {
 
         // open a page and wait for the 'ready' beacon
         const tabId = await openTab(getUrl('landing'));
-        await waitFor(() => details.filter(r => r.url.endsWith('ready').length === 1), 1000);
+        await waitFor(
+          () =>
+            expect(
+              details.filter(r => r.url.endsWith('ready')),
+              `endsWithReady ${JSON.stringify(details, null, 2)}`,
+            ).to.have.length(1),
+          2000,
+        );
         // switch to the test page and wait for the first beacon to trigger
         updateTab(tabId, { url: getUrl() });
-        await waitFor(() => details.filter(filterBeacons).length >= 1, 1000);
+        await waitFor(
+          () =>
+            expect(
+              details.filter(filterBeacons).length,
+              `beacons ${JSON.stringify(details, null, 2)}`,
+            ).to.be.at.least(1),
+          2000,
+        );
         // go back to the other page and wait for the beacons on page unload
         updateTab(tabId, { url: getUrl('landing') });
-        await waitFor(() => details.filter(filterBeacons).length >= 3, 10000);
+        await waitFor(
+          () =>
+            expect(
+              details.filter(filterBeacons).length,
+              `beacons ${JSON.stringify(details, null, 2)}`,
+            ).to.be.at.least(3),
+          10000,
+        );
 
         const beacons = details.filter(filterBeacons);
         expect(beacons).to.have.length(3);
@@ -312,7 +340,7 @@ export default () => {
               client.open('GET', '${getSuffix('beacon')}', ${isChromium ? 'true' : 'false'});
               client.send(null);
             }, false);
-          </script></body></html>`
+          </script></body></html>`,
         }),
         testServer.registerPathHandler(getSuffix('beacon'), {
           result: '{}',
@@ -330,13 +358,34 @@ export default () => {
 
       // open a page and wait for the 'ready' beacon
       const tabId = await openTab(getUrl('landing'));
-      await waitFor(() => details.filter(r => r.url.endsWith('ready').length === 1), 1000);
+      await waitFor(
+        () =>
+          expect(
+            details.filter(r => r.url.endsWith('ready')),
+            `endsWithReady ${JSON.stringify(details, null, 2)}`,
+          ).to.have.length(1),
+        2000,
+      );
       // switch to the test page and wait for the first beacon to trigger
       updateTab(tabId, { url: getUrl() });
-      await waitFor(() => details.filter(filterBeacons).length >= 1, 1000);
+      await waitFor(
+        () =>
+          expect(
+            details.filter(filterBeacons),
+            `beacons ${JSON.stringify(details, null, 2)}`,
+          ).to.not.be.empty,
+        2000,
+      );
       // go to a new page on a different origin and wait for the beacons on page unload
       updateTab(tabId, { url: 'http://example.com' });
-      await waitFor(() => details.filter(filterBeacons).length >= 3, 10000);
+      await waitFor(
+        () =>
+          expect(
+            details.filter(filterBeacons).length,
+            `beacons ${JSON.stringify(details, null, 2)}`,
+          ).to.be.at.least(3),
+        10000,
+      );
       const beacons = details.filter(filterBeacons);
       expect(beacons).to.have.length(3);
       beacons.forEach((req) => {
@@ -366,10 +415,10 @@ export default () => {
               navigator.serviceWorker.register("./sw.js", {
                 scope: './',
               });
-              `
+              `,
             }),
             testServer.registerPathHandler(getSuffix(`${testScope}/ping`), {
-              result: '{}'
+              result: '{}',
             }),
             testServer.registerPathHandler(getSuffix(`${testScope}/sw.js`), {
               result: `
@@ -382,7 +431,7 @@ export default () => {
                 }
                 event.respondWith(fetch(event.request));
               });
-              `
+              `,
             }),
           ]);
         }
@@ -394,15 +443,32 @@ export default () => {
           addPipeline(collectRequestDetails);
           // setup: load landing page to trigger SW-install and wait for it to be loaded
           const tabId = await newTab(getUrl(`${testScope}/service-worker-test.html`));
-          await waitFor(() => details.some(d => d.url.indexOf('sw.js') !== -1), 30000);
+          await waitFor(
+            () =>
+              expect(
+                details.filter(d => d.url.indexOf('sw.js') !== -1),
+                `sw.js ${JSON.stringify(details, null, 2)}`,
+              ).to.not.be.empty,
+            10000,
+          );
           await new Promise(resolve => setTimeout(resolve, 2000));
           details = [];
           // Switch url: this request is served from the service-worker.
           // Then wait for the request triggered from the cached document.
           updateTab(tabId, { url: getUrl(`${testScope}/service-worker-from-cache.html`) });
-          await waitFor(() => details.filter(filterPings).length >= 1, 30000);
+          await waitFor(
+            () =>
+              expect(
+                details.filter(filterPings).length,
+                `pings ${JSON.stringify(details, null, 2)}`,
+              ).to.be.at.least(1),
+            10000,
+          );
           details.filter(filterPings).forEach((r) => {
-            expect(r.tabUrl).to.equal(getUrl(`${testScope}/service-worker-from-cache.html`), 'tabUrl should match SW-served document');
+            expect(r.tabUrl).to.equal(
+              getUrl(`${testScope}/service-worker-from-cache.html`),
+              'tabUrl should match SW-served document',
+            );
           });
         });
       });

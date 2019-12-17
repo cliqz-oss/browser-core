@@ -40,6 +40,7 @@ module.exports = {
     'modules.human-web.enabled': true,
     'modules.hpnv2.enabled': true,
     'freshtab.search.mode': 'search',
+    'offers2UserEnabled': false,
   },
   modules: [
     'core',
@@ -60,7 +61,6 @@ module.exports = {
     'anolysis-cc',
     'overlay',
     'control-center',
-    'message-center',
     'toolbox'
   ],
   bundles: [

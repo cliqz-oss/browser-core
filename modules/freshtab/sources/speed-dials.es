@@ -21,11 +21,7 @@ const PROTOCOL_AND_TRAILING_SLASH = {
 
 function getUrlVariationsSet(url) {
   const decodedURL = tryDecodeURI(url);
-  let urlVariations = getUrlVariations(url, PROTOCOL_AND_TRAILING_SLASH);
-  if (decodedURL !== url) {
-    urlVariations = urlVariations
-      .concat(getUrlVariations(decodedURL, PROTOCOL_AND_TRAILING_SLASH));
-  }
+  const urlVariations = getUrlVariations(decodedURL, PROTOCOL_AND_TRAILING_SLASH);
   return new Set(urlVariations);
 }
 
@@ -80,10 +76,7 @@ class SpeedDials {
     const { history: hashesToHide, custom } = this._dials;
     const customDials = custom.map((dial) => {
       const customDial = new SpeedDial({
-        // In earlier versions speed dial URLs could be stored encoded.
-        // Try to decode them for compatibility.
-        url: tryDecodeURIComponent(dial.url),
-        title: dial.title,
+        ...dial,
         isCustom: true,
       });
       return customDial;
@@ -249,10 +242,16 @@ class SpeedDials {
   get _dials() {
     const dials = prefs.getObject(DIALS_PREF);
     return {
-      custom: [],
       hidden: [],
       history: {},
       ...dials,
+      // In earlier versions speed dial URLs could be stored encoded.
+      // Try to decode them for compatibility.
+      custom: (dials.custom && dials.custom.map((d) => {
+        // eslint-disable-next-line
+        d.url = tryDecodeURI(tryDecodeURIComponent(d.url));
+        return d;
+      })) || [],
     };
   }
 

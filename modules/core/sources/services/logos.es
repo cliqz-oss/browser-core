@@ -10,8 +10,8 @@ import loadLogoDb from '../../platform/services/logos';
 import config from '../config';
 import Logger from '../logger';
 import inject from '../kord/inject';
-import { URLInfo } from '../url-info';
-import { getGeneralDomainMinusTLD } from '../url';
+import { parse, getName } from '../url';
+import Cache from '../LRU';
 
 const logger = Logger.get('core', {
   level: 'log',
@@ -19,6 +19,16 @@ const logger = Logger.get('core', {
 });
 
 export async function service() {
+  // Here we make use of a small global LRU cache since `getLogoDetails` is
+  // expected to be called for many duplicated inputs (e.g.: when you search for
+  // something it is *very* common that multiple results are from the same
+  // domain).
+  //
+  // In this case a LRU cache is better than `string-cache` because we cache the
+  // domain instead of the full URL, which means there are more collisions and the
+  // cache miss is more important.
+  const CACHE = new Cache(50);
+
   let BRANDS_DATABASE_VERSION = 1521469421408;
   let BRANDS_DATABASE;
 
@@ -29,13 +39,25 @@ export async function service() {
 
   return {
     getLogoDetails: (url) => {
-      const parsedUrl = URLInfo.get(url);
-      if (!parsedUrl) {
+      const parsedUrl = parse(url);
+      if (parsedUrl === null) {
         logger.warn('getLogoDetails: not valid url ', url);
-        return null;
+        return {};
       }
-      const base = getGeneralDomainMinusTLD(parsedUrl) || parsedUrl.hostname || parsedUrl.pathname;
-      const baseCore = base.replace(/[-]/g, '');
+
+      const base = getName(parsedUrl);
+
+      if (base.length === 0) {
+        return {};
+      }
+
+      const cacheKey = parsedUrl.hostname || base;
+      const cached = CACHE.get(cacheKey);
+      if (cached !== undefined) {
+        return cached;
+      }
+
+      const baseCore = base.replace(/[-]+/g, '');
       const check = (host, rule) => {
         const address = host.lastIndexOf(base);
         const parseddomain = `${host.substr(0, address)}$${host.substr(address + base.length)}`;
@@ -44,10 +66,6 @@ export async function service() {
       let result = {};
       const domains = BRANDS_DATABASE.domains;
       const blackTxtColor = '2d2d2d';
-
-      if (base.length === 0) {
-        return result;
-      }
 
       if (base === 'IP') {
         result = { text: 'IP', backgroundColor: '9077e3' };
@@ -89,6 +107,7 @@ export async function service() {
         result.style += `background-image:${result.backgroundImage}; text-indent: -10em;`;
       }
 
+      CACHE.set(cacheKey, result);
       return result;
     },
   };

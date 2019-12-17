@@ -15,7 +15,7 @@ const finalWithoutHistoryView = {
       href: 'https://www.google.com/search?q=water&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=water&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'water',
@@ -42,7 +42,7 @@ const finalWithoutHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'water'
       }
@@ -51,7 +51,7 @@ const finalWithoutHistoryView = {
       url: 'https://pubchem.ncbi.nlm.nih.gov/compound/water',
       href: 'https://pubchem.ncbi.nlm.nih.gov/compound/water',
       friendlyUrl: 'pubchem.ncbi.nlm.nih.gov/compound/water',
-      title: 'Water | H2O - PubChem',
+      title: '> Title - Water | H2O - PubChem',
       kind: [
         'H',
         'm'
@@ -89,7 +89,7 @@ const finalWithoutHistoryView = {
       url: 'https://en.wikipedia.org/wiki/Water',
       href: 'https://en.wikipedia.org/wiki/Water',
       friendlyUrl: 'en.wikipedia.org/wiki/Water',
-      title: 'Water',
+      title: '> Title - Water',
       description: "Water is a transparent, tasteless, odorless, and nearly colorless chemical substance, which is the main constituent of Earth's streams, lakes, and oceans, and the fluids of most living organisms. It is vital for all known forms of life, even though it provides no calories or organic nutrients. Its chemical formula is HO, meaning that each of its molecules contains one oxygen and two hydrogen atoms connected by covalent bonds. Water is the name of the liquid state of HO at standard ambient temper",
       kind: [
         'H',
@@ -309,7 +309,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/w:en:Special:Filepath/Longwood_Gardens-Italian_Garden.jpg',
                 href: 'https://en.wikipedia.org/wiki/w:en:Special:Filepath/Longwood_Gardens-Italian_Garden.jpg',
                 friendlyUrl: 'en.wikipedia.org/wiki/w:en:Special:Filepath/Longwood_Gardens-Italian_Garden.jpg',
-                image: 'https://imgr.cliqz.com/hlHgYefcVCjUKVI_iNkjoUOOFzkkxcZ7u5l857u22BY/fill/0/200/no/1/aHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dpa2kvdzplbjpTcGVjaWFsOkZpbGVwYXRoL0xvbmd3b29kX0dhcmRlbnMtSXRhbGlhbl9HYXJkZW4uanBn.jpg',
+                image: 'http://localhost:3000/static/images/Longwood_Gardens-Italian_Garden.jpg',
                 kind: [
                   'H',
                   'h'
@@ -340,7 +340,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Etymology',
                 href: 'https://en.wikipedia.org/wiki/Water#Etymology',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Etymology',
+                title: '> Title - Etymology',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Etymology'
                 },
@@ -369,7 +369,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Chemical_and_physical_properties',
                 href: 'https://en.wikipedia.org/wiki/Water#Chemical_and_physical_properties',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Chemical and physical properties',
+                title: '> Title - Chemical and physical properties',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Chemical_and_physical_properties'
                 },
@@ -398,7 +398,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#On_Earth',
                 href: 'https://en.wikipedia.org/wiki/Water#On_Earth',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'On Earth',
+                title: '> Title - On Earth',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#On_Earth'
                 },
@@ -427,7 +427,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Effects_on_life',
                 href: 'https://en.wikipedia.org/wiki/Water#Effects_on_life',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Effects on life',
+                title: '> Title - Effects on life',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Effects_on_life'
                 },
@@ -456,7 +456,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Effects_on_human_civilization',
                 href: 'https://en.wikipedia.org/wiki/Water#Effects_on_human_civilization',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Effects on human civilization',
+                title: '> Title - Effects on human civilization',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Effects_on_human_civilization'
                 },
@@ -485,7 +485,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Distribution_in_nature',
                 href: 'https://en.wikipedia.org/wiki/Water#Distribution_in_nature',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Distribution in nature',
+                title: '> Title - Distribution in nature',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Distribution_in_nature'
                 },
@@ -514,7 +514,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Law.2C_politics.2C_and_crisis',
                 href: 'https://en.wikipedia.org/wiki/Water#Law.2C_politics.2C_and_crisis',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Law, politics, and crisis',
+                title: '> Title - Law, politics, and crisis',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Law.2C_politics.2C_and_crisis'
                 },
@@ -543,7 +543,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#In_culture',
                 href: 'https://en.wikipedia.org/wiki/Water#In_culture',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'In culture',
+                title: '> Title - In culture',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#In_culture'
                 },
@@ -572,7 +572,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#See_also',
                 href: 'https://en.wikipedia.org/wiki/Water#See_also',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'See also',
+                title: '> Title - See also',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#See_also'
                 },
@@ -601,7 +601,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#References',
                 href: 'https://en.wikipedia.org/wiki/Water#References',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'References',
+                title: '> Title - References',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#References'
                 },
@@ -630,7 +630,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Further_reading',
                 href: 'https://en.wikipedia.org/wiki/Water#Further_reading',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Further reading',
+                title: '> Title - Further reading',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Further_reading'
                 },
@@ -659,7 +659,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#External_links',
                 href: 'https://en.wikipedia.org/wiki/Water#External_links',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'External links',
+                title: '> Title - External links',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#External_links'
                 },
@@ -688,7 +688,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Properties_of_water',
                 href: 'http://en.wikipedia.org/wiki/Properties_of_water',
                 friendlyUrl: 'en.wikipedia.org/wiki/Properties_of_water',
-                title: 'Properties of water',
+                title: '> Title - Properties of water',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Properties_of_water'
                 },
@@ -717,7 +717,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Hydrology',
                 href: 'http://en.wikipedia.org/wiki/Hydrology',
                 friendlyUrl: 'en.wikipedia.org/wiki/Hydrology',
-                title: 'Hydrology',
+                title: '> Title - Hydrology',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Hydrology'
                 },
@@ -746,7 +746,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_cycle',
                 href: 'http://en.wikipedia.org/wiki/Water_cycle',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_cycle',
-                title: 'Water cycle',
+                title: '> Title - Water cycle',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_cycle'
                 },
@@ -775,7 +775,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_resources',
                 href: 'http://en.wikipedia.org/wiki/Water_resources',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_resources',
-                title: 'Water resources',
+                title: '> Title - Water resources',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_resources'
                 },
@@ -804,7 +804,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Seawater',
                 href: 'http://en.wikipedia.org/wiki/Seawater',
                 friendlyUrl: 'en.wikipedia.org/wiki/Seawater',
-                title: 'Seawater',
+                title: '> Title - Seawater',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Seawater'
                 },
@@ -833,7 +833,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Drinking_water',
                 href: 'http://en.wikipedia.org/wiki/Drinking_water',
                 friendlyUrl: 'en.wikipedia.org/wiki/Drinking_water',
-                title: 'Drinking water',
+                title: '> Title - Drinking water',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Drinking_water'
                 },
@@ -862,7 +862,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Ship_transport',
                 href: 'http://en.wikipedia.org/wiki/Ship_transport',
                 friendlyUrl: 'en.wikipedia.org/wiki/Ship_transport',
-                title: 'Ship transport',
+                title: '> Title - Ship transport',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Ship_transport'
                 },
@@ -891,7 +891,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_sport_(recreation)',
                 href: 'http://en.wikipedia.org/wiki/Water_sport_(recreation)',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_sport_(recreation)',
-                title: 'Water sport (recreation)',
+                title: '> Title - Water sport (recreation)',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_sport_(recreation)'
                 },
@@ -920,7 +920,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_law',
                 href: 'http://en.wikipedia.org/wiki/Water_law',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_law',
-                title: 'Water law',
+                title: '> Title - Water law',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_law'
                 },
@@ -949,7 +949,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_and_religion',
                 href: 'http://en.wikipedia.org/wiki/Water_and_religion',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_and_religion',
-                title: 'Water and religion',
+                title: '> Title - Water and religion',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_and_religion'
                 },
@@ -978,7 +978,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Dihydrogen_monoxide_hoax',
                 href: 'http://en.wikipedia.org/wiki/Dihydrogen_monoxide_hoax',
                 friendlyUrl: 'en.wikipedia.org/wiki/Dihydrogen_monoxide_hoax',
-                title: 'Dihydrogen monoxide hoax',
+                title: '> Title - Dihydrogen monoxide hoax',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Dihydrogen_monoxide_hoax'
                 },
@@ -1007,7 +1007,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Outline_of_water',
                 href: 'http://en.wikipedia.org/wiki/Outline_of_water',
                 friendlyUrl: 'en.wikipedia.org/wiki/Outline_of_water',
-                title: 'Outline of water',
+                title: '> Title - Outline of water',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Outline_of_water'
                 },
@@ -1073,7 +1073,7 @@ const finalWithoutHistoryView = {
       url: 'https://simple.wikipedia.org/wiki/Water',
       href: 'https://simple.wikipedia.org/wiki/Water',
       friendlyUrl: 'simple.wikipedia.org/wiki/Water',
-      title: 'Water - Simple English Wikipedia, the free encyclopedia',
+      title: '> Title - Water - Simple English Wikipedia, the free encyclopedia',
       kind: [
         'H',
         'm'
@@ -1117,7 +1117,7 @@ const finalWithHistoryView = {
       href: 'https://www.google.com/search?q=water&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=water&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'water',
@@ -1144,7 +1144,7 @@ const finalWithHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'water'
       }
@@ -1153,7 +1153,7 @@ const finalWithHistoryView = {
       url: 'https://pubchem.ncbi.nlm.nih.gov/compound/water',
       href: 'https://pubchem.ncbi.nlm.nih.gov/compound/water',
       friendlyUrl: 'pubchem.ncbi.nlm.nih.gov/compound/water',
-      title: 'Water | H2O - PubChem',
+      title: '> Title - Water | H2O - PubChem',
       kind: [
         'H',
         'm'
@@ -1191,7 +1191,7 @@ const finalWithHistoryView = {
       url: 'https://en.wikipedia.org/wiki/Water',
       href: 'https://en.wikipedia.org/wiki/Water',
       friendlyUrl: 'en.wikipedia.org/wiki/Water',
-      title: 'Water',
+      title: '> Title - Water',
       description: "Water is a transparent, tasteless, odorless, and nearly colorless chemical substance, which is the main constituent of Earth's streams, lakes, and oceans, and the fluids of most living organisms. It is vital for all known forms of life, even though it provides no calories or organic nutrients. Its chemical formula is HO, meaning that each of its molecules contains one oxygen and two hydrogen atoms connected by covalent bonds. Water is the name of the liquid state of HO at standard ambient temper",
       kind: [
         'H',
@@ -1411,7 +1411,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/w:en:Special:Filepath/Longwood_Gardens-Italian_Garden.jpg',
                 href: 'https://en.wikipedia.org/wiki/w:en:Special:Filepath/Longwood_Gardens-Italian_Garden.jpg',
                 friendlyUrl: 'en.wikipedia.org/wiki/w:en:Special:Filepath/Longwood_Gardens-Italian_Garden.jpg',
-                image: 'https://imgr.cliqz.com/hlHgYefcVCjUKVI_iNkjoUOOFzkkxcZ7u5l857u22BY/fill/0/200/no/1/aHR0cHM6Ly9lbi53aWtpcGVkaWEub3JnL3dpa2kvdzplbjpTcGVjaWFsOkZpbGVwYXRoL0xvbmd3b29kX0dhcmRlbnMtSXRhbGlhbl9HYXJkZW4uanBn.jpg',
+                image: 'http://localhost:3000/static/images/Longwood_Gardens-Italian_Garden.jpg',
                 kind: [
                   'H',
                   'h'
@@ -1442,7 +1442,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Etymology',
                 href: 'https://en.wikipedia.org/wiki/Water#Etymology',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Etymology',
+                title: '> Title - Etymology',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Etymology'
                 },
@@ -1471,7 +1471,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Chemical_and_physical_properties',
                 href: 'https://en.wikipedia.org/wiki/Water#Chemical_and_physical_properties',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Chemical and physical properties',
+                title: '> Title - Chemical and physical properties',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Chemical_and_physical_properties'
                 },
@@ -1500,7 +1500,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#On_Earth',
                 href: 'https://en.wikipedia.org/wiki/Water#On_Earth',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'On Earth',
+                title: '> Title - On Earth',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#On_Earth'
                 },
@@ -1529,7 +1529,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Effects_on_life',
                 href: 'https://en.wikipedia.org/wiki/Water#Effects_on_life',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Effects on life',
+                title: '> Title - Effects on life',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Effects_on_life'
                 },
@@ -1558,7 +1558,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Effects_on_human_civilization',
                 href: 'https://en.wikipedia.org/wiki/Water#Effects_on_human_civilization',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Effects on human civilization',
+                title: '> Title - Effects on human civilization',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Effects_on_human_civilization'
                 },
@@ -1587,7 +1587,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Distribution_in_nature',
                 href: 'https://en.wikipedia.org/wiki/Water#Distribution_in_nature',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Distribution in nature',
+                title: '> Title - Distribution in nature',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Distribution_in_nature'
                 },
@@ -1616,7 +1616,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Law.2C_politics.2C_and_crisis',
                 href: 'https://en.wikipedia.org/wiki/Water#Law.2C_politics.2C_and_crisis',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Law, politics, and crisis',
+                title: '> Title - Law, politics, and crisis',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Law.2C_politics.2C_and_crisis'
                 },
@@ -1645,7 +1645,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#In_culture',
                 href: 'https://en.wikipedia.org/wiki/Water#In_culture',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'In culture',
+                title: '> Title - In culture',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#In_culture'
                 },
@@ -1674,7 +1674,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#See_also',
                 href: 'https://en.wikipedia.org/wiki/Water#See_also',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'See also',
+                title: '> Title - See also',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#See_also'
                 },
@@ -1703,7 +1703,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#References',
                 href: 'https://en.wikipedia.org/wiki/Water#References',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'References',
+                title: '> Title - References',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#References'
                 },
@@ -1732,7 +1732,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#Further_reading',
                 href: 'https://en.wikipedia.org/wiki/Water#Further_reading',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'Further reading',
+                title: '> Title - Further reading',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Further_reading'
                 },
@@ -1761,7 +1761,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Water#External_links',
                 href: 'https://en.wikipedia.org/wiki/Water#External_links',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water',
-                title: 'External links',
+                title: '> Title - External links',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#External_links'
                 },
@@ -1790,7 +1790,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Properties_of_water',
                 href: 'http://en.wikipedia.org/wiki/Properties_of_water',
                 friendlyUrl: 'en.wikipedia.org/wiki/Properties_of_water',
-                title: 'Properties of water',
+                title: '> Title - Properties of water',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Properties_of_water'
                 },
@@ -1819,7 +1819,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Hydrology',
                 href: 'http://en.wikipedia.org/wiki/Hydrology',
                 friendlyUrl: 'en.wikipedia.org/wiki/Hydrology',
-                title: 'Hydrology',
+                title: '> Title - Hydrology',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Hydrology'
                 },
@@ -1848,7 +1848,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_cycle',
                 href: 'http://en.wikipedia.org/wiki/Water_cycle',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_cycle',
-                title: 'Water cycle',
+                title: '> Title - Water cycle',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_cycle'
                 },
@@ -1877,7 +1877,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_resources',
                 href: 'http://en.wikipedia.org/wiki/Water_resources',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_resources',
-                title: 'Water resources',
+                title: '> Title - Water resources',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_resources'
                 },
@@ -1906,7 +1906,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Seawater',
                 href: 'http://en.wikipedia.org/wiki/Seawater',
                 friendlyUrl: 'en.wikipedia.org/wiki/Seawater',
-                title: 'Seawater',
+                title: '> Title - Seawater',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Seawater'
                 },
@@ -1935,7 +1935,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Drinking_water',
                 href: 'http://en.wikipedia.org/wiki/Drinking_water',
                 friendlyUrl: 'en.wikipedia.org/wiki/Drinking_water',
-                title: 'Drinking water',
+                title: '> Title - Drinking water',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Drinking_water'
                 },
@@ -1964,7 +1964,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Ship_transport',
                 href: 'http://en.wikipedia.org/wiki/Ship_transport',
                 friendlyUrl: 'en.wikipedia.org/wiki/Ship_transport',
-                title: 'Ship transport',
+                title: '> Title - Ship transport',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Ship_transport'
                 },
@@ -1993,7 +1993,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_sport_(recreation)',
                 href: 'http://en.wikipedia.org/wiki/Water_sport_(recreation)',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_sport_(recreation)',
-                title: 'Water sport (recreation)',
+                title: '> Title - Water sport (recreation)',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_sport_(recreation)'
                 },
@@ -2022,7 +2022,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_law',
                 href: 'http://en.wikipedia.org/wiki/Water_law',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_law',
-                title: 'Water law',
+                title: '> Title - Water law',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_law'
                 },
@@ -2051,7 +2051,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Water_and_religion',
                 href: 'http://en.wikipedia.org/wiki/Water_and_religion',
                 friendlyUrl: 'en.wikipedia.org/wiki/Water_and_religion',
-                title: 'Water and religion',
+                title: '> Title - Water and religion',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_and_religion'
                 },
@@ -2080,7 +2080,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Dihydrogen_monoxide_hoax',
                 href: 'http://en.wikipedia.org/wiki/Dihydrogen_monoxide_hoax',
                 friendlyUrl: 'en.wikipedia.org/wiki/Dihydrogen_monoxide_hoax',
-                title: 'Dihydrogen monoxide hoax',
+                title: '> Title - Dihydrogen monoxide hoax',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Dihydrogen_monoxide_hoax'
                 },
@@ -2109,7 +2109,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Outline_of_water',
                 href: 'http://en.wikipedia.org/wiki/Outline_of_water',
                 friendlyUrl: 'en.wikipedia.org/wiki/Outline_of_water',
-                title: 'Outline of water',
+                title: '> Title - Outline of water',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Outline_of_water'
                 },
@@ -2175,7 +2175,7 @@ const finalWithHistoryView = {
       url: 'https://simple.wikipedia.org/wiki/Water',
       href: 'https://simple.wikipedia.org/wiki/Water',
       friendlyUrl: 'simple.wikipedia.org/wiki/Water',
-      title: 'Water - Simple English Wikipedia, the free encyclopedia',
+      title: '> Title - Water - Simple English Wikipedia, the free encyclopedia',
       kind: [
         'H',
         'm'
@@ -2256,7 +2256,7 @@ const results = {
         searchEngineName: 'Google'
       },
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'water',
@@ -2291,12 +2291,12 @@ const results = {
             description: 'Water.org is founded by Gary White & Matt Damon. We make it our mission to provide the world with Safe Water and Sanitation through innovative microfinancing solutions. Come learn how you can help support our cause today!',
             image: 'https://imgr.cliqz.com/_yY-XJ86ixxTkNNty7okufHNVcjeGVP4FjMMEeE6SrM/fill/0/200/no/1/aHR0cHM6Ly93YXRlci5vcmcvbWVkaWEvaW1hZ2VzL2xvZ28ub3JpZ2luYWwucG5n.png',
             site_name: 'Water.org',
-            title: 'Water.org - Water Charity For Safe Water & Sanitation',
+            title: '> Title - Water.org - Water Charity For Safe Water & Sanitation',
             type: 'website',
             url: 'https://water.org/'
           }
         },
-        title: 'Water.org - Water Charity For Safe Water & Sanitation'
+        title: '> Title - Water.org - Water Charity For Safe Water & Sanitation'
       },
       c_url: 'https://water.org/',
       type: 'bm'
@@ -2318,12 +2318,12 @@ const results = {
             image: 'https://imgr.cliqz.com/CKLH8zPHMfvywc1ISHkHTT_VP2Db3sS3l23NNluTz9A/fill/0/200/no/1/aHR0cHM6Ly9jZG4uYnJpdGFubmljYS5jb20vNTgvOTQ4NTgtMDA0LTE3RkNGNDA2LmpwZw.jpg',
             'image:type': 'image/jpeg',
             site_name: 'Encyclopedia Britannica',
-            title: 'water | Definition, Chemical Formula, Structure, & Facts',
+            title: '> Title - water | Definition, Chemical Formula, Structure, & Facts',
             type: 'ARTICLE',
             url: 'https://www.britannica.com/science/water'
           }
         },
-        title: 'water'
+        title: '> Title - water'
       },
       c_url: 'https://www.britannica.com/science/water',
       type: 'bm'
@@ -2350,7 +2350,7 @@ const results = {
             image: 'https://imgr.cliqz.com/fS_O5R21Vsz7pSrCz-Tpt8TsNp81tncCTJT_hroJ_ME/fill/0/200/no/1/aHR0cHM6Ly91cGxvYWQud2lraW1lZGlhLm9yZy93aWtpcGVkaWEvY29tbW9ucy90aHVtYi9mL2ZjL1dhdGVyX2Ryb3BsZXRfYmx1ZV9iZzA1LmpwZy8xMjAwcHgtV2F0ZXJfZHJvcGxldF9ibHVlX2JnMDUuanBn.jpg'
           }
         },
-        title: 'Water - Simple English Wikipedia, the free encyclopedia'
+        title: '> Title - Water - Simple English Wikipedia, the free encyclopedia'
       },
       c_url: 'https://simple.wikipedia.org/wiki/Water',
       type: 'bm'
@@ -2368,7 +2368,7 @@ const results = {
             en: 0.99
           }
         },
-        title: 'NCBI - WWW Error Blocked Diagnostic'
+        title: '> Title - NCBI - WWW Error Blocked Diagnostic'
       },
       c_url: 'https://pubchem.ncbi.nlm.nih.gov/compound/water',
       type: 'bm'
@@ -2421,168 +2421,168 @@ const results = {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Etymology'
                 },
-                title: 'Etymology',
+                title: '> Title - Etymology',
                 url: 'https://en.wikipedia.org/wiki/Water#Etymology'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Chemical_and_physical_properties'
                 },
-                title: 'Chemical and physical properties',
+                title: '> Title - Chemical and physical properties',
                 url: 'https://en.wikipedia.org/wiki/Water#Chemical_and_physical_properties'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#On_Earth'
                 },
-                title: 'On Earth',
+                title: '> Title - On Earth',
                 url: 'https://en.wikipedia.org/wiki/Water#On_Earth'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Effects_on_life'
                 },
-                title: 'Effects on life',
+                title: '> Title - Effects on life',
                 url: 'https://en.wikipedia.org/wiki/Water#Effects_on_life'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Effects_on_human_civilization'
                 },
-                title: 'Effects on human civilization',
+                title: '> Title - Effects on human civilization',
                 url: 'https://en.wikipedia.org/wiki/Water#Effects_on_human_civilization'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Distribution_in_nature'
                 },
-                title: 'Distribution in nature',
+                title: '> Title - Distribution in nature',
                 url: 'https://en.wikipedia.org/wiki/Water#Distribution_in_nature'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Law.2C_politics.2C_and_crisis'
                 },
-                title: 'Law, politics, and crisis',
+                title: '> Title - Law, politics, and crisis',
                 url: 'https://en.wikipedia.org/wiki/Water#Law.2C_politics.2C_and_crisis'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#In_culture'
                 },
-                title: 'In culture',
+                title: '> Title - In culture',
                 url: 'https://en.wikipedia.org/wiki/Water#In_culture'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#See_also'
                 },
-                title: 'See also',
+                title: '> Title - See also',
                 url: 'https://en.wikipedia.org/wiki/Water#See_also'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#References'
                 },
-                title: 'References',
+                title: '> Title - References',
                 url: 'https://en.wikipedia.org/wiki/Water#References'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#Further_reading'
                 },
-                title: 'Further reading',
+                title: '> Title - Further reading',
                 url: 'https://en.wikipedia.org/wiki/Water#Further_reading'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Water#External_links'
                 },
-                title: 'External links',
+                title: '> Title - External links',
                 url: 'https://en.wikipedia.org/wiki/Water#External_links'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Properties_of_water'
                 },
-                title: 'Properties of water',
+                title: '> Title - Properties of water',
                 url: 'http://en.wikipedia.org/wiki/Properties_of_water'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Hydrology'
                 },
-                title: 'Hydrology',
+                title: '> Title - Hydrology',
                 url: 'http://en.wikipedia.org/wiki/Hydrology'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_cycle'
                 },
-                title: 'Water cycle',
+                title: '> Title - Water cycle',
                 url: 'http://en.wikipedia.org/wiki/Water_cycle'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_resources'
                 },
-                title: 'Water resources',
+                title: '> Title - Water resources',
                 url: 'http://en.wikipedia.org/wiki/Water_resources'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Seawater'
                 },
-                title: 'Seawater',
+                title: '> Title - Seawater',
                 url: 'http://en.wikipedia.org/wiki/Seawater'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Drinking_water'
                 },
-                title: 'Drinking water',
+                title: '> Title - Drinking water',
                 url: 'http://en.wikipedia.org/wiki/Drinking_water'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Ship_transport'
                 },
-                title: 'Ship transport',
+                title: '> Title - Ship transport',
                 url: 'http://en.wikipedia.org/wiki/Ship_transport'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_sport_(recreation)'
                 },
-                title: 'Water sport (recreation)',
+                title: '> Title - Water sport (recreation)',
                 url: 'http://en.wikipedia.org/wiki/Water_sport_(recreation)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_law'
                 },
-                title: 'Water law',
+                title: '> Title - Water law',
                 url: 'http://en.wikipedia.org/wiki/Water_law'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Water_and_religion'
                 },
-                title: 'Water and religion',
+                title: '> Title - Water and religion',
                 url: 'http://en.wikipedia.org/wiki/Water_and_religion'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Dihydrogen_monoxide_hoax'
                 },
-                title: 'Dihydrogen monoxide hoax',
+                title: '> Title - Dihydrogen monoxide hoax',
                 url: 'http://en.wikipedia.org/wiki/Dihydrogen_monoxide_hoax'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Outline_of_water'
                 },
-                title: 'Outline of water',
+                title: '> Title - Outline of water',
                 url: 'http://en.wikipedia.org/wiki/Outline_of_water'
               }
             ],
@@ -2617,7 +2617,7 @@ const results = {
             source_name: 'Wikipedia'
           }
         },
-        title: 'Water'
+        title: '> Title - Water'
       },
       c_url: 'https://en.wikipedia.org/wiki/Water',
       similars: [
@@ -2632,35 +2632,35 @@ const results = {
       style: 'favicon',
       value: 'https://pubchem.ncbi.nlm.nih.gov/compound/water',
       image: 'page-icon:https://pubchem.ncbi.nlm.nih.gov/compound/water',
-      comment: 'Water | H2O - PubChem',
+      comment: '> Comment - Water | H2O - PubChem',
       label: 'https://pubchem.ncbi.nlm.nih.gov/compound/water'
     },
     {
       style: 'favicon',
       value: 'https://en.wikipedia.org/wiki/Water',
       image: 'page-icon:https://en.wikipedia.org/wiki/Water',
-      comment: 'Water - Wikipedia',
+      comment: '> Comment - Water - Wikipedia',
       label: 'https://en.wikipedia.org/wiki/Water'
     },
     {
       style: 'favicon',
       value: 'https://simple.wikipedia.org/wiki/Water',
       image: 'page-icon:https://simple.wikipedia.org/wiki/Water',
-      comment: 'Water - Simple English Wikipedia, the free encyclopedia',
+      comment: '> Comment - Water - Simple English Wikipedia, the free encyclopedia',
       label: 'https://simple.wikipedia.org/wiki/Water'
     },
     {
       style: 'favicon',
       value: 'https://www.britannica.com/science/water',
       image: 'page-icon:https://www.britannica.com/science/water',
-      comment: 'water | Definition, Chemical Formula, Structure, & Facts | Britannica.com',
+      comment: '> Comment - water | Definition, Chemical Formula, Structure, & Facts | Britannica.com',
       label: 'https://www.britannica.com/science/water'
     },
     {
       style: 'favicon',
       value: 'https://water.org/',
       image: 'page-icon:https://water.org/',
-      comment: 'Water.org - Water Charity For Safe Water & Sanitation',
+      comment: '> Comment - Water.org - Water Charity For Safe Water & Sanitation',
       label: 'https://water.org/'
     }
   ]

@@ -152,15 +152,15 @@ context('Offers Hub Interaction tests', function () {
       data = dataNewOffer;
       await subject.pushData(target, dataNewOffer);
 
-      subject.query('.card-promo-ab__input').addEventListener('select', eventHandler);
-      subject.query('.card-promo-ab__copy-code').click();
+      subject.query('.card-promo__input').addEventListener('select', eventHandler);
+      subject.query('.card-promo__copy-code').click();
 
       await waitFor(() =>
-        subject.query('.card-promo-ab__copy-code').textContent.trim() !== 'offers_hub_copy_btn');
+        subject.query('.card-promo__copy-code').textContent.trim() !== 'offers_hub_copy_btn');
     });
 
     afterEach(function () {
-      subject.query('.card-promo-ab__input').removeEventListener('select', eventHandler);
+      subject.query('.card-promo__input').removeEventListener('select', eventHandler);
     });
 
     it('selects the code', function () {
@@ -168,7 +168,7 @@ context('Offers Hub Interaction tests', function () {
     });
 
     it('renders \'copy and go\'', function () {
-      expect(subject.query('.card-promo-ab__copy-code')).to.have.text('copy_and_go');
+      expect(subject.query('.card-promo__copy-code')).to.have.text('myoffrz_copy_and_go');
     });
   });
 });

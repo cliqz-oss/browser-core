@@ -23,11 +23,18 @@ export default function () {
 
   const clearTelemetryPrefs = async () => {
     prefs.clear('telemetry');
-    await prefs.set('uploadEnabled', true, 'datareporting.healthreport.');
+    await app.services['host-settings'].api.set('datareporting.healthreport.uploadEnabled', true);
   };
 
   context('opt-out from anolysis tests', function () {
     let pushTelemetry;
+
+    const metric = {
+      name: 'metrics.opt-out.test',
+      schema: {
+        properties: {},
+      },
+    };
 
     beforeEach(() => {
       clearTelemetryPrefs();
@@ -48,6 +55,7 @@ export default function () {
           // Prevent interference from other modules' sendTelemetry calls
           pushTelemetry = app.services.telemetry.api.push;
           app.services.telemetry.api.push = () => {};
+          app.services.telemetry.api.register(metric);
 
           // Reset prefs to default
           await clearTelemetryPrefs();
@@ -64,7 +72,7 @@ export default function () {
 
           // Set telemetry prefs
           prefs.set('telemetry', telemetryEnabled);
-          await prefs.set('uploadEnabled', uploadEnabled, 'datareporting.healthreport.');
+          await app.services['host-settings'].api.set('datareporting.healthreport.uploadEnabled', uploadEnabled);
         });
 
         afterEach(async () => {
@@ -75,8 +83,9 @@ export default function () {
         if (telemetryExpected) {
           it('enables Anolysis and accepts signals', async () => {
             await waitFor(() => anolysis.isAnolysisInitialized());
-            await pushTelemetry({ type: 'home', action: 'show' }, 'freshtab.home.show');
-            expect((await anolysis.actions.getMetricsForDate(today))['freshtab.home.show']).to.have.length(1);
+            await pushTelemetry({}, metric.name);
+            const metrics = await anolysis.actions.getMetricsForDate(today);
+            expect(metrics[metric.name]).to.have.length(1);
           });
         } else {
           it('disables Anolysis and rejects signals', async () => {
@@ -84,7 +93,7 @@ export default function () {
             await waitFor(() => !anolysis.isAnolysisInitialized());
 
             try {
-              await pushTelemetry({ type: 'home', action: 'show' }, 'freshtab.how.show');
+              await pushTelemetry({}, metric.name);
               throw new Error('pushTelemetry should have been rejected');
             } catch (ex) {
               /* We expect a rejection */

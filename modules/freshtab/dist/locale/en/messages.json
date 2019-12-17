@@ -83,36 +83,6 @@
     "freshtab_app_settings_news_label": {
         "message": "News"
     },
-    "freshtab_app_settings_news_language_de": {
-        "message": "German media"
-    },
-    "freshtab_app_settings_news_language_de_tr_en": {
-        "message": "German media in English"
-    },
-    "freshtab_app_settings_news_language_en": {
-        "message": "UK & U.S. media"
-    },
-    "freshtab_app_settings_news_language_es": {
-        "message": "Spanish media"
-    },
-    "freshtab_app_settings_news_language_fr": {
-        "message": "French media"
-    },
-    "freshtab_app_settings_news_language_gb": {
-        "message": "UK media"
-    },
-    "freshtab_app_settings_news_language_it": {
-        "message": "Italian media"
-    },
-    "freshtab_app_settings_news_language_pl": {
-        "message": "Polish media"
-    },
-    "freshtab_app_settings_news_language_ru": {
-        "message": "Russian media"
-    },
-    "freshtab_app_settings_news_language_us": {
-        "message": "U.S. media"
-    },
     "freshtab_app_settings_privacy_stats": {
         "message": "Statistics"
     },

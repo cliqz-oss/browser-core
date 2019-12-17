@@ -18,12 +18,11 @@ const images = {
 };
 
 export default class PairingUI {
-  init(window, PeerComm, telemetry) {
+  init(window, PeerComm) {
     this.i18n = window.chrome.i18n.getMessage.bind(window.chrome.i18n);
     this.document = window.document;
     this.window = window;
     this.PeerComm = PeerComm;
-    this.telemetry = telemetry;
 
     this.TEMPLATE_NAMES = ['template'];
     this.TEMPLATE_CACHE = {};
@@ -185,24 +184,6 @@ export default class PairingUI {
     $('#unpair-button').click(() => {
       console.log('unpair clicked');
       this.PeerComm.unpair();
-
-      this.telemetry({
-        type: 'settings',
-        version: 1,
-        view: 'connect',
-        action: 'click',
-        target: 'remove',
-      });
-    });
-
-    $('.support-link').click(() => {
-      this.telemetry({
-        type: 'settings',
-        version: 1,
-        view: 'connect',
-        action: 'click',
-        target: 'support',
-      });
     });
 
     this.updatePairingStatus('unpaired');
@@ -214,12 +195,6 @@ export default class PairingUI {
 
   start() {
     this.startPairing();
-    this.telemetry({
-      type: 'settings',
-      version: 1,
-      view: 'connect',
-      action: 'show',
-    });
   }
 
   get observerID() {

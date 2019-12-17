@@ -73,7 +73,7 @@ export const currencyAndSimpleResults = [
     url: 'http://www.finanzen.net/waehrungsrechner/euro_us-dollar',
     snippet: {
       description: 'Aktien, Aktienkurse, Devisenkurse und Währungsrechner, Rohstoffkurse. Informationen rund um die Börse zu Aktie, Fonds und ETFs. Börsenkurse für Optionsscheine und Zertifikate. Aktienanalysen - finanzen.net',
-      title: 'Euro in Dollar Währungsrechner',
+      title: '> Title - Euro in Dollar Währungsrechner',
     },
   },
 ];

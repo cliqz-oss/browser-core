@@ -45,6 +45,7 @@ module.exports = {
     onboardingVersion: 4,
     onBoardingPref: 'browserOnboarding',
     ENDPOINT_ANONPATTERNSURL: 'https://cdn.cliqz.com/browser-f/patterns-anon',
+    ENDPOINT_HUMAN_WEB_PATTERNS: 'https://cdn.cliqz.com/browser-f/hw-patterns.gz',
     ENDPOINT_PATTERNSURL: 'https://cdn.cliqz.com/browser-f/patterns',
     HW_CHANNEL: 'cliqz',
     ONBOARDING_URL: 'resource://cliqz/onboarding-v3/index.html',
@@ -70,6 +71,7 @@ module.exports = {
     'modules.offers-reminder.enabled': false,
     'modules.cookie-monster.enabled': true,
     'friends.enable.level': 'development',
+    'modules.search.operators.addCompletion.useTitle': false,
   },
   modules: [
     'core',
@@ -83,6 +85,7 @@ module.exports = {
     'human-web',
     'anti-phishing',
     'freshtab',
+    'news',
     'antitracking',
     'webrequest-pipeline',
     'hpnv2',
@@ -90,9 +93,7 @@ module.exports = {
     'offers-v2',
     'offers-banner',
     'popup-notification',
-    'history-search',
     'browser-panel',
-    'message-center',
     'anolysis',
     'anolysis-cc',
     'context-search',
@@ -113,6 +114,7 @@ module.exports = {
     'insights',
     'toolbox',
     'autoconsent',
+    'consentric',
   ],
   bundles: [
     'anolysis-cc/dashboard/anolysis.bundle.js',
@@ -136,7 +138,6 @@ module.exports = {
     'pairing/pairing.bundle.js',
     'human-web/page.bundle.js',
     'human-web/rusha.bundle.js',
-    'history-search/worker.bundle.js',
     'privacy-dashboard/dashboard.bundle.js',
     'search/debug.bundle.js',
     'search/inspect.bundle.js',
@@ -156,5 +157,8 @@ module.exports = {
       qrcodejs: 'QRCode',
       '@cliqz-oss/dexie': 'Dexie'
     }),
-  })
+  }),
+  buildTargets: {
+    firefox: 64,
+  },
 };

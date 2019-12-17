@@ -3,7 +3,7 @@
  *
  * @class NewPage
  */
-import FastURL from '../../../core/fast-url-parser';
+import { parse } from '../../../core/url';
 
 export default class NewPage {
   constructor(eventHandler, journeyCollector) {
@@ -94,12 +94,10 @@ export default class NewPage {
     //
     if (company === 'google') {
       category = 'unk';
-      try {
-        const path = (new FastURL(url)).pathname;
-        if (path.startsWith('/search')) {
-          category = 'search-top';
-        }
-      } catch (e) { } // eslint-disable-line no-empty
+      const parsed = parse(url);
+      if (parsed !== null && parsed.pathname.startsWith('/search')) {
+        category = 'search-top';
+      }
     }
     //
     // Store the category of the page, then append additional features

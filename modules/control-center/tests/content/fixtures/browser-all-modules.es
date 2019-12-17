@@ -1057,7 +1057,6 @@ export default {
       locationEnabled: true,
     },
     'browser-panel': null,
-    'message-center': null,
     anolysis: null,
     abtests: null,
     theme: null,

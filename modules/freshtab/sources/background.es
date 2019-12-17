@@ -12,12 +12,9 @@
 import { browser } from '../platform/globals';
 import inject from '../core/kord/inject';
 import telemetry from '../core/services/telemetry';
-import News from './news';
 import config from './config';
 import { getWallpapers, getDefaultWallpaper } from './wallpapers';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
-import logos from '../core/services/logos';
-import events from '../core/events';
 import SpeedDials from './speed-dials';
 import background from '../core/base/background';
 import { queryTabs, reloadTab, getTabsWithUrl } from '../core/tabs';
@@ -28,20 +25,22 @@ import {
   product,
 } from '../core/platform';
 import prefs from '../core/prefs';
-import { pauseMessage, dismissMessage, countMessageClick, saveMessageDismission } from './actions/message';
 import i18n, { getLanguageFromLocale, getMessage } from '../core/i18n';
 import HistoryService from '../platform/history-service';
 import HistoryManager from '../core/history-manager';
-import * as searchUtils from '../core/search-engines';
-import { getCleanHost } from '../core/url';
-import { URLInfo } from '../core/url-info';
 import extChannel from '../platform/ext-messaging';
 import { isBetaVersion } from '../platform/platform';
 import moment from '../platform/lib/moment';
 import formatTime from './utils';
 
+// Telemetry for freshtab
+import metrics from './telemetry/metrics';
+import newsPaginationAnalysis from './telemetry/analyses/news/pagination';
+import newsSnippetsAnalysis from './telemetry/analyses/news/snippets';
+import genericClicksAnalysis from './telemetry/analyses/generic/clicks';
+import genericShowsAnalysis from './telemetry/analyses/generic/shows';
+
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
-const BLUE_THEME_PREF = 'freshtab.blueTheme.enabled';
 const DEVELOPER_FLAG_PREF = 'developer';
 const DISMISSED_ALERTS = 'dismissedAlerts';
 
@@ -69,6 +68,21 @@ function isHistoryDependentPage(url) {
   return historyWhitelist.some(u => url.indexOf(u) === 0);
 }
 
+const createBlueThemeManager = (hostPrefs) => {
+  const pref = 'extensions.cliqz.freshtab.blueTheme.enabled';
+  return {
+    enable() {
+      return hostPrefs.set(pref, true);
+    },
+    disable() {
+      return hostPrefs.set(pref, false);
+    },
+    isEnabled() {
+      return hostPrefs.get(pref);
+    },
+  };
+};
+
 /**
  * @module freshtab
  * @namespace freshtab
@@ -77,34 +91,42 @@ function isHistoryDependentPage(url) {
 export default background({
   // Modules dependencies
   core: inject.module('core'),
-  messageCenter: inject.module('message-center'),
   search: inject.module('search'),
   ui: inject.module('ui'),
   insights: inject.module('insights'),
   history: inject.module('history'),
+  news: inject.module('news'),
 
   // Services dependencies
   geolocation: inject.service('geolocation', ['setLocationPermission']),
-  searchSession: inject.service('search-session', ['setSearchSession']),
+  hostSettings: inject.service('host-settings', ['get', 'set']),
 
   requiresServices: [
     'geolocation',
-    'logos',
     'pacemaker',
-    'search-session',
     'session',
     'telemetry',
+    'host-settings',
   ],
 
   /**
   * @method init
   */
   init(settings) {
+    telemetry.register([
+      ...metrics,
+      newsPaginationAnalysis,
+      newsSnippetsAnalysis,
+      genericClicksAnalysis,
+      genericShowsAnalysis,
+    ]);
+
     this.settings = settings;
     this.messages = {};
     this.onVisitRemoved = this._onVisitRemoved.bind(this);
     this.onSpeedDialsChanged = this._onSpeedDialsChanged.bind(this);
     this.onThemeChanged = this._onThemeChanged.bind(this);
+    this.blueThemeManager = createBlueThemeManager(this.hostSettings);
 
     HistoryService.onVisitRemoved.addListener(this.onVisitRemoved);
     SpeedDials.onChanged.addListener(this.onSpeedDialsChanged);
@@ -116,8 +138,6 @@ export default background({
   * @method unload
   */
   unload() {
-    News.unload();
-
     HistoryService.onVisitRemoved.removeListener(this.onVisitRemoved);
     SpeedDials.onChanged.removeListener(this.onSpeedDialsChanged);
     if (browser.cliqz) {
@@ -159,10 +179,6 @@ export default background({
     });
   },
 
-  get blueTheme() {
-    return prefs.get(BLUE_THEME_PREF, false, 'extensions.cliqz.');
-  },
-
   async browserTheme() {
     if (browser.cliqz) {
       let browserTheme = await browser.cliqz.getTheme();
@@ -191,10 +207,8 @@ export default background({
 
   get tooltip() {
     let activeTooltip = '';
-
-    const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
     const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
-    const defaultNews = News.getNewsLanguage();
+    const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
 
     const isActive = (id) => {
       const meta = dismissedMessages[id] || {};
@@ -202,10 +216,9 @@ export default background({
         return false;
       }
 
-      // check if freshtab settings were changed
       if (!(Object.keys(freshtabConfig).length === 1
         && freshtabConfig.news
-        && freshtabConfig.news.preferedCountry === defaultNews
+        && freshtabConfig.news.hasUserChangedLanguage
       )) {
         return false;
       }
@@ -224,16 +237,7 @@ export default background({
     return activeTooltip;
   },
 
-  getNewsEdition() {
-    const { preferedCountry } = this.getComponentsState().news;
-    if (!News.NEWS_BACKENDS.includes(preferedCountry)) {
-      this.actions.updateTopNewsCountry('intl');
-      return 'intl';
-    }
-    return preferedCountry;
-  },
-
-  getComponentsState() {
+  async getComponentsState() {
     const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
     const backgroundName = (freshtabConfig.background && freshtabConfig.background.image)
       || getDefaultWallpaper(product);
@@ -248,7 +252,12 @@ export default background({
         ...freshtabConfig.search,
         mode: prefs.get(config.constants.PREF_SEARCH_MODE, 'urlbar'),
       },
-      news: { ...COMPONENT_STATE_VISIBLE, ...freshtabConfig.news },
+      news: {
+        ...COMPONENT_STATE_VISIBLE,
+        ...freshtabConfig.news,
+        availableEditions: await this.news.action('getAvailableLanguages'),
+        preferedCountry: await this.news.action('getLanguage'),
+      },
       background: {
         image: backgroundName,
         index: getWallpapers(product).findIndex(bg => bg.name === backgroundName),
@@ -323,22 +332,6 @@ export default background({
       });
     },
 
-    selectResult(
-      selection,
-      { tab: { id: tabId } = {} } = {},
-    ) {
-      const report = {
-        ...selection,
-        isPrivateResult: searchUtils.isPrivateResultType(selection.kind),
-        tabId,
-      };
-      delete report.kind;
-
-      events.pub('ui:click-on-url', report);
-
-      this.search.action('reportSelection', report, { tab: { id: tabId } });
-    },
-
     sendUserFeedback(data) {
       const feedback = {
         view: 'tab',
@@ -365,18 +358,31 @@ export default background({
       });
     },
 
-    updateTopNewsCountry(preferedCountry) {
-      this.updateComponentState('news', {
-        preferedCountry,
-      });
+    async updateTopNewsCountry(preferedCountry) {
+      // TODO: add proper error handling in UI
+      await this.news.action('setLanguage', preferedCountry);
 
-      News.resetTopNews();
+      this.updateComponentState('news', {
+        hasUserChangedLanguage: true,
+      });
     },
 
-    dismissMessage,
-    pauseMessage,
-    countMessageClick,
-    saveMessageDismission,
+    saveMessageDismission(message) {
+      prefs.setObject('dismissedAlerts', (prevValue) => {
+        const oldMessage = prevValue[message.id] || {
+          scope: 'freshtab',
+          count: 0,
+        };
+        return {
+          ...prevValue,
+          [message.id]: {
+            ...oldMessage,
+            isDismissed: true,
+            count: oldMessage.count + 1,
+          }
+        };
+      });
+    },
 
     checkForHistorySpeedDialsToRestore() {
       return SpeedDials.hasHidden;
@@ -465,27 +471,7 @@ export default background({
         };
       }
 
-      return News.getNews().then((news) => {
-        News.init();
-
-        const newsList = news.newsList || [];
-        const topNewsVersion = news.topNewsVersion || 0;
-
-        const edition = this.getNewsEdition();
-        return {
-          version: topNewsVersion,
-          news: newsList.map(r => ({
-            title: r.title_hyphenated || r.title,
-            description: r.description,
-            displayUrl: getCleanHost(URLInfo.get(r.url)) || r.title,
-            logo: logos.getLogoDetails(r.url),
-            url: r.url,
-            type: r.type,
-            breaking_label: r.breaking_label,
-            edition,
-          }))
-        };
-      });
+      return this.news.action('getNews');
     },
 
     /**
@@ -546,7 +532,8 @@ export default background({
       } else if (product === 'GHOSTERY') {
         const ghosteryExtId = isChromium
           ? 'mlomiejdfkolichcflejclcbmpeaniij' : 'firefox@ghostery.com';
-        const summary = await extChannel.sendMessage(ghosteryExtId, { name: 'getStatsAndSettings' });
+        const stats = await extChannel.sendMessage(ghosteryExtId, { name: 'getStatsAndSettings' });
+        const summary = stats && stats.historicalDataAndSettings;
 
         if (summary) {
           // TODO: update links
@@ -623,7 +610,7 @@ export default background({
 
       return {
         locale: getLanguageFromLocale(i18n.PLATFORM_LOCALE),
-        blueTheme: this.blueTheme,
+        blueTheme: await this.blueThemeManager.isEnabled(),
         browserTheme: await this.browserTheme(),
         isBlueThemeSupported: this.isBlueThemeSupported,
         isBrowserThemeSupported: this.isBrowserThemeSupported,
@@ -636,7 +623,7 @@ export default background({
           this.history.isEnabled()
           && config.settings.HISTORY_URL !== undefined
         ),
-        componentsState: this.getComponentsState(),
+        componentsState: await this.getComponentsState(),
         developer: prefs.get('developer', false),
         cliqzPostPosition: 'bottom-left', // bottom-right, top-right
         isStatsSupported: this.settings.freshTabStats,
@@ -651,7 +638,6 @@ export default background({
 
     async setBrowserTheme(theme) {
       if (browser.cliqz) {
-        telemetry.push({ theme }, 'freshtab.prefs.browserTheme');
         await browser.cliqz.setTheme(`firefox-compact-${theme}@mozilla.org`);
       }
     },
@@ -659,30 +645,14 @@ export default background({
     /**
     * @method toggleBlueTheme
     */
-    toggleBlueTheme() {
+    async toggleBlueTheme() {
       // Cliqz browser listens for pref change and takes care of toggling the class
       // For dev mode there is webextension API which listens to pref change
-      if (this.blueTheme) {
-        prefs.set(BLUE_THEME_PREF, false, 'extensions.cliqz.');
+      if (await this.blueThemeManager.isEnabled()) {
+        await this.blueThemeManager.disable();
       } else {
-        prefs.set(BLUE_THEME_PREF, true, 'extensions.cliqz.');
+        await this.blueThemeManager.enable();
       }
-    },
-
-    shareLocation(decision) {
-      events.pub('msg_center:hide_message', { id: 'share-location' }, 'MESSAGE_HANDLER_FRESHTAB');
-      this.geolocation.setLocationPermission(decision);
-
-      const target = (decision === 'yes')
-        ? 'always_share' : 'never_share';
-
-      telemetry.push({
-        type: 'notification',
-        action: 'click',
-        topic: 'share-location',
-        context: 'home',
-        target
-      });
     },
 
     async refreshFrontend() {
@@ -699,10 +669,6 @@ export default background({
       });
     },
 
-    skipMessage(message) {
-      events.pub('msg_center:hide_message', { id: message.id }, message.handler);
-    },
-
     openImportDialog,
 
     openBrowserSettings() {
@@ -714,7 +680,7 @@ export default background({
     },
 
     isBlueThemeEnabled() {
-      return this.blueTheme;
+      return this.blueThemeManager.isEnabled();
     },
 
     getBrowserTheme() {
@@ -727,30 +693,6 @@ export default background({
   },
 
   events: {
-    'message-center:handlers-freshtab:new-message': function onNewMessage(message) {
-      const id = message.id;
-      if (!(id in this.messages)) {
-        this.messages[id] = message;
-        this.core.action(
-          'callContentAction',
-          'freshtab',
-          'addMessage',
-          { url: NEW_TAB_URL },
-          message,
-        );
-      }
-    },
-    'message-center:handlers-freshtab:clear-message': function onMessageClear(message) {
-      const id = message.id;
-      delete this.messages[id];
-      this.core.action(
-        'callContentAction',
-        'freshtab',
-        'closeNotification',
-        { url: NEW_TAB_URL },
-        id,
-      );
-    },
     'geolocation:wake-notification': function onWake() {
       this.actions.getNews().then(() => {
         this.actions.refreshFrontend();

@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { isValidUrl } from '../../core/search-engines';
+import { shouldAppearInDropdown } from '../../core/search-engines';
 
 /*
  * Removes search engine results.
@@ -20,7 +20,7 @@ import { isValidUrl } from '../../core/search-engines';
  */
 export function unsafeClean(response) {
   response.links = response.links.filter(({ template, url }) => (
-    template === 'sessions' || isValidUrl(url)
+    template === 'sessions' || shouldAppearInDropdown(url)
   ));
   return response;
 }

@@ -1,3 +1,4 @@
+import md5 from '../../core/helpers/md5';
 import { buildMultiPatternIndex } from '../common/pattern-utils';
 import logger from '../common/offers_v2_logger';
 
@@ -136,7 +137,7 @@ export class OfferMatchTraits {
    * @param {CategoriesMatchTraits} catMatches
    * @param {IterableIterator<string>} offerCategories
    */
-  constructor(catMatches, offerCategories, domainHash) {
+  constructor(catMatches, offerCategories, domain) {
     // After introduction of `addReason`, we could refactor `this.reason`
     // to be a `Set`. However, as this object is used in the persistent
     // storage, then we would have to support loading of an old version.
@@ -145,7 +146,7 @@ export class OfferMatchTraits {
       return;
     }
     for (const pattern of catMatches.getMatchPatterns(offerCategories)) {
-      this.addReason({ pattern, domainHash });
+      this.addReason({ pattern, domainHash: domain && md5(domain) });
     }
   }
 
@@ -204,29 +205,12 @@ export class OfferMatchTraits {
 export class CategoryMatch {
   constructor() {
     this.multiPatternObj = null;
-    // cat id -> patterns data
-    this.patterns = new Map();
   }
 
-  addCategoryPatterns(catID, patterns) {
-    if (!catID || !patterns) {
-      return;
-    }
-    this.patterns.set(catID, patterns);
-  }
-
-  removeCategoryPatterns(catID) {
-    this.patterns.delete(catID);
-  }
-
-  clear() {
-    this.patterns = new Map();
-  }
-
-  build() {
+  build(patterns) {
     const patternsList = [];
-    this.patterns.forEach((patterns, catID) =>
-      patternsList.push({ groupID: catID, patterns }));
+    patterns.forEach((catPatterns, catID) =>
+      patternsList.push({ groupID: catID, patterns: catPatterns }));
     //
     // Adblocker fails if there are too many patterns.
     // The code should not propagate the error to the caller:
@@ -241,6 +225,10 @@ export class CategoryMatch {
     } catch (e) {
       logger.error('Failed to build an index of patterns:', e);
     }
+  }
+
+  getIndex() {
+    return this.multiPatternObj;
   }
 
   /**

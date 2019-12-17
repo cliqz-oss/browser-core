@@ -45,12 +45,21 @@ export default class PersistentMap {
     return this.db.kv.put({ key, value });
   }
 
+  bulkSetFromMap(map) {
+    const bulkObj = Array.from(map.entries(), ([key, value]) => ({ key, value }));
+    return this.db.kv.bulkPut(bulkObj);
+  }
+
   has(key) {
     return this.db.kv.get(key).then(v => v !== undefined);
   }
 
   delete(key) {
     return this.db.kv.delete(key);
+  }
+
+  bulkDelete(keys) {
+    return this.db.kv.bulkDelete(keys);
   }
 
   clear() {

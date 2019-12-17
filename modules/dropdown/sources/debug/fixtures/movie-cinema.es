@@ -615,7 +615,7 @@ export default {
             m_url: 'https://m.imdb.com/title/tt0848228/',
             og: {
               description: "Directed by Joss Whedon.  With Robert Downey Jr., Chris Evans, Scarlett Johansson, Jeremy Renner. Earth's mightiest heroes must come together and learn to fight as a team if they are going to stop the mischievous Loki and his alien army from enslaving humanity.",
-              image: 'https://imgr.cliqz.com/Ffl7IcNxJNVeZOPQAauaM4ih-YK9dJorb6Ia0FHyz_I/fill/0/200/no/1/aHR0cHM6Ly9tLm1lZGlhLWFtYXpvbi5jb20vaW1hZ2VzL00vTVY1Qk5EWXhOalF5TWpBdE5UZGlPUzAwTkdZd0xXRm1OVEF0TlRobVlqVTVaR0kyWVRJMVhrRXlYa0ZxY0dkZVFYVnlNVE14T0RrMk9UVUAuX1YxX1VZMTIwMF9DUjkwLDAsNjMwLDEyMDBfQUxfLmpwZw.jpg',
+              image: 'http://localhost:3000/static/images/MV5BNDYxNjQyMjAtNTdiOS00NGYwLWFmNTAtNThmYjU5ZGI2YTI1XkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_UY1200_CR90,0,630,1200_AL_.jpg',
               site_name: 'IMDb',
               title: 'The Avengers (2012)',
               type: 'video.movie',
@@ -655,11 +655,11 @@ export default {
                 title: 'Director'
               },
               full_cast: 'https://www.imdb.com/title/tt0848228/fullcredits',
-              image: 'https://imgr.cliqz.com/pWkAKkA9bAaufzsitKVsuj7E5LbdC2bzUVaxbQC-FEs/fill/0/200/no/1/aHR0cHM6Ly9tLm1lZGlhLWFtYXpvbi5jb20vaW1hZ2VzL00vTVY1Qk5EWXhOalF5TWpBdE5UZGlPUzAwTkdZd0xXRm1OVEF0TlRobVlqVTVaR0kyWVRJMVhrRXlYa0ZxY0dkZVFYVnlNVE14T0RrMk9UVUAuX1YxXy5qcGc.jpg',
+              image: 'http://localhost:3000/static/images/MV5BNDYxNjQyMjAtNTdiOS00NGYwLWFmNTAtNThmYjU5ZGI2YTI1XkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg',
               length: '143',
               name: 'The Avengers (2012) - IMDb',
               rating: {
-                img: 'https://cdn.cliqz.com/extension/EZ/richresult/stars4.svg',
+                img: 'http://localhost:3000/static/images/stars4.svg',
                 nVote: 1140027,
                 scale: 10,
                 url: 'https://www.imdb.com/title/tt0848228/ratings',
@@ -1043,7 +1043,7 @@ export default {
             no_location: true,
             og: {
               description: 'Yorck Kinogruppe GmbH',
-              image: 'https://imgr.cliqz.com/6lmxpG5pJyoUfVxiFev17AEu4SfniL9DA_REl_xjGbE/fill/0/200/no/1/aHR0cHM6Ly95b3Jjay5kZS95b3Jja19pY29uX2dvb2dsZS5wbmc.png',
+              image: 'http://localhost:3000/static/images/yorck_icon_google.png',
               site_name: 'Yorck Kinogruppe GmbH',
               title: 'Yorck Kinos Berlin',
               type: 'website',

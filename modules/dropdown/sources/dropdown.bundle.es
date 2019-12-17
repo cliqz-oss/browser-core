@@ -11,7 +11,6 @@ import Spanan from 'spanan';
 
 import createModuleWrapper from '../core/helpers/action-module-wrapper';
 import runtime from '../platform/runtime';
-import { PREVENT_AUTOCOMPLETE_KEYS } from '../search/consts';
 
 import helpers from './helpers';
 import templates from './templates';
@@ -24,7 +23,7 @@ if (chrome.omnibox2) {
 }
 
 let urlbarAttributes = {};
-let currentQuery = '';
+let currentQueryId = 0;
 let previousResults;
 
 const styleElement = document.createElement('style');
@@ -104,20 +103,12 @@ function createAssistants(assistantStates) {
 }
 
 const exportedActions = {
-  setSearchSession() {
-    searchModule.setSearchSession();
-  },
-
-  setQueryLastDraw(ts) {
-    searchModule.setQueryLastDraw(ts);
-  },
-
   startSearch(query, searchOptions = {}, options = {}) {
     if (options.urlbarAttributes) {
       updateNavbarColor(options.urlbarAttributes.navbarColor);
       urlbarAttributes = options.urlbarAttributes;
     }
-    currentQuery = query;
+    currentQueryId = searchOptions.queryId;
     searchModule.startSearch(query, searchOptions);
   },
 
@@ -167,9 +158,8 @@ runtime.onMessage.addListener(({ module, action, args, contextId }) => {
   }
 
   const response = args[0];
-  const { query, queriedAt, results: rawResults, assistantStates, meta } = response;
-  if (!rawResults[0]
-    || (rawResults[0].text !== currentQuery && rawResults[0].suggestion !== currentQuery)) {
+  const { query, queryId, results: rawResults, assistantStates, forceUpdate } = response;
+  if (!rawResults[0] || (!forceUpdate && queryId !== currentQueryId)) {
     return undefined;
   }
 
@@ -187,22 +177,22 @@ runtime.onMessage.addListener(({ module, action, args, contextId }) => {
   const results = new Results({
     query,
     rawResults,
-    queriedAt,
   }, resultTools);
 
   previousResults = results;
 
-  const preventAutocomplete = PREVENT_AUTOCOMPLETE_KEYS.includes(meta.keyCode);
   dropdown.renderResults(results, {
     urlbarAttributes,
     extensionId: assistantStates.settings.id,
     channelId: assistantStates.settings.channel,
-    preventAutocomplete,
+    queryId,
   });
 
   const height = container$.scrollHeight;
   importedActions.resultsDidRender({
     result: dropdown.selectedResult && dropdown.selectedResult.serialize(),
+    queryId,
+    forceUpdate,
     height,
     rawResults,
   });

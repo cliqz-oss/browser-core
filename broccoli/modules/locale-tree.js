@@ -149,7 +149,6 @@ function loadLocales({ dir, localeDir }) {
     LANGUAGES.forEach((lang) => {
       const pathToLocale = `${localeDir}/${lang}/messages.json`;
       if (fs.existsSync(pathToLocale)) {
-        console.log(`Loading locale for ${logMsg}: ${lang}`);
         loadedLocales[lang] = JSON.parse(fs.readFileSync(pathToLocale));
       } else {
         if (

@@ -15,15 +15,15 @@ export default [
         {
           links: [
             {
-              title: 'Keno',
+              title: '> Title - Keno',
               url: 'https://www.lotto.de/de/ergebnisse/keno/kenozahlen.html'
             },
             {
-              title: '6aus49',
+              title: '> Title - 6aus49',
               url: 'https://www.lotto.de/de/ergebnisse/lotto-6aus49/lottozahlen.html'
             },
             {
-              title: 'EuroJackpot',
+              title: '> Title - EuroJackpot',
               url: 'https://www.lotto.de/de/ergebnisse/eurojackpot/eurojackpot-zahlen.html'
             }
           ],
@@ -60,7 +60,7 @@ export default [
         lotto_type: 'glueckspirale'
       },
       friendlyUrl: 'lotto.de/de/ergebnisse/gluecksspirale/gluecksspirale-gewinnzahlen.html',
-      title: 'Glücksspirale spielen, Gewinnzahlen, Quoten...'
+      title: '> Title - Glücksspirale spielen, Gewinnzahlen, Quoten...'
     },
     type: 'rh',
     subType: {
@@ -108,7 +108,7 @@ export const lottoResults = [
         lotto_type: 'glueckspirale'
       },
       friendlyUrl: 'lotto.de/de/ergebnisse/gluecksspirale/gluecksspirale-gewinnzahlen.html',
-      title: 'Glücksspirale spielen, Gewinnzahlen, Quoten...'
+      title: '> Title - Glücksspirale spielen, Gewinnzahlen, Quoten...'
     },
     type: 'rh',
     subType: {

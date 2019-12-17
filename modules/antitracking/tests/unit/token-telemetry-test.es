@@ -11,7 +11,6 @@
 const Rx = require('rxjs');
 const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
-const urlImports = require('../../core/unit/utils/url-parser');
 const mockDexie = require('../../core/unit/utils/dexie');
 // const rxSandbox = require('rx-sandbox').rxSandbox;
 const { Subject } = Rx;
@@ -90,18 +89,17 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
       }
     }
   },
-  ...urlImports,
 }), () => {
   describe('TokenTelemetry', () => {
     let TokenTelemetry;
     let telemetry;
     let whitelist;
     let db;
-    let URLInfo;
+    let parse;
     let md5;
 
     beforeEach(async function () {
-      URLInfo = (await this.system.import('core/url-info')).URLInfo;
+      parse = (await this.system.import('core/url')).parse;
       md5 = (await this.system.import('core/helpers/md5')).default;
       TokenTelemetry = this.module().default;
       whitelist = new MockQsWhitelist(md5);
@@ -151,8 +149,8 @@ export default describeModule('antitracking/steps/token-telemetry', () => ({
           isPrivate,
           url,
           tabUrl,
-          urlParts: URLInfo.get(url),
-          tabUrlParts: URLInfo.get(tabUrl),
+          urlParts: parse(url),
+          tabUrlParts: parse(tabUrl),
         })).forEach(telemetry.extractKeyTokens.bind(telemetry));
       }
 

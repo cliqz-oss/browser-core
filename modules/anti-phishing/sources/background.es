@@ -15,6 +15,7 @@ import * as datetime from '../antitracking/time';
 import console from '../core/console';
 import telemetry from '../core/services/telemetry';
 import pacemaker from '../core/services/pacemaker';
+import metrics from './telemetry/metrics';
 
 function addDataToUrl(...args) {
   const hw = inject.module('human-web');
@@ -56,6 +57,7 @@ export default background({
   requiresServices: ['pacemaker'],
   core: inject.module('core'),
   init(/* settitng */) {
+    telemetry.register(metrics);
     CliqzAntiPhishing.init();
     this.CliqzAntiPhishing = CliqzAntiPhishing;
   },
@@ -156,12 +158,7 @@ export default background({
     },
 
     telemetry(target) {
-      const signal = {
-        type: 'anti-phishing',
-        action: 'click',
-        target,
-      };
-      telemetry.push(signal);
+      telemetry.push({}, `metrics.anti-phishing.click.${target}`);
     },
 
     markAsSafe(url) {
