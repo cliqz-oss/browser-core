@@ -83,8 +83,6 @@ RUN mkdir /tmp/.X11-unix \
 # Expose port for VNC
 EXPOSE 5900
 
-RUN npm install -g npm@latest yarn@latest
-
 USER node
 
 RUN wget https://ftp.mozilla.org/pub/devedition/releases/64.0b14/linux-x86_64/en-US/firefox-64.0b14.tar.bz2 -O /home/node/firefox.tar.bz2 \

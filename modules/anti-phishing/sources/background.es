@@ -6,6 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/* eslint func-names: 'off' */
+
 import { httpGet } from '../core/http';
 import prefs from '../core/prefs';
 import CliqzAntiPhishing from './anti-phishing';
@@ -16,6 +18,8 @@ import console from '../core/console';
 import telemetry from '../core/services/telemetry';
 import pacemaker from '../core/services/pacemaker';
 import metrics from './telemetry/metrics';
+import logger from './logger';
+import { extractHostname } from '../core/tlds';
 
 function addDataToUrl(...args) {
   const hw = inject.module('human-web');
@@ -42,10 +46,10 @@ function updateBlackWhiteStatus(req, md5Prefix) {
   CliqzAntiPhishing.blackWhiteList.setDirty();
 }
 
-function checkStatus(url, md5Prefix, md5Surfix) {
+function checkStatus(url, md5Prefix, md5Suffix) {
   const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
   const bw = blackWhiteList[md5Prefix];
-  const status = md5Surfix in bw && bw[md5Surfix].includes('black');
+  const status = md5Suffix in bw && bw[md5Suffix].includes('black');
   if (status) {
     addDataToUrl(url, 'anti-phishing', 'block')
       .catch(() => console.log('failed to update url', url));
@@ -56,9 +60,9 @@ function checkStatus(url, md5Prefix, md5Surfix) {
 export default background({
   requiresServices: ['pacemaker'],
   core: inject.module('core'),
-  init(/* settitng */) {
+  async init(/* settitng */) {
     telemetry.register(metrics);
-    CliqzAntiPhishing.init();
+    await CliqzAntiPhishing.init();
     this.CliqzAntiPhishing = CliqzAntiPhishing;
   },
 
@@ -87,6 +91,25 @@ export default background({
 
   actions: {
     isPhishingURL(url) {
+      /**
+       * To avoid sending truncated hash for all domains the user visits,
+       * we filter them based on the following checks.
+       * 1. Is domain already known to be safe? By checking the local BF.
+       * 2. Is domain whitelisted:
+       *    a. User whitelisted via the Control-Centre.
+       *    b. User selected the result from Cliqz drop-down.
+       * 3. Already known to be a phishing domain, then show the warning.
+       */
+
+      const domain = extractHostname(url);
+      if (CliqzAntiPhishing.bloomFilter && CliqzAntiPhishing.bloomFilter.testSingle(domain)) {
+        logger.info(`${domain} found in local safe list.`);
+        return Promise.resolve({
+          block: false,
+          type: 'phishingURL',
+        });
+      }
+
       if (!CliqzAntiPhishing.isAntiPhishingActive()) {
         return Promise.resolve({
           block: false,
@@ -94,14 +117,15 @@ export default background({
         });
       }
 
-      const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(url);
+      const [md5Prefix, md5Suffix] = CliqzAntiPhishing.getSplitMd5(url);
+      const md5Key = [md5Prefix, md5Suffix];
 
       // check if whitelisted
       const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
-      if (md5Prefix in forceWhiteList) {
-        if (forceWhiteList[md5Prefix] === CliqzAntiPhishing.WHITELISTED_TEMPORARY) {
+      if (md5Key in forceWhiteList) {
+        if (forceWhiteList[md5Key] === CliqzAntiPhishing.WHITELISTED_TEMPORARY) {
           pacemaker.setTimeout(() => {
-            delete forceWhiteList[md5Prefix];
+            delete forceWhiteList[md5Key];
           }, 1000);
         }
         return Promise.resolve({
@@ -113,10 +137,10 @@ export default background({
       // check cache
       CliqzAntiPhishing.clearBWList();
       const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
-      if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Surfix]
-      && !blackWhiteList[md5Prefix][md5Surfix].startsWith('suspicious')) {
+      if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Suffix]
+      && !blackWhiteList[md5Prefix][md5Suffix].startsWith('suspicious')) {
         return Promise.resolve({
-          block: checkStatus(url, md5Prefix, md5Surfix),
+          block: checkStatus(url, md5Prefix, md5Suffix),
           type: 'phishingURL',
         });
       }
@@ -126,7 +150,7 @@ export default background({
           (req) => {
             updateBlackWhiteStatus(req, md5Prefix);
             resolve({
-              block: checkStatus(url, md5Prefix, md5Surfix),
+              block: checkStatus(url, md5Prefix, md5Suffix),
               type: 'phishingURL',
             });
           },
@@ -174,5 +198,16 @@ export default background({
     'human-web:active-url': function onActiveUrl(...args) {
       return CliqzAntiPhishing.onHwActiveURL(...args);
     },
+    'ui:click-on-url': function (data) {
+      /**
+       * Domains served via Cliqz drop-down need not be checked for phishing
+       * But we still want to check for cases when the user pastes the URL.
+       * Note: The current approach treats history and bookmarks as Cliqz
+       * drop-down results.
+       */
+      if (data.kind && data.kind[0] !== 'navigate-to') {
+        CliqzAntiPhishing.whitelistTemporary(data.url);
+      }
+    }
   }
 });

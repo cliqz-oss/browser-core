@@ -35,4 +35,5 @@ module.exports = (base, cdn = 'cdn') => ({
   SUGGESTIONS_URL: `https://${base}/search?q=`, // dropdown/sources/results/suggestions.es, freshtab/sources/background.es, history/sources/background.es, history/sources/content.es
   UNINSTALL: `https://${base}/home/offboarding`, // core/sources/utils.es
   WTM_API: 'https://whotracks.me/data/',
+  ANTIPHISHING_BLOOMFILTER: `https://${cdn}.${base}/anti-phishing/bloom_filter.json.gz`
 });

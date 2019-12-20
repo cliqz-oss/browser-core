@@ -33,6 +33,12 @@ function getURL() {
   return url;
 }
 
+function updateText(url) {
+  // Add the domain blocked.
+  const domain = url.replace('http://', '').replace('https://', '').split('/')[0];
+  document.getElementById('phishing-url').textContent = domain;
+}
+
 function format() {
   // bundling made System imports obsolete so temporary
   // moving towards a more "nasty" way of importing
@@ -49,6 +55,9 @@ function format() {
 
   // i18n
   localizeDoc(document);
+
+  // Update the text.
+  updateText(phishingURL);
 }
 
 function updateButtons(aph, url) {
