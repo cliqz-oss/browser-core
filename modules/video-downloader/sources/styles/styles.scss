@@ -8,14 +8,17 @@
 
 body,
 html {
-    overflow-y: hidden;
-    overflow-x: auto;
     height: 100%;
 }
 
 * {
     margin: 0;
     padding: 0;
+}
+
+body {
+    overflow-y: hidden;
+    overflow-x: auto;
 }
 
 #video-downloader {

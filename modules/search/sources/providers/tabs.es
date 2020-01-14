@@ -23,7 +23,7 @@ export default class Tabs extends BaseProvider {
     this.tabs.set(tab.id, tab);
   };
 
-  onTabUpdated = (id, tab) => {
+  onTabUpdated = (id, _, tab) => {
     this.tabs.set(id, tab);
   };
 

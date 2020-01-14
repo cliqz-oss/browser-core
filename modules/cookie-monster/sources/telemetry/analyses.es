@@ -13,7 +13,7 @@ const number = { type: 'number' };
 export default [{
   name: 'cookie-monster-performance',
   sendToBackend: {
-    version: 3,
+    version: 4,
   },
   generate: ({ records }) => {
     const cookieBatchSignals = records.get('cookie-monster.cookieBatch');
@@ -69,6 +69,7 @@ export default [{
         sessionsPruned: sum(cookiePruneSignals.map(s => s.sessionsPruned)),
         totalCookies: Math.max(...cookiePruneSignals.map(s => s.totalCookies)),
         totalOrigins: Math.max(...cookiePruneSignals.map(s => s.totalOrigins)),
+        manuallyExpired: sum(cookiePruneSignals.map(s => s.cookiesExpired || 0)),
       });
     }
 
@@ -104,6 +105,7 @@ export default [{
       sessionsPruned: number,
       totalCookies: number,
       totalOrigins: number,
+      manuallyExpired: number,
     },
   }
 }];

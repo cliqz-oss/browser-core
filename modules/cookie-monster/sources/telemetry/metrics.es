@@ -37,6 +37,7 @@ export default [
         sessionsPruned: { type: 'number', minimum: 0 },
         totalCookies: { type: 'number', minimum: 0 },
         totalOrigins: { type: 'number', minimum: 0 },
+        cookiesExpired: { type: 'number', minimum: 0 },
       }
     }
   }, {

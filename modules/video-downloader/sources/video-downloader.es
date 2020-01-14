@@ -7,7 +7,6 @@
  */
 
 import Youtube from './extractors/youtube';
-import sanitizeFilename from '../platform/lib/sanitize-filename';
 
 const EXTRACTORS = [
   Youtube,
@@ -35,39 +34,6 @@ function getSize(size) {
   }
 
   return `${parseFloat((size / 1024).toFixed(1))} KB`;
-}
-
-function getFormats(info) {
-  if (info.formats.length > 0) {
-    const videos = [];
-    let audio;
-    info.formats.forEach((item) => {
-      if (item.size === 0) {
-        return;
-      }
-      if (item.container === 'm4a' || item.container === 'mp4') {
-        const media = {
-          url: item.url,
-          title: sanitizeFilename(info.title, { replacement: ' ' }).slice(0, 250),
-          format: item.container,
-        };
-        if (item.container === 'm4a') {
-          media.name = 'Audio';
-          media.class = 'audio';
-          audio = media;
-        } else if (item.audioBitrate !== null && item.resolution !== null) {
-          media.name = `${item.container.toUpperCase()} ${item.resolution}`;
-          media.class = 'video';
-          videos.push(media);
-        }
-      }
-    });
-    if (audio) {
-      videos.push(audio);
-    }
-    return videos;
-  }
-  return [];
 }
 
 /* eslint-disable no-param-reassign */
@@ -99,7 +65,6 @@ function getSizes(formats) {
 
 function getVideoInfo(url) {
   return getRawVideoInfo(url)
-    .then(getFormats)
     .then(getSizes);
 }
 

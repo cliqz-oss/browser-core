@@ -22,6 +22,7 @@ import {
   getDemographics,
   assertIsValidSchema,
 } from './schema';
+import getEphemerid from './ephemerid';
 import { Records } from './records';
 import { Behavior, Meta } from './signal';
 import { Config } from './config';
@@ -30,6 +31,8 @@ import { Storage } from './storage/types/storage';
 import SafeDate from './date';
 
 import internalSchemas from './internal-schemas';
+
+import moment from 'moment';
 
 export default class Anolysis {
   private readonly config: Config;
@@ -336,6 +339,43 @@ export default class Anolysis {
       await this.storage.behavior.add(this.currentDate, name, signal);
     } else {
       const globalConfigMeta = this.config.signals.meta;
+      // The date for this signal is either the date of the data/metrics
+      // which were aggregated to create it via an analysis, or the date of
+      // today if it was not specified yet.
+      const date =
+        meta.date !== undefined ? meta.date : this.currentDate.toString();
+
+      // Prepare ephemerid if required and if all information is available.
+      let ephemerid: string | undefined;
+      if (schema.sendToBackend.ephemerid !== undefined) {
+        if (
+          this.config.session === undefined ||
+          globalConfigMeta === undefined ||
+          globalConfigMeta.demographics === undefined ||
+          globalConfigMeta.demographics.install_date === undefined
+        ) {
+          logger.error('could not generate ephemerid for signal', {
+            name: schema.name,
+            session: this.config.session,
+            globalConfigMeta,
+          });
+        } else {
+          ephemerid = getEphemerid({
+            today: moment(date, 'YYYY-MM-DD'),
+            name: schema.name,
+            kind: schema.sendToBackend.ephemerid.kind,
+            unit: schema.sendToBackend.ephemerid.unit,
+            n: schema.sendToBackend.ephemerid.n,
+            installDate: moment(
+              globalConfigMeta.demographics.install_date,
+              'YYYY-MM-DD',
+            ),
+            // never sent to backend
+            session: this.config.session,
+          });
+        }
+      }
+
       await this.signalQueue.push(
         {
           type: schema.name,
@@ -346,10 +386,7 @@ export default class Anolysis {
           // as well as local information about `version` and `date`. The
           // priority is as follows: config < override.
           meta: {
-            // The date for this signal is either the date of the data/metrics
-            // which were aggregated to create it via an analysis, or the date of
-            // today if it was not specified yet.
-            date: meta.date !== undefined ? meta.date : this.currentDate.toString(),
+            date,
             version: schema.sendToBackend.version,
             dev:
               meta.dev !== undefined ? meta.dev : Boolean(globalConfigMeta.dev),
@@ -361,6 +398,7 @@ export default class Anolysis {
               globalConfigMeta.demographics === undefined
                 ? {}
                 : getDemographics(schema, globalConfigMeta.demographics),
+            ephemerid,
           },
         },
         { force },

@@ -32,6 +32,7 @@ import { getEngineByQuery } from '../core/search-engines';
 import modulesStartupMetric from './telemetry/metrics/modules-startup';
 import performanceMetric from './telemetry/metrics/performance';
 import resourceLoadersMetric from './telemetry/metrics/resource-loaders';
+import pingMetrics from './telemetry/metrics/ping';
 import versionsMetrics from './telemetry/metrics/versions';
 import performanceAnalysis from './telemetry/analyses/performance';
 
@@ -55,6 +56,7 @@ export default background({
       performanceMetric,
       resourceLoadersMetric,
       ...versionsMetrics,
+      ...pingMetrics,
       performanceAnalysis,
     ]);
 

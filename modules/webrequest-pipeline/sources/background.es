@@ -15,6 +15,7 @@ import Pipeline from './pipeline';
 import WebRequestContext from './webrequest-context';
 import PageStore from './page-store';
 import logger from './logger';
+import CnameUncloaker, { isCnameUncloakSupported } from './cname-uncloak';
 
 // Telemetry schemas
 import performanceMetrics from './telemetry/metrics/performance';
@@ -96,7 +97,14 @@ export default background({
 
   enabled() { return true; },
 
-  init() {
+  init(_settings, browser) {
+    // Optionally enable CNAME-uncloaking.
+    this.cnameUncloaker = (
+      isCnameUncloakSupported(browser)
+        ? new CnameUncloaker(browser.dns.resolve)
+        : null
+    );
+
     if (this.initialized) {
       return;
     }
@@ -116,6 +124,11 @@ export default background({
   unload() {
     if (!this.initialized) {
       return;
+    }
+
+    if (this.cnameUncloaker !== null) {
+      this.cnameUncloaker.unload();
+      this.cnameUncloaker = null;
     }
 
     // Remove webrequest listeners
@@ -160,21 +173,57 @@ export default background({
 
       // Request is not supported, so do not alter
       if (webRequestContext === null) {
+        logger.debug('Ignore unsupported request', details);
         return {};
       }
 
       const response = new BlockingResponse(details);
 
-      try {
-        pipeline.execute(
-          webRequestContext,
-          response,
-          true,
-        );
-      } catch (ex) {
-        logger.error('While running pipeline', event, webRequestContext, ex);
+      // Optionally uncloack first-party CNAME to uncover 1st-party tracking.
+      // This feature can only be enabled in the following cases:
+      //
+      // 1. `browser.dns` API is available (feature-detection)
+      // 2. webRequest supports async response (Firefox)
+      if (
+        // Will be set if uncloaking is supported on this platform (check
+        // background `init(...)` for more details).
+        this.cnameUncloaker !== null
+
+        // We ignore 'main_frame' to make sure we do not introduce any latency
+        // on the main request (because of DNS resolve) and also because we do
+        // not expect any privacy leak from this first request.
+        && webRequestContext.type !== 'main_frame'
+
+        // Check that request is 1st-party
+        && webRequestContext.urlParts !== null
+        && webRequestContext.tabUrlParts !== null
+        && webRequestContext.tabUrlParts.generalDomain === webRequestContext.urlParts.generalDomain
+
+        // Check that hostname is not the same as general domain (we need a subdomain)
+        && webRequestContext.urlParts.hostname !== webRequestContext.urlParts.generalDomain
+      ) {
+        const cnameResult = this.cnameUncloaker.resolveCNAME(webRequestContext.urlParts.hostname);
+
+        // Synchronous response means that the CNAME was cached.
+        if (typeof cnameResult === 'string') {
+          if (cnameResult !== '') {
+            webRequestContext.setCNAME(cnameResult);
+          }
+          pipeline.safeExecute(webRequestContext, response, true);
+          return response.toWebRequestResponse(event);
+        }
+
+        // Otherwise it's a promise and we wait for CNAME before processing.
+        return cnameResult.then((cname) => {
+          if (cnameResult !== '') {
+            webRequestContext.setCNAME(cname);
+          }
+          pipeline.safeExecute(webRequestContext, response, true);
+          return response.toWebRequestResponse(event);
+        });
       }
 
+      pipeline.safeExecute(webRequestContext, response, true);
       return response.toWebRequestResponse(event);
     };
 

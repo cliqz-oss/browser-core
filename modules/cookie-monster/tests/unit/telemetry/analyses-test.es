@@ -97,6 +97,7 @@ require('../../../anolysis/unit/telemetry-schemas-test-helpers')({
         sessionsPruned: 3,
         totalCookies: 25,
         totalOrigins: 6,
+        manuallyExpired: 0,
         ...configSignals,
       });
     });
@@ -142,6 +143,7 @@ require('../../../anolysis/unit/telemetry-schemas-test-helpers')({
         sessionsPruned: 0,
         totalCookies: 25,
         totalOrigins: 5,
+        manuallyExpired: 0,
         ...configSignals,
       });
     });

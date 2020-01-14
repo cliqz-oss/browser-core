@@ -13,7 +13,7 @@ const id = '{0ea88bc4-03bd-4baa-8153-acc861589c1c}';
 const CUSTOM_MANIFEST_ENTRY = `
   ,"applications": {
     "gecko": {
-      "id": "${id}"
+      "id": "${id}",
       "strict_min_version": "57"
     }
   }

@@ -20,6 +20,7 @@ import {
 import logger from './logger';
 import cookies from '../platform/cookies';
 import { browser } from '../platform/globals';
+import { queryTabs } from '../platform/tabs';
 
 const cookieKeyCols = ['domain', 'path', 'name', 'storeId', 'firstPartyDomain'];
 export function cookieId(cookie) {
@@ -93,8 +94,12 @@ export default class CookieMonster {
   }
 
   processBatch(ckis) {
-    return Promise.all([this.upsertCookies(ckis), this.getTrackerCookieVisits(ckis)])
-      .then(async ([results, visited]) => {
+    const domains = new Set(ckis.map(({ cookie }) => cookieGeneralDomain(cookie.domain)));
+    return Promise.all([
+      this.upsertCookies(ckis),
+      this.getTrackerCookieVisits(domains),
+      this.getActiveCookieDomains(domains)])
+      .then(async ([results, visited, open]) => {
         logger.debug('cookies', results, visited);
 
         // timestamps are in seconds for compatibility with cookie expirations
@@ -104,7 +109,8 @@ export default class CookieMonster {
             this.deleteCookie(cookie);
             return 'expired';
           }
-          const isTracker = this.isTrackerDomain(cookieGeneralDomain(cookie.domain));
+          const cookieDomain = cookieGeneralDomain(cookie.domain);
+          const isTracker = this.isTrackerDomain(cookieDomain);
           // non trackers: 30 day expiry.
           // trackers: 1 hour
           const policy = this.policies.find(p => p.appliesTo(cookie, isTracker));
@@ -112,7 +118,10 @@ export default class CookieMonster {
             logger.debug('no policy found for cookie', cookie);
             return 'no policy';
           }
-          const { visits } = visited[cookieGeneralDomain(cookie.domain)] || { visits: 0 };
+          if (open.has(cookieDomain)) {
+            return 'open';
+          }
+          const { visits } = visited[cookieDomain] || { visits: 0 };
           const shouldExpireAt = policy.getExpiry(cookie, visits);
           const modExpiry = shouldExpireAt / 1000;
 
@@ -157,7 +166,7 @@ export default class CookieMonster {
             if (cookieUpdate.firstPartyDomain) {
               cookieUpdate.firstPartyDomain = cookie.firstPartyDomain;
             }
-            logger.debug('update cookie expiry', cookieId(cookie), new Date(cookie.expirationDate * 1000), '->', new Date(modExpiry * 1000), policy.constructor.name);
+            logger.debug('update cookie expiry', cookieId(cookie), new Date(cookie.expirationDate * 1000), '->', new Date(modExpiry * 1000), policy.name);
             cookies.set(cookieUpdate);
             return 'update';
           }
@@ -181,7 +190,11 @@ export default class CookieMonster {
             localStorageDeleted,
           });
         }
-        return actions;
+        // return non-processed cookies
+        return {
+          actions,
+          unprocessed: results.filter((_, i) => actions[i] === 'open'),
+        };
       });
   }
 
@@ -222,17 +235,24 @@ export default class CookieMonster {
           .then(() => Object.values(cookieMap)));
   }
 
-  getTrackerCookieVisits(ckis) {
-    const domains = new Set(ckis.map(({ cookie }) => cookieGeneralDomain(cookie.domain)));
-    return this.db.visits.where('domain').anyOf(...domains)
-      .toArray().then(result =>
-        // count visits per domain
-        result.reduce((visited, row) => ({
-          ...visited,
-          [row.domain]: {
-            visits: (visited[row.domain] ? visited[row.domain].visits : 0) + 1,
-          },
-        }), {}));
+  async getTrackerCookieVisits(domains) {
+    const visits = await this.db.visits.where('domain').anyOf(...domains).toArray();
+    // count visits per domain
+    return visits.reduce((visited, row) => ({
+      ...visited,
+      [row.domain]: {
+        visits: (visited[row.domain] ? visited[row.domain].visits : 0) + 1,
+      },
+    }), {});
+  }
+
+  async getActiveCookieDomains(domains) {
+    // get tracker domains from open tabs
+    return new Set(
+      (await queryTabs())
+        .map(tab => getGeneralDomain(tab.url))
+        .filter(d => domains.has(d))
+    );
   }
 
   deleteCookie(cookie) {
@@ -266,6 +286,35 @@ export default class CookieMonster {
       origins.add(cookieGeneralDomain(cki.domain));
       return origins;
     }, new Set());
+    // remove expired cookies
+    const now = Date.now() / 1000;
+    const expiredCookies = allCookies
+      .filter(({ expirationDate }) => expirationDate && expirationDate < now)
+      .map((cookie) => {
+        logger.info(
+          'cookie should be expired:',
+          cookieId(cookie),
+          new Date(cookie.expirationDate * 1000),
+        );
+        const protocol = cookie.secure ? 'https' : 'http';
+        const cookieDelete = {
+          name: cookie.name,
+          url: `${protocol}://${cookie.domain}${cookie.path}`,
+          storeId: cookie.storeId,
+        };
+        if (cookie.domain.startsWith('.')) {
+          cookieDelete.url = `${protocol}://${cookie.domain.substring(1)}${
+            cookie.path
+          }`;
+        }
+        if (cookieDelete.firstPartyDomain) {
+          cookieDelete.firstPartyDomain = cookie.firstPartyDomain;
+        }
+        return Promise.all([
+          cookies.remove(cookieDelete),
+          this.deleteCookie(cookie),
+        ]);
+      });
 
     return this.telemetry('prune', {
       visitsPruned: await pruneVisits,
@@ -275,6 +324,7 @@ export default class CookieMonster {
       cookiesCount: await this.db.trackerCookies.count(),
       totalCookies: allCookies.length,
       totalOrigins: cookieOrigins.size,
+      cookiesExpired: expiredCookies.length,
     });
   }
 

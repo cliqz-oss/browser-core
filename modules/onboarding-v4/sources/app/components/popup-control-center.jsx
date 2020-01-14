@@ -13,12 +13,6 @@ import t from '../../i18n';
 import * as telemetry from '../services/telemetry/telemetry';
 import config from '../../../core/config';
 
-import {
-  showUITour,
-  hideUITour,
-} from '../../../core/ui-tour';
-
-
 export default class PopupControlCenter extends React.Component {
   _timerId = null
 
@@ -57,7 +51,7 @@ export default class PopupControlCenter extends React.Component {
 
       telemetry.popupCCshow();
 
-      const promise = showUITour(settings, tryButton, skipButton);
+      const promise = cliqz.onboarding.showUITour(settings, tryButton, skipButton);
 
       promise.then(async (button) => {
         switch (button) {
@@ -92,7 +86,7 @@ export default class PopupControlCenter extends React.Component {
     clearTimeout(this._timerId);
     this._timerId = null;
 
-    hideUITour();
+    cliqz.onboarding.hideUITour();
     // change tab name
     parent.document.title = config.settings.FRESHTAB_TITLE;
     // remove iframe with onboarding

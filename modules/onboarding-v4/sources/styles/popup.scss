@@ -95,12 +95,12 @@
 
          .button-link {
              margin-left: 18px;
-             color: #fff;
+             color: $cliqz-blue-color;
              border: 1px solid transparent;
              -moz-appearance: none;
 
              &:hover {
-                 border-color: #fff;
+                 border-color: $cliqz-blue-color
              }
          }
      }

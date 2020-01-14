@@ -18,7 +18,6 @@ if (env.BRANCH_NAME.startsWith('v1.')) {
     matrix['browser-pre'] = [
         'config': 'releases/browser.js',
     ]
-    
     matrix['user-agent-ios'] = [
         'config': 'user-agent-ios.js',
     ]
@@ -386,38 +385,39 @@ try{
             body: bodytxt,
         )
     }
+    if (env.BRANCH_NAME.startsWith('v')) {
+        stage('update jira') {
+            if (isIntegrationBranch) {
+                withEnv(['JIRA_SITE=cliqztix']) {
+                    def issueIds = getIssueList(/EX-[0-9]+/)
+                    def transitionInput = [
+                        transition: [
+                            id: '121',
+                        ],
+                    ]
 
-    stage('update jira') {
-        if (isIntegrationBranch) {
-            withEnv(['JIRA_SITE=cliqztix']) {
-                def issueIds = getIssueList(/EX-[0-9]+/)
-                def transitionInput = [
-                    transition: [
-                        id: '121',
-                    ],
-                ]
+                    if (issueIds.size() > 0) {
+                        echo 'Detected JIRA tickets'
+                        echo issueIds.toString()
+                    } else {
+                        echo 'No JIRA tickets detected'
+                    }
 
-                if (issueIds.size() > 0) {
-                    echo 'Detected JIRA tickets'
-                    echo issueIds.toString()
-                } else {
-                    echo 'No JIRA tickets detected'
-                }
+                    for (id in issueIds) {
+                        try {
+                            def issue = jiraGetIssue idOrKey: id
 
-                for (id in issueIds) {
-                    try {
-                        def issue = jiraGetIssue idOrKey: id
-
-                        if (issue.data.fields.status.name == "Resolved") {
-                            jiraTransitionIssue idOrKey: id, input: transitionInput
+                            if (issue.data.fields.status.name == "Resolved") {
+                                jiraTransitionIssue idOrKey: id, input: transitionInput
+                            }
+                        } catch (Error e) {
+                            echo e
                         }
-                    } catch (Error e) {
-                        echo e
                     }
                 }
             }
         }
-    }
+    } 
 }
 catch (all) {
     echo 'FAILURE !!!'
@@ -471,5 +471,5 @@ def getUrls(output) {
         def u = y.group().toString().trim().replaceFirst(/^s3:\/\/cdncliqz\//, 'https://s3.amazonaws.com/cdncliqz/')
         out.add(u)
     }
-    return out
+    return out.sort().unique()
 }

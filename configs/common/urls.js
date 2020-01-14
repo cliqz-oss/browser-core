@@ -23,12 +23,14 @@ module.exports = (base, cdn = 'cdn') => ({
   ENDPOINT_SAFE_QUORUM_ENDPOINT: `https://safe-browsing-quorum.privacy.${base}/`,
   ENDPOINT_SAFE_QUORUM_PROVIDER: `https://safe-browsing-quorum.privacy.${base}/config`,
   FEEDBACK: `https://${base}/feedback/`, // core/sources/utils.es
+  // not used as URL, but as key to signal to ambassor to fetch news
   HB_NEWS: `hb-news.${base}`, // freshtab/sources/news.es, history/sources/rich-header-proxy.es
   OFFERS_BE_BASE_URL: `https://offers-api.${base}`,
   PRIVACY_SCORE_URL: `https://anti-tracking.${base}/api/v1/score?`, // antitracking/sources/privacy-score.es
   RESULTS_PROVIDER: `https://api.${base}/api/v2/results?nrh=1&q=`, // core/config.es
   RESULTS_PROVIDER_LOG: `https://api.${base}/api/v1/logging?q=`, // core/config.es
   RICH_HEADER: `https://api.${base}/api/v2/rich-header?path=/v2/map`,
+  // not used as URL, but as key to signal to ambassor to fetch news
   ROTATED_TOP_NEWS: `rotated-top-news.${base}`, // freshtab/sources/news.es
   SAFE_BROWSING: `https://safe-browsing.${base}`, // core/sources/utils.es
   STATISTICS: `https://stats.${base}`, // core/sources/utils.es

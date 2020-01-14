@@ -12,7 +12,8 @@ import extChannel from '../platform/ext-messaging';
 
 const allowedExtensions = [
   'firefox@ghostery.com',
-  'gdprtool@cliqz.com'
+  'gdprtool@cliqz.com',
+  'dat@cliqz.com',
 ];
 
 function onMessage(message, sender) {

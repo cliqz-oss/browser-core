@@ -115,6 +115,7 @@ module.exports = {
     'toolbox',
     'autoconsent',
     'consentric',
+    'dat',
   ],
   bundles: [
     'anolysis-cc/dashboard/anolysis.bundle.js',

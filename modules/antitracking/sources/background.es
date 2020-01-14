@@ -20,7 +20,7 @@ import Config, { TELEMETRY } from './config';
 import { updateTimestamp } from './time';
 import { bindObjectFunctions } from '../core/helpers/bind-functions';
 import inject from '../core/kord/inject';
-import { isMobile, isEdge } from '../core/platform';
+import { isEdge } from '../core/platform';
 import { parse } from '../core/url';
 
 // Telemetry schemas
@@ -59,10 +59,6 @@ export default background({
     // Create new attrack class
     this.settings = settings;
     this.core = inject.module('core');
-
-    if (isMobile) {
-      prefs.set('attrackBloomFilter', false);
-    }
 
     this.attrack = new Attrack();
 

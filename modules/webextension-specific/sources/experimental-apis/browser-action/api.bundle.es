@@ -170,7 +170,15 @@ global.browserActionMap = new Set();
 
 // Now execute `ext-browserAction.js` in the current scope
 // in order to get access to original BrowserAction constructor
-Services.scriptloader.loadSubScript('chrome://browser/content/parent/ext-browserAction.js', global, 'UTF-8');
+//
+// this particular ext-browserAction.js is the raw version from Firefox 71
+// https://hg.mozilla.org/releases/mozilla-release/raw-file/3cc34f31408f497dd5f050232321d5a7e2986362/browser/components/extensions/parent/ext-browserAction.js
+
+Services.scriptloader.loadSubScript(
+  ExtensionParent.WebExtensionPolicy.getByID('cliqz@cliqz.com').extension.baseURI
+    .resolve('/modules/webextension-specific/experimental-apis/browser-action/ext-browserAction.js'),
+  global, 'UTF-8'
+);
 
 const BrowserAction = global.browserAction;
 delete global.browserAction;

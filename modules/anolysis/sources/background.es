@@ -85,7 +85,7 @@ async function instantiateAnolysis(configTs, browser) {
  */
 export default background({
   // to be able to read the config prefs
-  requiresServices: ['cliqz-config', 'telemetry', 'pacemaker'],
+  requiresServices: ['cliqz-config', 'telemetry', 'pacemaker', 'session'],
 
   isBackgroundInitialized: false,
   anolysis: null,
@@ -244,25 +244,11 @@ export default background({
       return this.anolysis.currentDate.toString();
     },
 
-    getGID() {
-      if (!this.isAnolysisInitialized()) {
-        return Promise.reject(new Error('Cannot call `getGID` when Anolysis is unloaded'));
-      }
-      return this.anolysis.gidManager.getGID();
-    },
-
     async getMetricsForDate(date) {
       if (!this.isAnolysisInitialized()) {
         return Promise.reject(new Error('Cannot call `getMetricsForDate` when Anolysis is unloaded'));
       }
       return (await this.anolysis.storage.behavior.getTypesForDate(date)).toObj();
-    },
-
-    getLastGIDUpdateDate() {
-      if (!this.isAnolysisInitialized()) {
-        return Promise.reject(new Error('Cannot call `getLastGIDUpdateDate` when Anolysis is unloaded'));
-      }
-      return this.anolysis.gidManager.getLastGIDUpdateDate();
     },
 
     getDemographics() {

@@ -82,7 +82,7 @@ class TabConsent {
     const tStart = Date.now();
     try {
       tabGuards.add(this.tab.id);
-      await this.cmp.doOptIn();
+      await this.cmp.doOptIn(this.tab);
       this.setConsentStatus(CONSENT_STATES.ALL_ALLOWED);
     } catch (e) {
       this.telemetry.recordConsentError(this.cmp, e.toString());

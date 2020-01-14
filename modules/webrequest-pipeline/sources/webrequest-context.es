@@ -92,6 +92,17 @@ export default class WebRequestContext {
     this.originUrlParts = parse(this.originUrl);
   }
 
+  /**
+   * Optionally, a CNAME record can be requested from DNS for `this.url`. If
+   * available, it will be communicated by calling this method. We then set two
+   * new attributes on the WebRequestContext object so that users of the
+   * pipeline can access this information.
+   */
+  setCNAME(cname) {
+    this.cnameUrl = this.url.replace(this.urlParts.hostname, cname);
+    this.cnameUrlParts = parse(this.cnameUrl);
+  }
+
   getRequestHeader(name) {
     if (this._requestHeadersMap === null) {
       this._requestHeadersMap = createHeadersGetter(this.requestHeaders || []);

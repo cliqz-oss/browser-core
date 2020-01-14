@@ -34,6 +34,16 @@ body, html {
   --ghostery-primary-hover-color: #5B005C;
 }
 
+body.chip {
+  background-color: var(--chip-primary-color, #eb443f);
+}
+body.cliqz, body.amo {
+  background-color: #00AEF0;
+}
+body.myoffrz {
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
+
 @import "Tooltip";
 @import "Main";
 @import "Header";

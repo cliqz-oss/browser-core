@@ -36,7 +36,7 @@ import analyses from './telemetry/analyses';
 
 const TELEMETRY_PREFIX = 'cookie-monster';
 
-const BATCH_UPDATE_FREQUENCY = 180000;
+const BATCH_UPDATE_FREQUENCY = 30000;
 
 async function isPrivateTab(tabId) {
   return (await browser.tabs.get(tabId)).incognito;
@@ -107,8 +107,13 @@ export default background({
     );
 
     this.trackerCookiesStream = batchObservable
-      .subscribe((ckis) => {
-        this.onCookieBatch(ckis);
+      .subscribe(async (ckis) => {
+        const { unprocessed } = await this.onCookieBatch(ckis);
+        logger.debug('some cookies not yet processed due to open tabs', unprocessed);
+        unprocessed.forEach((cookie) => {
+          // cookie is for open tab so we resubmit it for later processing
+          this.subjectCookies.next({ cookie });
+        });
       });
 
     const initDb = this.cookieMonster.init();

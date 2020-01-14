@@ -41,6 +41,18 @@ const appCreated = new Defer();
 
         return undefined;
       });
+
+      // distribution details are stored in
+      // offers.distribution.channel and *.sub
+      // but we need to fallback to referrer_url
+      // for older users
+      telemetry.push({
+        type: 'environment.offers',
+        channel: prefs.get('offers.distribution.channel',
+          prefs.get('offers.distribution.referrer_url', '')),
+        subchannel: prefs.get('offers.distribution.channel.sub',
+          prefs.get('offers.distribution.advert_id', ''))
+      }, undefined, true);
     });
 
   window.CLIQZ = CLIQZ;

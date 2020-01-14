@@ -1641,7 +1641,6 @@ const CliqzHumanWeb = {
 
                               if (CliqzHumanWeb.state['v'][currURL] != null) {
                                   CliqzHumanWeb.addURLtoDB(currURL, CliqzHumanWeb.state['v'][currURL]['ref'], CliqzHumanWeb.state['v'][currURL]);
-                                  delete CliqzHumanWeb.state['v'][currURL];
                               }
 
                             }, function () {

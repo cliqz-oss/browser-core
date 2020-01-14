@@ -13,6 +13,50 @@ import { Behavior } from './signal';
 import { Demographics, DemographicTrait } from './demographics';
 
 export type JsonSchema = object;
+// export interface EphemerId {
+//   kind: 'absolute' | 'relative';
+//   unit: 'day' | 'week' | 'month';
+//   n: number;
+// }
+
+/**
+ * In cases where client-side aggregation is not feasible, an ephemeral ID
+ * might be specified. An ephemeral ID is an identifier which is:
+ *
+ *  * Limited in time - it will be rotated up to every day/week/month.
+ *  * Per-user - it is derived from `session` and salted further.
+ *  * Per-signal - it is salted using the name of the analysis.
+ *
+ * The goal of an ephemerid is to allow some limited backend aggregation
+ * while preventing record linkage. This is achieved by having the lifespan
+ * of an ID being aggressively limited in time (see 'unit') and
+ * scoped per signal (which prevents linking to other signals).
+ */
+export type EphemerId = {
+  // 'absolute' ephemerids are aligned with the calendar, for example
+  // they change every week (on Monday) or every first of the month
+  kind: 'absolute';
+
+  // Unit (or granularity) and n (or frequency) together define the time range
+  // an ephmerid stays constant for. For example:
+  // *  'day', 1: ephemerid changes daily
+  // *  'day', 7: ephemerid changes every 7 days
+  //    (note: for 'absolute', it changes every multiple of 7 days starting from Jan 1st)
+  // *  'week', 1: ephemerid changes every Monday
+  // *  'week', 2: ephemerid changes every 2nd Monday
+  // *  'month', 1: ephemerid changes monthly
+  // *  'month', 5: ephemerid changes in January, June, January, ...
+  //    (note: intervals are of the same length)
+  unit: 'day' | 'week' | 'month';
+
+  n: number;
+} | {
+  // 'relative' ephemerids are aligned with the install date, for example
+  // they change 40 days after installation; unit needs to be 'day'
+  kind: 'relative';
+  unit: 'day';
+  n: number;
+}
 
 /**
  * A schema describe a signal which is collected by `telemetry`. It can be of
@@ -68,20 +112,8 @@ export interface Schema {
     // will be omitted completely from the payload (the default).
     demographics?: Array<DemographicTrait>;
 
-    // In cases where client-side aggregation is not feasible, an ephemeral ID
-    // might be specified. An ephemeral ID is an identifier which is:
-    //
-    // * Limited in time - it will be rotated up to every day/week/month.
-    // * Per-user - it is derived from `session` and salted further.
-    // * Per-signal - it is salted using the name of the analysis.
-    //
-    // The goal of an ephemerid is to allow some limited backend aggregation
-    // while preventing record linkage. This is achieved by having the lifespan
-    // of an ID being aggressively limited in time (see 'granularity') and
-    // scoped per signal (which prevents linking to other signals).
-    ephemerid?: {
-      granularity: 'day' | 'week' | 'month' | 'year';
-    };
+    // See documentation above.
+    ephemerid?: EphemerId;
   };
 
   // Optional. A function which will automatically be called to generate

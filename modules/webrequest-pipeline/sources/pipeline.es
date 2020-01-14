@@ -233,4 +233,16 @@ export default class Pipeline {
       }
     }
   }
+
+  safeExecute(context, response, canAlterRequest) {
+    try {
+      this.execute(
+        context,
+        response,
+        canAlterRequest,
+      );
+    } catch (ex) {
+      logger.error('while running pipeline', context, ex);
+    }
+  }
 }

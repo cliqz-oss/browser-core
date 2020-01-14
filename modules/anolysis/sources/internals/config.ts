@@ -10,6 +10,7 @@ import { Storage } from './storage/types/storage';
 import { Meta } from './signal';
 
 export interface Config {
+  session?: string;
   backend: {
     url: string;
     post: (url: string, payload: object) => Promise<object>;

@@ -25,6 +25,8 @@ export interface Meta {
   // the signal queue storage. This can happen exceptionally whenever the
   // storage is not working properly.
   forcePushed?: boolean;
+
+  ephemerid?: string;
 }
 
 export interface Signal {

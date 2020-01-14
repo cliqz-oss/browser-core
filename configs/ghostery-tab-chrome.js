@@ -10,7 +10,7 @@ const ghosteryBase = require('./ghostery-tab-base');
 
 const id = 'ifnpgdmcliingpambkkihjlhikmbbjid';
 const CUSTOM_MANIFEST_ENTRY = `
-  ,"minimum_chrome_version": "55",
+  ,"minimum_chrome_version": "55"
 `;
 
 

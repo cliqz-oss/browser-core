@@ -13,19 +13,17 @@ import UrlWhitelist from '../core/url-whitelist';
 
 import AdbStats from './statistics';
 import EngineManager from './manager';
+import logger from './logger';
 
 
 /**
  * Given a webrequest context from webrequest pipeline, create a `Request`
  * instance as expected by the adblocker engine.
  */
-function makeRequestFromContext({
+function makeRequestFromContext(url, urlParts, {
   tabId,
   requestId,
-
   type,
-  url = '',
-  urlParts,
 
   frameUrl,
   frameUrlParts,
@@ -177,6 +175,29 @@ export default class Adblocker {
   }
 
   /**
+   * Process `request` with adblocker engine. If request is blocked or
+   * redirected, then return value is `false` (which means that pipeline will
+   * be terminated); otherwise `true` is returned.
+   */
+  processRequest(request, response, context) {
+    const { match, redirect } = this.manager.engine.match(request);
+
+    if (redirect !== undefined) {
+      this.stats.addBlockedUrl(context);
+      response.redirectTo(redirect.dataUrl);
+      return false;
+    }
+
+    if (match === true) {
+      this.stats.addBlockedUrl(context);
+      response.block();
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
    * Process onBeforeRequest event from webrequest pipeline. This can result in
    * requests being blocked, redirected or allowed based on what the adblocker
    * engine decides.
@@ -185,7 +206,6 @@ export default class Adblocker {
     if (this.shouldProcessRequest(context, response) === false) {
       return false;
     }
-
 
     if (context.isMainFrame) {
       this.stats.addNewPage(context);
@@ -202,23 +222,47 @@ export default class Adblocker {
       // There is currently only one kind of filters which are supported:
       // ##^script:has-text(...) which allows to remove script tags if a
       // substring or RegExp is found within.
-      this.manager.engine.performHTMLFiltering(makeRequestFromContext(context));
+      this.manager.engine.performHTMLFiltering(makeRequestFromContext(
+        context.url,
+        context.urlParts,
+        context,
+      ));
 
       return false;
     }
 
-    const request = makeRequestFromContext(context);
-    const { match, redirect } = this.manager.engine.match(request);
+    let ret = this.processRequest(
+      makeRequestFromContext(context.url, context.urlParts, context),
+      response,
+      context,
+    );
 
-    let ret = true;
-    if (redirect !== undefined) {
-      this.stats.addBlockedUrl(context);
-      response.redirectTo(redirect.dataUrl);
-      ret = false;
-    } else if (match === true) {
-      this.stats.addBlockedUrl(context);
-      response.block();
-      ret = false;
+    // If the request was not blocked (i.e.: `ret` is `true`), then we check if
+    // the request has a `cnameUrl` attribute; which means that CNAME
+    // uncloaking was performed in the webrequest-pipeline. We use this
+    // information to replay the request through the adblocker engine with the
+    // CNAME URL and check if it should be blocked.
+    if (
+      // This means that request was not blocked/redirected yet.
+      ret === true
+
+      // Check if webrequest-pipeline attached CNAME information to request.
+      && context.cnameUrl
+      && context.cnameUrlParts
+
+      // Only perform second check if domain of `cnameUrl` is different from
+      // domain of `url`. This avoid extra work in case CNAME is still a 1p.
+      && context.cnameUrlParts.generalDomain !== context.urlParts.generalDomain
+    ) {
+      ret = this.processRequest(
+        makeRequestFromContext(context.cnameUrl, context.cnameUrlParts, context),
+        response,
+        context,
+      );
+
+      if (ret === false) {
+        logger.log('first-party tracker blocked', context);
+      }
     }
 
     return ret;
@@ -240,7 +284,12 @@ export default class Adblocker {
       return false;
     }
 
-    const directives = this.manager.engine.getCSPDirectives(makeRequestFromContext(context));
+    const directives = this.manager.engine.getCSPDirectives(makeRequestFromContext(
+      context.url,
+      context.urlParts,
+      context,
+    ));
+
     if (directives !== undefined) {
       const cspHeader = 'content-security-policy';
       const existingCSP = context.getResponseHeader(cspHeader);

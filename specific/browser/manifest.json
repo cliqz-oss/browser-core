@@ -81,7 +81,7 @@
   "browser_action": {
     "default_title": "__MSG_offers_hub_title__",
     "default_icon": "modules/offers-cc/images/offers-cc-icon.svg",
-    "default_popup": "modules/offers-cc/index.html?popup"
+    "default_popup": "modules/offers-cc/index.html?popup#{{PRODUCT_PREFIX}}"
   },
   "page_action": {
     "default_icon": {
@@ -113,7 +113,8 @@
     "webNavigation",
     "webRequest",
     "webRequestBlocking",
-    "browsingData"
+    "browsingData",
+    "dns"
   ],
   "background": {
     "scripts": [

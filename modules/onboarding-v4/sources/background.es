@@ -15,6 +15,8 @@ import inject from '../core/kord/inject';
 import {
   createUITourTarget,
   deleteUITourTarget,
+  showUITour,
+  hideUITour,
 } from '../core/ui-tour';
 
 import metrics from './telemetry/metrics';
@@ -78,6 +80,14 @@ export default background({
 
     openImportDialog() {
       chrome.cliqz.openImportDialog();
+    },
+
+    hideUITour() {
+      hideUITour();
+    },
+
+    showUITour(settings, tryButton, skipButton) {
+      return showUITour(settings, tryButton, skipButton);
     }
   },
 });

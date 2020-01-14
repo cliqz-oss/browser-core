@@ -16,6 +16,7 @@ import config from '../core/config';
 import { httpPost } from '../core/http';
 import prefs from '../core/prefs';
 import getDemographics from '../core/demographics';
+import inject from '../core/kord/inject';
 
 import AnolysisDexieStorage from './internals/storage/dexie';
 import AnolysisAsyncStorage from './internals/storage/async-storage';
@@ -58,6 +59,9 @@ const isMobileConnection = async (browser) => {
 
 export default async function (browser) {
   return {
+    // Session ID of the users to generate ephemerid.
+    session: (inject.service('session', ['getSession'])).getSession(),
+
     backend: {
       url: ((await shouldUseStaging())
         ? config.settings.ANOLYSIS_STAGING_BACKEND_URL

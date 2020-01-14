@@ -39,25 +39,21 @@ module.exports = {
   },
   modules: [
     'core',
-    'core-cliqz',
     'human-web-lite',
     'search',
     'mobile-cards',
-    'mobile-cards-vertical',
     'anolysis',
     'geolocation',
     'news',
-    'inbox',
+    'insights',
   ],
   bundles: [
   ],
-  react_components: {
-    ExtensionApp: './modules/mobile-cards/cliqz-ios/ExtensionApp'
-  },
   resources: {
     bundling: 'assets',
     include: [
       'core/logo-database.json',
+      'autoconsent/cosmetics.json',
     ]
   }
 };
