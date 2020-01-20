@@ -6,42 +6,28 @@ const _css = css('card-promo__');
 export default class Promo extends React.Component {
   constructor(props) {
     super(props);
-    const { voucher = {}, isCodeHidden } = props;
-    const { template_data: templateData = {} } = voucher;
     this.state = {
-      code: templateData.code,
-      buttonText: i18n(isCodeHidden ? 'offers_hub_get_code_btn' : 'offers_hub_copy_btn'),
-      isCodeHidden,
+      isCodeHidden: this.props.isCodeHidden,
       copied: false,
-      isOpenCTAurl: false,
+      shouldHideCopyCode: true,
     };
-  }
-
-  static getDerivedStateFromProps(props, state) {
-    if (!props.isCodeHidden && props.isCodeHidden !== state.isCodeHidden) {
-      return {
-        buttonText: i18n('offers_hub_copy_btn'),
-        isOpenCTAurl: true,
-      };
-    }
-    return state;
   }
 
   onClickCopyCode() {
     const { voucher = {}, onCopyCode } = this.props;
-    const { isOpenCTAurl } = this.state;
     const { template_data: templateData = {}, offer_id: offerId } = voucher;
     const { call_to_action: { url } = {} } = templateData;
     onCopyCode();
-    if (!isOpenCTAurl) {
-      send('openAndClosePinnedURL', { url, matchPatterns: voucher.landing || [] });
-    }
-    this.setState({
-      buttonText: i18n('offers_hub_code_copy'),
-      isCodeHidden: false,
-      copied: true,
-      isOpenCTAurl: true,
-    });
+
+    // setTimeout -> to provide user a visual effect of coping
+    setTimeout(() => send('openURL', {
+      offerId,
+      url,
+      closePopup: false,
+      isCallToAction: true,
+    }), 250);
+
+    this.setState({ isCodeHidden: false, copied: true });
     send('sendOfferActionSignal', {
       signal_type: 'offer-action-signal',
       element_id: 'code_copied',
@@ -51,14 +37,36 @@ export default class Promo extends React.Component {
   }
 
   /* eslint-disable  jsx-a11y/no-static-element-interactions */
-  render() {
-    const { products } = this.props;
-    const { code, buttonText, copied, isCodeHidden } = this.state;
-    if (!code) { return null; }
-
+  renderButton() {
+    const { voucher = {}, products } = this.props;
+    const { template_data: templateData = {}, offer_id: offerId } = voucher;
+    const { call_to_action: { url, text } = {} } = templateData;
     const prefix = chooseProduct(products);
     return (
-      <div className={_css('wrapper')}>
+      <div
+        onClick={
+          () => send('openURL', {
+            offerId,
+            url,
+            closePopup: false,
+            isCallToAction: true,
+          })
+        }
+        className={_css('button', `${prefix}-button`)}
+      >
+        {text}
+      </div>
+    );
+  }
+
+  renderCopyCode() {
+    const { products, voucher = {} } = this.props;
+    const { template_data: { code = '' } = {} } = voucher;
+    const { copied, isCodeHidden } = this.state;
+    const prefix = chooseProduct(products);
+    const newCode = isCodeHidden ? `${code.substring(0, 3)}...` : code;
+    return (
+      <div className={_css('wrapper', `${prefix}-wrapper`)}>
         <div className={_css('container')}>
           <input
             ref={(input) => {
@@ -68,17 +76,44 @@ export default class Promo extends React.Component {
               if (copied) { this.setState({ copied: false }); }
             }}
             readOnly
-            className={_css('input')}
-            value={isCodeHidden ? '* * * * *' : code}
+            className={_css('input', `${prefix}-input`)}
+            value={newCode}
           />
-          <span
+          <div
             onClick={this.onClickCopyCode.bind(this)}
-            className={_css(`${prefix}-copy-code`)}
+            className={_css('copy-code')}
           >
-            {buttonText}
-          </span>
+            {i18n('copy_and_go')}
+          </div>
         </div>
       </div>
     );
+  }
+
+  renderShowCode() {
+    if (!this.state.shouldHideCopyCode) { return this.renderCopyCode(); }
+    const prefix = chooseProduct(this.props.products);
+    return (
+      <div
+        onClick={
+          () => this.setState({
+            shouldHideCopyCode: false,
+            isCodeHidden: false,
+          })
+        }
+        className={_css('button', 'show-code-button', `${prefix}-button`)}
+      >
+        {i18n('show_code')}
+      </div>
+    );
+  }
+
+  render() {
+    const { abtestInfo: { popupsCopyCode } = {}, voucher = {} } = this.props;
+    const { template_data: { code } = {} } = voucher;
+    if (!code) { return this.renderButton(); }
+    return popupsCopyCode === 'two-step'
+      ? this.renderShowCode()
+      : this.renderCopyCode();
   }
 }

@@ -8,27 +8,31 @@ function styles({
   baseUrl,
 } = {}) {
   const product = chooseProduct(products);
+  const newHeadlineColor = !headlineColor || product === 'myoffrz'
+    ? '#494949;'
+    : headlineColor;
   const colors = {
     ghostery: ['#930194', '#920094', '#850587'],
-    myoffrz: ['#00AEF0', '#0078CA', '#0078CA'],
+    myoffrz: ['#f67057', '#f67057', '#f67057'],
     chip: ['#EB443F', '#EB443F', '#c93636'],
     freundin: ['#CD071E', '#CD071E', '#da3434'],
   };
   const icons = {
     ghostery: 'ghostery-rewards-beta.svg',
-    myoffrz: 'offers-cc-icon.svg',
+    myoffrz: 'myoffrz-logo.svg',
     chip: 'chip-logo.svg',
     freundin: 'freundin-logo.svg',
   };
   const iconsSizes = {
     ghostery: '111px',
-    myoffrz: '20px',
+    myoffrz: '111px',
     chip: '111px',
     freundin: '111px',
   };
-  const [mainColor, secondaryColor, tertiaryColor] = colors[product];
-  const rewardIconPath = icons[product];
-  const offerLogoSize = iconsSizes[product];
+  const [mainColor, secondaryColor, tertiaryColor] = colors[product]
+    || ['#00AEF0', '#0078CA', '#0078CA'];
+  const rewardIconPath = icons[product] || 'offers-cc-icon.svg';
+  const offerLogoSize = iconsSizes[product] || '20px';
   const sizesByClass = { square: '30px', short: '55px', normal: '70px', long: '105px' };
   const logoSize = sizesByClass[logoClass] || '70px';
   return `
@@ -182,7 +186,7 @@ function styles({
       font-size: 19px;
       font-weight: 350;
       padding-bottom: 21px;
-      color: ${headlineColor || 'black'};
+      color: ${newHeadlineColor};
     }
 
     .code-wrapper {

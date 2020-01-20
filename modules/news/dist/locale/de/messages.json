@@ -1,0 +1,32 @@
+{
+    "news_language_de": {
+        "message": "Deutsche Medien"
+    },
+    "news_language_de_tr_en": {
+        "message": "Deutsche Medien auf Englisch"
+    },
+    "news_language_en": {
+        "message": "UK & U.S. Medien"
+    },
+    "news_language_es": {
+        "message": "Spanische Medien"
+    },
+    "news_language_fr": {
+        "message": "Französische Medien"
+    },
+    "news_language_gb": {
+        "message": "Britische Medien"
+    },
+    "news_language_it": {
+        "message": "Italienische Medien"
+    },
+    "news_language_pl": {
+        "message": "Polnische Medien"
+    },
+    "news_language_ru": {
+        "message": "Russische Medien"
+    },
+    "news_language_us": {
+        "message": "U.S. Medien"
+    }
+}

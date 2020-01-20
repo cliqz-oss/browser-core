@@ -8,40 +8,12 @@
 
 import { window, chrome } from './globals';
 import windows from './windows';
-import events from '../core/events';
 
 export * from './tabs';
 export * from './windows';
 
-// TODO: Refactor
-export class Window {
-  constructor(win) {
-    this.window = win;
-  }
-
-  static findByTabId() {
-
-  }
-
-  get id() {
-    return this.window.id;
-  }
-}
-
 let currentWindow = null;
 const windowsMap = new Map();
-
-export function mapWindows(fn) {
-  return [...windowsMap.values()].map((win) => {
-    let ret;
-    try {
-      ret = fn(win);
-    } catch (e) {
-      //
-    }
-    return ret;
-  });
-}
 
 export function getWindow() {
   return currentWindow;
@@ -68,15 +40,6 @@ export function getBrowserMajorVersion() {
   return majorVer;
 }
 
-const healthReportPrefObserver = () => events.pub('healthReportChange');
-
-export function enableChangeEvents() {
-  if (chrome.cliqz && chrome.cliqz.onPrefChange) {
-    chrome.cliqz.onPrefChange.addListener(healthReportPrefObserver, 'datareporting.healthreport.', 'uploadEnabled');
-    chrome.cliqz.onPrefChange.addListener(healthReportPrefObserver, 'toolkit.telemetry.', 'enabled');
-  }
-}
-
 const windowObservers = new WeakMap();
 
 export function addWindowObserver(fn) {
@@ -85,7 +48,10 @@ export function addWindowObserver(fn) {
   }
   const observer = {
     open: win => fn(win, 'opened'),
-    focus: windowId => fn({ id: windowId }, 'focused'),
+    focus: (windowId) => {
+      const win = windowsMap.get(windowId) || { id: windowId };
+      return fn(win, 'focused');
+    },
     close: windowId => fn({ id: windowId }, 'closed'),
   };
   windowObservers.set(fn, observer);
@@ -134,15 +100,16 @@ if (windows !== undefined) {
 
 export function addMigrationObserver() {}
 export function removeMigrationObserver() {}
-export function forEachWindow(cb) {
-  return mapWindows(cb);
-}
-export function mustLoadWindow() {
-  return true;
-}
-
-export function waitWindowReady() {
-  return Promise.resolve();
+export function forEachWindow(fn) {
+  return [...windowsMap.values()].map((win) => {
+    let ret;
+    try {
+      ret = fn(win);
+    } catch (e) {
+      //
+    }
+    return ret;
+  });
 }
 
 export function getUrlForTab(tabId) {
@@ -196,14 +163,6 @@ export function getCookies(url) {
   });
 }
 
-export function reportError() {}
-
-export function disableChangeEvents() {
-  if (chrome.cliqz && chrome.cliqz.onPrefChange) {
-    chrome.cliqz.onPrefChange.removeListener(healthReportPrefObserver);
-  }
-}
-
 export function isDefaultBrowser() {
   if (chrome.cliqz && chrome.cliqz.isDefaultBrowser) {
     return chrome.cliqz.isDefaultBrowser();
@@ -219,8 +178,10 @@ export function isPrivateMode(win) {
   return win.incognito || chrome.extension.inIncognitoContext;
 }
 
-export function openLink(win, url, newTab = false, active = true) {
-  if (newTab) {
+export function openLink(win, url, newTab = false, active = true, isPrivate = false) {
+  if (isPrivate) {
+    chrome.windows.create({ url, incognito: true });
+  } else if (newTab) {
     chrome.tabs.create({ url, active });
   } else {
     chrome.windows.getCurrent({ populate: true }, ({ tabs }) => {

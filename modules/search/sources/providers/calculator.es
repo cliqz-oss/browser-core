@@ -6,11 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { from } from 'rxjs';
-import { delay } from 'rxjs/operators';
 import CliqzCalculator from './calculator/internal';
 import BaseProvider from './base';
-import { getResponse } from '../responses';
+import normalize from '../operators/normalize';
 
 export default class Calculator extends BaseProvider {
   constructor() {
@@ -19,31 +17,23 @@ export default class Calculator extends BaseProvider {
   }
 
   search(query, config) {
-    if (!query) {
-      return this.getEmptySearch(config);
-    }
-
-    const result = CliqzCalculator.isCalculatorSearch(query)
-      && CliqzCalculator.calculate(query);
-
-    if (!result) {
+    if (!query || CliqzCalculator.isCalculatorSearch(query) !== true) {
       return this.getEmptySearch(config, query);
     }
+
+    // TODO - optimize this
+    const result = CliqzCalculator.calculate(query);
+
+    if (result === null) {
+      return this.getEmptySearch(config, query);
+    }
+
     result.provider = 'calculator';
     result.text = query;
-
-    return from([
-      getResponse({
-        provider: this.id,
-        config,
-        query,
-        results: [result],
-        state: 'done'
-      })
-    ])
-      .pipe(
-        delay(1),
-        this.getOperators()
-      );
+    return this.getResultsFromArray(
+      [normalize(result)],
+      query,
+      config,
+    );
   }
 }

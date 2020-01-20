@@ -4,7 +4,6 @@ export function wrapper() {
     top: '0',
     left: '0',
     width: '100%',
-    height: '115px',
     'z-index': '2147483647',
     opacity: '0',
     margin: '0',

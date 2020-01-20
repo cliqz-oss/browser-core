@@ -1,0 +1,475 @@
+#!/bin/env groovy
+
+@Library('cliqz-shared-library@v1.2') _
+
+properties([
+    // Allow only one job to run at a time
+    [$class: 'JobRestrictionProperty'],
+    disableConcurrentBuilds(),
+])
+
+currentBuild.description = ''
+
+def isIntegrationBranch = env.BRANCH_NAME == 'master'
+
+def matrix = [:]
+
+if (env.BRANCH_NAME.startsWith('v1.')) {
+    matrix['browser-pre'] = [
+        'config': 'releases/browser.js',
+    ]
+    matrix['user-agent-ios'] = [
+        'config': 'user-agent-ios.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v3.')) {
+    matrix['cliqz-android'] = [
+        'config': 'cliqz-android.js',
+    ]
+    matrix['ghostery-android-privacy'] = [
+        'config': 'ghostery-android-privacy.js',
+    ]
+    matrix['ghostery-android-search'] = [
+        'config': 'ghostery-android-search.js',
+    ]
+    matrix['lumen-ios'] = [
+        'config': 'lumen-ios.js',
+    ]
+    matrix['cliqz-ios'] = [
+        'config': 'cliqz-ios.js',
+    ]
+    matrix['user-agent-ios'] = [
+        'config': 'user-agent-ios.js',
+    ]
+    matrix['ghostery-ios'] = [
+        'config': 'ghostery-ios.js',
+    ]
+}
+
+if (env.BRANCH_NAME == 'cliqz-mobile') {
+    matrix['instant-search'] = [
+        'config': 'instant-search.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v7.')) {
+    matrix['ghostery'] = [
+        'config': 'ghostery.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v9.')) {
+    matrix['cliqz-tab'] = [
+        'config': 'releases/cliqz-tab-chrome.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v10.')) {
+    matrix['ghostery-tab-chrome'] = [
+        'config': 'releases/ghostery-tab-chrome.js',
+    ]
+    matrix['ghostery-tab-firefox'] = [
+        'config': 'releases/ghostery-tab-firefox.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v11.')) {
+    matrix['offers-chrome'] = [
+        'config': 'releases/offers-chrome.js',
+    ]
+    matrix['offers-firefox'] = [
+        'config': 'releases/offers-firefox.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v12.')) {
+    matrix['privacy'] = [
+        'config': 'privacy.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v13.')) {
+    matrix['lumen-ios'] = [
+        'config': 'lumen-ios.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v14.')) {
+    matrix['offers-chip-firefox'] = [
+        'config': 'releases/offers-chip-firefox.js',
+    ]
+    matrix['offers-chip-chrome'] = [
+        'config': 'releases/offers-chip-chrome.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v15.')) {
+    matrix['offers-freundin-firefox'] = [
+        'config': 'releases/offers-freundin-firefox.js',
+    ]
+}
+
+if (env.BRANCH_NAME.startsWith('v16.')) {
+    matrix['offers-incent-firefox'] = [
+        'config': 'releases/offers-incent-firefox.js',
+    ]
+}
+
+if (isIntegrationBranch) {
+    matrix['browser'] = [
+        'config': 'browser.js',
+        'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
+        'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
+    ]
+    // matrix['cliqz-tab-chrome-nightly'] = [
+    //     'config': 'cliqz-tab-chrome.js',
+    // ]
+    matrix['instant-search'] = [
+        'config': 'instant-search.js',
+    ]
+    // matrix['cliqz-tab-firefox-nightly'] = [
+    //     'config': 'cliqz-tab-firefox.js',
+    //     'upload_api_id': '17f59394-d13b-476e-84d5-7888c9737ced',
+    //     'upload_api_secret': '64b879c6-90f0-4242-9da8-87e1f0cacf94',
+    // ]
+    // matrix['ghostery-tab-chrome-nightly'] = [
+    //     'config': 'ghostery-tab-chrome.js',
+    // ]
+    // matrix['ghostery-tab-firefox-nightly'] = [
+    //     'config': 'ghostery-tab-firefox.js',
+    //     'upload_api_id': '17f59394-d13b-476e-84d5-7888c9737ced',
+    //     'upload_api_secret': '64b879c6-90f0-4242-9da8-87e1f0cacf94',
+    // ]
+    matrix['offers-nightly'] = [
+        'config': 'offers.js',
+    ]
+
+    matrix['cliqz-ios'] = [
+        'config': 'cliqz-ios.js',
+    ]
+
+    matrix['user-agent-ios'] = [
+        'config': 'user-agent-ios.js',
+    ]
+
+    matrix['ghostery-ios'] = [
+        'config': 'ghostery-ios.js',
+    ]
+
+    matrix['ghostery'] = [
+        'config': 'ghostery.js',
+    ]
+
+    matrix['cliqzs'] = [
+        'config': 'experiments/cliqzs.json',
+    ]
+
+    matrix['cliqz-android'] = [
+        'config': 'cliqz-android.js',
+    ]
+
+    matrix['ghostery-android-privacy'] = [
+        'config': 'ghostery-android-privacy.js',
+    ]
+
+    matrix['ghostery-android-search'] = [
+        'config': 'ghostery-android-search.js',
+    ]
+
+    matrix['privacy'] = [
+        'config': 'privacy.js',
+    ]
+
+    matrix['lumen-ios'] = [
+        'config': 'lumen-ios.js',
+    ]
+}
+
+def codeImageName
+def triggeringCommitHash
+
+node('master') {
+    try {
+        stage('checkout') {
+            checkout scm
+            // TODO: use return value from checkout, when pipeline plugin will be updated
+            triggeringCommitHash = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
+        }
+
+        stage('checkout xpi-sign') {
+            // TODO: this repository does not have to be private
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: '*/cliqz-ci']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [[
+                    $class: 'RelativeTargetDirectory',
+                    relativeTargetDir: 'xpi-sign',
+                ]],
+                submoduleCfg: [],
+                userRemoteConfigs: [[
+                    credentialsId: '41572f9c-06aa-46f0-9c3b-b7f4f78e9caa',
+                    url: 'git@github.com:cliqz/xpi-sign.git'
+                ]],
+            ])
+        }
+
+        def dockerfileChecksum = sh(returnStdout: true, script: 'md5sum Dockerfile.publish | cut -d" " -f1').trim()
+        def packageJsonChecksum = sh(returnStdout: true, script: 'md5sum package.json | cut -d" " -f1').trim()
+        // add date to the tag in order to download FF beta and nightly at least once per day and stay up-to-date
+        def today = new Date().format('yyyyMMdd')
+        def dockerTag = "${dockerfileChecksum}-${packageJsonChecksum}-${today}"
+
+        def baseImageName = "navigation-extension/base:${dockerTag}"
+        codeImageName = "navigation-extension/code:${triggeringCommitHash}";
+
+        stage('docker build base') {
+            timeout(30) {
+                ansiColor('xterm') {
+                    docker.build(
+                        baseImageName,
+                        '--build-arg UID=`id -u` --build-arg GID=`id -g` -f Dockerfile.publish .',
+                    )
+                }
+            }
+        }
+
+        stage('docker build code') {
+            writeFile file: 'Dockerfile.code', text: """
+                FROM ${baseImageName}
+                USER root
+                ADD . /app/
+                RUN chown jenkins:jenkins -R /app
+                USER jenkins
+            """
+
+            docker.build(
+                codeImageName,
+                '-f Dockerfile.code .',
+            )
+        }
+    }
+    catch (all) {
+        echo 'FAILURE !!!'
+        emailext(
+            to: 'browser-core@cliqz.com',
+            subject: '$PROJECT_NAME - Build # $BUILD_NUMBER Failed!!!',
+            body: 'Build Failed \n\nCheck console output at ' + env.BUILD_URL + ' to view the cause.'
+        )
+        currentBuild.result = 'FAILURE'
+        throw all
+    }
+}
+
+def build(Map m) {
+    def channel = m.channel
+    def config = m.config
+    def certCredentialsId = m.certCredentialsId  ? m.certCredentialsId : '766bbf53-83c2-4917-a837-ee612afcbb87'
+    def certPassCredentialsId = m.certPassCredentialsId ? m.certPassCredentialsId : '9983e1f3-9c73-42e7-8036-3b34a592dd52'
+    def uploadApiId = m.uploadApiId ? m.uploadApiId : 'aee682e7-3992-479f-b5a9-85c6ec105e5a'
+    def uploadApiSecret = m.uploadApiSecret ? m.uploadApiSecret : 'b35a2a5d-6b52-4e61-a7c5-dd8a78fd9108'
+    def getImageName = m.getImageName
+    def getCommitId = m.getCommitId
+    def getIsIntegrationBranch = m.getIsIntegrationBranch
+
+    return {
+        node('master') {
+            docker.image(getImageName()).inside() {
+                def isIntegrationBranch = getIsIntegrationBranch();
+                def version = sh(returnStdout: true, script: "cd /app && ./fern.js version ./configs/${config}").trim()
+                echo "version: $version"
+
+                withEnv([
+                    "CLIQZ_BETA=${isIntegrationBranch ? 'True' : 'False'}",
+                    "CLIQZ_PRE_RELEASE=${isIntegrationBranch ? 'False' : 'True'}",
+                    "CLIQZ_CHANNEL=${channel}",
+                    "CLIQZ_CONFIG_PATH=./configs/${config}",
+                    "GIT_COMMIT=${getCommitId()}",
+                    "VERSION=${version}",
+                ]) {
+                    sh "cd /app && ./fern.js build --environment=production ${isIntegrationBranch ? '' : '--no-debug'}"
+
+                    sh 'cd /app && ./fern.js pack'
+
+                    withCredentials([
+                        [
+                            $class: 'UsernamePasswordMultiBinding',
+                            credentialsId: '06ec4a34-9d01-46df-9ff8-64c79eda8b14',
+                            passwordVariable: 'AWS_SECRET_ACCESS_KEY',
+                            usernameVariable: 'AWS_ACCESS_KEY_ID',
+                        ],
+                        usernamePassword(
+                            credentialsId: '774bccf1-ae66-41e1-9f2e-f8efb4bedc21',
+                            passwordVariable: 'BALROG_PASSWORD',
+                            usernameVariable: 'BALROG_ADMIN',
+                        ),
+                        /* credentials for webstore / AMO publish */
+                        string(
+                            credentialsId: uploadApiId,
+                            variable: 'UPLOAD_API_KEY',
+                        ),
+                        string(
+                            credentialsId: uploadApiSecret,
+                            variable: 'UPLOAD_API_SECRET',
+                        ),
+                        string(
+                            credentialsId: '2ac4ba97-d033-46bb-9e78-d8ae9b069e1d',
+                            variable: 'REFRESH_TOKEN',
+                        ),
+                        /* end - credentials for webstore / AMO publish */
+                        file(
+                            credentialsId: certCredentialsId,
+                            variable: 'CLIQZ_CERT_PATH',
+                        ),
+                        file(
+                            credentialsId: certPassCredentialsId,
+                            variable: 'CLIQZ_CERT_PASS_PATH',
+                        ),
+                    ]) {
+                        def signOutput = sh(
+                            returnStdout: true,
+                            script: 'cd /app && ./fern.js sign',
+                        ).trim()
+
+                        echo signOutput
+
+                        def output = sh(
+                            returnStdout: true,
+                            script: 'cd /app && ./fern.js publish',
+                        ).trim()
+
+                        echo output
+
+                        def urls = getUrls(output)
+
+                        for (url in urls) {
+                            currentBuild.description += "${url}\n"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+def stepsForParallel = helpers.entries(matrix).collectEntries {
+    [(it[0]): build(
+        channel: it[0],
+        config: it[1]['config'],
+        certCredentialsId: it[1]['cert_credentials_id'],
+        certPassCredentialsId: it[1]['cert_pass_credentials_id'],
+        uploadApiId: it[1]['upload_api_id'],
+        uploadApiSecret: it[1]['upload_api_secret'],
+        getImageName: { codeImageName },
+        getCommitId: { triggeringCommitHash },
+        getIsIntegrationBranch: { isIntegrationBranch },
+    )]
+}
+try{
+    stage('build and publish') {
+        parallel stepsForParallel
+    }
+
+    stage('send email') {
+        def bodytxt = '$PROJECT_NAME - Build # $BUILD_NUMBER'
+        bodytxt += '\n\nCheck console output at ' + env.BUILD_URL + ' to view the results.'
+        bodytxt += '\n\nArtifacts:\n\n'
+        bodytxt += currentBuild.description
+        bodytxt += '\n\n\n\n\n $CHANGES_SINCE_LAST_SUCCESS'
+        bodytxt += '\n\n Don\' worry, be happy :-)'
+
+        emailext(
+            to: 'browser-core@cliqz.com',
+            subject: '$PROJECT_NAME - Build # $BUILD_NUMBER',
+            body: bodytxt,
+        )
+    }
+    if (env.BRANCH_NAME.startsWith('v')) {
+        stage('update jira') {
+            if (isIntegrationBranch) {
+                withEnv(['JIRA_SITE=cliqztix']) {
+                    def issueIds = getIssueList(/EX-[0-9]+/)
+                    def transitionInput = [
+                        transition: [
+                            id: '121',
+                        ],
+                    ]
+
+                    if (issueIds.size() > 0) {
+                        echo 'Detected JIRA tickets'
+                        echo issueIds.toString()
+                    } else {
+                        echo 'No JIRA tickets detected'
+                    }
+
+                    for (id in issueIds) {
+                        try {
+                            def issue = jiraGetIssue idOrKey: id
+
+                            if (issue.data.fields.status.name == "Resolved") {
+                                jiraTransitionIssue idOrKey: id, input: transitionInput
+                            }
+                        } catch (Error e) {
+                            echo e
+                        }
+                    }
+                }
+            }
+        }
+    } 
+}
+catch (all) {
+    echo 'FAILURE !!!'
+    emailext(
+        to: 'browser-core@cliqz.com',
+        subject: '$PROJECT_NAME - Build # $BUILD_NUMBER Failed!!!',
+        body: '\n\nCheck console output at ' + env.BUILD_URL + ' to view the cause.'
+    )
+    currentBuild.result = 'FAILURE'
+    throw all
+}
+
+@NonCPS
+def getChangeString() {
+    def MAX_MSG_LEN = 100
+    def changeString = ""
+    def changeLogSets = currentBuild.changeSets
+
+    for (int i = 0; i < changeLogSets.size(); i++) {
+        def entries = changeLogSets[i].items
+        for (int j = 0; j < entries.length; j++) {
+            def entry = entries[j]
+            truncated_msg = entry.msg.take(MAX_MSG_LEN)
+            changeString += " - ${truncated_msg} [${entry.author}]\n"
+        }
+    }
+    if (!changeString) {
+        changeString = " - No new changes"
+    }
+    return changeString
+}
+
+@NonCPS
+def getIssueList(re) {
+    def list = []
+    def changes = getChangeString()
+    def y = changes =~ re
+    while (y) {
+        list.add(y.group().toString())
+    }
+    return list
+}
+
+@NonCPS
+def getUrls(output) {
+    def out = []
+    def log = output
+    def y = log =~ /(^|[ \t\r\n])((s3|ftp|http|https|gopher|mailto|news|nntp|telnet|wais|file|prospero|aim|webcal):\/\/(([a-zA-Z0-9\$\/_.+!*(),;?:@&~=-])|%[A-Za-z0-9]{2}){2,}(#([a-zA-Z0-9][a-zA-Z0-9\$_.+!*(),;?:@&~=%-]*))?([A-Za-z0-9\$_+!*():?:~-]))/
+
+    while (y) {
+        def u = y.group().toString().trim().replaceFirst(/^s3:\/\/cdncliqz\//, 'https://s3.amazonaws.com/cdncliqz/')
+        out.add(u)
+    }
+    return out.sort().unique()
+}

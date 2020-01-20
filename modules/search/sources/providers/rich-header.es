@@ -7,7 +7,7 @@
  */
 
 import { defer } from 'rxjs';
-import { retryWhen, map, take, delay } from 'rxjs/operators';
+import { retryWhen, map, take, delay, share } from 'rxjs/operators';
 import { fetch as f } from '../../core/http';
 import BackendProvider from './backend';
 import { getResponse } from '../responses';
@@ -19,6 +19,7 @@ import {
   encodeLocation,
   encodeSessionParams,
 } from './cliqz-helpers';
+import normalize from '../operators/normalize';
 
 export const getRichHeaderQueryString = (q, loc) => [
   `&q=${encodeURIComponent(q)}`,
@@ -82,11 +83,9 @@ export default class RichHeader extends BackendProvider {
           provider: this.id,
           config,
           query,
-          results: this.mapResults({ results, query }),
+          results: this.mapResults({ results, query }).map(normalize),
           state: 'done',
         })),
-        // TODO: do not emit empty result
-        this.getOperators()
-      );
+      ).pipe(share());
   }
 }

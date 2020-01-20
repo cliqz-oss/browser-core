@@ -8,8 +8,14 @@
 
 import background from '../core/base/background';
 import { chrome } from '../platform/globals';
+import webNavigation from '../platform/webnavigation';
 import prefs from '../core/prefs';
 
+function inject(tabId) {
+  chrome.tabs.executeScript(tabId, {
+    file: 'modules/onboarding-overlay/injector.js'
+  });
+}
 /**
   @namespace onboarding-overlay
   @module onboarding-overlay
@@ -20,15 +26,33 @@ export default background({
     @method init
     @param settings
   */
-  init() {},
+  init() {
+    const overlayUrl = chrome.runtime.getURL('/modules/onboarding-overlay/index.html');
+
+    // just after installing any extension firefox shows a popup asking the user
+    // to grant the permission to have the extension run in private mode
+    //
+    // if the user grants this permission, Firefox restarts the extension and this
+    // leaves the overlay popup orphan and without any access
+    //
+    // the following few lines try to detect if our overlay is injected and visible
+    // if yes it will reload it and make it work again
+    chrome.windows.getAll({ populate: true }, windows =>
+      windows.forEach(window =>
+        window.tabs.forEach(tab =>
+          webNavigation.getAllFrames({ tabId: tab.id }, frames =>
+            frames.forEach((frame) => {
+              if (frame.url === overlayUrl) {
+                inject(tab.id);
+              }
+            })))));
+  },
 
   unload() {},
 
   events: {
     'lifecycle:onboarding': function onOnboarding({ tabId }) {
-      chrome.tabs.executeScript(tabId, {
-        file: 'modules/onboarding-overlay/injector.js'
-      });
+      inject(tabId);
     }
   },
 

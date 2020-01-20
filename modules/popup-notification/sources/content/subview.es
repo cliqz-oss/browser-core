@@ -3,9 +3,10 @@ import { createElement, copySelectedText, chooseProduct } from './utils';
 
 export default function subview({ chrome, window, config, onCancel, onApply, onCopyCode }) {
   const container = createElement(window, { tag: 'div', className: 'container' });
+  const isCliqzOffers = ['cliqz', 'amo'].includes(chooseProduct(config.products));
   container.innerHTML = getTemplate(chrome, {
     ...config,
-    logoText: chooseProduct(config.products) !== 'myoffrz' ? '&nbsp;' : 'MyOffrz',
+    logoText: isCliqzOffers ? 'Cliqz&nbsp;Offers' : '&nbsp;',
   });
 
   ['btn-close', 'btn-cancel'].forEach((cls) => {
@@ -29,7 +30,7 @@ export default function subview({ chrome, window, config, onCancel, onApply, onC
       e.stopPropagation();
     });
 
-  const codeCopied = chrome.i18n.getMessage('offers_code_copied');
+  const codeCopied = chrome.i18n.getMessage('myoffrz_copied');
   container
     .getElementsByClassName('copy-code')[0]
     .addEventListener('click', function onClick() {

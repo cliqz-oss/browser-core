@@ -27,6 +27,8 @@ const AGO_CEILINGS = [
   [2903040000, 'agoXYears', 29030400]
 ];
 
+const nonLetterOrDigit = /(^[^a-z0-9\u00c0-\uffff]+)|([^a-z0-9\u00c0-\uffff]+$)/ig;
+
 // Make sure the input string is in lower case
 function latinMap(str) {
   const map = [
@@ -41,6 +43,10 @@ function latinMap(str) {
   });
 
   return str;
+}
+
+function trim(s) {
+  return s.replace(nonLetterOrDigit, '');
 }
 
 function countRemovedChars(indexes, lBound, hBound) {
@@ -72,14 +78,14 @@ export default {
 
   emphasis(text = '', q = '', minQueryLength, cleanControlChars) {
     if (!q) return text;
-    q = q.trim();
+    q = trim(q);
 
     if (text && cleanControlChars) {
       text.replace(/[\u0000-\u001F]/g, ' ');
     }
 
     const map = Array(text.length);
-    const tokens = latinMap(q.toLowerCase()).split(/\s+|\.+|\/+/).filter(function (t) { return t && t.length > 1; });
+    const tokens = latinMap(q.toLowerCase()).split(/\s+|\/+/).filter(function (t) { return t && t.length > 1; });
     const lowerText = latinMap(text.toLowerCase());
     const out = [];
     let high = false;

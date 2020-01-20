@@ -6,17 +6,25 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { isValidUrl } from '../../core/search-engines';
+import { shouldAppearInDropdown } from '../../core/search-engines';
 
 /*
  * Removes search engine results.
  *
- * @param {Object} result - The result.
+ * NOTE: `unsafeClean` can mutate its argument (hence the 'unsafe' prefix). In
+ * some contexts it is safe to use and will prevent extra copies (e.g.: search
+ * providers are a place where this can be used since results have not be
+ * shared/dispatched with consumers of streams yet; this is akin to exposing a
+ * "pure" API while allowing some internal mutation to take place before results
+ * are returned).
  */
-export default function clean({ links, ...result }) {
-  return {
-    ...result,
-    links: links.filter(({ template, url }) => template === 'sessions'
-      || isValidUrl(url)),
-  };
+export function unsafeClean(response) {
+  response.links = response.links.filter(({ template, url }) => (
+    template === 'sessions' || shouldAppearInDropdown(url)
+  ));
+  return response;
+}
+
+export default function (response) {
+  return unsafeClean({ ...response });
 }

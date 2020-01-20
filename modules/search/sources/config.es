@@ -9,6 +9,7 @@
 import config from '../core/config';
 import deepFreeze from '../core/helpers/deep-freeze';
 import prefs from '../core/prefs';
+
 import { PREVENT_AUTOCOMPLETE_KEYS } from './consts';
 
 // do not emit instant or Cliqz results until history has emitted,
@@ -34,12 +35,15 @@ const DEFAULT_CONFIG = {
     calculator: {
       order: 1,
     },
-    history: {
+    tabs: {
       order: 2,
+    },
+    history: {
+      order: 3,
     },
     historyView: {
       isEnabled: config.modules.indexOf('history') > -1,
-      order: 3,
+      order: 4,
     },
     cliqz: {
       isEnabled: true,
@@ -49,7 +53,7 @@ const DEFAULT_CONFIG = {
       includeOffers: true,
       count: config.settings['search.config.providers.cliqz.count'] || 5,
       jsonp: config.settings['search.config.providers.cliqz.jsonp'] || false,
-      order: 4,
+      order: 5,
     },
     'rich-header': {
       retry: {
@@ -59,7 +63,7 @@ const DEFAULT_CONFIG = {
     },
     querySuggestions: {
       isEnabled: true,
-      order: 5,
+      order: 6,
     },
   },
   operators: {
@@ -135,12 +139,9 @@ export default function ({ isPrivateMode }, settings = {}) {
     },
     providers: {
       ...DEFAULT_CONFIG.providers,
-      history: {
-        ...DEFAULT_CONFIG.providers.history,
-        get isHistoryLookupEnabled() {
-          return prefs.get('historyLookupEnabled', false);
-        },
-        get isTabSearchEnabled() {
+      tabs: {
+        ...DEFAULT_CONFIG.providers.tabs,
+        get isEnabled() {
           return prefs.get('tabSearchEnabled', false);
         },
       },
@@ -185,6 +186,9 @@ export default function ({ isPrivateMode }, settings = {}) {
       addCompletion: {
         get isEnabled() {
           return prefs.get('browser.urlbar.autoFill', true, '');
+        },
+        get useTitle() {
+          return prefs.get('modules.search.operators.addCompletion.useTitle');
         },
         providerBlacklist: ['instant', 'querySuggestions', 'historyView'],
       },

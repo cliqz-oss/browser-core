@@ -71,7 +71,6 @@ export default class Category {
   serialize() {
     return {
       name: this.name,
-      patterns: this.patterns,
       version: this.version,
       timeRangeSecs: this.timeRangeSecs,
       lastUpdateTs: this.lastUpdateTs,
@@ -86,7 +85,6 @@ export default class Category {
   // deserialize
   deserialize(data) {
     this.name = data.name;
-    this.patterns = data.patterns;
     this.version = data.version;
     this.lastUpdateTs = data.lastUpdateTs;
     this.createdTs = data.createdTs;
@@ -107,11 +105,15 @@ export default class Category {
   }
 
   hasPatterns() {
-    return !!this.patterns;
+    return Boolean(this.patterns);
   }
 
   getPatterns() {
     return this.patterns;
+  }
+
+  dropPatterns() {
+    delete this.patterns;
   }
 
   isHistoryDataSettedUp() {

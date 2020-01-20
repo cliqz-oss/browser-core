@@ -125,6 +125,7 @@ async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs 
     options.headers.append('Encryption', toBase64(encryption));
   }
 
+  // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     const timer = pacemaker.setTimeout(() => {
       reject(new MsgTimeoutError(`Exceeded timeout of ${timeoutInMs / 1000} sec`));

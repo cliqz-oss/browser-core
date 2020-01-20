@@ -6,10 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-'use strict';
-
 const XmlDom = require('xmldom');
-
 
 function Reporter(silent, out) {
   this.out = out || process.stdout;
@@ -64,8 +61,8 @@ Reporter.prototype = {
     // tests have finished.
   },
   getTestResultNode(document, options) {
-    var result = options.result,
-        launcher = options.launcher;
+    const result = options.result;
+    const launcher = options.launcher;
 
     const resultNode = document.createElement('testcase');
     resultNode.setAttribute('classname', launcher);

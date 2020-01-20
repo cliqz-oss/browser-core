@@ -6,7 +6,7 @@ way for the offers module.
 */
 import logger from './common/offers_v2_logger';
 import events from '../core/events';
-import { getDetailsFromUrl } from '../core/url';
+import { parse, getName } from '../core/url';
 import UrlData from './common/url_data';
 import inject from '../core/kord/inject';
 import { nextTick } from '../core/decorators';
@@ -64,7 +64,7 @@ export default class EventHandler {
   // @brief subscribe to get events whenever a new url is performed
   // @note
   //  The event emitted is a url details structure + referrer field (check
-  //  getDetailsFromUrl(url); for more info)
+  //  parse(url); for more info)
   //
   subscribeUrlChange(cb, cargs = null) {
     this.urlChangeCbs.set(cb, cargs);
@@ -174,8 +174,7 @@ export default class EventHandler {
     // now we add the referrer to the url
     let referrerName = null;
     if (referrer) {
-      const referrerUrlDetails = getDetailsFromUrl(referrer);
-      referrerName = referrerUrlDetails.name;
+      referrerName = getName(parse(referrer));
     }
 
     const urlData = new UrlData(url, referrerName, tabId);

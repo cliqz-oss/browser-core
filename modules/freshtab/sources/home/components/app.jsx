@@ -6,9 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global window */
-/* global document */
-
 import React from 'react';
 import { getDefaultWallpaper } from '../../wallpapers';
 import config from '../../config';
@@ -19,7 +16,6 @@ import UrlbarWithResults from './urlbar/urlbar-with-results';
 import News from './news';
 import Stats from './stats';
 import Tooltip from './tooltip';
-import MessageCenter from './message-center';
 import AppContext from './app-context';
 import t from '../i18n';
 import UndoDialRemoval from './undo-dial-removal';
@@ -30,12 +26,10 @@ import { historyClickSignal, settingsClickSignal, homeConfigsStatusSignal,
 import localStorage from '../services/storage';
 import { deleteUndoSignal, undoCloseSignal } from '../services/telemetry/speed-dial';
 import { settingsRestoreTopSitesSignal, settingsComponentsToggleSignal, newsSelectionChangeSignal } from '../services/telemetry/settings';
-import Timer from '../services/loading-performance';
 import ModulesDeveloperModal from './modules-developer-modal';
 import Pagination from './pagination';
 import AsideLeft from './aside-left';
 import AsideRight from './aside-right';
-import ProfilerComponent from './profiler';
 
 const getVisibleComponents = ({ componentsState }) =>
   Object.keys(componentsState).filter(key => componentsState[key].visible);
@@ -59,7 +53,6 @@ class App extends React.Component {
       isModalOpen: false,
       isOverlayOpen: false,
       isSettingsOpen: false,
-      messages: props.config.messages,
       modules: {},
       removedDials: [],
       results: [],
@@ -67,7 +60,6 @@ class App extends React.Component {
       tooltipShown: false,
       visibleComponents: getVisibleComponents(props.config),
     };
-    this.timer = new Timer(cliqz.core.sendTelemetry);
 
     const self = this;
     cliqz.setStorage({
@@ -97,8 +89,7 @@ class App extends React.Component {
       this.onFinishedLoading();
     });
 
-    if (Object.keys(this.state.messages).length === 0
-      && this.state.config.tooltip === 'tooltip-settings') {
+    if (this.state.config.tooltip === 'tooltip-settings') {
       setTimeout(() => {
         this.setState({ tooltipShown: true });
         sendTooltipShowSignal();
@@ -106,39 +97,11 @@ class App extends React.Component {
     }
   }
 
-  async componentDidUpdate() {
-    this.tryToSendTelemetry();
-  }
-
   componentWillUnmount() {
     window.removeEventListener('click', this.handleClick);
     window.removeEventListener('beforeunload', sendHomeUnloadSignal);
     window.removeEventListener('blur', sendHomeBlurSignal);
     window.removeEventListener('focus', sendHomeFocusSignal);
-  }
-
-  tryToSendTelemetry = () => {
-    /* Send telemetry only for visible components
-     * if all their timers have been updated */
-    let areAllTimersUpdated = true;
-    let timersToCheck;
-
-    if (this.state.config.isBetaVersion) {
-      timersToCheck = this.timer.renderTimers;
-    } else {
-      timersToCheck = this.timer.dataTimers;
-    }
-
-    this.state.visibleComponents.forEach((c) => {
-      if (c in timersToCheck && timersToCheck[c] === -1) {
-        areAllTimersUpdated = false;
-      }
-    });
-
-    if (areAllTimersUpdated) {
-      this.timer.updateTotalTimer({ name: 'app' });
-      this.timer.sendTelemetry();
-    }
   }
 
   onDeveloperModulesOpen = async () => {
@@ -166,23 +129,6 @@ class App extends React.Component {
         error: null,
       }
     });
-  }
-
-  onMessageClicked(message) {
-    const url = message.cta_url;
-    let action;
-    if (url.startsWith('home-action')) {
-      action = url.split(':')[1];
-      if (action === 'settings') {
-        this.toggleSettings();
-      }
-
-      if (action === 'openImportDialog') {
-        this.freshtab.openImportDialog();
-      }
-    } else {
-      window.location = url;
-    }
   }
 
   onBackgroundImageChanged(bg, index) {
@@ -253,15 +199,12 @@ class App extends React.Component {
   }
 
   getSpeedDials = async () => {
-    // TODO Backend should return only visible dials
-    const { speedDialsTimers, ...dials } = await this.freshtab.getSpeedDials();
-
-    this.timer.updateDataTimer({ name: 'customDials', value: speedDialsTimers.customDials });
-    this.timer.updateDataTimer({ name: 'historyDials', value: speedDialsTimers.historyDials });
+    const { history, custom } = await this.freshtab.getSpeedDials();
 
     this.setState({
       dials: {
-        ...dials,
+        history,
+        custom,
         isLoaded: true,
       },
     });
@@ -270,7 +213,6 @@ class App extends React.Component {
   getNews = async () => {
     // TODO backend should return news only if they are visible
     const data = await this.freshtab.getNews();
-    this.timer.updateDataTimer({ name: 'news' });
 
     this.setState({
       news: {
@@ -281,11 +223,8 @@ class App extends React.Component {
   }
 
   getStats() {
-    return this.freshtab.getStats().then((data) => {
-      this.timer.updateDataTimer({ name: 'stats' });
-
-      this.setState({ stats: data });
-    });
+    return this.freshtab.getStats()
+      .then(data => this.setState({ stats: data }));
   }
 
   /*
@@ -308,15 +247,13 @@ class App extends React.Component {
   }
 
 
-  restoreHistorySpeedDials() {
+  async restoreHistorySpeedDials() {
     settingsRestoreTopSitesSignal();
-    return this.freshtab.resetAllHistory()
-      .then(dials => this.setState(prevState => ({
-        dials: { ...dials, isLoaded: true },
-        // keep only custom dials
-        removedDials: prevState.removedDials.filter(d => d.custom),
-        hasHistorySpeedDialsToRestore: false,
-      })));
+    await this.freshtab.resetAllHistory();
+    this.setState({
+      removedDials: [],
+      hasHistorySpeedDialsToRestore: false
+    });
   }
 
   get recentlyRemovedDial() {
@@ -331,7 +268,7 @@ class App extends React.Component {
     this.setState({ isModalOpen: val });
   }
 
-  toggleSettings = () => {
+  toggleSettings = async () => {
     if (!this.state.isSettingsOpen) {
       settingsClickSignal();
     }
@@ -342,8 +279,8 @@ class App extends React.Component {
 
     this.closeTooltip();
 
-    this.freshtab.checkForHistorySpeedDialsToRestore()
-      .then(has => this.setState({ hasHistorySpeedDialsToRestore: has }));
+    const has = await this.freshtab.checkForHistorySpeedDialsToRestore();
+    this.setState({ hasHistorySpeedDialsToRestore: has });
   }
 
   handleClick = (el) => {
@@ -364,19 +301,7 @@ class App extends React.Component {
   }
 
   removeSpeedDial = (dial, index) => {
-    const isCustom = dial.custom;
-    const dialType = isCustom ? 'custom' : 'history';
-    const newItems = this.state.dials[dialType].filter(item => item !== dial);
-
-    this.setState(prevState => ({
-      dials: {
-        ...prevState.dials,
-        [dialType]: newItems
-      }
-    }));
-
     this.freshtab.removeSpeedDial(dial);
-
     this.setState(prevState => ({
       removedDials: [
         ...prevState.removedDials,
@@ -388,63 +313,17 @@ class App extends React.Component {
     }));
   }
 
-  updateDials(dial, index, update = false) {
-    const dialType = dial.custom ? 'custom' : 'history';
-    const oldDials = this.state.dials[dialType];
-    let dials;
-
-    if (index === undefined) {
-      dials = [
-        ...oldDials,
-        dial,
-      ];
-    } else {
-      dials = [
-        ...oldDials.slice(0, index),
-        dial,
-        ...oldDials.slice(update ? index + 1 : index),
-      ];
-    }
-
-    this.setState(prevState => ({
-      dials: {
-        ...prevState.dials,
-        [dialType]: dials,
-      },
-    }));
-  }
-
-  addSpeedDial = (dial, index) => {
-    this.updateDials(dial, index, false);
-  }
-
-  updateSpeedDial = (newDial, index) => {
-    this.updateDials(newDial, index, true);
-  }
-
   undoRemoval = () => {
-    const speedDial = this.state.removedDials.pop();
+    const dial = this.state.removedDials.pop();
+    const { custom, url, displayTitle: title, removedAt: index } = dial;
 
-    deleteUndoSignal(speedDial);
+    deleteUndoSignal({ custom });
 
-    if (speedDial.custom) {
-      this._reAddSpeedDial.call(this, speedDial);
+    if (custom) {
+      cliqz.freshtab.addSpeedDial({ url, title }, index);
     } else {
-      cliqz.freshtab.revertHistorySpeedDial(speedDial.url);
-      this.addSpeedDial(speedDial, speedDial.removedAt);
+      cliqz.freshtab.revertHistorySpeedDial(url);
     }
-  }
-
-  _reAddSpeedDial(dial) {
-    const index = dial.removedAt;
-    this.addSpeedDial(dial, index);
-    const url = dial.url;
-    const title = dial.displayTitle;
-    cliqz.freshtab.addSpeedDial({ url, title }, index).then(() => {
-      this.setState(prevState => ({
-        removedDials: prevState.removedDials.filter(item => item !== dial),
-      }));
-    });
   }
 
   closeUndo = () => {
@@ -573,7 +452,6 @@ class App extends React.Component {
     const {
       config: freshtabConfig,
       dials,
-      messages,
       modules,
       news,
       stats,
@@ -581,224 +459,168 @@ class App extends React.Component {
     } = this.state;
     const { isLoaded: isDialLoaded } = dials;
     const { data: newsData } = news;
-    const hasMessage = Object.keys(messages).length > 0;
 
     return (
-      <ProfilerComponent
-        id="app"
-        isEnabled={freshtabConfig.isBetaVersion}
-        timer={this.timer}
-      >
-        <div>
-          <div
-            id="app"
-          >
-            <AppContext.Provider value={this.state}>
-              <UndoDialRemoval
-                closeUndo={this.closeUndo}
-                dial={this.recentlyRemovedDial}
-                isSettingsOpen={this.state.isSettingsOpen}
-                undoRemoval={this.undoRemoval}
-                visible={this.state.removedDials.length > 0}
+      <div>
+        <div
+          id="app"
+        >
+          <AppContext.Provider value={this.state}>
+            <UndoDialRemoval
+              closeUndo={this.closeUndo}
+              dial={this.recentlyRemovedDial}
+              isSettingsOpen={this.state.isSettingsOpen}
+              undoRemoval={this.undoRemoval}
+              visible={this.state.removedDials.length > 0}
+            />
+
+            {freshtabConfig.tooltip === 'tooltip-settings' && (
+              <Tooltip
+                isOpen={this.state.tooltipShown}
+                title={t('tooltip_title')}
+                description={t('tooltip_description')}
+                explore={t('tooltip_try_now_button')}
+                later={t('tooltip_later_button')}
+                handleExploreClick={this.onTooltipExploreClick}
+                handleLaterClick={this.skipTooltip}
+                closeTooltip={this.closeTooltipWithSignal}
               />
+            )}
+            {freshtabConfig.isHistoryEnabled && (
+              <AsideLeft
+                historyUrl={freshtabConfig.HISTORY_URL}
+                isHistoryEnabled={freshtabConfig.isHistoryEnabled}
+                newTabUrl={config.settings.NEW_TAB_URL}
+                onHistoryClick={() => historyClickSignal()}
+              />
+            )}
+            <section id="main-content">
+              <div className="fixed-container" tabIndex="-1">
+                <section id="section-top-space" className="content-section" />
 
-              {hasMessage && (
-                <MessageCenter
-                  handleLinkClick={msg => this.onMessageClicked(msg)}
-                  messages={this.state.messages}
-                  position="top"
-                />
-              )}
-              {hasMessage && (
-                <MessageCenter
-                  messages={this.state.messages}
-                  positioning={freshtabConfig.cliqzPostPosition}
-                  position="post"
-                />
-              )}
-
-              {freshtabConfig.tooltip === 'tooltip-settings' && (
-                <Tooltip
-                  isOpen={this.state.tooltipShown}
-                  title={t('tooltip_title')}
-                  description={t('tooltip_description')}
-                  explore={t('tooltip_try_now_button')}
-                  later={t('tooltip_later_button')}
-                  handleExploreClick={this.onTooltipExploreClick}
-                  handleLaterClick={this.skipTooltip}
-                  closeTooltip={this.closeTooltipWithSignal}
-                />
-              )}
-              {freshtabConfig.isHistoryEnabled && (
-                <AsideLeft
-                  historyUrl={freshtabConfig.HISTORY_URL}
-                  isHistoryEnabled={freshtabConfig.isHistoryEnabled}
-                  newTabUrl={config.settings.NEW_TAB_URL}
-                  onHistoryClick={() => historyClickSignal()}
-                />
-              )}
-              <section id="main-content">
-                <div className="fixed-container" tabIndex="-1">
-                  <section id="section-top-space" className="content-section" />
-
-                  <section id="section-top" className="content-section">
-                    {this.shouldShowTopUrlBar && (
-                      <section id="section-url-bar">
-                        <UrlbarWithResults
-                          hideOverlay={this.hideOverlay}
-                          product={freshtabConfig.product}
-                          ref={(c) => { this.urlbarElem = c; }}
-                          results={this.state.results}
-                          showOverlay={this.showOverlay}
-                          toggleComponent={this.toggleComponent}
-                          visible={visibleComponents.includes('search')}
-                        />
-                      </section>
-                    )}
-                    {this.shouldShowMiddleUrlBar && (
-                      <div id="section-url-bar">
-                        <ProfilerComponent
-                          id="search"
-                          isEnabled={freshtabConfig.isBetaVersion}
-                          timer={this.timer}
-                        >
-                          <Urlbar
-                            product={freshtabConfig.product}
-                            ref={(c) => { this.urlbarElem = c; }}
-                            visible={visibleComponents.includes('search')}
+                <section id="section-top" className="content-section">
+                  {this.shouldShowTopUrlBar && (
+                    <section id="section-url-bar">
+                      <UrlbarWithResults
+                        hideOverlay={this.hideOverlay}
+                        product={freshtabConfig.product}
+                        ref={(c) => { this.urlbarElem = c; }}
+                        results={this.state.results}
+                        showOverlay={this.showOverlay}
+                        toggleComponent={this.toggleComponent}
+                        visible={visibleComponents.includes('search')}
+                      />
+                    </section>
+                  )}
+                  {this.shouldShowMiddleUrlBar && (
+                    <div id="section-url-bar">
+                      <Urlbar
+                        product={freshtabConfig.product}
+                        ref={(c) => { this.urlbarElem = c; }}
+                        visible={visibleComponents.includes('search')}
+                      />
+                    </div>
+                  )}
+                  {visibleComponents.includes('historyDials') && (
+                    <section id="section-most-visited" className="content-section">
+                      {isDialLoaded && (
+                        <React.Fragment>
+                          <Pagination
+                            contentType="history"
+                            currentPage={this.state.dials.page}
+                            isModalOpen={this.state.isModalOpen}
+                            items={this.state.dials.history}
+                            onChangePage={this.onHistoryPageChanged}
                           />
-                        </ProfilerComponent>
-                      </div>
-                    )}
-                    <ProfilerComponent
-                      id="historyDials"
-                      isEnabled={freshtabConfig.isBetaVersion}
-                      timer={this.timer}
-                    >
-                      {visibleComponents.includes('historyDials') && (
-                        <section id="section-most-visited" className="content-section">
-                          {isDialLoaded && (
-                            <React.Fragment>
-                              <Pagination
-                                contentType="history"
-                                currentPage={this.state.dials.page}
-                                isModalOpen={this.state.isModalOpen}
-                                items={this.state.dials.history}
-                                onChangePage={this.onHistoryPageChanged}
-                              />
-                              <HistoryTitle dials={this.state.dials} />
+                          <HistoryTitle dials={this.state.dials} />
 
-                              <SpeedDialsRow
-                                addSpeedDial={this.addSpeedDial}
-                                currentPage={this.state.dials.page}
-                                dials={this.state.dials.history}
-                                getSpeedDials={this.getSpeedDials}
-                                removeSpeedDial={this.removeSpeedDial}
-                                shouldAnimate={this.state.dials.shouldAnimate}
-                                showPlaceholder
-                                type="history"
-                                updateModalState={isOpen => this.updateModalState(isOpen)}
-                              />
-                            </React.Fragment>
-                          )}
-                        </section>
+                          <SpeedDialsRow
+                            currentPage={this.state.dials.page}
+                            dials={this.state.dials.history}
+                            removeSpeedDial={this.removeSpeedDial}
+                            shouldAnimate={this.state.dials.shouldAnimate}
+                            showPlaceholder
+                            type="history"
+                            updateModalState={isOpen => this.updateModalState(isOpen)}
+                          />
+                        </React.Fragment>
                       )}
-                    </ProfilerComponent>
-                    <ProfilerComponent
-                      id="customDials"
-                      isEnabled={freshtabConfig.isBetaVersion}
-                      timer={this.timer}
-                    >
-                      {visibleComponents.includes('customDials') && (
-                        <section id="section-favorites" className="content-section">
-                          {isDialLoaded && (
-                            <React.Fragment>
-                              <div className="dial-header with-line">
-                                {t('app_speed_dials_row_custom')}
-                              </div>
+                    </section>
+                  )}
+                  {visibleComponents.includes('customDials') && (
+                    <section id="section-favorites" className="content-section">
+                      {isDialLoaded && (
+                        <React.Fragment>
+                          <div className="dial-header with-line">
+                            {t('app_speed_dials_row_custom')}
+                          </div>
 
-                              <SpeedDialsRow
-                                addSpeedDial={this.addSpeedDial}
-                                dials={this.state.dials.custom}
-                                removeSpeedDial={this.removeSpeedDial}
-                                type="custom"
-                                updateModalState={isOpen => this.updateModalState(isOpen)}
-                                updateSpeedDial={this.updateSpeedDial}
-                              />
-                            </React.Fragment>
-                          )}
-                        </section>
+                          <SpeedDialsRow
+                            dials={this.state.dials.custom}
+                            removeSpeedDial={this.removeSpeedDial}
+                            type="custom"
+                            updateModalState={isOpen => this.updateModalState(isOpen)}
+                          />
+                        </React.Fragment>
                       )}
-                    </ProfilerComponent>
-                  </section>
+                    </section>
+                  )}
+                </section>
 
-                  <section id="section-middle-space" className="content-section" />
+                <section id="section-middle-space" className="content-section" />
 
-                  <section id="section-middle" className="content-section">
-                    {this.shouldShowStats && (
-                      <div id="section-stats">
-                        {Object.keys(stats).length !== 0 && (
-                          <ProfilerComponent
-                            id="stats"
-                            isEnabled={freshtabConfig.isBetaVersion}
-                            timer={this.timer}
-                          >
-                            <Stats
-                              stats={this.state.stats}
-                              toggleComponent={this.toggleComponent}
-                            />
-                          </ProfilerComponent>
-                        )}
-                      </div>
-                    )}
-                    {visibleComponents.includes('news') && (
-                      <section id="section-news" className="content-section">
-                        {newsData.length > 0 && (
-                          <ProfilerComponent
-                            id="news"
-                            isEnabled={freshtabConfig.isBetaVersion}
-                            timer={this.timer}
-                          >
-                            <News
-                              isModalOpen={this.state.isModalOpen}
-                              news={this.state.news}
-                              newsLanguage={freshtabConfig.componentsState.news.preferedCountry}
-                            />
-                          </ProfilerComponent>
-                        )}
-                      </section>
-                    )}
-                  </section>
+                <section id="section-middle" className="content-section">
+                  {this.shouldShowStats && (
+                    <div id="section-stats">
+                      {Object.keys(stats).length !== 0 && (
+                        <Stats
+                          stats={this.state.stats}
+                          toggleComponent={this.toggleComponent}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {visibleComponents.includes('news') && (
+                    <section id="section-news" className="content-section">
+                      {newsData.length > 0 && (
+                        <News
+                          isModalOpen={this.state.isModalOpen}
+                          news={this.state.news}
+                          newsLanguage={freshtabConfig.componentsState.news.preferedCountry}
+                        />
+                      )}
+                    </section>
+                  )}
+                </section>
 
-                  <section id="section-bottom-space" className="content-section" />
-                </div>
-                {modules.isOpen && (
-                  <ModulesDeveloperModal
-                    closeAction={this.onDeveloperModulesClose}
-                    error={modules.error}
-                    isOpen={modules.isOpen}
-                  />
-                )}
-              </section>
+                <section id="section-bottom-space" className="content-section" />
+              </div>
+              {modules.isOpen && (
+                <ModulesDeveloperModal
+                  closeAction={this.onDeveloperModulesClose}
+                  error={modules.error}
+                  isOpen={modules.isOpen}
+                />
+              )}
+            </section>
 
-              <AsideRight
-                onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
-                onDeveloperModulesOpen={this.onDeveloperModulesOpen}
-                onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
-                restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
-                shouldShowSearchSwitch={!this.shouldShowTopUrlBar}
-                config={freshtabConfig}
-                isSettingsOpen={this.state.isSettingsOpen}
-                hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
-                toggleBackground={this.toggleBackground}
-                toggleBlueTheme={this.toggleBlueTheme}
-                toggleComponent={this.toggleComponent}
-                toggleSettings={() => this.toggleSettings()}
-              />
-            </AppContext.Provider>
-          </div>
+            <AsideRight
+              onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
+              onDeveloperModulesOpen={this.onDeveloperModulesOpen}
+              onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
+              restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
+              shouldShowSearchSwitch={!this.shouldShowTopUrlBar}
+              config={freshtabConfig}
+              isSettingsOpen={this.state.isSettingsOpen}
+              hasHistorySpeedDialsToRestore={this.state.hasHistorySpeedDialsToRestore}
+              toggleBackground={this.toggleBackground}
+              toggleBlueTheme={this.toggleBlueTheme}
+              toggleComponent={this.toggleComponent}
+              toggleSettings={() => this.toggleSettings()}
+            />
+          </AppContext.Provider>
         </div>
-      </ProfilerComponent>
+      </div>
     );
   }
 }

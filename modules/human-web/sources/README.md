@@ -1,6 +1,11 @@
 # Human Web Overview
 
-(Note: To have an initial version, the following text was taken from https://gist.github.com/solso/423a1104a9e3c1e3b8d7c9ca14e885e5, which only minor fixes. As it was written in 2016, references to the code might no longer be up-to-date but the explanation of the high level concepts still remains valid.)
+The Human Web was featured in our tech blog:
+[Human Web - Collecting data in a socially responsible manner](https://0x65.dev/blog/2019-12-03/human-web-collecting-data-in-a-socially-responsible-manner.html).
+We recommend to start with it first, as it is the most recent source of information (published: 3th Dec 2019).
+If there are conflicts with the documentation below (copied from the
+[older documentation](https://gist.github.com/solso/423a1104a9e3c1e3b8d7c9ca14e885e5))
+the information from the tech blog article should be preferred.
 
 ## Motivation
 
@@ -85,7 +90,7 @@ The goal of Human Web is not so much to anonymize data, for that purpose there a
 
 We hope that we convinced you that there are alternatives to the standard server-side aggregation. We can get rid of UIDs and the session they generate by changing the approach of data collection to client-side. Such approach is general, it satisfies a wide-range of use-cases. As a matter of fact, we have yet to find a use-case that cannot be satisfied by client-side aggregation alone.
  
-Client-side aggregation at Cliqz is done at the browser level. However, it is perfectly possible to do the same using only standard javascript and HTML5, check out a [prototype of a Google Analytics look-alike]( http://site1.test.cliqz.com/).
+Client-side aggregation at Cliqz is done at the browser level. However, it is perfectly possible to do the same using only standard javascript and HTML5, check out a [prototype of a Google Analytics look-alike](http://site1.test.cliqz.com/) (part of the [Data Collection without Privacy Side-Effects](http://josepmpujol.net/public/papers/big_green_tracker.pdf) short paper.
 
 The client-side aggregation is the approach to remove **explicit UIDs**. The UIDs that are added to make the data linkable on the server-side. However, even if you remove all explicit UIDs the job is not done. There are more UIDs than the explicit ones…
 
@@ -103,8 +108,12 @@ If all users are normative we can assume that if the above message is received 1
  
 A malicious actor can exploit this setup to artificially inflate the popularity of a site. He only needs to replay the message as much as he wants. Given that we have absolutely no information about the user sending the data, how can we known if 100 messages from the 100 different users and not from a single malicious one?
  
-HPN solves this issue by filtering out this kind of attacks by heavy use of crypto, which allow us to filter out repeated messages from the same user without ever knowing anything about the user. Soon enough we will do a formal write up of the HPN, in in the meantime [the source code is always available](https://github.com/cliqz-oss/browser-core/blob/master/modules/hpnv2/).
+HPN solves this issue by filtering out this kind of attacks by heavy use of crypto, which allow us to filter out repeated messages from the same user without ever knowing anything about the user. 
 
+Please check the paper [Preventing Attacks on Anonymous Data Collection](https://arxiv.org/abs/1812.07927). The source code is always available:
+
+* [extension code](https://github.com/cliqz-oss/browser-core/tree/master/modules/hpnv2)
+* [anonymous-credentials](https://github.com/cliqz-oss/anonymous-credentials) (the crypto part, implementing the paper)
 
 ## Implicit UIDs
 
@@ -586,9 +595,9 @@ which will the URL finally used as `ref`. That still allows for some probabilist
  
 A similar argument goes for the field `qr`. The query in `qr.q` can be used to link the message of type `query` to the `page` type message that should follow. This type of two records sessions is in fact harmless since they do not provide additional information that was not already contained in one of the messages. 
 
-
 # Final Words
 
 Human Web is not a closed system, is constantly evolving to offer the maximum privacy guarantees to the users whose data is collected. From version 0.1 to the current 2.4 at the time of the writing.
 
 We do firmly believe that this methodology is a major step forward from the typical server-side aggregation used by the industry. With our unique approach, we mitigate the risk of gathering information that we would rather not have. The risks for privacy leaks are close to zero, although there is no formal proof of privacy. We would never be able to know things like the list of queries a particular person has done in the last year. Not because our policy on security and privacy prevent us of doing so. But because it cannot be done, it is not technically possible even if we were asked to do so. In our opinion, the Human Web is a Copernican shift on the way data is collected.
+

@@ -9,7 +9,6 @@
 /* eslint no-param-reassign: 'off' */
 /* eslint no-restricted-syntax: 'off' */
 
-import md5 from '../core/helpers/md5';
 import { VERSION } from './config';
 import { getHourTimestamp } from './time';
 import prefs from '../core/prefs';
@@ -96,6 +95,15 @@ export function truncateDomain(host, depth) {
   return `${subdomains.slice(Math.max(subdomains.length - depth, 0)).join('.')}.${generalDomain}`;
 }
 
-export function truncatedHash(string) {
-  return md5(string).slice(0, 16);
+export function shuffle(s) {
+  const a = s.split('');
+  const n = a.length;
+
+  for (let i = n - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+  }
+  return a.join('');
 }

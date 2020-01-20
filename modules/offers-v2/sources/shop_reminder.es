@@ -30,7 +30,7 @@ class Model {
 export default class ShopReminder {
   constructor({ store, db }) {
     this.store = store || new LRU(MAX_SHOPS);
-    this.db = db ? new SimpleDB(db) : null;
+    this.db = db ? new SimpleDB(db, logger) : null;
   }
 
   async init() {

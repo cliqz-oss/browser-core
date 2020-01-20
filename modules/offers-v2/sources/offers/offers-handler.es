@@ -4,7 +4,6 @@
 // Component description see the comment to `OffersHandler` class below
 
 import MessageQueue from '../../core/message-queue';
-import md5 from '../../core/helpers/md5';
 import events from '../../core/events';
 import prefs from '../../core/prefs';
 import config from '../../core/config';
@@ -16,12 +15,12 @@ import OffersGeneralStats from './offers-general-stats';
 import OfferStatus from './offers-status';
 import OffersAPI from './offers-api';
 import OfferDBObserver from './offers-db-observer';
+import Offer from './offer';
 import IntentOffersHandler from './intent-offers-handler';
 import OffersMonitorHandler from './offers-monitoring';
 import ActionID from './actions-defs';
 import Blacklist from './blacklist';
 import OffersToPageRelationStats from './relation-stats/offers-to-page';
-import { mock as mockOffersToPageRelationStats } from './relation-stats/offers-to-page-utils';
 import chooseBestOffer from './best-offer';
 import { OfferMatchTraits } from '../categories/category-match';
 import { ImageDownloaderForPush } from './image-downloader';
@@ -32,8 +31,10 @@ import DBReplacer from './jobs/db-replacer';
 import HardFilters from './jobs/hard-filters';
 import SoftFilters from './jobs/soft-filters';
 import ContextFilter from './jobs/context-filters';
-import ThrottlePushToRewardsFilter from './jobs/throttle';
+import ThrottlePushToRewardsFilter, { THROTTLE_PER_DOMAIN, THROTTLE_IGNORE_DOMAIN } from './jobs/throttle';
 import ShuffleFilter from './jobs/shuffle';
+
+const REWARD_BOX_REAL_ESTATE_TYPE = isGhostery ? 'ghostery' : 'offers-cc';
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              Helper methods
@@ -132,9 +133,7 @@ export default class OffersHandler {
     this.blacklist = new Blacklist();
     this.blacklist.init();
 
-    this.offersToPageRelationStats = isGhostery
-      ? mockOffersToPageRelationStats()
-      : new OffersToPageRelationStats();
+    this.offersToPageRelationStats = new OffersToPageRelationStats();
 
     // manage the status changes here
     this.offerStatus = new OfferStatus();
@@ -166,7 +165,11 @@ export default class OffersHandler {
 
     // we build the process pipeline here that will basically produce the list
     // of prioritized offers
-    this.throttlePushRewardsBoxFilter = new ThrottlePushToRewardsFilter();
+    this.throttlePushRewardsBoxFilter = new ThrottlePushToRewardsFilter(
+      config.settings.THROTTLE_OFFER_APPEARANCE_MODE === 'PER_DOMAIN'
+        ? THROTTLE_PER_DOMAIN
+        : THROTTLE_IGNORE_DOMAIN
+    );
     this.jobsPipeline = [
       new IntentGatherer(),
       new DBReplacer(),
@@ -186,12 +189,10 @@ export default class OffersHandler {
   }
 
   async init() {
-    this.throttlePushRewardsBoxFilter.init();
-    return Promise.resolve(true);
+    return true;
   }
 
   destroy() {
-    this.throttlePushRewardsBoxFilter.unload();
     this.blacklist.unload();
     this.blacklist = null;
     this.offersToPageRelationStats = null;
@@ -236,19 +237,20 @@ export default class OffersHandler {
   }
 
   markOffersAsRead() {
-    const offers = isGhostery ? [] : this.offersDB.getOffers();
+    const offers = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
     const [counter, action] = [1, 'offer_read'];
     offers.forEach(({ offer }) => this.offersDB.incOfferAction(offer.offer_id, action, counter));
     this.offersToPageRelationStats.invalidateCache();
   }
 
-  getStoredOffersWithMarkRelevant(filters, { catMatches, url } = {}) {
+  getStoredOffersWithMarkRelevant(filters, { catMatches, urlData } = {}) {
     if (!this.offersAPI) { return []; }
     const offers = this.offersAPI.getStoredOffers(filters);
-    if (!url || !catMatches) { return offers; }
-    const offersForStats = isGhostery ? [] : this.offersDB.getOffers();
-    const stats = this.offersToPageRelationStats.stats(offersForStats, catMatches, url);
-    return offers.map(o => ({ ...o, relevant: stats.related.includes(o.offer_id) }));
+    if (!urlData || !catMatches) { return offers; }
+    const offersForStats = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
+    const stats = this.offersToPageRelationStats.stats(offersForStats, catMatches, urlData);
+    const relevant = stats.related.concat(stats.owned);
+    return offers.map(o => ({ ...o, relevant: relevant.includes(o.offer_id) }));
   }
 
   updateIntentOffers() {
@@ -258,9 +260,6 @@ export default class OffersHandler {
   getOffersForIntent(intentName) {
     return this.intentOffersHandler.getOffersForIntent(intentName);
   }
-
-  // ///////////////////////////////////////////////////////////////////////////
-  // Protected methods
 
   isUrlBlacklisted(url) {
     return this.blacklist.has(url);
@@ -297,12 +296,11 @@ export default class OffersHandler {
       url: [urlData.getRawUrl()],
       display_time_secs: offer.ruleInfo.display_time_secs,
     };
-    const domainHash = md5(urlData.getDomain() || '');
     const result = this.offersAPI.pushOffer(
       offer,
       displayRuleInfo,
       null, /* originID */
-      new OfferMatchTraits(catMatches, offer.categories, domainHash)
+      new OfferMatchTraits(catMatches, offer.categories, urlData.getDomain() || '')
     );
     return Promise.resolve(result);
   }
@@ -331,12 +329,16 @@ export default class OffersHandler {
   }
 
   async _processEventWrapped({ urlData, catMatches }) {
-    logger.debug('Offers handler processing a new event', urlData.getRawUrl());
+    const unreminderedOfferId = this._notifyAboutUnreadOffers(catMatches, urlData);
+    const wasChosen = await this._chooseBestOfferIfCan(catMatches, urlData);
+    if (!wasChosen && unreminderedOfferId) {
+      this._showTooltip(unreminderedOfferId, urlData);
+    }
+    return wasChosen;
+  }
 
-    // we need notify before process a new offer,
-    // otherwise from user point of view we notify her twice:
-    // new offer and reddot in the icon
-    this._notifyAboutUnreadOffers(catMatches, urlData);
+  async _chooseBestOfferIfCan(catMatches, urlData) {
+    logger.debug('Offers handler processing a new event', urlData.getRawUrl());
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
       logger.debug('we should not show any offer now');
@@ -357,6 +359,7 @@ export default class OffersHandler {
     }
     await this._preloadImages(bestOffer);
     await this._pushOffersToRealEstates(bestOffer, urlData, catMatches);
+    this.throttlePushRewardsBoxFilter.onTriggerOffer(bestOffer, urlData.getDomain());
     return true;
   }
 
@@ -417,6 +420,7 @@ export default class OffersHandler {
   _offersDBCallback(message) {
     if (message.evt === 'offer-action') {
       this.offersGeneralStats.newOfferAction(message);
+      this.offersToPageRelationStats.invalidateCache();
     } else if (message.evt === 'offer-added') {
       // we will add the action to the offer to keep track of it
       const offerID = message.offer.offer_id;
@@ -450,11 +454,38 @@ export default class OffersHandler {
   }
 
   _notifyAboutUnreadOffers(catMatches, urlData) {
-    const url = urlData.getRawUrl();
-    const offers = isGhostery ? [] : this.offersDB.getOffers();
-    const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, url);
-    const count = stats.related.filter(oid => !stats.touched.includes(oid)).length;
+    const offers = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
+    const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, urlData);
+
+    const relevant = Array.from(new Set(stats.related.concat(stats.owned)));
+    const untouched = relevant.filter(oid => !stats.touched.includes(oid));
+    if (untouched.length === 0) { return undefined; }
+
+    // (untouched & related) - tooltip - owned
+    const notRemindered = untouched.filter(
+      oid => stats.related.includes(oid)
+        && !stats.owned.includes(oid)
+        && !stats.tooltip.includes(oid)
+    );
+    if (notRemindered.length !== 0) { return notRemindered.pop(); } // just last offerId
+
+    this._notifyUnreadCounts(urlData, untouched.length);
+    return undefined;
+  }
+
+  _notifyUnreadCounts(urlData, count) {
     const tabId = urlData.getTabId();
     if (count) { events.pub('offers-notification:unread-offers-count', { count, tabId }); }
+  }
+
+  _showTooltip(offerId, urlData) {
+    const offer = this.getOfferObject(offerId);
+    if (!offer) { return; }
+    const { ui_info: uiInfo = {} } = offer;
+    const newuiInfo = { ...uiInfo, notif_type: 'tooltip' };
+    this.offersAPI.pushOffer(
+      new Offer({ ...offer, ui_info: newuiInfo }),
+      { url: [urlData.getRawUrl()] } // displayRuleInfo
+    );
   }
 }

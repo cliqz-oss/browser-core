@@ -8,20 +8,19 @@
 
 /* eslint no-param-reassign: 'off' */
 
-import md5 from '../../core/helpers/md5';
-import { dURIC } from '../../core/url-info';
+import md5, { truncatedHash } from '../../core/helpers/md5';
+import { tryDecodeURIComponent } from '../../core/url';
 import console from '../../core/console';
 
 import TokenDomain from '../token-domain';
 import BlockLog from '../block-log';
-import { truncatedHash } from '../utils';
 
 function decodeToken(token) {
-  let decodedToken = dURIC(token);
-  let doubleDecoded = dURIC(decodedToken);
+  let decodedToken = tryDecodeURIComponent(token);
+  let doubleDecoded = tryDecodeURIComponent(decodedToken);
   while (decodedToken !== doubleDecoded) {
     decodedToken = doubleDecoded;
-    doubleDecoded = dURIC(decodedToken);
+    doubleDecoded = tryDecodeURIComponent(decodedToken);
   }
   return decodedToken;
 }

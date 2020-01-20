@@ -8,15 +8,10 @@
 
 const cliqzEnv = require('../../../broccoli/cliqz-env');
 
-let env = cliqzEnv.PRODUCTION ? 'production' : 'development';
-
-// Serve profiling build on beta so as to make profiling component work.
-if (cliqzEnv.IS_BETA) {
-  env = 'profiling';
-}
+const env = cliqzEnv.PRODUCTION ? 'production' : 'development';
 
 let suffix = '';
-if (env === 'production' || env === 'profiling') {
+if (env === 'production') {
   suffix = '.min';
 }
 

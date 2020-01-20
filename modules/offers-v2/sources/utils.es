@@ -120,7 +120,7 @@ function oncePerInterval(f, shift = 1000 * 60 * 5) {
 }
 
 function isDeveloper() {
-  return prefs.get('developer', false) || prefs.get('offersDevFlag', false);
+  return prefs.get('developer', false);
 }
 
 export {

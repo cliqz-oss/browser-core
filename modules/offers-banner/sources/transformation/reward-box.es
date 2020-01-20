@@ -1,13 +1,20 @@
-import { getResourceUrl, isCliqzBrowser, isWebExtension } from '../../core/platform';
-import config from '../../core/config';
-import { getMessage } from '../../core/i18n';
+import {
+  isCliqzBrowser,
+  isWebExtension,
+  isGhostery,
+} from '../../core/platform';
 import prefs from '../../core/prefs';
-import { getTitleColor, products } from '../utils';
+import { products, getResourceUrl } from '../utils';
 import { calculateValidity } from './helpers';
 
 function commonData() {
+  const _products = products();
+  const shouldShowOnboarding = (_products.chip || _products.myoffrz)
+    && !prefs.get('myoffrz.seen_onboarding_notification', false);
   return {
-    products: products(),
+    products: _products,
+    shouldShowOptIn: isGhostery && !prefs.get('myoffrz.opted_in', null),
+    shouldShowOnboarding,
 
     // the next two for browser-panel
     isCliqzBrowser,
@@ -24,18 +31,15 @@ function popup(uiInfo, {
   attrs: { state: offerState = 'new', isCodeHidden, landing },
 }) {
   const { template_data: templateData = {}, template_name: templateName = {} } = uiInfo;
-  const backgroundColor = getTitleColor(templateData);
   const { logo_class: logoClass = 'normal' } = templateData;
   const expirationTime = expirationMs // Expect this to be always greater than Date.now();
     ? (createdTs + expirationMs) / 1000
     : templateData.validity;
 
-  const [diff, diffUnit, isExpiredSoon] = calculateValidity(expirationTime);
-  const validity = expirationTime && diff != null
-    ? {
-      text: `${getMessage('offers_expires_in')} ${diff} ${getMessage(diffUnit)}`,
-      isExpiredSoon,
-    } : {};
+  const { diff, diffUnit, expired = {} } = calculateValidity(expirationTime);
+  const validity = expirationTime && diff !== undefined
+    ? { diff, diffUnit, expired }
+    : {};
 
   return {
     created: createdTs,
@@ -45,7 +49,6 @@ function popup(uiInfo, {
     template_name: templateName,
     template_data: templateData,
     offer_id: offerId,
-    backgroundColor,
     logoClass,
     validity,
     notif_type: uiInfo.notif_type || 'tooltip',
@@ -54,7 +57,7 @@ function popup(uiInfo, {
   };
 }
 
-function tooltip(uiInfo) {
+function tooltip(offerId, uiInfo) {
   const {
     template_data: templateData,
     notif_type: notifType
@@ -69,7 +72,6 @@ function tooltip(uiInfo) {
     headline,
     title,
   } = templateData;
-  const backgroundColor = getTitleColor(templateData);
 
   if (notifType === 'tooltip_extra') {
     return {
@@ -79,9 +81,9 @@ function tooltip(uiInfo) {
       headline: headline || title,
       benefit,
       labels,
-      backgroundColor,
       logoClass,
       backgroundImage: logoDataurl,
+      offerId,
     };
   }
 
@@ -89,8 +91,7 @@ function tooltip(uiInfo) {
     ...commonData(),
     showTooltip: true,
     isGeneric: true,
-    headline: getMessage('offers_hub_tooltip_new_offer'),
-    icon: `${config.baseURL}offers-cc/images/offers-cc-icon-white.svg`,
+    offerId,
   };
 }
 
@@ -105,7 +106,7 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
   const payload = {
     offerId,
     config: {
-      url: getResourceUrl('offers-cc/index.html?cross-origin'),
+      url: getResourceUrl(),
       type: 'offers-cc',
       products: products(),
     },
@@ -129,7 +130,7 @@ function tooltipWrapper(offerId, {
   const payload = {
     data: {
       isPair: true,
-      tooltip: tooltip(uiInfo),
+      tooltip: tooltip(offerId, uiInfo),
       popup: {
         ...commonData(),
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
@@ -140,7 +141,7 @@ function tooltipWrapper(offerId, {
     },
     offerId,
     config: {
-      url: getResourceUrl('offers-cc/index.html?cross-origin'),
+      url: getResourceUrl(),
       type: 'offers-cc',
       products: products(),
     },
@@ -155,8 +156,9 @@ export function transform(data = {}) {
     offer_id: offerId,
     attrs,
   } = data;
+
   const { notif_type: notifType } = uiInfo;
-  return notifType === 'pop-up'
+  return notifType === 'pop-up' || (isGhostery && notifType === undefined)
     ? popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs })
     : tooltipWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs });
 }
@@ -185,7 +187,7 @@ export function transformMany({ offers = [] } = {}) {
 
   newOffers.sort((a, b) => (b.relevant - a.relevant || b.last_update - a.last_update));
   const offersConfig = {
-    url: getResourceUrl('offers-cc/index.html?cross-origin'),
+    url: getResourceUrl(),
     type: 'offers-cc',
     products: products(),
   };

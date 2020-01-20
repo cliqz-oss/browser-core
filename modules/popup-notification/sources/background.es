@@ -1,17 +1,16 @@
 /* eslint object-curly-spacing: off */
 
 import background from '../core/base/background';
-import { getResourceUrl } from '../core/platform';
 import events from '../core/events';
 import inject from '../core/kord/inject';
 import { getActiveTab } from '../core/browser';
+import { getResourceUrl } from './utils';
 
 export default background({
   core: inject.module('core'),
 
   init() { },
   unload() { },
-  beforeBrowserShutdown() { },
   actions: {
     push({target, data}) {
       getActiveTab().then(({ id }) => this.core.action(
@@ -23,7 +22,7 @@ export default background({
           ...data,
           config: {
             ...data.config,
-            baseUrl: getResourceUrl('popup-notification/')
+            baseUrl: getResourceUrl(),
           },
           target
         }

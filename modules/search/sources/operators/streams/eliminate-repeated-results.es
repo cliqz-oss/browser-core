@@ -27,6 +27,7 @@ const shrinkToUrls = ({ responses }) =>
  * @function eliminateRepeatedResults
  */
 export default () => pipe(
-  distinctUntilChanged((a, b) =>
-    !b.query.forceUpdate && deepEqual(shrinkToUrls(a), shrinkToUrls(b)))
+  distinctUntilChanged((a, b) => !b.query.forceUpdate
+    && a.query.queryId === b.query.queryId
+    && deepEqual(shrinkToUrls(a), shrinkToUrls(b)))
 );

@@ -7,9 +7,7 @@
  */
 
 /* eslint no-use-before-define: ["error", { "classes": false }] */
-import {
-  urlStripProtocol,
-} from '../../core/content/url';
+import { strip } from '../../core/url';
 
 import {
   isCliqzBrowser,
@@ -33,7 +31,12 @@ export default class BaseResult {
   }
 
   get urlbarValue() {
-    return (isCliqzBrowser ? this.displayUrl : urlStripProtocol(this.displayUrl)) || this.url;
+    return (isCliqzBrowser ? this.displayUrl : strip(this.displayUrl, {
+      protocol: true,
+      www: true,
+      mobile: true,
+      trailingSlash: true,
+    })) || this.url;
   }
 
   get cssClasses() {
@@ -49,7 +52,12 @@ export default class BaseResult {
   }
 
   get title() {
-    return this.rawResult.title || urlStripProtocol(this.rawResult.url || '');
+    return this.rawResult.title || strip(this.rawResult.url || '', {
+      protocol: true,
+      www: true,
+      mobile: true,
+      trailingSlash: true,
+    });
   }
 
   get meta() {

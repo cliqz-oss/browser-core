@@ -18,41 +18,6 @@ import t from '../i18n';
 import { settingsCloseSignal, settingsBackgroundSelectSignal, settingsViewBrowserPrefsSignal } from '../services/telemetry/settings';
 import config from '../../config';
 
-const newsEditions = [
-  {
-    value: 'de',
-    text: 'app_settings_news_language_de',
-  },
-  {
-    value: 'de-tr-en',
-    text: 'app_settings_news_language_de_tr_en',
-  },
-  {
-    value: 'fr',
-    text: 'app_settings_news_language_fr',
-  },
-  {
-    value: 'intl',
-    text: 'app_settings_news_language_en',
-  },
-  {
-    value: 'us',
-    text: 'app_settings_news_language_us',
-  },
-  {
-    value: 'gb',
-    text: 'app_settings_news_language_gb',
-  },
-  {
-    value: 'es',
-    text: 'app_settings_news_language_es',
-  },
-  {
-    value: 'it',
-    text: 'app_settings_news_language_it',
-  },
-];
-
 export default class Settings extends React.Component {
   onBackgroundImageChanged = (bg, index, product) => {
     settingsBackgroundSelectSignal(bg, product);
@@ -245,14 +210,14 @@ export default class Settings extends React.Component {
                         onChange={this.onNewsSelectionChanged}
                         tabIndex="-1"
                       >
-                        {newsEditions.map(edition =>
+                        {componentsState.news.availableEditions.map(edition =>
                           (
                             <option
                               className="news-edition-option"
-                              value={edition.value}
-                              key={edition.value}
+                              value={edition.code}
+                              key={edition.code}
                             >
-                              {t(edition.text)}
+                              {edition.name}
                             </option>
                           ))
                         }

@@ -6,13 +6,17 @@ import ActionID from '../offers/actions-defs';
 import OffersConfigs from '../offers_configs';
 import logger from '../common/offers_v2_logger';
 import { isDeveloper } from '../utils';
+import { updateSignalValue as updateCouponJourneySignalValue } from '../coupon/coupon-signal';
 
-const addOrCreate = (d, field, value = 1) => {
-  let newValue = d[field] ? d[field] + value : value;
-  if (newValue.length > 512) {
-    newValue = `*CUT*${newValue.substring(newValue.length - 128)}`;
+const addOrCreate = (d, field, addValue = 1) => {
+  const oldValue = d[field];
+  if (!oldValue) {
+    d[field] = addValue;
+    return;
   }
-  d[field] = newValue;
+  d[field] = field === ActionID.AID_COUPON_JOURNEY
+    ? updateCouponJourneySignalValue(oldValue, addValue)
+    : oldValue + addValue;
 };
 
 // (EX-4191) Fix hpn-ts format to "yyyyMMdd"

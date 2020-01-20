@@ -9,11 +9,12 @@
 const urls = require('./urls');
 
 module.exports = Object.assign(urls('ghostery.net'), {
-  SUPPORT_URL: 'https://ghostery.zendesk.com/hc/en-us', // autocomplete/sources/result-providers.es
+  SUPPORT_URL: 'https://www.ghostery.com/support/', // control-center/sources/config.es
   PRIVACY_POLICY_URL: 'https://www.ghostery.com/about-ghostery/privacy-statements/',
   NEW_TAB_URL: '/freshtab/home.html',
 
   // human-web:
+  ENDPOINT_HUMAN_WEB_PATTERNS: 'https://cdn2.ghostery.com/human-web-chromium/hw-patterns.gz',
   ENDPOINT_PATTERNSURL: 'https://cdn2.ghostery.com/human-web-chromium/patterns.gz',
   ENDPOINT_ANONPATTERNSURL: 'https://cdn2.ghostery.com/human-web-chromium/patterns-anon.gz',
 });

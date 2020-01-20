@@ -4,18 +4,32 @@
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
-  max-width: 264px;
 }
 
 .main__header {
   flex-shrink: 0;
+  background-color: #00AEF0;
 }
+.main__header.main__chip-header {
+  background-color: var(--chip-primary-color, #eb443f);
+}
+.main__header.main__cliqz-header {
+  background-color: #00AEF0;
+}
+.main__header.main__myoffrz-header {
+  background-color: var(--myoffrz-primary-color, #f67057);
+};
+.main__header.main__ghostery-header {
+  background-color: var(--ghostery-primary-color, #5B005C);
+};
+
 .main__content {
   flex-grow: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  min-height: 2em;
+  background-color: white;
 }
 .main__footer {
   flex-shrink: 0;
+  background-color: white;
 }

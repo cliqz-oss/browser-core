@@ -6,12 +6,14 @@ import { extractHostname } from '../core/tlds';
 
 export function setIconBadge(product, { tabId, count } = {}) {
   const colors = {
-    myoffrz: 'rgb(255, 80, 55)',
+    myoffrz: 'rgb(20,20,20)',
+    amo: 'rgb(255, 80, 55)',
+    cliqz: 'rgb(255, 80, 55)',
     chip: 'rgb(20,20,20)',
     freundin: 'rgb(20,20,20)',
   };
   const badgeText = count === undefined || count === 1
-    ? getMessage('offers_badge_text_new')
+    ? getMessage('myoffrz_badge_text_new')
     : String(count);
 
   chrome.browserAction.setBadgeBackgroundColor({ color: colors[product] || null });

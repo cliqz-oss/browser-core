@@ -6,19 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import prefs from '../core/prefs';
-
 export default class {
   init() {
   }
 
   unload() {
-  }
-
-  status() {
-    return {
-      visible: true,
-      state: prefs.get('hpn-query'),
-    };
   }
 }

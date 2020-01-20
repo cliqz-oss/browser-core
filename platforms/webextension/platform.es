@@ -8,8 +8,6 @@
 
 import { chrome, window } from './globals';
 
-/* global navigator */
-
 function checkUserAgent(pattern) {
   try {
     return navigator.userAgent.indexOf(pattern) !== -1;
@@ -27,10 +25,6 @@ const def = {
 };
 
 export default def;
-
-export function isOnionModeFactory(prefs) {
-  return () => prefs && prefs.get('onion-mode');
-}
 
 // this should differentiate between cliqz and ghostery apps for mobile
 export const appName = (chrome && chrome.cliqzAppConstants)

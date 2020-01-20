@@ -17,14 +17,23 @@
     "control_center_adblock_description_off_domain": {
         "message": "Désactivé sur ce site"
     },
-    "control_center_adblock_description_off_website": {
-        "message": "Désactivé sur cette page"
-    },
     "control_center_adblock_title": {
         "message": "Ad-block"
     },
     "control_center_all_sites": {
         "message": "Tous les sites"
+    },
+    "control_center_autoconsent": {
+        "message": "Les notices de consentement sont bloquées"
+    },
+    "control_center_autoconsent_deny": {
+        "message": "Refuser le consentement automatiquement"
+    },
+    "control_center_autoconsent_inactive": {
+        "message": "Désactiver pour ce site"
+    },
+    "control_center_autoconsent_off": {
+        "message": "Les notices de consentement ne seront pas bloquées"
     },
     "control_center_backend_country": {
         "message": "Obtenir des résultats pour"
@@ -70,6 +79,12 @@
     },
     "control_center_info_ads_title": {
         "message": "Ad-block"
+    },
+    "control_center_info_autoconsent": {
+        "message": "Cette fonctionalité supprime les notices de consentement vous demandant d'accepter les cookies et pratiques de collection de données. Si possible, le consentement est automatiquement refusé. Sinon, la notice est simplement cachée. Si l'option « Refuser le consentement automatiquement » est désactivée, le consentement sera accordé automatiquement."
+    },
+    "control_center_info_autoconsent_title": {
+        "message": "Cookie Pop-up Blocker"
     },
     "control_center_info_cliqz_tab": {
         "message": "Cliqz Tab améliore votre page d'accueil avec des raccourcis vers vos sites favoris et des actualités continuellement mises à jour."

@@ -8,7 +8,6 @@
 
 import Intent from './intent';
 import logger from '../common/offers_v2_logger';
-import prefs from '../../core/prefs';
 import { buildCachedMap } from '../common/cached-map-ext';
 
 const INTENT_DB_DOC_ID = 'cliqz-offers-intent-db';
@@ -19,7 +18,7 @@ const INTENT_DB_DOC_ID = 'cliqz-offers-intent-db';
  */
 export default class IntentHandler {
   constructor() {
-    this.activeIntents = buildCachedMap(INTENT_DB_DOC_ID, !prefs.get('offersDevFlag', false));
+    this.activeIntents = buildCachedMap(INTENT_DB_DOC_ID);
     this.callbacks = new Map();
   }
 

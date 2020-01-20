@@ -20,19 +20,34 @@ import {
 } from './utils';
 
 export default class BrowserDropdownManager extends BaseDropdownManager {
-  constructor({ window, windowId, lastQuery }, dropdownAPI) {
+  constructor({ window, windowId, urlbar, startupReason }, dropdown) {
     super();
 
-    this.dropdownAPI = dropdownAPI;
-    this.shortcutAPI = lastQuery;
+    this._dropdown = dropdown;
+    this._urlbar = urlbar;
+    this._lastQuery = urlbar.lastQuery;
     this.windowId = windowId;
     this.window = window;
-    this.urlbar = window.gURLBar.textbox || window.gURLBar;
+    this.urlbar = window.gURLBar;
     this._syncQueryWithUrlbar();
+
+    // On browser startup user can begin to type before Cliqz extension (and dropdown) initializes.
+    // in this case we should make a query and show the dropdown once it is ready (see EX-9204).
+    //
+    // Note that we shouldn't do this on 'APP_UPGRDADE' (see EX-9326)
+    if (startupReason === 'APP_STARTUP'
+      && this._isUrlbarFocused()
+    ) {
+      this._queryCliqz();
+    }
   }
 
   get entryPoint() {
     return 'browserBar';
+  }
+
+  get inputField() {
+    return this._urlbar.inputField;
   }
 
   init() {
@@ -40,18 +55,18 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       this.urlbar.addEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
     PREVENTABLE_EVENTS.forEach(eventName =>
       this.urlbar.addEventListener(eventName, this, PREVENTABLE_LISTENER_OPTIONS));
-    this.window.gURLBar.goButton.addEventListener('click', stopEvent, true);
+    this.urlbar.goButton.addEventListener('click', stopEvent, true);
     const tabContainer = this.window.gBrowser.tabContainer;
     TAB_CHANGE_EVENTS.forEach(eventName =>
       tabContainer.addEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
 
-    this.shortcutAPI.on('click', this._onShortcutClicked);
+    this._lastQuery.on('click', this._onShortcutClicked);
   }
 
-  destroy() {
-    this.shortcutAPI.off('click', this._onShortcutClicked);
-    this.dropdownAPI.off('message', this._onMessage);
-    this.window.gURLBar.goButton.removeEventListener('click', stopEvent, true);
+  unload() {
+    this._lastQuery.off('click', this._onShortcutClicked);
+    this._dropdown.off('message', this._onMessage);
+    this.urlbar.goButton.removeEventListener('click', stopEvent, true);
 
     PASSIVE_EVENTS.forEach(eventName =>
       this.urlbar.removeEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
@@ -60,11 +75,13 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     const tabContainer = this.window.gBrowser.tabContainer;
     TAB_CHANGE_EVENTS.forEach(eventName =>
       tabContainer.removeEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
+
+    super.unload();
   }
 
   createIframeWrapper() {
     const iframeWrapper = new Spanan(({ action, ...rest }) => {
-      this.dropdownAPI.sendMessage(this.windowId, {
+      this._dropdown.sendMessage({
         target: 'cliqz-dropdown',
         action,
         ...rest,
@@ -73,11 +90,11 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
     this.iframeWrapper = iframeWrapper;
 
-    this.dropdownAPI.on('message', this._onMessage);
+    this._dropdown.on('message', this._onMessage);
 
     iframeWrapper.export(this.actions, {
       respond: (response, request) => {
-        this.dropdownAPI.sendMessage(this.windowId, {
+        this._dropdown.sendMessage({
           type: 'response',
           uuid: request.uuid,
           response,
@@ -89,14 +106,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     this._iframeWrapperDefer.resolve();
   }
 
-  _onMessage = (_, windowId, data) => {
-    if (this.windowId === windowId) {
-      this.onMessage({ data });
-    }
+  _onMessage = (data) => {
+    this.onMessage({ data });
   }
 
   _telemetry(payload) {
-    this.dropdownAPI.emit('telemetry', this.window, payload);
+    this._dropdown.emit('telemetry', this.windowId, payload);
   }
 
   _copyToClipboard(text) {
@@ -106,11 +121,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _navigateTo(url, newTab = false) {
-    this.dropdownAPI.navigateTo(this.windowId, url, { target: newTab ? 'tabshifted' : 'current' });
+    this._urlbar.constructor
+      .navigateTo(this.window, url, { target: newTab ? 'tabshifted' : 'current' });
   }
 
   _switchToTab(url) {
-    this.window.gURLBar.handleRevert();
+    this.urlbar.handleRevert();
 
     const { Services, switchToTabHavingURI } = this.window;
     const prevTab = this.window.gBrowser.selectedTab;
@@ -135,7 +151,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       newTab,
       eventType,
       result,
-      ...rest,
+      ...rest
     },
   ) {
     const isFromFirstAutocompletedURL = this.selectedResult && this.selectedResult.index === 0
@@ -147,16 +163,16 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       ...rest,
     });
 
-    const { id: tabId } = this.dropdownAPI.getCurrentTab(this.window);
+    const { id: tabId } = this._dropdown.getCurrentTab();
     if (newTab
       || this._isPrivate()
       || !url
       || isFromFirstAutocompletedURL
       || isUrl(result.query)
     ) {
-      this.shortcutAPI.hideLastQuery(tabId);
+      this._lastQuery.hideLastQuery(tabId);
     } else {
-      this.shortcutAPI.update(tabId, result.query);
+      this._lastQuery.update(tabId, result.query);
     }
   }
 
@@ -164,16 +180,17 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     super._handleEnter(newTab);
 
     const query = this.query;
-    const { id: tabId } = this.dropdownAPI.getCurrentTab(this.window);
+    const { id: tabId } = this._dropdown.getCurrentTab();
 
     if (newTab
+      || !query.trim()
       || this.hasCompletion
       || this._isPrivate()
       || isUrl(query)
     ) {
-      this.shortcutAPI.hideLastQuery(tabId);
+      this._lastQuery.hideLastQuery(tabId);
     } else {
-      this.shortcutAPI.update(tabId, query);
+      this._lastQuery.update(tabId, query);
     }
   }
 
@@ -184,26 +201,26 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _focus() {
-    this.window.gURLBar.focus();
+    this._urlbar.focus();
   }
 
   _isUrlbarFocused() {
     // gURLBar.focused is not a reliable source of information to determine
     // wether urlbar is focused or not (see EX-9048).
     // Instead we compare currently focused element with urlbar html:input tag.
-    return this.window.Services.focus.focusedElement === this.urlbar.mInputField;
+    return this.window.Services.focus.focusedElement === this.inputField;
   }
 
   _setUrlbarValue(value) {
-    this.window.gURLBar.value = value;
+    this.urlbar.value = value;
   }
 
   _setUrlbarVisibleValue(value) {
-    this.urlbar.mInputField.value = value;
+    this.inputField.value = value;
   }
 
   _getUrlbarValue() {
-    return this.urlbar.mInputField.value;
+    return this.inputField.value;
   }
 
   _setSelectionRange(selectionStart, selectionEnd) {
@@ -219,20 +236,20 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _getUrlbarAttributes() {
-    return this.dropdownAPI.getURLBarAttributes(this.window);
+    return this._urlbar.URLBarAttributes;
   }
 
   _isPrivate() {
-    const { incognito } = this.dropdownAPI.getCurrentTab(this.window);
+    const { incognito } = this._dropdown.getCurrentTab();
     return incognito;
   }
 
   _setHeight(height) {
-    this.dropdownAPI.setHeight(this.windowId, height);
+    this._dropdown.height = height;
   }
 
   _getHeight() {
-    return this.dropdownAPI.getState(this.window).height;
+    return this._dropdown.height;
   }
 
   onKeydown(event) {
@@ -261,13 +278,11 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         preventDefault = this.onInput();
         break;
       case 'keydown':
-        if (event.key === 'Escape' && this.window.gURLBar.controller.input) {
+        if (event.key === 'Escape' && this.urlbar.controller.input) {
           // On pressing 'Escape' discard the user query and restore the original urlbar value.
           // In Firefox prior to version 68 it was done by the browser.
           // After Firefox 68 we do it ourselves,
-          const previousValue = this.window.gURLBar.controller.input.value;
-          this._setUrlbarValue(previousValue);
-          this._setSelectionRange(0, previousValue.length);
+          this.urlbar.handleRevert();
         }
         preventDefault = this.onKeydown(event);
         break;
@@ -283,32 +298,29 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         if (event.ctrlKey || event.altKey || event.metaKey) {
           break;
         }
-        const urlbar = this.urlbar;
-        const mInputField = urlbar.mInputField;
-        const hasCompletion = mInputField.selectionEnd !== mInputField.selectionStart
-          && mInputField.selectionEnd === urlbar.mInputField.value.length
-          && mInputField.value.length > 1;
+        const typedCharacter = String.fromCharCode(event.charCode);
+        const { value, selectionStart, selectionEnd } = this.inputField;
+        const hasCompletion = selectionEnd !== selectionStart
+          && selectionEnd === value.length
+          && value.length > 1;
         if (
           hasCompletion
-          && mInputField.value[mInputField.selectionStart] === String.fromCharCode(event.charCode)
+          && value[selectionStart] === typedCharacter
         ) {
-          let query = mInputField.value;
-          const queryWithCompletion = mInputField.value;
-          const start = mInputField.selectionStart;
-          query = query.slice(0, urlbar.selectionStart) + String.fromCharCode(event.charCode);
+          const newQuery = value.slice(0, selectionStart) + typedCharacter;
 
           // Prevent sending the new query
           event.preventDefault();
 
           // Set new query value and trigger 'input' event
-          mInputField.value = '';
-          mInputField.setUserInput(query);
+          this.inputField.value = '';
+          this.inputField.setUserInput(newQuery);
 
-          // Restore original mInputField.value and completion
-          mInputField.value = queryWithCompletion;
+          // Restore original inputField.value and completion
+          this.inputField.value = value;
 
           // Update completion
-          mInputField.setSelectionRange(start + 1, mInputField.value.length);
+          this.inputField.setSelectionRange(selectionStart + 1, value.length);
         }
         break;
       }

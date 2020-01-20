@@ -171,7 +171,7 @@
             overflow: hidden;
             text-indent: 100%;
             white-space: nowrap;
-            transition: visibility 0s linear 300ms 0.2s, opacity 300ms linear 0.2s;
+            transition: opacity 300ms linear 0.2s;
         }
 
         .plus-dial-icon {
@@ -212,7 +212,6 @@
             padding: 0;
             height: calc(#{$dial-height} + 8px);
             display: flex;
-            align-items: top;
             justify-content:center;
         }
 

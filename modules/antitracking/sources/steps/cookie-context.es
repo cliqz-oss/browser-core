@@ -6,17 +6,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import md5 from '../../core/helpers/md5';
+import { truncatedHash } from '../../core/helpers/md5';
 import pacemaker from '../../core/services/pacemaker';
-import { URLInfo } from '../../core/url-info';
+import { parse } from '../../core/url';
 import { sameGeneralDomain, getGeneralDomain } from '../../core/tlds';
 
 import { cleanTimestampCache } from '../utils';
 
 export default class CookieContext {
-  constructor(config, pageMeta, qsWhitelist) {
+  constructor(config, qsWhitelist) {
     this.config = config;
-    this.pageMeta = pageMeta;
     this.qsWhitelist = qsWhitelist;
     this.visitCache = {};
     this.contextFromEvent = null;
@@ -64,7 +63,7 @@ export default class CookieContext {
       return;
     }
     // don't trust trackers
-    if (this.qsWhitelist.isTrackerDomain(md5(getGeneralDomain(toThirdParty)).substring(0, 16))) {
+    if (this.qsWhitelist.isTrackerDomain(truncatedHash(getGeneralDomain(toThirdParty)))) {
       return;
     }
     const key = `${fromFirstParty}:${toThirdParty}`;
@@ -76,7 +75,7 @@ export default class CookieContext {
 
   assignCookieTrust(state) {
     if (state.isMainFrame && state.getReferrer()) {
-      const referrer = URLInfo.get(state.getReferrer());
+      const referrer = parse(state.getReferrer());
       if (!referrer) {
         return true;
       }
@@ -85,13 +84,6 @@ export default class CookieContext {
 
       // this domain is now trusted by the referrer
       this._addTrustLink(trustedOn, trustedHost);
-
-      // check redirect chain for this page to see if we should back-propagate the trust chain
-      if (this.pageMeta._active[state.tabId]) {
-        this.pageMeta._active[state.tabId].redirects.forEach((domain) => {
-          this._addTrustLink(domain, trustedHost);
-        });
-      }
     }
     return true;
   }
@@ -162,7 +154,7 @@ export default class CookieContext {
   }
 
   extractPossilbeContextGD(links) {
-    return new Set(links.map(link => URLInfo.get(link).generalDomain));
+    return new Set(links.map(link => parse(link).generalDomain));
   }
 
   setContextFromEvent(ev, contextHTML, herf, sender) {
@@ -171,8 +163,8 @@ export default class CookieContext {
     const html = contextHTML || '';
 
     try {
-      pageGD = URLInfo.get(sender.tab.url).generalDomain;
-      cGD = URLInfo.get(ev.target.baseURI).generalDomain;
+      pageGD = parse(sender.tab.url).generalDomain;
+      cGD = parse(ev.target.baseURI).generalDomain;
     } catch (ee) {
       // empty
     }

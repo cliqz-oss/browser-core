@@ -7,7 +7,7 @@
  */
 
 /* eslint no-param-reassign: 'off' */
-import { URLInfo } from '../../core/url-info';
+import { truncateDomain } from '../utils';
 
 // maps string (web-ext) to int (FF cpt). Anti-tracking still uses these legacy types.
 const TYPE_LOOKUP = {
@@ -34,106 +34,117 @@ const TYPE_LOOKUP = {
 };
 
 export default class PageLogger {
-  constructor(tpEvents, webNavigation) {
-    this.tpEvents = tpEvents;
+  constructor(config) {
+    this.config = config;
     this._requestCounters = new Map();
-    this._betweenPages = new Set();
-    if (webNavigation) {
-      this.onBeforeNavigate = this.onBeforeNavigate.bind(this);
-      this.onNavigationCommitted = this.onNavigationCommitted.bind(this);
-      webNavigation.onBeforeNavigate.addListener(this.onBeforeNavigate);
-      webNavigation.onCommitted.addListener(this.onNavigationCommitted);
-      this.unload = () => {
-        webNavigation.onBeforeNavigate.removeListener(this.onBeforeNavigate);
-        webNavigation.onCommitted.removeListener(this.onNavigationCommitted);
-      };
+  }
+
+  attachCounters(state) {
+    const stats = state.page.getStatsForDomain(truncateDomain(state.urlParts.domainInfo, 2));
+    state.reqLog = stats;
+    const incrementStat = (statName, c) => {
+      stats[statName] = (stats[statName] || 0) + (c || 1);
+    };
+    const setStat = (statName, value) => {
+      stats[statName] = value;
+    };
+    state.incrementStat = incrementStat;
+    state.setStat = setStat;
+    state.getPageAnnotations = () => state.page.annotations;
+
+    if (state.requestId) {
+      this._requestCounters.set(state.requestId, {
+        incrementStat,
+        setStat,
+        getPageAnnotations: state.getPageAnnotations,
+        ghosteryBug: state.ghosteryBug,
+      });
     }
   }
 
-  onBeforeNavigate(details) {
-    if (details.frameId === 0) {
-      this._betweenPages.add(details.tabId);
-      // when a tab is navigated, ensure data is staged.
-      this.tpEvents.stage(details.tabId);
+  onBeforeRequest(state) {
+    this.attachCounters(state);
+    const { incrementStat, setStat, urlParts } = state;
+
+    incrementStat('c');
+    if (urlParts.search.length > 0) {
+      incrementStat('has_qs');
+    }
+    if (urlParts.hasParameterString() > 0) {
+      incrementStat('has_ps');
+    }
+    if (urlParts.hash.length > 0) {
+      incrementStat('has_fragment');
+    }
+    if (state.method === 'POST') {
+      incrementStat('has_post');
+    }
+
+    incrementStat(`type_${TYPE_LOOKUP[state.type] || 'unknown'}`);
+
+    // log protocol (secure or not)
+    const isHTTP = protocol => protocol === 'http:' || protocol === 'https:';
+    const scheme = isHTTP(urlParts.protocol) ? urlParts.scheme : 'other';
+    incrementStat(`scheme_${scheme}`);
+
+    // find frame depth
+    incrementStat(`window_depth_${Math.min(state.frameAncestors.length, 2)}`);
+
+    if (state.url.indexOf(this.config.placeHolder) > -1) {
+      incrementStat('hasPlaceHolder');
+    }
+
+    if (state.ghosteryBug) {
+      setStat('ghostery_bid', state.ghosteryBug);
     }
   }
 
-  onNavigationCommitted(details) {
-    if (details.frameId === 0) {
-      this._betweenPages.delete(details.tabId);
-      if (!this.tpEvents._active[details.tabId]) {
-        // if no tab has been registered by this point, this page was loaded without a
-        // main_frame request (i.e. the request was handled via a service work).
-        // we need to simulate a main_frame request so that the pageload object is created.
-        this.tpEvents.onFullPage(URLInfo.get(details.url), details.tabId, false, '0');
-      }
-    }
-  }
-
-  logMainDocument(state) {
-    // A new page is signalled either by a `main_frame` type, or a request in between the
-    // `onBeforeNavigate` and `onNavigationCommitted` events that is not a `beacon`.
-    if (state.isMainFrame || (this._betweenPages.has(state.tabId) && state.type !== 'beacon')) {
-      this.tpEvents.onFullPage(state.urlParts, state.tabId, state.isPrivate, state.requestId);
-      return false;
-    }
-    if (this.tpEvents._active[state.tabId]
-        && this.tpEvents._active[state.tabId].private !== state.isPrivate) {
-      // if the tab information was created from a navigation, the object may not yet have the
-      // current private tab setting. We can use the value from the webRequests in the same tab.
-      this.tpEvents._active[state.tabId].private = state.isPrivate;
-    }
-    return true;
-  }
-
-  attachStatCounter(state) {
+  onBeforeSendHeaders(state) {
     if (state.requestId && this._requestCounters.has(state.requestId)) {
       this.loadStatCounters(state);
     } else {
-      const urlParts = state.urlParts;
-      const request = this.tpEvents.get(
-        state.url,
-        urlParts,
-        state.originUrl,
-        state.originUrlParts,
-        state.tabId
-      );
-      state.reqLog = request;
-      const incrementStat = (statName, c) => {
-        this.tpEvents.incrementStat(request, statName, c || 1);
-      };
-      state.incrementStat = incrementStat;
-      state.getPageAnnotations = this.tpEvents.getAnnotations.bind(this.tpEvents, state.tabId);
-
-      if (state.requestId) {
-        this._requestCounters.set(state.requestId, {
-          incrementStat,
-          ghosteryBug: state.ghosteryBug,
-          reqLog: request,
-          getPageAnnotations: state.getPageAnnotations,
-        });
-      }
-
-      // add triggeringPrinciple info
-      if (state.ghosteryBug) {
-        const pageLoad = this.tpEvents.getPage(
-          state.url,
-          urlParts,
-          state.tabUrl,
-          state.tabUrlParts,
-          state.tabId
-        );
-        if (pageLoad) {
-          // TODO - Sam
-          // if (state.trigger) {
-          //   pageLoad.addTrigger(state.urlParts.hostname, state.trigger, state.frameId);
-          // }
-          if (state.ghosteryBug) {
-            pageLoad.addGhosteryBug(state.urlParts.hostname, state.ghosteryBug);
-          }
-        }
+      this.attachCounters(state);
+    }
+    // referer stats
+    const referrer = state.getReferrer();
+    if (referrer && referrer.indexOf(state.tabUrl) > -1) {
+      state.incrementStat('referer_leak_header');
+    }
+    if (state.url.indexOf(state.tabUrlParts.hostname) > -1
+        || state.url.indexOf(encodeURIComponent(state.tabUrlParts.hostname)) > -1) {
+      state.incrementStat('referer_leak_site');
+      if (state.url.indexOf(state.tabUrlParts.pathname) > -1
+          || state.url.indexOf(encodeURIComponent(state.tabUrlParts.pathname)) > -1) {
+        state.incrementStat('referer_leak_path');
       }
     }
+    // check if the request contains a cookie
+    state.cookieData = state.getCookieData();
+    const hasCookie = state.cookieData && state.cookieData.length > 5;
+    if (hasCookie) {
+      state.incrementStat('cookie_set');
+    }
+    state.hasCookie = hasCookie;
+    return true;
+  }
+
+  onHeadersReceived(state) {
+    if (state.requestId && this._requestCounters.has(state.requestId)) {
+      this.loadStatCounters(state);
+    } else {
+      this.attachCounters(state);
+    }
+    state.incrementStat('resp_ob');
+    state.incrementStat('content_length', parseInt(state.getResponseHeader('Content-Length'), 10) || 0);
+    state.incrementStat(`status_${state.statusCode}`);
+
+    const setCookie = state.getResponseHeader('Set-Cookie');
+    const hasSetCookie = setCookie && setCookie.length > 5;
+    if (hasSetCookie) {
+      state.incrementStat('set_cookie_set');
+    }
+    state.hasSetCookie = hasSetCookie;
+
     return true;
   }
 

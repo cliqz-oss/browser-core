@@ -8,7 +8,7 @@ import config from '../core/config';
 import prefs from '../core/prefs';
 import Defer from '../core/helpers/defer';
 import { ONBOARDING_URL, ONBOARDING_URL_DEBUG, OFFBOARDING_URL } from './common/constant';
-import { guessDistributionDetails, guessDistributionChannel } from './attribution';
+import { guessDistributionChannel } from './attribution';
 
 const CLIQZ = {};
 const DEBUG = config.settings.channel === 'MO02';
@@ -81,7 +81,6 @@ async function onboarding(details) {
     });
 
     triggerOnboardingOffers();
-    guessDistributionDetails();
   }
 }
 

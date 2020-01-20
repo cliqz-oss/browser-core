@@ -6,12 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { from } from 'rxjs';
-import { map } from 'rxjs/operators';
-import BaseProvider from './base';
-import { getResponse } from '../responses';
 import * as searchUtils from '../../core/search-engines';
+
+import normalize from '../operators/normalize';
 import { PREVENT_AUTOCOMPLETE_KEYS } from '../consts';
+
+import BaseProvider from './base';
 
 export default class QuerySuggestionProvider extends BaseProvider {
   constructor() {
@@ -19,49 +19,43 @@ export default class QuerySuggestionProvider extends BaseProvider {
   }
 
   suggestionsNotAllowed(query, params) {
-    // We are not requesing query suggestion for url-like queries
+    // We are not requesting query suggestion for url-like queries
     // (like starting with "htt"), pasted or corrected queries.
     // This is what Mozilla does in Firefox so should we.
-    return !query
+    return (
+      !query
       || query.trim().startsWith('htt')
       || params.isPasted
-      || PREVENT_AUTOCOMPLETE_KEYS.includes(params.keyCode);
+      || PREVENT_AUTOCOMPLETE_KEYS.includes(params.keyCode)
+    );
   }
 
   search(query, config, params) {
-    if (!config.providers[this.id].isEnabled
-        || this.suggestionsNotAllowed(query, params)) {
+    if (!config.providers[this.id].isEnabled || this.suggestionsNotAllowed(query, params)) {
       return this.getEmptySearch(config, query);
     }
 
     const engine = searchUtils.getDefaultSearchEngine();
-
-    return from(searchUtils.getSuggestions(query))
-      .pipe(
-        map(([q, suggestions]) => (
-          getResponse({
-            provider: this.id,
-            config,
-            query,
-            results: suggestions
-              .filter(suggestion => suggestion !== query)
-              .map(suggestion => ({
-                query: q,
-                url: engine.getSubmissionForQuery(suggestion),
-                text: suggestion,
-                data: {
-                  suggestion,
-                  kind: ['Z'],
-                  extra: {
-                    searchEngineName: engine.name,
-                  },
+    return this.getResultsFromPromise(
+      searchUtils.getSuggestions(query).then(([q, suggestions]) =>
+        suggestions
+          .filter(suggestion => suggestion !== query)
+          .map(suggestion =>
+            normalize({
+              query: q,
+              url: engine.getSubmissionForQuery(suggestion),
+              text: suggestion,
+              data: {
+                suggestion,
+                kind: ['Z'],
+                extra: {
+                  searchEngineName: engine.name,
                 },
-                type: 'supplementary-search',
-              })),
-            state: 'done'
-          })
-        )),
-        this.getOperators()
-      );
+              },
+              type: 'supplementary-search',
+            }))),
+      query,
+      config,
+    );
   }
 }

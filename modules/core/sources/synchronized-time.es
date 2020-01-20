@@ -16,6 +16,14 @@ export function isSynchronizedDateAvailable() {
   return prefs.has('config_ts');
 }
 
+export function getSynchronizedDateFormatted() {
+  if (isSynchronizedDateAvailable()) {
+    return prefs.get('config_ts');
+  }
+
+  return null;
+}
+
 export default function getSynchronizedDate() {
   if (isSynchronizedDateAvailable()) {
     return moment(prefs.get('config_ts'), 'YYYYMMDD');

@@ -11,7 +11,6 @@
 $themes: (
     light: (
         base: (
-            cliqz-home-bg: url(../images/cliqz-tab-icon_black.svg) no-repeat center center,
             cliqz-history-bg: url(../images/history-icon_black.svg) no-repeat center center,
             cliqz-worldcup-bg: url(../images/soccer-icon-black.svg) no-repeat center center,
             cliqz-settings-bg: url(../images/settings-icon_black.svg) no-repeat center center,
@@ -58,14 +57,10 @@ $themes: (
             news-read-more-btn-color: $color-cliqz-blue,
             news-breaking-news-color: #E64C66,
         ),
-        top-notifications: (
-            close-bg: url(../images/top-message-close.svg) no-repeat center center,
-        ),
     ),
 
     dark: (
         base: (
-            cliqz-home-bg: url(../images/cliqz-tab-icon.svg) no-repeat center center,
             cliqz-history-bg: url(../images/history-icon.svg) no-repeat center center,
             cliqz-worldcup-bg: url(../images/soccer-tooltip.svg) no-repeat center center,
             cliqz-settings-bg: url(../images/settings-icon.svg) no-repeat center center,
@@ -111,9 +106,6 @@ $themes: (
             news-description-color: get-color-white-opacity(0.9),
             news-read-more-btn-color: $color-cliqz-blue,
             news-breaking-news-color: #E64C66,
-        ),
-        top-notifications: (
-            close-bg: url(../images/top-message-close.svg) no-repeat center center,
         ),
     )
 );

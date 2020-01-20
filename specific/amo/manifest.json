@@ -11,7 +11,8 @@
   },
   "applications": {
     "gecko": {
-      "id": "cliqz@cliqz.com"
+      "id": "cliqz@cliqz.com",
+      "strict_min_version": "57.0"
     }
   },
   "browser_action": {
@@ -21,7 +22,7 @@
       "128": "assets/button128.png"
     },
     "default_title": "__MSG_offers_hub_title__",
-    "default_popup": "modules/offers-cc/index.html?popup"
+    "default_popup": "modules/offers-cc/index.html?popup#{{PRODUCT_PREFIX}}"
   },
   "permissions": [
     "<all_urls>",

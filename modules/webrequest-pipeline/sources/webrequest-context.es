@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 import logger from './logger';
 
 
@@ -54,18 +54,22 @@ export default class WebRequestContext {
       pageStore.onSubFrame(context);
     }
 
+    // Get context on this page
+    const page = pageStore.getPageForRequest(context);
+
     // **Chromium addition**
     // frameAncestors
     if (context.frameAncestors === undefined) {
-      context.frameAncestors = pageStore.getFrameAncestors(context);
+      context.frameAncestors = page ? page.getFrameAncestors(context) : [];
     }
 
     // Cliqz-specific extensions to webRequest details
-    context.tabUrl = context.tabUrl || pageStore.getTabUrl(context);
-    context.frameUrl = context.frameUrl || pageStore.getFrameUrl(context);
-    context.isRedirect = pageStore.isRedirect(context);
-    context.isPrivate = pageStore.isPrivateTab(context.tabId);
+    context.page = page;
+    context.tabUrl = context.tabUrl || (page && page.getTabUrl());
+    context.frameUrl = context.frameUrl || (page && page.getFrameUrl(context));
+    context.isPrivate = page ? page.isPrivate : null;
     context.isMainFrame = context.type === 'main_frame';
+    context.isRedirect = page && context.isMainFrame && page.isRedirect;
 
     context.originUrl = context.originUrl || context.initiator || context.frameUrl
       || context.tabUrl;
@@ -82,10 +86,21 @@ export default class WebRequestContext {
     this._requestHeadersMap = null;
     this._responseHeadersMap = null;
 
-    this.urlParts = URLInfo.get(this.url);
-    this.frameUrlParts = URLInfo.get(this.frameUrl);
-    this.tabUrlParts = URLInfo.get(this.tabUrl);
-    this.originUrlParts = URLInfo.get(this.originUrl);
+    this.urlParts = parse(this.url);
+    this.frameUrlParts = parse(this.frameUrl);
+    this.tabUrlParts = parse(this.tabUrl);
+    this.originUrlParts = parse(this.originUrl);
+  }
+
+  /**
+   * Optionally, a CNAME record can be requested from DNS for `this.url`. If
+   * available, it will be communicated by calling this method. We then set two
+   * new attributes on the WebRequestContext object so that users of the
+   * pipeline can access this information.
+   */
+  setCNAME(cname) {
+    this.cnameUrl = this.url.replace(this.urlParts.hostname, cname);
+    this.cnameUrlParts = parse(this.cnameUrl);
   }
 
   getRequestHeader(name) {

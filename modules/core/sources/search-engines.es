@@ -7,91 +7,100 @@
  */
 
 import * as searchUtils from '../platform/search-engines';
-import { getDetailsFromUrl } from './url';
 import { fetch } from './http';
+import {
+  getCleanHost,
+  getName,
+  isUrlShortener,
+  parse,
+  tryDecodeURIComponent,
+} from './url';
 
 export * from '../platform/search-engines';
 
-function log() {
-  // console.log('search-engines', msg);
-}
-
-function getParamValue(params, query) {
-  const pairs = query.split('&');
-  for (let i = 0; i < pairs.length; i += 1) {
-    const pair = pairs[i].split('=');
-    if (params.indexOf(pair[0]) !== -1) {
-      return pair[1];
-    }
-  }
-
-  return null;
-}
-
-// check if a result should be kept in final result list
-export function isValidUrl(url) {
-  const urlparts = getDetailsFromUrl(url);
-  // Google Filters
-  if (urlparts.name.toLowerCase() === 'google'
-    && urlparts.subdomains.length > 0 && urlparts.subdomains[0].toLowerCase() === 'www'
-    && (urlparts.extra.indexOf('/search') !== -1 // '/search?' for regular SERPS and '.*/search/.*' for maps
-    || urlparts.extra.indexOf('/url?') === 0 // www.google.*/url? - for redirects
-    || urlparts.extra.indexOf('q=') !== -1)) { // for instant search results
-    log(`Discarding result page from history: ${url}`);
+export function shouldAppearInDropdown(rawUrl) {
+  const url = parse(rawUrl);
+  if (url === null) {
     return false;
   }
+
+  const name = getName(url);
+  const subdomain = url.domainInfo.subdomain;
+  const extra = url.pathname + url.search;
+
+  // Google Filters
+  if (
+    name === 'google'
+    && subdomain !== null
+    && subdomain === 'www'
+    && (
+      extra.indexOf('/search') !== -1 // '/search?' for regular SERPS and '.*/search/.*' for maps
+      || extra.startsWith('/url?') // www.google.*/url? - for redirects
+      || extra.indexOf('q=') !== -1 // for instant search results
+    )
+  ) {
+    return false;
+  }
+
   // Bing Filters
   // Filter all like:
   //    www.bing.com/search?
-  if (urlparts.name.toLowerCase() === 'bing' && urlparts.extra.indexOf('q=') !== -1) {
-    log(`Discarding result page from history: ${url}`);
+  if (name === 'bing' && extra.indexOf('q=') !== -1) {
     return false;
   }
+
   // Yahoo filters
   // Filter all like:
   //   search.yahoo.com/search
   //   *.search.yahooo.com/search - for international 'de.search.yahoo.com'
   //   r.search.yahoo.com - for redirects 'r.search.yahoo.com'
-  if (urlparts.name.toLowerCase() === 'yahoo'
-    && ((urlparts.subdomains.length === 1 && urlparts.subdomains[0].toLowerCase() === 'search' && urlparts.path.indexOf('/search') === 0)
-    || (urlparts.subdomains.length === 2 && urlparts.subdomains[1].toLowerCase() === 'search' && urlparts.path.indexOf('/search') === 0)
-    || (urlparts.subdomains.length === 2 && urlparts.subdomains[0].toLowerCase() === 'r' && urlparts.subdomains[1].toLowerCase() === 'search'))) {
-    log(`Discarding result page from history: ${url}`);
+  if (
+    name === 'yahoo'
+    && (
+      (subdomain === 'search' && url.pathname.startsWith('/search') === 0)
+      || (subdomain.endsWith('.search') && url.pathname.startsWith('/search') === 0)
+      || (subdomain === 'r.search')
+    )
+  ) {
     return false;
   }
 
   // Ignore Cliqz SERP links
-  if (['suche.cliqz.com', 'search.cliqz.com', 'suchen.cliqz.com'].indexOf(urlparts.cleanHost) > -1) {
-    log(`Discarding result page from Cliqz SERP: ${url}`);
+  const cleanHost = getCleanHost(url);
+  if (
+    cleanHost === 'suche.cliqz.com'
+    || cleanHost === 'search.cliqz.com'
+    || cleanHost === 'suchen.cliqz.com'
+    || cleanHost === 'serp.cliqz.com'
+  ) {
     return false;
   }
 
-  // Ignore bitly redirections
-  if (url.search(/http(s?):\/\/bit\.ly\/.*/i) === 0) {
-    log(`Discarding result page from history: ${url}`);
+  // Ignore url shorteners
+  if (isUrlShortener(url)) {
     return false;
   }
 
-  // Ignore Twitter redirections
-  if (url.search(/http(s?):\/\/t\.co\/.*/i) === 0) {
-    log(`Discarding result page from history: ${url}`);
-    return false;
+  let searchQuery;
+  for (const [param, value] of url.searchParams.params) {
+    if (
+      param === 'q'
+      || param === 'query'
+      || param === 'search_query'
+      || param === 'field-keywords'
+      || param === 'search'
+    ) {
+      searchQuery = value;
+      break;
+    }
   }
 
-  // Ignore Ebay redirections
-  if (url.search(/http(s?):\/\/rover\.ebay\.com\/.*/i) === 0) {
-    log(`Discarding result page from history: ${url}`);
-    return false;
-  }
-
-  const searchQuery = getParamValue(['q', 'query', 'search_query', 'field-keywords', 'search'], urlparts.query);
-
-  if (searchQuery) {
-    const searchResultUrls = searchUtils.getSearchEngines()
-      .filter(e => e.urlDetails.host === urlparts.host)
-      .map(engine => decodeURIComponent(engine.getSubmissionForQuery(searchQuery)));
-    if (searchResultUrls.some(u => url.indexOf(u) !== -1)) {
-      log(`Discarding result page from history: ${url}`);
+  if (searchQuery !== undefined) {
+    if (searchUtils.getSearchEngines()
+      .filter(e => e.urlDetails.host === url.host)
+      .map(engine => tryDecodeURIComponent(engine.getSubmissionForQuery(searchQuery)))
+      .some(u => rawUrl.indexOf(u) !== -1)
+    ) {
       return false;
     }
   }

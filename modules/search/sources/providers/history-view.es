@@ -6,12 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { from } from 'rxjs';
-import BaseProvider from './base';
-// responses
-import { getResponse } from '../responses';
 import CONFIG from '../../core/config';
 import { getResourceUrl } from '../../core/platform';
+
+import normalize from '../operators/normalize';
+
+import BaseProvider from './base';
 
 const sessionsUrl = query => ([
   getResourceUrl(CONFIG.settings.HISTORY_URL),
@@ -26,28 +26,19 @@ export default class HistoryView extends BaseProvider {
   }
 
   search(query, config) {
-    if (!query.trim() || !config.providers[this.id].isEnabled) {
+    if (!query || !config.providers[this.id].isEnabled) {
       return this.getEmptySearch(config, query);
     }
 
-    return from([
-      getResponse({
-        provider: this.id,
-        config,
-        query,
-        results: [{
-          provider: this.id,
-          url: sessionsUrl(query),
-          text: query,
-          query,
-          data: {
-            kind: ['history-ui'],
-            template: 'sessions',
-          },
-        }],
-        state: 'done',
-      })
-    ])
-      .pipe(this.getOperators());
+    return this.getResultsFromArray([normalize({
+      provider: this.id,
+      url: sessionsUrl(query),
+      text: query,
+      query,
+      data: {
+        kind: ['history-ui'],
+        template: 'sessions',
+      },
+    })]);
   }
 }

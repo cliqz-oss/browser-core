@@ -1,6 +1,5 @@
 import OfferJob from './job';
-import prefs from '../../../core/prefs';
-import { getLatestOfferInstallTs, timestampMS } from '../../utils';
+import { getLatestOfferInstallTs, isDeveloper, timestampMS } from '../../utils';
 import shouldFilterOffer from '../soft-filter';
 import ActionID from '../actions-defs';
 
@@ -11,7 +10,7 @@ import ActionID from '../actions-defs';
 const FRESH_INSTALL_THRESHOLD_SECS = 45 * 60; // 45 mins
 
 const isFreshInstalled = () => {
-  if (prefs.get('offersDevFlag', false)) {
+  if (isDeveloper()) {
     return false;
   }
 

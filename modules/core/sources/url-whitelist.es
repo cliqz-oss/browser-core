@@ -6,15 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { URLInfo } from './url-info';
+import { parse } from './url';
 import prefs from './prefs';
 import { getGeneralDomain, extractHostname } from './tlds';
 import { LazyPersistentObject } from '../core/persistent-state';
 import Logger from './logger';
-import { isOnionModeFactory } from './platform';
 import md5 from './helpers/md5';
-
-const isOnionMode = isOnionModeFactory(prefs);
 
 export default class UrlWhitelist {
   constructor(whitelistName, legacyPref) {
@@ -46,12 +43,9 @@ export default class UrlWhitelist {
   }
 
   persistWhitelist() {
-    // We want to avoid persisting any data to disk in onion-mode.
-    if (!isOnionMode()) {
-      this.whitelistPersist.setValue({
-        urls: [...this.whitelist.values()]
-      });
-    }
+    this.whitelistPersist.setValue({
+      urls: [...this.whitelist.values()]
+    });
   }
 
   upgrade() {
@@ -84,7 +78,7 @@ export default class UrlWhitelist {
     }
 
     if (hostname === null || domain === null) {
-      const info = URLInfo.get(url);
+      const info = parse(url);
       if (info === null) {
         return false;
       }

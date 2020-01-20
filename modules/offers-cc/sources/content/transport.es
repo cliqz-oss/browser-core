@@ -1,9 +1,13 @@
 import { chrome } from '../../platform/content/globals';
 import { IS_POPUP, SEARCH_PARAMS } from './common/utils';
-import draw from './view';
 
 function response(payload = {}) {
-  if (payload.action === 'pushData') { draw(payload.data); }
+  if (payload.action !== 'pushData') { return; }
+  if (window.document && window.document.readyState !== 'loading') {
+    window.__globals_draw(payload.data);
+  } else {
+    window.addEventListener('DOMContentLoaded', () => window.__globals_draw(payload.data));
+  }
 }
 
 export default function send(action, data = {}) {

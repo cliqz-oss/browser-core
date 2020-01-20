@@ -52,7 +52,7 @@
  * check the documentation of `FirefoxInjection` and `ChromeInjection`.
  */
 
-import { chrome, isContentScriptsSupported } from './globals';
+import { browser, chrome, isContentScriptsSupported } from './globals';
 import { setTimeout } from './timers';
 
 /**
@@ -109,14 +109,17 @@ class FirefoxInjection {
 
   async setCliqzGlobal(cliqz) {
     this.unload(); // unregister existing content script if any
-    this.scriptRegistration = await chrome.contentScripts.register({
+    this.scriptRegistration = await browser.contentScripts.register({
       allFrames: true,
       matchAboutBlank: true,
       js: [{
         code: generateContentScript(cliqz),
       }],
       runAt: 'document_start',
-      matches: ['<all_urls>'],
+      matches: [
+        'http://*/*',
+        'https://*/*',
+      ],
     });
   }
 }
@@ -164,14 +167,14 @@ class ChromeInjection {
   }
 
   init() {
-    chrome.webRequest.onCompleted.addListener(this._frameListener, {
+    browser.webRequest.onCompleted.addListener(this._frameListener, {
       urls: ['http://*/*', 'https://*/*'],
       types: ['main_frame', 'sub_frame'],
     });
   }
 
   unload() {
-    chrome.webRequest.onCompleted.removeListener(this._frameListener);
+    browser.webRequest.onCompleted.removeListener(this._frameListener);
   }
 
   setCliqzGlobal(cliqz) {

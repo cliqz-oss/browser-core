@@ -1,26 +1,17 @@
 {
-    "offers_best_offer": {
-        "message": "Meilleure Offre"
-    },
-    "offers_code_copied": {
-        "message": "Copié"
-    },
-    "offers_conditions": {
-        "message": "Conditions"
-    },
-    "offers_exclusive": {
-        "message": "Exclusif"
-    },
-    "offers_hub_copy_btn": {
-        "message": "Copier le code"
-    },
-    "offers_offer_of_the_week": {
-        "message": "Offre de la semaine"
-    },
-    "popup_apply_code_button": {
+    "myoffrz_apply_code": {
         "message": "Appliquer le code"
     },
-    "popup_cancel_button": {
+    "myoffrz_cancel": {
         "message": "Annuler"
+    },
+    "myoffrz_conditions": {
+        "message": "Conditions"
+    },
+    "myoffrz_copied": {
+        "message": "Copié"
+    },
+    "myoffrz_copy_code": {
+        "message": "Copier le code"
     }
 }

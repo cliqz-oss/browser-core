@@ -294,3 +294,18 @@ export default function cachedMD5(s) {
   if (!s) return '';
   return md5Cache.get(s);
 }
+
+/**
+ * First 16 characters of md5 hash.
+ * This is used in various places where increasing the chance of hash collision is a desireable
+ * property.
+ *
+ * By truncating to 16 hex characters, a hash of 64 bits remains.
+ * Expect collisions (with a likelihood of more than 50%) after
+ * approximately 2^32 (4.3 billion) messages.
+ *
+ * @param s
+ */
+export function truncatedHash(s) {
+  return cachedMD5(s).slice(0, 16);
+}

@@ -13,18 +13,21 @@ import { dateToDaysSinceEpoch } from '../helpers/date';
 import { getChannel } from '../demographics';
 import inject from '../kord/inject';
 
-const saveSession = (sessionString) => {
-  prefs.set('session', sessionString);
-  prefs.set('session', sessionString, 'host.');
-};
-
 const getSession = () => prefs.get('session');
 
 function getDay() {
   return Math.floor(new Date().getTime() / 86400000);
 }
 
-export function service() {
+export async function service(app) {
+  const hostSettings = app.services['host-settings'];
+  await hostSettings.isReady();
+
+  const saveSession = (sessionString) => {
+    prefs.set('session', sessionString);
+    hostSettings.api.set('host.session', sessionString);
+  };
+
   if (!prefs.has('session')) {
     // Get number of days since epoch either from config_ts if available
     // (through `getSynchronizedDate`) or fallback to the `Date` API (which

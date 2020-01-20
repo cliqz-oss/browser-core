@@ -7,14 +7,13 @@
  */
 
 import background from '../core/base/background';
+import { isCliqzBrowser } from '../core/platform';
 import inject from '../core/kord/inject';
 import prefs, { getCliqzPrefs } from '../core/prefs';
 import console from '../core/console';
 import config from '../core/config';
 import { promiseHttpHandler } from '../core/http';
-import { getDaysSinceInstall } from '../core/demographics';
 import pacemaker from '../core/services/pacemaker';
-import History from '../platform/history/history';
 import { isDefaultBrowser } from '../platform/browser';
 import { getDefaultSearchEngine, loadSearchEngines } from '../core/search-engines';
 
@@ -103,9 +102,10 @@ const createTelemetry = (bg) => {
 /* eslint-enable no-param-reassign */
 
 export default background({
-  requiresServices: ['cliqz-config', 'telemetry', 'session', 'pacemaker'],
+  requiresServices: ['cliqz-config', 'telemetry', 'session', 'pacemaker', 'host-settings'],
   telemetryService: inject.service('telemetry', ['installProvider', 'uninstallProvider', 'push', 'isBrowserTelemetryEnabled']),
   sessionService: inject.service('session', ['getSession', 'saveSession']),
+  hostSettings: inject.service('host-settings', ['get']),
 
   init() {
     this.trk = [];
@@ -127,7 +127,15 @@ export default background({
     this.telemetryService.installProvider(this.telemetryProvider);
 
     const sendEnvironmentalSignal = async ({ startup, instantPush }) => {
-      await loadSearchEngines();
+      //
+      // Search engines are available in Cliqz browser only,
+      // but not in standalone extensions
+      //
+      let defaultSearchEngineName = undefined; // eslint-disable-line no-undef-init
+      if (isCliqzBrowser) {
+        await loadSearchEngines();
+        defaultSearchEngineName = (getDefaultSearchEngine() || {}).name;
+      }
       const info = {
         type: 'environment',
         agent: navigator.userAgent,
@@ -135,32 +143,17 @@ export default background({
         version: inject.app.version,
         startup,
         prefs: getCliqzPrefs(),
-        defaultSearchEngine: (getDefaultSearchEngine() || {}).name,
+        defaultSearchEngine: defaultSearchEngineName,
         isDefaultBrowser: await isDefaultBrowser(),
-        distribution: prefs.get('distribution', '', 'extensions.cliqz.'),
-        version_host: prefs.get('gecko.mstone', '', ''),
-        version_dist: prefs.get('distribution.version', '', ''),
+        distribution: prefs.get('full_distribution', ''),
+        version_host: await this.hostSettings.get('gecko.mstone', ''),
+        version_dist: await this.hostSettings.get('distribution.version', ''),
         health_report_enabled: this.telemetryService.isBrowserTelemetryEnabled(),
       };
 
       // This signal is always sent as an "alive signal" and thus does not go
       // through telemetry service.
       telemetry(info, instantPush);
-
-      let historyStats = {};
-      try {
-        historyStats = await History.stats();
-      } catch (e) {
-        // on android history stats are not available
-      }
-      // Not sent in case of opt-out. Sent through telemetry service which
-      // checks for opt-out from user.
-      this.telemetryService.push({
-        type: 'environment.extended',
-        history_days: historyStats.days,
-        history_urls: historyStats.size,
-        install_date: await getDaysSinceInstall(),
-      }, 'metrics.legacy.environment.extended');
     };
 
     sendEnvironmentalSignal({ startup: true, instantPush: true });
@@ -176,10 +169,6 @@ export default background({
       this.whoAmItimer.stop();
       this.whoAmItimer = null;
     }
-  },
-
-  beforeBrowserShutdown() {
-
   },
 
   events: {

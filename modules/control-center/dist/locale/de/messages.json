@@ -17,14 +17,23 @@
     "control_center_adblock_description_off_domain": {
         "message": "Deaktiviert für diese Domain"
     },
-    "control_center_adblock_description_off_website": {
-        "message": "Deaktiviert für diese Seite"
-    },
     "control_center_adblock_title": {
         "message": "Werbeblocker"
     },
     "control_center_all_sites": {
         "message": "Alle Websites"
+    },
+    "control_center_autoconsent": {
+        "message": "Cookie-Hinweise werden blockiert"
+    },
+    "control_center_autoconsent_deny": {
+        "message": "Datenerfassung falls möglich ablehnen"
+    },
+    "control_center_autoconsent_inactive": {
+        "message": "Deaktiviert für diese Domain"
+    },
+    "control_center_autoconsent_off": {
+        "message": "Deaktiviert für alle Websites"
     },
     "control_center_backend_country": {
         "message": "Suchergebnisse für"
@@ -70,6 +79,12 @@
     },
     "control_center_info_ads_title": {
         "message": "Werbeblocker"
+    },
+    "control_center_info_autoconsent": {
+        "message": "Diese Funktion entfernt nervige Cookie Pop-ups auf Websites. Falls möglich, wird der Datenerhebung automatisch widersprochen. Sonst wird das Cookie Pop-up lediglich ausgeblendet. Ist die Option „Datenerhebung falls möglich widersprechen” deaktiviert, wird der Datenerhebung automatisch zugestimmt."
+    },
+    "control_center_info_autoconsent_title": {
+        "message": "Cookie Pop-up Blocker"
     },
     "control_center_info_cliqz_tab": {
         "message": "Auf neuen Tabs zeigt dir Cliqz Tab Schnellzugriffe für deine meistbesuchten und favorisierten Websites und bringt dich mit aktuellen News flott auf den neuesten Stand."
@@ -189,7 +204,7 @@
         "message": "Tracking Unternehmen auf dieser Seite"
     },
     "control_center_transparency": {
-        "message": "Transparenz Monitor"
+        "message": "Transparenz-Monitor"
     },
     "control_center_txt_header": {
         "message": "Deine Daten sind geschützt"

@@ -45,10 +45,6 @@ class ModuleWrapper {
     return !!this.module;
   }
 
-  isWindowReady(window) {
-    return this.isReady().then(() => this.module.getWindowLoadingPromise(window));
-  }
-
   isReady() {
     if (!this.module) {
       return Promise.reject(new ModuleMissingError(this.moduleName));
@@ -72,17 +68,6 @@ class ModuleWrapper {
       throw new ActionMissingError(this.module.name, actionName);
     }
     return action(...args);
-  }
-
-  windowAction(window, actionName, ...args) {
-    return this.isWindowReady(window).then(() => {
-      const windowModule = this.module.getWindowModule(window);
-      const action = windowModule.actions[actionName];
-      return Promise.resolve(action(...args));
-    }).catch((e) => {
-      Logger.get('core').error(`window action "${actionName}" for module "${this.module.name}" failed`, e);
-      throw e;
-    });
   }
 }
 
@@ -118,3 +103,23 @@ export default {
 export function setGlobal(cliqzApp) {
   app = cliqzApp;
 }
+
+
+/**
+ * To be used together with core/kord/inject
+ * Calling an action of disabled or missing module
+ * results in promise rejects. This helper function
+ * generates a promise error callback that will
+ * resolve to fixed value in those cases.
+ *
+ * Example:
+ *
+ *   inject.module('freshtab').action('getConfig')
+ *     .catch(actionFallback({}));
+ */
+export const actionFallback = fallbackValue => (error) => {
+  if (error instanceof ModuleDisabledError || error instanceof ModuleMissingError) {
+    return fallbackValue;
+  }
+  throw error;
+};

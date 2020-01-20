@@ -53,15 +53,17 @@ export function dispatcher(type, offerId, msg = {}, autoTrigger) {
   const mapperRewardBox = {
     sendUserFeedback: payload => core.action('sendUserFeedback', { view: 'box', ...payload }),
     sendActionSignal: rewardBox.commonAction,
-    getEmptyFrameAndData: rewardBox.hideTooltipIfShould,
     sendOfferActionSignal: rewardBox.actions,
     seenOffer: payload => rewardBox.seenOffer(offerId, payload, autoTrigger),
     sendTelemetry: payload => commonTelemetry(payload, 'box'),
+    myOffrzTurnoff: rewardBox.myOffrzTurnoff,
     openURL: (payload) => {
       rewardBox.callToAction(payload);
       openLink(window, payload.url, true, !payload.isBackgroundTab);
     },
     openAndClosePinnedURL: rewardBox.openAndClosePinnedURL,
+    setOptInResult: rewardBox.setOptInResult,
+    onboardingSeen: rewardBox.onboardingSeen,
     openOptions: () => openLink(window, `/options.html#${chooseProduct(products())}`, true, true),
   };
 

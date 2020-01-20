@@ -28,20 +28,41 @@ import { getResourceUrl } from './platform';
 import { isUrl, fixURL } from '../core/url';
 import { getEngineByQuery } from '../core/search-engines';
 
+// Telemetry schemas
+import modulesStartupMetric from './telemetry/metrics/modules-startup';
+import performanceMetric from './telemetry/metrics/performance';
+import resourceLoadersMetric from './telemetry/metrics/resource-loaders';
+import pingMetrics from './telemetry/metrics/ping';
+import versionsMetrics from './telemetry/metrics/versions';
+import performanceAnalysis from './telemetry/analyses/performance';
+
 /**
  * @module core
  * @namespace core
  * @class Background
  */
 export default background({
-  requiresServices: ['pacemaker', 'telemetry', 'domainInfo'],
+  requiresServices: [
+    'pacemaker',
+    'host-settings',
+    'telemetry',
+    'domainInfo',
+  ],
   providesServices,
 
-  init(settings, app) {
+  init(settings) {
+    telemetry.register([
+      modulesStartupMetric,
+      performanceMetric,
+      resourceLoadersMetric,
+      ...versionsMetrics,
+      ...pingMetrics,
+      performanceAnalysis,
+    ]);
+
     enableRequestSanitizer();
 
     this.settings = settings;
-    this.app = app;
 
     this.bm = new ContentCommunicationManager();
     this.bm.init();
@@ -66,13 +87,16 @@ export default background({
     logger.unload();
   },
 
-  getWindowStatusFromModules(win) {
+  getWindowStatusFromModules() {
+    let currentTab;
     return Object.keys(this.app.modules).map(async (module) => {
-      const windowModule = this.app.modules[module].getWindowModule(win);
-      const backgroundModule = this.app.modules[module].backgroundModule;
+      const backgroundModule = this.app.modules[module].background;
       let status = null;
-      if (windowModule && windowModule.status) {
-        status = await windowModule.status();
+      if (backgroundModule && backgroundModule.currentWindowStatus) {
+        if (!currentTab) {
+          currentTab = await getCurrentTab();
+        }
+        status = await backgroundModule.currentWindowStatus(currentTab);
       } else if (backgroundModule && backgroundModule.status) {
         status = await backgroundModule.status();
       }
@@ -138,6 +162,10 @@ export default background({
         });
     },
 
+    /**
+     * WARNING: this action shall not be removed because it is needed by some
+     * external extensions to send telemetry (using inter extension messaging).
+     */
     sendTelemetry(signal, instant, schema) {
       return telemetry.push(signal, schema, instant);
     },

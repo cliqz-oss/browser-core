@@ -36,6 +36,14 @@ export default background({
       this.manager = null;
     }
   },
+
+  status() {
+    return {
+      visible: true,
+      state: prefs.get('hpn-query'),
+    };
+  },
+
   actions: {
     async send(...args) {
       return this.manager.send(...args);

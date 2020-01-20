@@ -18,6 +18,7 @@ export default class BaseDropdownManager {
     this._lastEvent = null;
     this._iframeWrapperDefer = new Defer();
     this._delayedBlur = null;
+    this._queryId = 0;
     this._resetQuery();
   }
 
@@ -100,10 +101,29 @@ export default class BaseDropdownManager {
     this._queryString = this.hasCompletion
       ? query.slice(0, selectionStart)
       : query;
+
+    // EXPERIMENT: please check the longer explanation which can be found in
+    // 'add-completion-to-results.es' file from 'search' module. We optionally
+    // complete queries using the title of search results. To make it look a bit
+    // nicer we also display the friendly url separated with ' — '. When user
+    // presses arrow, we need to remove this part. This can be done nicely once
+    // (and if) we know we want to keep this feature.
+    if (this.hasCompletion && query.includes(' — ')) {
+      this._setUrlbarValue(query.slice(0, query.indexOf(' — ')));
+    }
+  }
+
+  _nextQueryId() {
+    this._queryId = (this._queryId + 1) % 100;
+    return this._queryId;
   }
 
   async _queryCliqz(_query, { allowEmptyQuery = false } = {}) {
-    await this.iframeWrapperReady;
+    // Don't create a tick if possible
+    if (!this._iframeWrapperDefer.isSettled) {
+      await this.iframeWrapperReady;
+    }
+
     if (_query) {
       this._setUrlbarValue(_query);
       this._syncQueryWithUrlbar();
@@ -117,6 +137,7 @@ export default class BaseDropdownManager {
       this.dropdownAction.startSearch(this.query, {
         allowEmptyQuery,
         isPasted,
+        queryId: this._queryId,
         isPrivate: incognito,
         isTyped,
         keyCode,
@@ -311,6 +332,7 @@ export default class BaseDropdownManager {
     if (this.iframe) {
       this.iframe.contentWindow.removeEventListener('message', this.onMessage);
     }
+    clearTimeout(this._delayedBlur);
   }
 
   onInput() {
@@ -319,6 +341,7 @@ export default class BaseDropdownManager {
       return false;
     }
     this._syncQueryWithUrlbar();
+    this._nextQueryId();
     if (this._lastEvent && this._lastEvent.type === 'paste') {
       this._telemetry({
         type: 'activity',
@@ -336,10 +359,9 @@ export default class BaseDropdownManager {
 
   onFocus() {
     this._lastEvent = null;
-    this.iframeWrapperReady.then(() => this.dropdownAction.setSearchSession());
   }
 
-  onBlur() {
+  onBlur = () => {
     // Clicking on elements in dropdown takes focus away from input field
     // in some versions of Firefox, triggering 'blur' event which we should ignore.
     // (See EX-7709 and EX-7291).
@@ -366,6 +388,9 @@ export default class BaseDropdownManager {
         preventDefault = true;
         if (!this.isOpen) {
           this._syncQueryWithUrlbar();
+          this._nextQueryId();
+          // Put cursor at the end of the query
+          this._setSelectionRange(this.query.length, this.query.length);
           this._queryCliqz('', { allowEmptyQuery: true });
           break;
         }
@@ -466,9 +491,10 @@ export default class BaseDropdownManager {
   }
 
   _autocompleteQuery(query, completion) {
+    const urlbarValue = this._getUrlbarValue();
     const { selectionEnd } = this._getSelectionRange();
     if (query === this.query
-      && selectionEnd < this.query.length) {
+      && selectionEnd < urlbarValue.length) {
       // We should not apply completion if user is editing the query.
       return;
     }
@@ -508,19 +534,12 @@ export default class BaseDropdownManager {
     this._setSelectionRange(nextSelectionStart, nextSelectionEnd);
   }
 
-  hasRelevantResults(query, results) {
-    const result = results[0];
-    return (result.text === query)
-           || (result.suggestion && (result.suggestion === query));
-  }
-
-  _resultsDidRender({ height, result, rawResults }) {
-    if (this.hasRelevantResults(this.query, rawResults)) {
+  _resultsDidRender({ height, queryId, forceUpdate, result, rawResults }) {
+    if (rawResults.length && (forceUpdate || queryId === this._queryId)) {
       this._autocompleteQuery(
         this.query,
         result.meta.completion,
       );
-      this.dropdownAction.setQueryLastDraw(Date.now());
       this.selectedResult = result;
       this.setHeight(height);
       return;

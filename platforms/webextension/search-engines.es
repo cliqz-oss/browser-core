@@ -6,21 +6,46 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import Storage from '../core/storage';
 import Defer from '../core/helpers/defer';
-import { chrome } from './globals';
-import { Resource } from '../core/resource-loader';
-import { getDetailsFromUrl } from '../core/url';
+import { browser } from './globals';
+import { fetch } from '../core/http';
+import { parse } from '../core/url';
 import console from '../core/console';
 import config from '../core/config';
+import prefs from '../core/prefs';
+import { isAMO, getResourceUrl } from '../core/platform';
 
-const ORIGINAL_SEARCH_ENGINE_NAME = config.settings.DEFAULT_SEARCH_ENGINE || 'Google';
+const ORIGINAL_SEARCH_ENGINE_NAME = config.settings.DEFAULT_SEARCH_ENGINE
+  || (isAMO ? 'Cliqz' : 'Google');
 
 const browserCliqzExists = typeof browser !== 'undefined'
   && Object(browser) === browser
   && Object(browser.cliqz) === browser.cliqz;
 
-const storage = new Storage();
+const STORAGE_PREFIX = 'search-engines.';
+const storage = {
+  getItem(key) {
+    return prefs.get(`${STORAGE_PREFIX}${key}`);
+  },
+  setItem(key, value) {
+    prefs.set(`${STORAGE_PREFIX}${key}`, value);
+  },
+  removeItem(key) {
+    prefs.clear(`${STORAGE_PREFIX}${key}`);
+  },
+};
+
+(function migrateFromLocalStorage() {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+  const localStorageValue = localStorage.getItem('defaultSearchEngine');
+  if (typeof localStorageValue === 'string') {
+    storage.setItem('defaultSearchEngine', localStorageValue);
+    localStorage.removeItem('defaultSearchEngine');
+  }
+}());
+
 const ENGINE_CODES = [
   'google images',
   'google maps',
@@ -54,7 +79,7 @@ function buildSearchEngines(engines = [], isMobile = false) {
       default: e.name === defaultSearchEngine,
       icon: e.icon,
       base_url: e.searchForm || e.search.template,
-      urlDetails: getDetailsFromUrl(e.searchForm || e.search.template),
+      urlDetails: parse(e.searchForm || e.search.template),
       getSubmissionForQuery(q, type = 'text/html') {
         const urlObj = e.urls[type];
         // some engines cannot create submissions for all types
@@ -92,16 +117,13 @@ let enginesLoaded = false;
 let enginesLoading = false;
 
 function loadSearchEnginesFromResources() {
-  let locale = chrome.i18n.getUILanguage().slice(0, 2);
+  let locale = browser.i18n.getUILanguage().slice(0, 2);
   if (!['en', 'de', 'fr'].includes(locale)) {
     locale = 'en';
   }
 
-  const resource = new Resource(['webextension-specific', 'search-engines', `${locale}.json`], {
-    dataType: 'json',
-  });
-
-  return resource.load()
+  return fetch(getResourceUrl(`webextension-specific/search-engines/${locale}.json`))
+    .then(r => r.json())
     .catch(e => console.warn('Could not load search engines.', e));
 }
 
@@ -113,8 +135,8 @@ export function loadSearchEngines() {
       });
   }
 
-  if (chrome.cliqzSearchEngines) {
-    return chrome.cliqzSearchEngines.getEngines()
+  if (browser.cliqzSearchEngines) {
+    return browser.cliqzSearchEngines.getEngines()
       .then((engines) => {
         SEARCH_ENGINES = buildSearchEngines(engines, true);
       });

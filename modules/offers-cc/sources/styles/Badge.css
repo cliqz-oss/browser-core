@@ -1,22 +1,23 @@
 .badge__wrapper {
-  margin: 3px 7px;
-  padding: 3px 7px;
+  padding: 6px 15px 4px;
   background-color: #fff;
-  border-radius: 5px;
-  box-shadow: 0px 0px 2px 0px rgba(0, 0, 0, 0.25);
+  border-radius: 8px;
+  box-shadow: 0px -1px 1px 1px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  margin-top: -2px;
 }
 
 .badge__container {
   display: flex;
-  justify-content: space-between;
   align-items: center;
 }
 
 .badge__left-item {
+
 }
 .badge__right-item {
-  display: flex;
+  margin-right: 16px;
+  margin-left: 28px;
 }
 .badge__title {
   font-weight: 500;
@@ -30,13 +31,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  max-width: 132px;
+  max-width: 148px;
 }
 
 .badge__image {
   background-size: contain;
   background-repeat: no-repeat;
-  background-position: right;
+  background-position: left;
   width: 83px;
   height: 34px;
 }

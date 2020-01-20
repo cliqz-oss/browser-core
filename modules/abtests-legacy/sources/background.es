@@ -6,8 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import telemetry from '../core/services/telemetry';
 import background from '../core/base/background';
 import ABTests from './ab-tests';
+import metrics from './telemetry/metrics';
 
 /**
   @namespace <namespace>
@@ -20,16 +22,13 @@ export default background({
     @param settings
   */
   init() {
+    telemetry.register(metrics);
     this.loadingAbtestPromise = ABTests.check();
     ABTests.start();
   },
 
   unload() {
     ABTests.stop();
-  },
-
-  beforeBrowserShutdown() {
-
   },
 
   events: {

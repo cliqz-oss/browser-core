@@ -1,21 +1,7 @@
-import telemetry from '../core/services/telemetry';
 import { query, getCurrentTab } from '../platform/tabs';
 import { chrome } from '../platform/globals';
-import prefs from '../core/prefs';
 import { DISTRIBUTION_STORES, DISTRIBUTION_CHANNELS, DISTROS_TO_SESSION } from './common/constant';
 import logger from './logger';
-
-// TODO 19.08.2019
-// should we remove this and rely on the environment.offers?
-const sendInstallSignal = (referrerUrl, advertId, error) => {
-  telemetry.push({
-    type: 'activity',
-    action: 'install',
-    referrer_url: referrerUrl,
-    advert_id: advertId,
-    error
-  }, undefined, true);
-};
 
 const wait = (timeout, retVal) => new Promise((resolve) => {
   setTimeout(resolve, timeout, retVal);
@@ -65,7 +51,7 @@ export const getChannelFromURLs = (urls) => {
       ) {
         return {
           channel: url.searchParams.get(store.queryUtmSource),
-          subchannel: url.searchParams.get(store.queryUtmSubChannel)
+          subchannel: url.searchParams.get(store.queryUtmCampaign)
         };
       }
     }
@@ -115,12 +101,13 @@ async function _guessDistributionChannel() {
         // the URL is something like:
         //      -> https://addons.mozilla.org/en-US/firefox/addon/myoffrz/?src=external-test
         // and 'source' would be 'external-test'
-        // to mittigate this typeof DISTRIBUTION_CHANNELS is a Map
+        // to mitigate this typeof DISTRIBUTION_CHANNELS is a Map
         const cleanChannel = DISTRIBUTION_CHANNELS.get(channelDetails.channel) || '';
         return {
           clean: cleanChannel,
-          ID: DISTROS_TO_SESSION[cleanChannel] || '',
-          sub: channelDetails.subchannel || ''
+          ID: DISTROS_TO_SESSION.get(cleanChannel) || '',
+          // we only use the subchannel if the channel is known
+          sub: DISTROS_TO_SESSION.has(cleanChannel) ? channelDetails.subchannel || '' : ''
         };
       }
     }
@@ -137,22 +124,4 @@ export async function guessDistributionChannel() {
   // we only wait for 2 seconds for this guess detection because the whole
   // app waits for it to finish
   return Promise.race([_guessDistributionChannel(), wait(2000, EMPTY_CHANNEL)]);
-}
-
-export default async function guessDistributionDetails() {
-  try {
-    const knownChampaigns = query({ url: 'https://myoffrz.com/lp*' });
-    knownChampaigns.forEach((tab) => {
-      const url = new URL(tab.url);
-      sendInstallSignal(url.pathname + url.search, url.searchParams.get('pk_campaign'));
-      // there should be only one! ;-)
-      prefs.set('offers.distribution.referrer_url', url.pathname + url.search);
-      prefs.set('offers.distribution.advert_id', url.searchParams.get('pk_campaign'));
-    });
-    if (knownChampaigns.length === 0) {
-      sendInstallSignal('', 'no-referal');
-    }
-  } catch (err) {
-    sendInstallSignal('', '', err.message);
-  }
 }

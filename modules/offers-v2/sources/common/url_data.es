@@ -1,8 +1,7 @@
 /**
  * @module offers-v2
  */
-import { getDetailsFromUrl } from '../../core/url';
-import FastURL from '../../core/fast-url-parser';
+import { parse, getCleanHost } from '../../core/url';
 import tokenizeUrl from './pattern-utils';
 import { getGeneralDomain } from '../../core/tlds';
 
@@ -61,7 +60,12 @@ export default class UrlData {
 
   getUrlDetails() {
     if (this.urlDetails === null) {
-      this.urlDetails = getDetailsFromUrl(this.rawUrl);
+      const url = parse(this.rawUrl);
+      this.urlDetails = {
+        cleanHost: getCleanHost(url),
+        query: (url !== null && url.search) ? url.search.slice(1) : '',
+        path: url !== null ? url.pathname : '',
+      };
     }
     return this.urlDetails;
   }
@@ -110,12 +114,11 @@ export default class UrlData {
   // rewrite google serp url to avoid that blacklisting reacts on
   // google tracking with words like "firefox" and "ubuntu"
   static _rewriteGoogleSerpUrl(url) {
-    let fu;
-    try {
-      fu = new FastURL(url);
-    } catch (e) {
+    const fu = parse(url);
+    if (fu === null) {
       return url;
     }
+
     const domain = fu.generalDomain;
     if (!(domain && domain.startsWith('google.'))) {
       return url;

@@ -1,4 +1,3 @@
-/* global window, $ */
 import { chrome } from '../../../platform/content/globals';
 import send from '../transport';
 
@@ -11,50 +10,62 @@ export function css(prefix) {
 }
 // chrome.i18n.getUILanguage is undefined in content tests
 export const getUILanguage = () => chrome.i18n.getUILanguage && chrome.i18n.getUILanguage();
-export const i18n = (key, params = []) => chrome.i18n.getMessage(key, params);
+export const i18n = (key, ...params) => chrome.i18n.getMessage(`myoffrz_${key}`, params);
 
 /** **************************************************************** */
 
 const MAX_WINDOW_HEIGHT = 600;
+const MAX_WINDOW_HEIGHT_AUTOTRIGGER = 650;
 
-function popupHeight() {
-  const padding = 4;
-  return $('.main__header').outerHeight()
-    + $('.content__size').outerHeight()
-    + $('.main__footer').outerHeight()
-    + padding;
+function calcHeight(selector) {
+  return (document.querySelector(selector) || {}).offsetHeight || 0;
+}
+
+function setStyles(selector, styles = {}) {
+  const node = document.querySelector(selector);
+  if (!node) { return; }
+  Object.keys(styles).forEach((k) => {
+    node.style[k] = styles[k];
+  });
+}
+
+function popupHeight(padding) {
+  const height = calcHeight('.main__header')
+    + calcHeight('.content__size')
+    + calcHeight('.main__footer');
+  return height > 0 ? height + padding : 0;
 }
 
 function tooltipHeight() {
-  return $('#cliqz-offers-cc').outerHeight();
+  return calcHeight('#cliqz-offers-cc');
 }
 
-function getHeight(type = 'card') {
+function getHeight(type, padding, autoTrigger) {
   const heightMapper = {
     tooltip: tooltipHeight,
     card: popupHeight,
   };
-  const height = heightMapper[type]() || 0;
-  return Math.min(height, MAX_WINDOW_HEIGHT);
+  const height = heightMapper[type](padding) || 0;
+  const maxHeight = autoTrigger ? MAX_WINDOW_HEIGHT_AUTOTRIGGER : MAX_WINDOW_HEIGHT;
+  return Math.min(height, maxHeight);
 }
 
-function getWidth(type = 'card') {
-  const widthMapper = {
-    tooltip: 260,
-    card: 264,
-  };
-  return widthMapper[type] || 0;
+function getWidth({ type, products, autoTrigger }) {
+  if (type === 'tooltip') { return 260; }
+  if (type !== 'card') { return 0; }
+  if (products.ghostery && !autoTrigger) { return 344; }
+  return 307;
 }
 
 /** **************************************************************** */
 
-export function resize({ type = 'card' } = {}) {
-  const width = getWidth(type);
-  $('#cliqz-offers-cc').css({ 'min-width': width });
-  const height = getHeight(type);
+export function resize({ type = 'card', products = {}, autoTrigger = false } = {}) {
+  const width = getWidth({ type, products, autoTrigger });
+  setStyles('#cliqz-offers-cc', { 'min-width': `${width}px`, 'max-width': `${width}px` });
+  const height = getHeight(type, /* padding */ -2, autoTrigger);
 
   if (IS_POPUP) {
-    $('html').css({ height, width });
+    setStyles('html', { height: `${height}px`, width: `${width}px` });
   } else {
     send('resize', { width, height });
   }
@@ -62,12 +73,10 @@ export function resize({ type = 'card' } = {}) {
 
 /** **************************************************************** */
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent'];
+const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent', 'cliqz', 'amo', 'ghostery'];
 
-export function chooseProduct(products = {}, { cliqz = false } = {}) {
-  return (cliqz ? ['cliqz'] : [])
-    .concat(ALLOWED_PRODUCTS)
-    .find(product => products[product]) || 'myoffrz';
+export function chooseProduct(products = {}) {
+  return ALLOWED_PRODUCTS.find(product => products[product]) || 'myoffrz';
 }
 
 /** **************************************************************** */

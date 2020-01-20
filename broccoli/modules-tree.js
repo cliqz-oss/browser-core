@@ -32,41 +32,39 @@ const getDistTree = require('./modules/dist-tree');
 
 const modulesTree = new WatchedDir('modules');
 
-let babelModulePlugin;
-
-if (cliqzConfig.format === 'common') {
-  babelModulePlugin = 'transform-es2015-modules-commonjs';
-}
-
-if (cliqzConfig.format === 'system') {
-  babelModulePlugin = 'transform-es2015-modules-systemjs';
-}
+const targets = cliqzConfig.buildTargets || {
+  firefox: 57,
+};
 
 const babelOptions = {
   babelrc: false,
   presets: [
-    ['env', {
-      targets: {
-        firefox: 52
-      },
+    ['@babel/env', {
+      targets,
       modules: false,
       exclude: [
-        'transform-es2015-template-literals',
-        'transform-regenerator'
+        '@babel/plugin-transform-template-literals',
+        '@babel/plugin-transform-regenerator'
       ]
     }],
+    ['@babel/typescript'],
+    ['@babel/react'],
   ],
   compact: false,
   sourceMaps: false,
-  filterExtensions: ['es', 'jsx'],
+  filterExtensions: ['es', 'jsx', 'ts', 'tsx'],
   plugins: [
-    'transform-class-properties',
-    'transform-exponentiation-operator',
-    'transform-object-rest-spread',
-    'transform-react-jsx',
-    'transform-async-to-generator',
-    'transform-async-generator-functions',
-  ].concat(cliqzConfig.babelPlugins || []).concat(babelModulePlugin || []),
+    '@babel/plugin-proposal-class-properties',
+    '@babel/plugin-transform-exponentiation-operator',
+    '@babel/plugin-proposal-object-rest-spread',
+    '@babel/plugin-transform-react-jsx',
+    '@babel/plugin-proposal-async-generator-functions',
+    '@babel/plugin-transform-async-to-generator',
+    ...(cliqzConfig.babelPlugins || []),
+    ...(cliqzConfig.format === 'common' ? ['@babel/plugin-transform-modules-commonjs'] : []),
+    ...(cliqzConfig.format === 'system' ? ['@babel/plugin-transform-modules-systemjs'] : []),
+  ],
+  throwUnlessParallelizable: true,
 };
 
 const eslintOptions = {
@@ -77,7 +75,7 @@ const eslintOptions = {
 
 function getPlatformFunnel() {
   return new Funnel(new WatchedDir('platforms/'), {
-    exclude: ['**/tests/**/*', '**/*.browserify'],
+    exclude: ['**/tests/**/*'],
   });
 }
 
@@ -96,7 +94,7 @@ function getPlatformTree() {
   const platformName = cliqzConfig.platform;
   let platform = getPlatformFunnel();
 
-  platform = Babel(platform, Object.assign({}, babelOptions));
+  platform = Babel(platform, { ...babelOptions });
   const platforms = dirs('./platforms');
 
   return new MergeTrees([
@@ -114,8 +112,7 @@ function getPlatformTree() {
 
 function getSourceFunnel() {
   return new Funnel(modulesTree, {
-    include: cliqzConfig.modules.map(name => `${name}/sources/**/*.es`).concat(cliqzConfig.modules.map(name => `${name}/sources/**/*.jsx`)),
-    exclude: cliqzConfig.modules.map(name => `${name}/sources/**/*.browserify`),
+    include: cliqzConfig.modules.map(name => `${name}/sources/**/*.{es,ts,tsx,jsx}`),
     getDestinationPath(_path) {
       return _path.replace('/sources', '');
     }
@@ -267,7 +264,7 @@ const staticTree = new MergeTrees([
   getSassTree(),
 ]);
 
-const styleCheckTestsTree = process.env.CLIQZ_ENVIRONMENT === 'production'
+const styleCheckTestsTree = env.PRODUCTION
   ? new MergeTrees([]) : getLintTestsTree();
 
 const bundlesTree = getBundlesTree(

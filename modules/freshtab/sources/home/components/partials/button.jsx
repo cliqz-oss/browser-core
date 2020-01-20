@@ -17,6 +17,7 @@ function Button({
   label,
   onClick,
   onKeyPress,
+  tabIndex,
   title,
   value,
 }) {
@@ -32,7 +33,7 @@ function Button({
       id={id}
       onClick={onClick}
       onKeyPress={onKeyPress}
-      tabIndex="-1"
+      tabIndex={tabIndex === undefined ? '-1' : tabIndex}
       title={title}
       type="button"
       value={value}
@@ -52,6 +53,7 @@ Button.propTypes = {
   ]),
   onClick: PropTypes.func.isRequired,
   onKeyPress: PropTypes.func,
+  tabIndex: PropTypes.string,
   title: PropTypes.string,
   value: PropTypes.string,
 };

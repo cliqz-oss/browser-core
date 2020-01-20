@@ -2,10 +2,10 @@ import adblocker from '../../../platform/lib/adblocker';
 import { extractHostname } from '../../../core/tlds';
 
 export function mock() {
-  const stats = { related: [], touched: [] };
+  const stats = { related: [], touched: [], tooltip: [], owned: [] };
   return {
     mock: true,
-    stats: () => stats,
+    stats: () => ({ ...stats }),
     statsCached: () => ({ ...stats }),
     invalidateCache: () => {},
   };
@@ -21,6 +21,7 @@ function match(patterns, url) {
 
 export function matchHostname(patterns = [], url = '') {
   const hostname = extractHostname(url);
+  if (!hostname) { return false; }
   return match(patterns, hostname);
 }
 

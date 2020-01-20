@@ -64,21 +64,13 @@ function _predicate(form, inputExplicit, submitExplicit) {
 }
 
 /**
- * Get an element by ID, or if none, then re-use ID to search for classes
+ * Get an element by ID, or if none, then re-use ID as a CSS selector
  */
-function getElementByConfigFieldName(document, config, field) {
-  let elem = null;
-  if (config && config[field]) {
-    const elemId = config[field];
-    elem = document.getElementById(elemId);
-    if (!elem) {
-      const els = document.getElementsByClassName(elemId);
-      if (els.length === 1) {
-        elem = els[0];
-      }
-    }
-  }
-  return elem;
+export function getElementByConfigFieldName(document, config, field) {
+  const elemId = config && config[field];
+  return elemId
+    ? document.getElementById(elemId) || document.querySelector(elemId)
+    : null;
 }
 
 /**

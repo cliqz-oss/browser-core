@@ -22,6 +22,7 @@ $settings-panel-width: 270px;
         right: 0px;
         height: 100%;
         overflow: auto;
+        overflow-x: hidden;
         box-shadow: 0px 1px 2px 0px get-color-black-opacity(0.24);
         z-index: 2000;
 

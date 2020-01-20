@@ -3,6 +3,7 @@ import Feature from './feature';
 import moment from '../../platform/lib/moment';
 import DefaultMap from '../../core/helpers/default-map';
 import UrlData from '../common/url_data';
+import logger from '../common/offers_v2_logger';
 
 /**
  * {
@@ -48,13 +49,20 @@ export default class HistoryFeature extends Feature {
   }
 
   /**
-   * @param QueryHistoryRequest
+   * @param {string} pid: was intended to cache requests
+   * @param {string} categoryId: consider matches only of this category
+   * @param {MultiPatternIndex} index: pattern matcher
    * @return {Promise<QueryHistoryResponse>}
    */
-  async performQueryOnHistory({ pid, index, start_ms: startMs, end_ms: endMs }) {
+  async performQueryOnHistory({ pid, categoryId, index, start_ms: startMs, end_ms: endMs }) {
     const after = startMs - 1;
     const before = endMs + 1;
     const days = new DefaultMap(() => 0);
+
+    if (!index) {
+      logger.error('performQueryOnHistory: no index');
+      return {};
+    }
 
     // Empty index (no patterns) is possible for segmentation categories
     const visits = index.isEmpty()
@@ -65,7 +73,8 @@ export default class HistoryFeature extends Feature {
       });
     for (const { ts, url } of visits) {
       const urlData = new UrlData(url);
-      if (index.match(urlData.getPatternRequest())) {
+      const match = index.match(urlData.getPatternRequest());
+      if (match.has(categoryId)) {
         const day = moment(ts).format('YYYYMMDD');
         days.update(day, v => v + 1);
       }

@@ -11,7 +11,7 @@
 import globalConfig from '../core/config';
 import moduleConfig from './config';
 import telemetry from '../core/services/telemetry';
-import { getDetailsFromUrl } from '../core/url';
+import { parse } from '../core/url';
 import prefs from '../core/prefs';
 import events from '../core/events';
 import inject from '../core/kord/inject';
@@ -22,6 +22,10 @@ import background from '../core/base/background';
 import { getActiveTab, getWindow } from '../core/browser';
 import { openLink } from '../platform/browser-actions';
 import { queryTabs, getCurrentTabId } from '../core/tabs';
+
+// Telemetry schemas
+import metrics from './telemetry/metrics';
+import analyses from './telemetry/analyses';
 
 const TELEMETRY_TYPE = 'control_center';
 
@@ -88,6 +92,10 @@ export default background({
 
 
   init(settings) {
+    telemetry.register([
+      ...metrics,
+      ...analyses,
+    ]);
     this.settings = settings;
     this.ICONS = settings.ICONS;
     this.intervals = new IntervalManager();
@@ -104,10 +112,6 @@ export default background({
       this.pageAction.shutdown();
     }
     this.intervals.removeAll();
-  },
-
-  beforeBrowserShutdown() {
-
   },
 
   refreshState(tabId) {
@@ -218,15 +222,11 @@ export default background({
     },
     updatePref(data) {
       switch (data.pref) {
-        case 'extensions.cliqz.humanWebOptOut':
+        case 'humanWebOptOut':
           events.pub('control-center:toggleHumanWeb');
           break;
-        case 'extensions.cliqz.share_location':
+        case 'share_location':
           this.geolocation.setLocationPermission(data.value);
-          events.pub('message-center:handlers-freshtab:clear-message', {
-            id: 'share-location',
-            template: 'share-location'
-          });
           break;
         case 'extensions.https_everywhere.globalEnabled':
           events.pub('control-center:toggleHttpsEverywhere', {
@@ -258,17 +258,17 @@ export default background({
     // re-used for fast first render and onboarding
     async getFrameData() {
       let { url } = await getActiveTab();
+
       let friendlyURL = url;
       let isSpecialUrl = false;
-      // TODO: Switch to URL
-      const urlDetails = getDetailsFromUrl(url);
+
       if (url.indexOf('about:') === 0) {
         friendlyURL = url;
         isSpecialUrl = true;
       } else if (url.endsWith('modules/freshtab/home.html')) {
         friendlyURL = `${moduleConfig.settings.BRAND} Tab`;
         isSpecialUrl = true;
-      } else if (url.endsWith('modules/cliqz-history/index.html')) {
+      } else if (url.endsWith('modules/history/home.html')) {
         friendlyURL = `${getMessage('freshtab_history_button')}`;
         isSpecialUrl = true;
       } else if (url.endsWith('modules/privacy-dashboard/index.html')) {
@@ -286,13 +286,27 @@ export default background({
         friendlyURL = getMessage('anti-phishing-txt0');
       }
 
+      const urlDetails = parse(url);
+      let domain = '';
+      let extraUrl = '';
+      let hostname = '';
+      if (urlDetails !== null) {
+        domain = urlDetails.generalDomain;
+        hostname = urlDetails.hostname;
+        extraUrl = (
+          (urlDetails.pathname === '/' && urlDetails.search === '')
+            ? ''
+            : urlDetails.pathname + urlDetails.search
+        );
+      }
+
       return {
         activeURL: url,
         friendlyURL,
         isSpecialUrl,
-        domain: urlDetails.domain,
-        extraUrl: urlDetails.extra === '/' ? '' : urlDetails.extra,
-        hostname: urlDetails.host,
+        domain,
+        extraUrl,
+        hostname,
         module: {}, // will be filled later
         generalState: 'active',
         feedbackURL: moduleConfig.settings.USER_SUPPORT_URL,
@@ -429,23 +443,6 @@ export default background({
       }
     },
 
-    'cliqz-tab': function cliqzTab({ status, isPrivateMode }) {
-      events.pub('control-center:cliqz-tab');
-      if (!isPrivateMode) {
-        telemetry.push({
-          type: TELEMETRY_TYPE,
-          target: 'cliqz_tab',
-          action: 'click',
-          state: status === true ? 'on' : 'off'
-        }, 'metrics.legacy.control_center.cliqz_tab');
-      }
-    },
-
-    'type-filter': function typeFilter(data) {
-      prefs.set(`type_filter_${data.target}`, data.status);
-      events.pub('type_filter:change', { target: data.target, status: data.status });
-    },
-
     'antitracking-activator': async function antitrackingActivator(data) {
       const tabId = await this.getCurrentTabId();
       switch (data.status) {
@@ -511,6 +508,7 @@ export default background({
 
     'adb-activator': function adbActivator(data) {
       events.pub('control-center:adb-activator', data);
+
       let state;
       if (data.type === 'switch') {
         state = data.state === 'active' ? 'on' : 'off';
@@ -549,6 +547,33 @@ export default background({
       prefs.set('modules.search.providers.cliqz.enabled', data.enabled);
       // TODO telemetry
       return this.actions.getData();
+    },
+
+    'autoconsent-activator': (data) => {
+      const { state, deny, hostname, isPrivateMode, type } = data;
+      if (state === 'off_all' || state === 'critical') {
+        prefs.set('modules.autoconsent.enabled', false);
+      } else {
+        prefs.set('modules.autoconsent.enabled', true);
+        const autoconsent = inject.module('autoconsent');
+        autoconsent.action('setDefaultAction', deny ? 'deny' : 'allow');
+        if (hostname) {
+          if (state === 'active') {
+            autoconsent.action('clearSiteAction', hostname);
+          } else {
+            autoconsent.action('setSiteAction', hostname, 'none', isPrivateMode);
+          }
+        }
+      }
+      if (!isPrivateMode) {
+        const msg = {
+          type: TELEMETRY_TYPE,
+          target: `autoconsent_${type}`,
+          state: state || `${deny}`,
+          action: 'click',
+        };
+        telemetry.push(msg, `metrics.legacy.control_center.${msg.target}`);
+      }
     }
   },
 });

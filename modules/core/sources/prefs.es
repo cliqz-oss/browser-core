@@ -13,7 +13,6 @@ import {
   clearPref,
   init,
   getAllCliqzPrefs,
-  PLATFORM_TELEMETRY_WHITELIST,
 } from '../platform/prefs';
 import config from './config';
 
@@ -22,31 +21,29 @@ export default {
    * Get a value from preferences db
    * @param {string}  pref - preference identifier
    * @param {*=}      defautlValue - returned value in case pref is not defined
-   * @param {string=} prefix - prefix for pref
    */
-  get(pref, defaultValue, prefix) {
+  get(pref, defaultValue) {
     let value = defaultValue;
-    if (!prefix && config.default_prefs) {
+    if (config.default_prefs) {
       value = typeof config.default_prefs[pref] === 'undefined' ? defaultValue : config.default_prefs[pref];
     }
-    return getPref(pref, value, prefix);
+    return getPref(pref, value);
   },
   /**
    * Set a value in preferences db
    * @param {string}  pref - preference identifier
-   * @param {string=} prefix - prefix for pref
+   * @param {*=}      value
    */
   set: setPref,
+
   /**
    * Check if there is a value in preferences db
    * @param {string}  pref - preference identifier
-   * @param {string=} prefix - prefix for pref
    */
   has: hasPref,
   /**
    * Clear value in preferences db
    * @param {string}  pref - preference identifier
-   * @param {string=} prefix - prefix for pref
    */
   clear: clearPref,
 
@@ -103,10 +100,11 @@ const TELEMETRY_WHITELIST = new Set([
   'offers2UserEnabled', // offers state
   'offersDevFlag', // offers dev flag
   'onboardingVersion', // AB Test for onboarding version
-  'serp_test', // AB Test running from 1.27.2, possible values A/B/C
   'session', // user session
   'share_location', // use location for enhanced local results
   'telemetry', // telemetry state
+  'modules.autoconsent.enabled', // is autoconsent module enabled
+  'modules.antitracking.enabled', // is anti-tracking module enabled
 ]);
 
 export function getCliqzPrefs() {
@@ -117,10 +115,6 @@ export function getCliqzPrefs() {
   for (let i = 0; i < cliqzPrefsKeys.length; i += 1) {
     cliqzPrefs[cliqzPrefsKeys[i]] = getPref(cliqzPrefsKeys[i]);
   }
-
-  PLATFORM_TELEMETRY_WHITELIST.forEach((key) => {
-    cliqzPrefs[key] = getPref(key, undefined, '');
-  });
 
   return cliqzPrefs;
 }

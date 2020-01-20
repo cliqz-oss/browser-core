@@ -17,34 +17,16 @@ import random from '../../core/helpers/random';
  * be stored here as it's a property of the space where results are rendered).
  */
 export default function service() {
-  let queryLastDraw = null;
-  let queryCount = null;
-  let sessionSeq = 0;
   let searchSession = '';
 
   return {
-    setQueryLastDraw(ts) {
-      queryLastDraw = ts;
-    },
-    getQueryLastDraw() {
-      return queryLastDraw;
-    },
-    incrementSessionSeq() {
-      sessionSeq += 1;
-    },
-    incrementQueryCount() {
-      queryCount += 1;
-    },
     setSearchSession() {
       const rand = random(32);
       searchSession = rand;
-      sessionSeq = 0;
-      queryCount = 0;
-      queryLastDraw = 0;
     },
     encodeSessionParams() {
       if (searchSession.length) {
-        return `&s=${encodeURIComponent(searchSession)}&n=${sessionSeq}&qc=${queryCount}`;
+        return `&s=${encodeURIComponent(searchSession)}`;
       }
       return '';
     },

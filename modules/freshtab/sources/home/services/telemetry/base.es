@@ -7,6 +7,7 @@
  */
 
 import cliqz from '../../cliqz';
+import { mkFreshtabSchemaName } from '../../../telemetry/schemas';
 
 const isPrivateMode = !!(chrome && chrome.extension && chrome.extension.inIncognitoContext);
 
@@ -15,7 +16,7 @@ export default function (signal) {
     cliqz.core.sendTelemetry(
       { ...signal, version: '2.0' },
       false, // not instant push
-      '',
+      mkFreshtabSchemaName(signal),
     );
   }
 }

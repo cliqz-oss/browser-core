@@ -140,6 +140,7 @@ const ActionID = {
 
   AID_OFFER_FILTERED_EXP_PREFIX: 'filter_exp__',
   AID_OFFER_FILTERED_CONTEXT: 'filtered_by_context',
+  AID_OFFER_FILTERED_THROTTLE: 'filtered_by_throttle',
 
   AID_OFFER_FILTERED_GLOBAL_BLACKLIST: 'filtered_by_global_blacklist',
   AID_OFFER_FILTERED_OFFER_BLACKLIST: 'filtered_by_offer_blacklist',
@@ -164,6 +165,12 @@ const ActionID = {
   AID_GH_RETURN_HUB: 'offer_return_hub',
   AID_GH_SETTINGS: 'offer_settings',
   AID_GH_SHOWN_0: 'offer_shown_0',
+  AID_GH_REWARDS_ON: 'rewards_on',
+  AID_GH_REWARDS_OFF: 'rewards_off',
+
+  // onboarding notification
+  AID_ONBOARDING_INTERESTED: 'onboarding_interested',
+  AID_ONBOARDING_NOT_INTERESTED: 'onboarding_not_interested',
 };
 
 export default ActionID;

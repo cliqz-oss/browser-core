@@ -1,4 +1,4 @@
-/* global document, window, $, Handlebars */
+/* global $, Handlebars */
 
 import { chrome } from '../platform/content/globals';
 import { sendMessageToWindow } from './content/data';
@@ -153,6 +153,11 @@ function draw(data) {
   });
 
   localizeDocument();
+
+  sendMessageToWindow({
+    handler: 'show',
+    data: { height: 115 }, // should be static, see plz offers-banner/sites-specific.js
+  });
 }
 
 window.draw = draw;

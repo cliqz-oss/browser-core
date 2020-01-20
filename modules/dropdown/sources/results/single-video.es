@@ -20,13 +20,13 @@ export default class SingleVideoResult extends GenericResult {
 
   get videoResult() {
     const richData = this._extra.rich_data || {};
-
+    const views = richData.views ? Number(richData.views).toLocaleString() : '';
     return new VideoResult(this, {
       url: this.url,
       title: this.title,
       thumbnail: richData.thumbnail,
       duration: richData.duration,
-      views: richData.views,
+      views,
       isSingleVideo: true,
       text: this.query,
       friendlyUrl: this.friendlyUrl,

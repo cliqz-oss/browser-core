@@ -8,7 +8,6 @@
 
 import * as tldts from '../platform/lib/tldts';
 
-
 const TLDTS_OPTIONS = {
   detectIp: true,
   extractHostname: true,
@@ -18,7 +17,6 @@ const TLDTS_OPTIONS = {
     'localhost',
   ],
 };
-
 
 function parse(url) {
   const parsed = tldts.parse(url, TLDTS_OPTIONS);
@@ -30,50 +28,31 @@ function parse(url) {
   return parsed;
 }
 
+const getGeneralDomain = url => parse(url).domain;
+const getPublicSuffix = tldts.getPublicSuffix;
+const getDomainWithoutSuffix = tldts.getDomainWithoutSuffix;
+const extractHostname = tldts.getHostname;
 
-function getGeneralDomain(url) {
-  if (typeof url !== 'string') {
-    return null;
-  }
-
-  return parse(url).domain;
-}
-
-
-function getPublicSuffix(url) {
-  if (typeof url !== 'string') {
-    return null;
-  }
-
-  return tldts.getPublicSuffix(url, TLDTS_OPTIONS);
-}
-
-
-function extractHostname(url) {
-  if (typeof url !== 'string') {
-    return null;
-  }
-
-  return tldts.getHostname(url);
-}
-
-function sameGeneralDomain(domain1, domain2) {
-  if (domain1 === domain2) {
+function sameGeneralDomain(uri1, uri2) {
+  if (uri1 === uri2) {
     return true;
   }
 
-  if (typeof domain1 !== 'string' || typeof domain2 !== 'string') {
-    return false;
-  }
+  const domain1 = getGeneralDomain(uri1);
+  const domain2 = getGeneralDomain(uri2);
 
-  return getGeneralDomain(domain1) === getGeneralDomain(domain2);
+  return (
+    domain1 !== null
+    && domain2 !== null
+    && domain1 === domain2
+  );
 }
 
-
 export {
-  parse,
+  extractHostname,
+  getDomainWithoutSuffix,
   getGeneralDomain,
   getPublicSuffix,
-  extractHostname,
+  parse,
   sameGeneralDomain
 };

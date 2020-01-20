@@ -26,8 +26,10 @@ const MIGRATIONS = [
     }
   }),
   // Import `extensions.cliqz.full_distribution` pref from Firefox prefs (see: EX-9174)
-  () => {
-    const distribution = prefs.get('full_distribution', null, 'extensions.cliqz.');
+  async (app) => {
+    // Host Setting have to be ready in order to migrate some prefs
+    await app.prepareServices(['host-settings']);
+    const distribution = await app.services['host-settings'].api.get('extensions.cliqz.full_distribution', null);
     if (distribution !== null) {
       prefs.set('full_distribution', distribution);
     }
@@ -42,14 +44,14 @@ const MIGRATIONS = [
  * Index of last run migration is saved so on next startup we
  * wont rerun migrations.
  */
-export default async function migrate() {
+export default async function migrate(app) {
   let version = Number(prefs.get(MIGRATION_VERSION_PREF, 0));
   console.log('App', `Migration started with version ${version}`);
   try {
     while (version < MIGRATIONS.length) {
       const migration = MIGRATIONS[version];
       // eslint-disable-next-line no-await-in-loop
-      await migration();
+      await migration(app);
       version += 1;
     }
   } catch (e) {

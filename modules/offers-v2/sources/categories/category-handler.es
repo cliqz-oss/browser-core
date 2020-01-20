@@ -4,9 +4,9 @@ import CategoryTree from './category-tree';
 import { CategoriesMatchTraits, CategoryMatch } from './category-match';
 import CategoryPersistentDataHelper from './category-persistent-helper';
 import logger from '../common/offers_v2_logger';
-import { buildSimplePatternIndex } from '../common/pattern-utils';
 import { ThrottleWithRejection } from '../common/throttle-with-rejection';
 import OffersConfigs from '../offers_configs';
+import TemporaryBuildResources from './temporary-build-resources';
 
 const USER_PROFILE_CATEGORIES_ROOT = 'Segment.';
 
@@ -15,18 +15,45 @@ const USER_PROFILE_CATEGORIES_ROOT = 'Segment.';
  */
 export default class CategoryHandler {
   constructor(historyFeature) {
-    this.catTree = new CategoryTree();
-    this.catMatch = new CategoryMatch();
     this.historyFeature = historyFeature;
-    this.dayKeyOfLastAccountingRun = '00000000';
+    this._zeroifyFields();
     // the caller should call init()
   }
 
-  async init(db) {
-    this.persistentHelper = new CategoryPersistentDataHelper(db);
+  _zeroifyFields() {
+    this.buildResources = null;
+    this.catMatch = null;
+    this.catTree = null;
+    this.historyThrottle = null;
+  }
+
+  async init() {
+    this.catTree = new CategoryTree();
+    this.dayKeyOfLastAccountingRun = '00000000';
     this.historyThrottle = new ThrottleWithRejection(
       OffersConfigs.THROTTLE_HISTORY_QUERIES_SECS || 180
     );
+    this.persistentHelper = new CategoryPersistentDataHelper();
+  }
+
+  destroy() {
+    if (this.persistentHelper) {
+      this.persistentHelper.destroy();
+    }
+    this._zeroifyFields();
+  }
+
+  _acquireBuildResources(callerName) {
+    if (this.buildResources) {
+      logger.error(`categories are already being modified, skipping '${callerName}'`);
+      return false;
+    }
+    this.buildResources = new TemporaryBuildResources();
+    return true;
+  }
+
+  _releaseBuildResources() {
+    this.buildResources = null;
   }
 
   /**
@@ -45,8 +72,8 @@ export default class CategoryHandler {
   }
 
   /**
-   * Add a new category to be observed. Note that we should call build() after
-   * adding all the categories we want to observe.
+   * The `category` object is modified: patterns are removed.
+   * @private
    */
   addCategory(category) {
     if (!this._checkCategory(category)) {
@@ -63,20 +90,23 @@ export default class CategoryHandler {
         return;
       }
     }
-    this._addNewCategory(category);
+    const patterns = category.getPatterns();
+    category.dropPatterns();
+    this._addNewCategory(category, patterns);
   }
 
   /**
    * Will remove a particular category if exists.
-   * Make sure to call build() after all the desired categories are removed
+   * @private
    */
   removeCategory(category) {
     const catName = category.getName();
     if (this.catTree.hasCategory(catName)) {
-      logger.debug(`Category ${catName} is being removed`, category);
+      logger.debug(`Category ${catName} is being removed`);
       this.catTree.removeCategory(catName);
-      this.persistentHelper.categoryRemoved(category);
-      this.catMatch.removeCategoryPatterns(catName);
+    }
+    if (this.buildResources) {
+      this.buildResources.removeCategory(category);
     }
   }
 
@@ -85,7 +115,12 @@ export default class CategoryHandler {
    * Without calling this method the expected behavior cannot be ensured.
    */
   build() {
-    this.catMatch.build();
+    if (!this.buildResources) {
+      logger.error('CategoryHandler::build() should be called with initialized resources');
+      return;
+    }
+    this.catMatch = new CategoryMatch();
+    this.catMatch.build(this.buildResources.patterns);
   }
 
   /**
@@ -118,7 +153,11 @@ export default class CategoryHandler {
   */
   getMatches(tokenizedUrl) {
     if (!tokenizedUrl) {
-      logger.error('skipping invalid tokenizedUrl', tokenizedUrl);
+      logger.warn('skipping invalid tokenizedUrl', tokenizedUrl);
+      return new CategoriesMatchTraits();
+    }
+    if (!this.catMatch) {
+      logger.warn('getMatches: helper object is not initialized');
       return new CategoriesMatchTraits();
     }
 
@@ -128,9 +167,9 @@ export default class CategoryHandler {
       if (catNode === null || !catNode.hasCategory()) {
         logger.error(`We do not have a category with id ${catID}??`);
       } else {
-        // hit the category
         catNode.getCategory().hit();
-        this._catModified(catNode.getCategory());
+        // intentionally not waiting for the async function
+        this._catAccountingModified(catNode.getCategory());
 
         logger.debug(`Category hit: ${catID}`);
       }
@@ -140,18 +179,23 @@ export default class CategoryHandler {
   }
 
   loadPersistentData() {
+    if (!this._acquireBuildResources('loadPersistentData')) {
+      return Promise.resolve();
+    }
     return this.persistentHelper.loadCategories().then((catList) => {
       this.catTree.clear();
-      this.catMatch.clear();
 
       for (let i = 0; i < catList.length; i += 1) {
         const category = catList[i];
+        const patterns = category.getPatterns();
+        category.dropPatterns();
         this.catTree.addCategory(category);
-        this.catMatch.addCategoryPatterns(category.getName(), category.getPatterns());
+        this.buildResources.addCategory(category, patterns);
       }
 
       // build the pattern index here
       this.build();
+      this._releaseBuildResources();
     });
   }
 
@@ -167,44 +211,57 @@ export default class CategoryHandler {
       return;
     }
     cat.hit();
+    // intentionally not waiting for the async function
+    this._catAccountingModified(cat);
   }
 
   /**
    * Add new categories, update existing, delete ones do not exist anymore.
    * If the update is empty, do nothing.
    *
+   * Prerequisite: `loadPersistentData` was already called
+   *
    * @method syncCategories
    * @param {Iterator<Category>} categoriesIterator
+   * @param {boolean} ifSyncEmpty If the update is empty, do the update. For unit tests.
    */
-  syncCategories(categoriesIterator) {
+  async syncCategories(categoriesIterator, { ifSyncEmpty = false } = {}) {
+    if (!this._acquireBuildResources('syncCategories')) {
+      return;
+    }
     //
     // Add new, update existing. Remember the names of backend categories.
     //
-    const seenNames = [];
+    const seenNames = new Set();
     for (const category of categoriesIterator) {
       this.addCategory(category);
-      seenNames.push(category.getName());
+      seenNames.add(category.getName());
     }
     //
     // Do nothing if the update is empty
     //
-    if (!seenNames.length) {
+    if (!(seenNames.size || ifSyncEmpty)) {
+      this._releaseBuildResources();
       return;
     }
     //
     // Delete categories that are not on the backend.
     //
-    const namesToRemove = [];
+    const catsToRemove = new Set();
     this._applyToAllSubCategories('', (cat) => {
-      if (!seenNames.includes(cat.getName())) {
-        namesToRemove.push(cat);
+      if (!seenNames.has(cat.getName())) {
+        catsToRemove.add(cat);
       }
     });
-    namesToRemove.forEach(cat => this.removeCategory(cat));
+    for (const cat of catsToRemove) {
+      this.removeCategory(cat);
+    }
     //
     // Bring categories to working state
     //
     this.build();
+    await this.persistentHelper.commitBuild(this.buildResources);
+    this._releaseBuildResources();
   }
 
   // ///////////////////////////////////////////////////////////////////////////
@@ -249,10 +306,9 @@ export default class CategoryHandler {
            || (catNode.getCategory().getVersion() !== category.getVersion());
   }
 
-  _addNewCategory(category) {
-    this.persistentHelper.categoryAdded(category);
+  _addNewCategory(category, patterns) {
     this.catTree.addCategory(category);
-    this.catMatch.addCategoryPatterns(category.getName(), category.getPatterns());
+    this.buildResources.addCategory(category, patterns);
   }
 
   /**
@@ -282,10 +338,10 @@ export default class CategoryHandler {
     const catPID = this._getCatHistoryPIDID(category);
     const patterns = category.getPatterns();
 
-    const index = buildSimplePatternIndex(patterns);
     const historyQuery = {
       patterns,
-      index,
+      categoryId: category.getName(),
+      index: this.catMatch.getIndex(),
       pid: catPID,
       start_ms: now - (category.getTimeRangeSecs() * 1000),
       end_ms: now
@@ -300,7 +356,7 @@ export default class CategoryHandler {
       return;
     }
     category.updateWithHistoryData(data.d.match_data);
-    this._catModified(category);
+    this._catAccountingModified(category);
   }
 
   // Used by tests
@@ -309,7 +365,7 @@ export default class CategoryHandler {
   }
 
   _checkCategory(category) {
-    return !!category;
+    return Boolean(category);
   }
 
   /**
@@ -326,8 +382,8 @@ export default class CategoryHandler {
     }
   }
 
-  _catModified(category) {
-    this.persistentHelper.categoryModified(category);
+  async _catAccountingModified(category) {
+    await this.persistentHelper.categoryAccountingModified(category);
   }
 
   _getCatHistoryPIDID(category) {

@@ -7,65 +7,78 @@
  */
 
 import tabs from '../platform/tabs';
+import windows from '../platform/windows';
 import webNavigation from '../platform/webnavigation';
+import events from '../core/events';
 import logger from './logger';
+import Page, { PAGE_LOADING_STATE } from './page';
 
-
-function makeTabContext({ url, incognito }) {
-  return {
-    url,
-    isRedirect: false,
-    isPrivate: incognito,
-    lastRequestId: -1,
-    frames: new Map([[0, {
-      parentFrameId: -1,
-      url,
-    }]]),
-  };
+function makeTabContext(tab) {
+  return new Page(tab);
 }
 
 export default class PageStore {
   constructor() {
     this.tabs = new Map();
-
-    this.onTabCreated = this.onTabCreated.bind(this);
-    this.onTabUpdated = this.onTabUpdated.bind(this);
-    this.onTabRemoved = this.onTabRemoved.bind(this);
-    this.onBeforeNavigate = this.onBeforeNavigate.bind(this);
-    this.onNavigationCommitted = this.onNavigationCommitted.bind(this);
+    this.staged = [];
   }
 
   init() {
     tabs.onCreated.addListener(this.onTabCreated);
     tabs.onUpdated.addListener(this.onTabUpdated);
     tabs.onRemoved.addListener(this.onTabRemoved);
-    if (webNavigation) {
-      webNavigation.onBeforeNavigate.addListener(this.onBeforeNavigate);
-      webNavigation.onCommitted.addListener(this.onNavigationCommitted);
+    tabs.onActivated.addListener(this.onTabActivated);
+    webNavigation.onBeforeNavigate.addListener(this.onBeforeNavigate);
+    webNavigation.onCommitted.addListener(this.onNavigationCommitted);
+    webNavigation.onDOMContentLoaded.addListener(this.onNavigationLoaded);
+    webNavigation.onCompleted.addListener(this.onNavigationComplete);
+    if (windows && windows.onFocusChanged) {
+      windows.onFocusChanged.addListener(this.onWindowFocusChanged);
     }
+    // popupate initially open tabs
+    tabs.query({}, (openTabs) => {
+      openTabs.forEach((tab) => {
+        this.onTabCreated(tab);
+      });
+    });
   }
 
   unload() {
+    this.tabs.forEach(page => this.stagePage(page));
+    this.tabs.clear();
+
     tabs.onCreated.removeListener(this.onTabCreated);
     tabs.onUpdated.removeListener(this.onTabUpdated);
     tabs.onRemoved.removeListener(this.onTabRemoved);
-    if (webNavigation) {
-      webNavigation.onBeforeNavigate.removeListener(this.onBeforeNavigate);
-      webNavigation.onCommitted.removeListener(this.onNavigationCommitted);
+    tabs.onActivated.removeListener(this.onTabActivated);
+    webNavigation.onBeforeNavigate.removeListener(this.onBeforeNavigate);
+    webNavigation.onCommitted.removeListener(this.onNavigationCommitted);
+    webNavigation.onDOMContentLoaded.removeListener(this.onNavigationLoaded);
+    webNavigation.onCompleted.removeListener(this.onNavigationComplete);
+    if (windows && windows.onFocusChanged) {
+      windows.onFocusChanged.removeListener(this.onWindowFocusChanged);
     }
+  }
+
+  stagePage(page) {
+    if (this.staged.push(page) > 5) {
+      this.staged.shift();
+    }
+    page.stage();
+    events.pub('webrequest-pipeline:stage', page);
   }
 
   /**
    * Create a new `tabContext` for the new tab
    */
-  onTabCreated(tab) {
+  onTabCreated = (tab) => {
     this.tabs.set(tab.id, makeTabContext(tab));
   }
 
   /**
    * Update an existing tab or create it if we do not have a context yet.
    */
-  onTabUpdated(tabId, info, tab) {
+  onTabUpdated = (tabId, info, tab) => {
     let tabContext = this.tabs.get(tabId);
     if (tabContext === undefined) {
       tabContext = makeTabContext(tab);
@@ -74,6 +87,7 @@ export default class PageStore {
 
     // Update `isPrivate` and `url` if available
     tabContext.isPrivate = tab.incognito;
+    tabContext.setActive(tab.active);
     if (info.url !== undefined) {
       tabContext.url = info.url;
     }
@@ -82,26 +96,90 @@ export default class PageStore {
   /**
    * Remove tab context for `tabId`.
    */
-  onTabRemoved(tabId) {
+  onTabRemoved = (tabId) => {
+    const tabContext = this.tabs.get(tabId);
+    if (tabContext && tabContext.state === PAGE_LOADING_STATE.COMPLETE) {
+      this.stagePage(tabContext);
+    }
     this.tabs.delete(tabId);
   }
 
-  onBeforeNavigate(details) {
-    const { frameId, tabId, url } = details;
-    const tabContext = this.tabs.get(tabId);
-    if (frameId === 0 && tabContext) {
-      tabContext.navigating = url;
+  onTabActivated = ({ previousTabId, tabId }) => {
+    // if previousTabId is not set (e.g. on chrome), set all tabs to inactive
+    // otherwise, we only have to mark the previous tab as inactive
+    if (!previousTabId) {
+      for (const tab of this.tabs.values()) {
+        tab.setActive(false);
+      }
+    } else if (this.tabs.has(previousTabId)) {
+      this.tabs.get(previousTabId).setActive(false);
+    }
+    if (this.tabs.has(tabId)) {
+      this.tabs.get(tabId).setActive(true);
     }
   }
 
-  onNavigationCommitted(details) {
+  onWindowFocusChanged = (focusedWindow) => {
+    tabs.query({ active: true }, (activeTabs) => {
+      activeTabs.forEach(({ id, windowId }) => {
+        const tabContext = this.tabs.get(id);
+        if (!tabContext) {
+          return;
+        }
+        if (windowId === focusedWindow) {
+          tabContext.setActive(true);
+        } else {
+          tabContext.setActive(false);
+        }
+      });
+    });
+  }
+
+  onBeforeNavigate = (details) => {
     const { frameId, tabId, url } = details;
     const tabContext = this.tabs.get(tabId);
-    if (frameId === 0 && (tabContext !== undefined && tabContext.url !== url)) {
-      this.onMainFrame({ tabId, url, requestId: 0 }, 'onBeforeRequest');
+    if (frameId === 0) {
+      // We are starting a navigation to a new page - if the previous page is complete (i.e. fully
+      // loaded), stage it before we create the new page info.
+      if (tabContext && tabContext.state === PAGE_LOADING_STATE.COMPLETE) {
+        this.stagePage(tabContext);
+      }
+      // create a new page for the navigation
+      this.tabs.delete(tabId);
+      const nextContext = makeTabContext({
+        id: tabId,
+        active: false,
+        url,
+        incognito: tabContext ? tabContext.isPrivate : false
+      });
+      nextContext.previous = tabContext;
+      this.tabs.set(tabId, nextContext);
+      nextContext.updateState(PAGE_LOADING_STATE.NAVIGATING);
     }
+  }
+
+  onNavigationCommitted = (details) => {
+    const { frameId, tabId } = details;
+    const tabContext = this.tabs.get(tabId);
     if (frameId === 0 && tabContext) {
-      tabContext.navigating = null;
+      tabContext.updateState(PAGE_LOADING_STATE.COMMITTED);
+    } else if (tabContext && !tabContext.frames.has(frameId)) {
+      // frame created without request
+      this.onSubFrame(details);
+    }
+  }
+
+  onNavigationLoaded = ({ frameId, tabId }) => {
+    const tabContext = this.tabs.get(tabId);
+    if (frameId === 0 && tabContext) {
+      tabContext.updateState(PAGE_LOADING_STATE.LOADED);
+    }
+  }
+
+  onNavigationComplete = ({ frameId, tabId }) => {
+    const tabContext = this.tabs.get(tabId);
+    if (frameId === 0 && tabContext) {
+      tabContext.updateState(PAGE_LOADING_STATE.COMPLETE);
     }
   }
 
@@ -113,13 +191,12 @@ export default class PageStore {
     // Update last request id from the tab
     let tabContext = this.tabs.get(tabId);
     if (tabContext === undefined) {
-      tabContext = makeTabContext({ url, incognito: null });
+      tabContext = makeTabContext({ url, incognito: false });
       this.tabs.set(tabId, tabContext);
     }
 
     if (event === 'onBeforeRequest') {
       tabContext.frames.clear();
-      tabContext.navigating = null;
       // Detect redirect: if the last request on this tab had the same id and
       // this was from the same `onBeforeRequest` hook, we can assume this is a
       // redirection.
@@ -156,95 +233,34 @@ export default class PageStore {
     });
   }
 
-  isRedirect({ tabId, type }) {
-    const tabContext = this.tabs.get(tabId);
-    return (
-      type === 'main_frame'
-      && tabContext !== undefined
-      && tabContext.isRedirect
-    );
-  }
-
-  isPrivateTab(tabId) {
+  getPageForRequest({ tabId, frameId, originUrl, type, initiator }) {
     const tab = this.tabs.get(tabId);
-    return tab === undefined ? null : tab.isPrivate;
-  }
-
-  getFrameAncestors({ tabId, parentFrameId }) {
-    const tab = this.tabs.get(tabId);
-    const ancestors = [];
-
-    // Reconstruct frame ancestors
-    if (tab !== undefined) {
-      let currentFrameId = parentFrameId;
-      while (currentFrameId !== -1) {
-        const frame = tab.frames.get(currentFrameId);
-
-        // If `frame` if undefined, this means we do not have any information
-        // about the frame associated with `currentFrameId`. This can happen if
-        // the event for `main_frame` or `sub_frame` was not emitted from the
-        // webRequest API for this frame; this can happen when Service Workers
-        // are used. In this case, we consider that the parent frame is the main
-        // frame (which is very likely the case).
-        if (frame === undefined) {
-          ancestors.push({
-            frameId: 0,
-            url: tab.url,
-          });
-          break;
-        }
-
-        // Continue going up the ancestors chain
-        ancestors.push({
-          frameId: currentFrameId,
-          url: frame.url,
-        });
-        currentFrameId = frame.parentFrameId;
+    if (!tab) {
+      return null;
+    }
+    // check if the current page has the given frame id, otherwise check if it belongs to the
+    // previous page
+    if (!tab.frames.has(frameId)) {
+      if (tab.previous && tab.previous.frames.has(frameId)) {
+        return tab.previous;
       }
-    }
-
-    return ancestors;
-  }
-
-  /**
-   * Return the URL of the frame.
-   */
-  getFrameUrl(context) {
-    const { tabId, frameId } = context;
-    const tab = this.tabs.get(tabId);
-
-    if (tab === undefined) {
       return null;
     }
 
-    const frame = tab.frames.get(frameId);
-
-    // In some cases, frame creation does not trigger a webRequest event (e.g.:
-    // if the iframe is specified in the HTML of the page directly). In this
-    // case we try to fall-back to something else: documentUrl, originUrl,
-    // initiator.
-    if (frame === undefined) {
-      return context.documentUrl || context.originUrl || context.initiator;
+    const couldBePreviousPage = frameId === 0 && type !== 'main_frame' && tab.previous;
+    // for main frame requests: check if the origin url is from the previous page (Firefox)
+    if (couldBePreviousPage
+        && tab.url !== originUrl
+        && tab.previous.url === originUrl) {
+      return tab.previous;
     }
-
-    return frame.url;
-  }
-
-  /**
-   * Return the URL of top-level document (i.e.: tab URL).
-   */
-  getTabUrl({ tabId, type }) {
-    const tab = this.tabs.get(tabId);
-
-    if (tab === undefined) {
-      return null;
+    // on Chrome we have `initiator` which only contains the origin. In this case, check for a
+    // different origin
+    if (couldBePreviousPage && initiator
+        && !tab.url.startsWith(initiator)
+        && tab.previous.url.startsWith(initiator)) {
+      return tab.previous;
     }
-    // any xmlhttprequest between webnavigation events is a fetch from the service-worker for the
-    // destination page, so we return the future tab url, which we saved in `navigating`.
-    if (tab.navigating && type === 'xmlhttprequest') {
-      return tab.navigating;
-    }
-
-    return tab.url;
+    return tab;
   }
 }

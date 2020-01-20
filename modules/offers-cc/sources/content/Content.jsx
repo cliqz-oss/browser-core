@@ -4,34 +4,42 @@ import Badge from './Badge';
 import Card from './Card';
 import Feedback from './Feedback';
 import WhyDoIsee from './WhyDoIsee';
+import OptIn from './OptIn';
+import Onboarding from './Onboarding';
 import Empty from './Empty';
-import { resize } from './common/utils';
+import { css, resize, chooseProduct } from './common/utils';
 
+const _css = css('content__');
 export default class Content extends React.Component {
   constructor(props) {
     super(props);
     const cards = {};
-    props.vouchers.forEach((v) => {
+    const { vouchers, shouldShowOnboarding, autoTrigger } = props;
+    vouchers.forEach((v) => {
       cards[v.offer_id] = {
         isCodeHidden: v.isCodeHidden,
         status: 'active',
       };
     });
+    const voucher = vouchers[0] || {};
     this.state = {
-      activeCard: props.vouchers.length && props.vouchers[0].offer_id,
+      activeCard: (!shouldShowOnboarding || autoTrigger) && voucher.offer_id,
       cards,
+      shouldShowOnboarding,
     };
   }
 
   componentDidMount() {
-    if (this.props.vouchers.length !== 0) { // not empty reward box
+    if (this.state.activeCard) {
       send('seenOffer', { offer_id: this.state.activeCard });
       send('sendTelemetry', { action: 'show_offer' });
     }
   }
 
   onClickBadge = offerId => () => {
-    this.setState({ activeCard: offerId }, resize);
+    const { products, autoTrigger } = this.props;
+
+    this.setState({ activeCard: offerId }, () => resize({ products, autoTrigger }));
     send('sendOfferActionSignal', {
       signal_type: 'offer-action-signal',
       element_id: 'offer_expanded',
@@ -43,9 +51,10 @@ export default class Content extends React.Component {
   }
 
   onRemoveCard = offerId => () => {
+    const { products, autoTrigger } = this.props;
     const { cards } = this.state;
     cards[offerId].status = 'in-feedback';
-    this.setState({ cards }, resize);
+    this.setState({ cards }, () => resize({ products, autoTrigger }));
     send('sendOfferActionSignal', {
       signal_type: 'remove-offer',
       element_id: 'offer_removed',
@@ -62,10 +71,14 @@ export default class Content extends React.Component {
 
   onChangeFeedback = (offerId, action) => ({ text, vote }) => {
     const { cards } = this.state;
-    const { vouchers } = this.props;
+    const { vouchers, products, autoTrigger } = this.props;
+
     cards[offerId].status = 'deleted';
     const card = vouchers.find(v => cards[v.offer_id].status === 'active') || {};
-    this.setState({ cards, activeCard: card.offer_id }, resize);
+
+    this.setState({ cards, activeCard: card.offer_id }, () => {
+      resize({ products, autoTrigger });
+    });
     const [target, newVote] = action === 'skip'
       ? ['skip_feedback', undefined]
       : ['feedback_after_removing', vote || 'other'];
@@ -80,20 +93,36 @@ export default class Content extends React.Component {
 
   onCloseWhyDoIsee = () => this.props.onChangeView('cards');
 
-  renderActiveCard = (voucher, activeIndex) => {
+  onClickOptIn = (option) => {
+    if (option === 'no') {
+      send('setOptInResult', { optin: false });
+      send('myOffrzTurnoff');
+      send('hideBanner');
+    } else {
+      send('setOptInResult', { optin: true });
+      this.props.onChangeView('cards');
+    }
+  }
+
+  renderFeedback(activeCard, i) {
+    const { products } = this.props;
+    return (
+      <Feedback
+        shouldPad={i !== 0}
+        products={products}
+        onChange={this.onChangeFeedback(activeCard, 'send')}
+        onSkip={this.onChangeFeedback(activeCard, 'skip')}
+      />
+    );
+  }
+
+  renderActiveCard = (voucher, i) => {
     const { products, autoTrigger, abtestInfo = {} } = this.props;
     const { activeCard, cards } = this.state;
     const cardStatus = cards[activeCard].status;
     return (
       <React.Fragment key={activeCard}>
-        {activeIndex !== 0 && <div key={`${activeCard}pre`} style={{ height: '4px' }} />}
-        {cardStatus === 'in-feedback' && (
-        <Feedback
-          products={products}
-          onChange={this.onChangeFeedback(activeCard, 'send')}
-          onSkip={this.onChangeFeedback(activeCard, 'skip')}
-        />
-        )}
+        {cardStatus === 'in-feedback' && this.renderFeedback(activeCard, i)}
         {cardStatus === 'active' && (
         <Card
           products={products}
@@ -106,58 +135,82 @@ export default class Content extends React.Component {
           autoTrigger={autoTrigger}
         />
         )}
-        <div key={`${activeCard}post`} style={{ height: '4px' }} />
       </React.Fragment>
     );
   }
 
-  renderBadge = (voucher, i, activeIndex) => {
-    const inTheMiddleOfList = ![activeIndex + 1, 0].includes(i);
-
+  renderBadge = (voucher, i) => {
+    const { products } = this.props;
     /* eslint-disable  jsx-a11y/no-static-element-interactions */
     return (
-      <div
-        style={inTheMiddleOfList ? { marginTop: '-6px' } : {}}
-        key={i}
-        onClick={this.onClickBadge(voucher.offer_id)}
-      >
-        <Badge
-          wrapperClass={inTheMiddleOfList ? 'content__badge-top-border' : ''}
-          key={i}
-          voucher={voucher}
-        />
+      <div key={i} onClick={this.onClickBadge(voucher.offer_id)}>
+        <Badge key={i} voucher={voucher} products={products} />
       </div>
     );
     /* eslint-enable jsx-a11y/no-static-element-interactions */
   }
 
-  renderVoucher = activeIndex => (voucher, i) => {
+
+  renderVoucher = (voucher, i) => {
     const { activeCard } = this.state;
     return voucher.offer_id === activeCard
-      ? this.renderActiveCard(voucher, activeIndex)
-      : this.renderBadge(voucher, i, activeIndex);
+      ? this.renderActiveCard(voucher, i)
+      : this.renderBadge(voucher, i);
+  }
+
+  renderEmpty() {
+    const { products, autoTrigger } = this.props;
+    if (products.ghostery) { return null; }
+    return (
+      <Empty products={products} autoTrigger={autoTrigger} />
+    );
+  }
+
+  renderOnboarding() {
+    const { products, autoTrigger, vouchers } = this.props;
+    const { activeCard, cards } = this.state;
+    return (
+      <Onboarding
+        onHide={() => {
+          const getActiveCard = () =>
+            vouchers.find(v => cards[v.offer_id].status === 'active') || {};
+          const newActiveCard = activeCard || getActiveCard().offer_id;
+          this.setState({
+            shouldShowOnboarding: false,
+            activeCard: newActiveCard,
+          }, () => resize({ products, autoTrigger }));
+        }}
+        products={products}
+      />
+    );
   }
 
   renderVouchers = () => {
-    const { vouchers, products, autoTrigger } = this.props;
-    const { activeCard, cards } = this.state;
+    const { vouchers } = this.props;
+    const { activeCard, cards, shouldShowOnboarding } = this.state;
     const activeVouchers = vouchers.filter((voucher) => {
       const cardStatus = cards[voucher.offer_id].status;
       return cardStatus === 'active'
         || (cardStatus === 'in-feedback' && activeCard === voucher.offer_id);
     });
-    const activeIndex = activeVouchers.findIndex(v => v.offer_id === activeCard);
-    return activeVouchers.length === 0
-      ? <Empty products={products} autoTrigger={autoTrigger} />
-      : activeVouchers.map(this.renderVoucher(activeIndex));
+    if (activeVouchers.length === 0) { return this.renderEmpty(); }
+    return (
+      <React.Fragment>
+        { shouldShowOnboarding && this.renderOnboarding() }
+        { activeVouchers.map(this.renderVoucher) }
+      </React.Fragment>
+    );
   }
 
   render() {
-    const { currentView, products } = this.props;
+    const { currentView, products, autoTrigger } = this.props;
+    const product = chooseProduct(products);
+    const triggerCls = `${autoTrigger ? 'auto' : 'normal'}-trigger-size`;
     return (
-      <div className="content__size">
+      <div className={_css('size', `${product}-size`, triggerCls)}>
         {currentView === 'why-do-i-see'
           && <WhyDoIsee products={products} onClose={this.onCloseWhyDoIsee} />}
+        {currentView === 'opt-in' && <OptIn onClick={this.onClickOptIn} />}
         {currentView === 'cards' && this.renderVouchers()}
       </div>
     );

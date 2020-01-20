@@ -1,92 +1,148 @@
 {
-    "affiliate_link": {
+    "myoffrz_affiliate_link": {
       "message": "affiliatelink"
     },
-    "copy_and_go": {
+    "myoffrz_copy_and_go": {
       "message": "copy & go"
     },
-    "feedback_skip": {
-        "message": "Überspringen"
+    "myoffrz_expires_in_day": {
+        "message": "Noch 1 Tag"
     },
-    "help": {
-        "message": "Hilfe"
+    "myoffrz_expires_in_days": {
+        "message": "Noch $COUNT$ Tage",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
     },
-    "hot_deal": {
-        "message": "Heißer Deal"
+    "myoffrz_expires_in_hour": {
+        "message": "Noch 1 Stunde"
     },
-    "offers_best_offer": {
-        "message": "Top Angebot"
+    "myoffrz_expires_in_hours": {
+        "message": "Noch $COUNT$ Stunden",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
     },
-    "offers_conditions": {
-        "message": "Konditionen"
+    "myoffrz_expires_in_minute": {
+        "message": "Noch 1 Minute"
     },
-    "offers_exclusive": {
-        "message": "Exklusiv"
+    "myoffrz_expires_in_minutes": {
+        "message": "Noch $COUNT$ Minuten",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            }
+        }
     },
-    "offers_expires_in": {
-        "message": "Noch"
-    },
-    "offers_hub_code_copy": {
-        "message": "Kopiert"
-    },
-    "offers_hub_copy_btn": {
-        "message": "Code kopieren"
-    },
-    "offers_hub_feedback_option1": {
+    "myoffrz_feedback_option1": {
         "message": "Angebot schon benutzt"
     },
-    "offers_hub_feedback_option2": {
+    "myoffrz_feedback_option2": {
         "message": "Kein gutes Angebot"
     },
-    "offers_hub_feedback_option3": {
+    "myoffrz_feedback_option3": {
         "message": "Angebot ist nicht relevant"
     },
-    "offers_hub_feedback_option4": {
+    "myoffrz_feedback_option4": {
         "message": "Anderer Grund"
     },
-    "offers_hub_feedback_optional": {
-        "message": "Optional"
-    },
-    "offers_hub_feedback_title": {
+    "myoffrz_feedback_title": {
         "message": "Feedback"
     },
-    "offers_hub_get_code_btn": {
+    "myoffrz_get_code": {
         "message": "Code anzeigen"
     },
-    "offers_hub_powered_by_offrz": {
-        "message": "BEREITGESTELLT VON MyOffrz"
+    "myoffrz_help": {
+        "message": "Hilfe"
     },
-    "offers_hub_tooltip_new_offer": {
-        "message": "Du hast ein neues Angebot"
+    "myoffrz_learn_more": {
+        "message": "Mehr erfahren"
     },
-    "offers_hub_welcome_link": {
-        "message": "Wie es funktioniert"
+    "myoffrz_no": {
+      "message": "nein"
     },
-    "offers_hub_welcome_text": {
-        "message": "Während du im Internet surfst, suchen wir nach attraktiven Angeboten, die zu deinen Interessen passen."
-    },
-    "offers_hub_welcome_title": {
-        "message": "Hallo!"
-    },
-    "offers_offer_removed": {
+    "myoffrz_offer_removed": {
         "message": "Angebot entfernt"
     },
-    "offers_send_feedback": {
+    "myoffrz_onboarding_cancel": {
+        "message": "Nein, danke"
+    },
+    "myoffrz_onboarding_cta": {
+        "message": "So funktioniert's"
+    },
+    "myoffrz_onboarding_description": {
+        "message": "Sie fragen sich, wie $BRAND$ funktioniert?",
+        "placeholders": {
+            "brand": {
+                "content": "$1"
+            }
+        }
+    },
+    "myoffrz_onboarding_title": {
+        "message": "Willkommen"
+    },
+    "myoffrz_optin_description": {
+        "message": "Möchten Sie jetzt Angebote und Rabatte von vertrauenswürdigen Ghostery-Partnern empfangen?"
+    },
+    "myoffrz_optin_title": {
+        "message": "Neuer Reward entdeckt!"
+    },
+    "myoffrz_optional": {
+        "message": "Optional"
+    },
+    "myoffrz_powered_by_offrz": {
+        "message": "BEREITGESTELLT VON MyOffrz"
+    },
+    "myoffrz_rewards_new": {
+        "message": "Neuer Reward entdeckt!"
+    },
+    "myoffrz_send": {
         "message": "Senden"
     },
-    "settings": {
+    "myoffrz_settings": {
       "message": "Einstellungen"
     },
-    "show_code": {
+    "myoffrz_show_code": {
       "message": "Code anzeigen"
     },
-    "why_offers_text": {
+    "myoffrz_show_more": {
+      "message": "Mehr anzeigen"
+    },
+    "myoffrz_skip": {
+        "message": "Überspringen"
+    },
+    "myoffrz_tooltip_new_offer": {
+        "message": "Du hast ein neues Angebot"
+    },
+    "myoffrz_turnoff_notification": {
+        "message": "Ghostery Rewards deaktiviert. Schalten Sie es jederzeit in den Einstellungen oder im Rewards-Dashboard an."
+    },
+    "myoffrz_turnoff_rewards": {
+        "message": "Turn off Ghostery Rewards"
+    },
+    "myoffrz_welcome_link": {
+        "message": "Wie es funktioniert"
+    },
+    "myoffrz_welcome_text": {
+        "message": "Während du im Internet surfst, suchen wir nach attraktiven Angeboten, die zu deinen Interessen passen."
+    },
+    "myoffrz_welcome_title": {
+        "message": "Hallo!"
+    },
+    "myoffrz_why_offers_text": {
         "message": "Keinerlei persönliche Daten verlassen dein Gerät. Dein Browser erkennt selbständig anhand deiner bisherigen Nutzung, wofür du dich interessieren könntest."
     },
-    "why_see_these_offers": {
+    "myoffrz_why_see_these_offers": {
         "message": "Warum wird das gezeigt?"
     },
-    "why_see_this": {
+    "myoffrz_why_see_this": {
         "message": "Warum wird das gezeigt?"
+    },
+    "myoffrz_yes": {
+      "message": "ja"
     }
 }
