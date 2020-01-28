@@ -19,7 +19,7 @@ import {
 
 import { getMessage } from '../../../core/i18n';
 
-import { getDetailsFromUrl } from '../../../core/url';
+import { parse, getFriendlyUrl } from '../../../core/url';
 
 export const cardsUrl = getResourceUrl('mobile-cards/cards.html');
 
@@ -108,7 +108,7 @@ export function checkHeader({ url, results, isDefault = false, imageName }) {
       if (results[0].snippet.friendlyUrl) {
         expect($friendlyUrl.innerText).to.equal(results[0].snippet.friendlyUrl);
       } else {
-        expect($friendlyUrl.innerText).to.equal(getDetailsFromUrl(results[0].url).friendly_url);
+        expect($friendlyUrl.innerText).to.equal(getFriendlyUrl(parse(results[0].url)));
       }
     });
 

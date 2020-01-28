@@ -83,41 +83,14 @@
     "freshtab_app_settings_news_label": {
         "message": "Actualité"
     },
-    "freshtab_app_settings_news_language_de": {
-        "message": "Médias allemands"
-    },
-    "freshtab_app_settings_news_language_de_tr_en": {
-        "message": "Médias allemands en anglais"
-    },
-    "freshtab_app_settings_news_language_en": {
-        "message": "Médias britanniques et U.S."
-    },
-    "freshtab_app_settings_news_language_es": {
-        "message": "Médias espagnoles"
-    },
-    "freshtab_app_settings_news_language_fr": {
-        "message": "Médias français"
-    },
-    "freshtab_app_settings_news_language_gb": {
-        "message": "Médias britannniques"
-    },
-    "freshtab_app_settings_news_language_it": {
-        "message": "Médias italiens"
-    },
-    "freshtab_app_settings_news_language_pl": {
-        "message": "Édition polonaise"
-    },
-    "freshtab_app_settings_news_language_ru": {
-        "message": "Médias russes"
-    },
-    "freshtab_app_settings_news_language_us": {
-        "message": "Médias U.S."
-    },
     "freshtab_app_settings_privacy_stats": {
         "message": "Statistiques"
     },
     "freshtab_app_settings_search_label": {
         "message": "Barre de recherche"
+    },
+    "freshtab_app_settings_statistics_reset": {
+        "message": "Remettre à zéro"
     },
     "freshtab_app_speed_dial_add": {
         "message": "Ajouter"

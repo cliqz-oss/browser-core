@@ -25,7 +25,7 @@ import {
   withHistory,
 } from './helpers';
 
-import { getDetailsFromUrl } from '../../../core/url';
+import { parse, getFriendlyUrl } from '../../../core/url';
 
 import { getMessage } from '../../../core/i18n';
 
@@ -86,7 +86,7 @@ export default function () {
           const $friendlyUrl = $cardHeaders[0].querySelector('[aria-label="generic-link"]');
           expect($friendlyUrl).to.exist;
           expect($friendlyUrl.innerText)
-            .to.equal(getDetailsFromUrl(results[0].value).friendly_url);
+            .to.equal(getFriendlyUrl(parse(results[0].value)));
         });
 
         it('renders https lock logo', async function () {
@@ -168,7 +168,7 @@ export default function () {
           const $friendlyUrl = $cardHeaders[0].querySelector('[aria-label="generic-link"]');
           expect($friendlyUrl).to.exist;
           expect($friendlyUrl.innerText)
-            .to.equal(getDetailsFromUrl(results[0].value).friendly_url);
+            .to.equal(getFriendlyUrl(parse(results[0].value)));
         });
 
         it('renders https lock logo', async function () {

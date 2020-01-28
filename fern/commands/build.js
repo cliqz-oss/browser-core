@@ -29,8 +29,10 @@ module.exports = (program) => {
     .option('--to-subdir', 'build into a subdirectory named after the config')
     .option('--include-tests', 'include tests files in build')
     .action(async (configPath, options) => {
-      process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment;
-      process.env.CLIQZ_SOURCE_MAPS = options.maps;
+      const ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment || 'development';
+      const isProduction = ENVIRONMENT === 'production';
+      process.env.CLIQZ_ENVIRONMENT = ENVIRONMENT;
+      process.env.CLIQZ_SOURCE_MAPS = options.maps && !isProduction;
       process.env.CLIQZ_SOURCE_DEBUG = options.debug;
       process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
         (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')

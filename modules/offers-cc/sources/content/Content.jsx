@@ -5,6 +5,7 @@ import Card from './Card';
 import Feedback from './Feedback';
 import WhyDoIsee from './WhyDoIsee';
 import OptIn from './OptIn';
+import Onboarding from './Onboarding';
 import Empty from './Empty';
 import { css, resize, chooseProduct } from './common/utils';
 
@@ -13,20 +14,23 @@ export default class Content extends React.Component {
   constructor(props) {
     super(props);
     const cards = {};
-    props.vouchers.forEach((v) => {
+    const { vouchers, shouldShowOnboarding, autoTrigger } = props;
+    vouchers.forEach((v) => {
       cards[v.offer_id] = {
         isCodeHidden: v.isCodeHidden,
         status: 'active',
       };
     });
+    const voucher = vouchers[0] || {};
     this.state = {
-      activeCard: props.vouchers.length && props.vouchers[0].offer_id,
+      activeCard: (!shouldShowOnboarding || autoTrigger) && voucher.offer_id,
       cards,
+      shouldShowOnboarding,
     };
   }
 
   componentDidMount() {
-    if (this.props.vouchers.length !== 0) { // not empty reward box
+    if (this.state.activeCard) {
       send('seenOffer', { offer_id: this.state.activeCard });
       send('sendTelemetry', { action: 'show_offer' });
     }
@@ -113,7 +117,7 @@ export default class Content extends React.Component {
   }
 
   renderActiveCard = (voucher, i) => {
-    const { products, autoTrigger, abtestInfo = {} } = this.props;
+    const { products, autoTrigger } = this.props;
     const { activeCard, cards } = this.state;
     const cardStatus = cards[activeCard].status;
     return (
@@ -122,7 +126,6 @@ export default class Content extends React.Component {
         {cardStatus === 'active' && (
         <Card
           products={products}
-          abtestInfo={abtestInfo}
           onRemove={this.onRemoveCard(activeCard)}
           onChangeCodeStatus={this.onChangeCodeStatus(activeCard)}
           key={activeCard + String(cardStatus)}
@@ -154,17 +157,48 @@ export default class Content extends React.Component {
       : this.renderBadge(voucher, i);
   }
 
-  renderVouchers = () => {
-    const { vouchers, products, autoTrigger } = this.props;
+  renderEmpty() {
+    const { products, autoTrigger } = this.props;
+    if (products.ghostery) { return null; }
+    return (
+      <Empty products={products} autoTrigger={autoTrigger} />
+    );
+  }
+
+  renderOnboarding() {
+    const { products, autoTrigger, vouchers } = this.props;
     const { activeCard, cards } = this.state;
+    return (
+      <Onboarding
+        onHide={() => {
+          const getActiveCard = () =>
+            vouchers.find(v => cards[v.offer_id].status === 'active') || {};
+          const newActiveCard = activeCard || getActiveCard().offer_id;
+          this.setState({
+            shouldShowOnboarding: false,
+            activeCard: newActiveCard,
+          }, () => resize({ products, autoTrigger }));
+        }}
+        products={products}
+      />
+    );
+  }
+
+  renderVouchers = () => {
+    const { vouchers } = this.props;
+    const { activeCard, cards, shouldShowOnboarding } = this.state;
     const activeVouchers = vouchers.filter((voucher) => {
       const cardStatus = cards[voucher.offer_id].status;
       return cardStatus === 'active'
         || (cardStatus === 'in-feedback' && activeCard === voucher.offer_id);
     });
-    return activeVouchers.length === 0
-      ? (!products.ghostery && <Empty products={products} autoTrigger={autoTrigger} />)
-      : activeVouchers.map(this.renderVoucher);
+    if (activeVouchers.length === 0) { return this.renderEmpty(); }
+    return (
+      <React.Fragment>
+        { shouldShowOnboarding && this.renderOnboarding() }
+        { activeVouchers.map(this.renderVoucher) }
+      </React.Fragment>
+    );
   }
 
   render() {

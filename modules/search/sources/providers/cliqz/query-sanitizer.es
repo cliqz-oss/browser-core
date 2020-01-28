@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import URL from '../../../core/fast-url-parser';
+import { parse } from '../../../core/url';
 // List of blocked schemas. All queries of the form "<schema>://<...>"
 // will be blocked. Should not contain the special cases "http" and "https".
 //
@@ -46,10 +46,9 @@ function tryParseAsUrlWithIncompleteSchema(query) {
 
   function tryParse(q) {
     if (hasValidHostname(q)) {
-      try {
-        return new URL(`http://${q}`);
-      } catch (e) {
-        // ignore
+      const url = parse(`http://${q}`);
+      if (url !== null) {
+        return url;
       }
     }
     return undefined;
@@ -215,19 +214,18 @@ export function sanitizeSearchQuery(originalQuery) {
       // test further.
       return query;
     }
-    let url;
-    try {
-      url = new URL(matchedUrl);
-      if (url.password || url.username || url.port || url.search || url.pathname !== '/') {
-        return null;
-      }
-    } catch (e) {
+    const url = parse(matchedUrl);
+    if (url === null) {
       // Should be an even rarer case, as almost everything that
       // starts with "http[s]://" is a valid url.
       //
       // Note: The URL API is currently not 100% compatible.
       // For example, "http://a b" is rejected by Firefox and Chrome >= 70,
       // but accepted on all other implementations (might change in the future).
+      return null;
+    }
+
+    if (url.password || url.username || url.port || url.search || url.pathname !== '/') {
       return null;
     }
 

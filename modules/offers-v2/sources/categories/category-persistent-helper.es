@@ -1,126 +1,146 @@
 import Category from './category';
-import SimpleDB from '../../core/persistence/simple-db';
 import logger from '../common/offers_v2_logger';
-import { buildCachedMap } from '../common/cached-map-ext';
-import prefs from '../../core/prefs';
+import persistentMapFactory from '../../core/persistence/map';
 
-/**
- * will return the intersection of 2 lists
- */
-const intersection = (l1, l2) => {
-  const s1 = new Set(l1);
-  const s2 = new Set(l2);
-  const result = [];
-  s1.forEach((k1) => {
-    if (s2.has(k1)) {
-      result.push(k1);
-    }
-  });
-  return result;
-};
+function extractCategoryData(category) {
+  return category.serialize();
+}
 
-const extractCategoryData = (category) => {
-  const catData = category.serialize();
-  catData.patterns = undefined;
-  return catData;
-};
-
-const buildCategoryFromDataAndPatterns = (catData, catPatterns) => {
+function buildCategoryFromDataAndPatterns(catData, catPatterns) {
   const category = new Category();
   category.deserialize(catData);
   category.patterns = catPatterns;
   return category;
-};
+}
 
 /**
- * we will isolate the way we load the data in this helper. we will save the
- * patterns separated from the categories itself since they will highly probably
- * do not change.
+ * The categories storage is split on two parts:
+ *
+ * - categories itself without patterns (used for accounting), and
+ * - patterns.
+ *
+ * The first one is used for accounting, so the database should be alive
+ * all the times. The table with patterns is needed only during
+ * synchronization between memory and persistence. In some refactoring,
+ * it should be possible to open this database only on demand.
+ *
+ * *Important*. An object of this class must be a singleton.
+ * At least in unit tests, it was a problem to read data from a second
+ * instance of `categoreisDb` or `patternsDb` even if the first
+ * instance was closed: the data were never read until test finished.
  */
 export default class CategoryPersistentDataHelper {
-  constructor(db) {
-    this.db = (db) ? new SimpleDB(db) : null;
-    // we will store the data in 2 maps, one will contain the patterns and the
-    // other will contain the category data itself
-    const loadPersistentData = !prefs.get('offersDevFlag', false);
-    this.categoriesDataMap = buildCachedMap('cliqz-categories-data', loadPersistentData);
-    this.categoriesPatternsMap = buildCachedMap('cliqz-categories-patterns', loadPersistentData);
-    // The tables are not used anymore, cleanup user storage
-    const METADATA_DOC_ID = 'cliqz-cat-metadata';
-    const DAY_COUNTER_DOC_ID = 'cliqz-cat-day-counter';
-    if (this.db) {
-      this.db.remove(METADATA_DOC_ID);
-      this.db.remove(DAY_COUNTER_DOC_ID);
-    }
-  }
-
-  unloadDB() {
-    return Promise.all([this.categoriesDataMap.unload(), this.categoriesPatternsMap.unload()]);
+  constructor() {
+    this.categoriesDb = null;
+    this.patternsDb = null;
   }
 
   /**
-   * Will remove all the data from DB
+   * Called from `loadCategories`, no need to call directly.
+   * And application logic is to call `loadCategories` as soon as possible.
    */
-  destroyDB() {
-    return Promise.all([this.categoriesDataMap.clear(), this.categoriesPatternsMap.clear()]);
+  async _init() {
+    if (!this.categoriesDb) {
+      const PersistentMap = await persistentMapFactory();
+      this.categoriesDb = new PersistentMap('cliqz-categories-data');
+      this.patternsDb = new PersistentMap('cliqz-categories-patterns');
+      await Promise.all([
+        this.categoriesDb.init(),
+        this.patternsDb.init()
+      ]);
+    }
+  }
+
+  destroy() {
+    if (this.categoriesDb) {
+      this.categoriesDb.unload();
+      this.categoriesDb = null;
+      this.patternsDb.unload();
+      this.patternsDb = null;
+    }
+  }
+
+  _isInitialized(where) {
+    if (!this.categoriesDb || !this.patternsDb) {
+      logger.error(`Categories storage is not initialized (${where})`);
+      return false;
+    }
+    return true;
   }
 
   /**
    * will return a promise with a list of all the categories already built
    */
-  loadCategories() {
-    return Promise.all([
-      this.categoriesDataMap.init(),
-      this.categoriesPatternsMap.init()]).then(() => {
-      // we will do a sync here
-      const catDataIDs = [...this.categoriesDataMap.keys()];
-      const catPatternsIDs = [...this.categoriesPatternsMap.keys()];
-      const validIDs = new Set(intersection(catDataIDs, catPatternsIDs));
+  async loadCategories() {
+    await this._init();
+    //
+    // Reconstruct categories
+    // Track orphaned IDs on the fly
+    //
+    const allCategories = await this.categoriesDb.entries();
+    const allPatterns = new Map(await this.patternsDb.entries());
+    const orphanCatIDs = [];
 
-      const removeInvalidSignals = (currentIDs, map) => {
-        currentIDs.forEach((catID) => {
-          if (!validIDs.has(catID)) {
-            map.delete(catID);
-          }
-        });
-      };
+    const result = [];
+    for (const [cname, cat] of allCategories) {
+      const patterns = allPatterns.get(cname);
+      if (patterns === undefined) {
+        orphanCatIDs.push(cname);
+      } else {
+        result.push(buildCategoryFromDataAndPatterns(cat, patterns));
+        allPatterns.delete(cname);
+      }
+    }
 
-      // remove all entries that are not valid anymore
-      removeInvalidSignals(catDataIDs, this.categoriesDataMap);
-      removeInvalidSignals(catPatternsIDs, this.categoriesPatternsMap);
+    //
+    // Fix possible de-synchronization of tables
+    //
+    const removeInvalidEntries = async (currentIDs, db) => {
+      if (currentIDs.length) {
+        await db.bulkDelete(currentIDs);
+      }
+    };
+    await removeInvalidEntries(orphanCatIDs, this.categoriesDb);
+    await removeInvalidEntries([...allPatterns.keys()], this.patternsDb);
 
-      const result = [];
-      validIDs.forEach((catID) => {
-        const catObject = this.categoriesDataMap.get(catID);
-        const catPatterns = this.categoriesPatternsMap.get(catID);
-        result.push(buildCategoryFromDataAndPatterns(catObject, catPatterns));
-      });
-      return Promise.resolve(result);
-    });
+    return result;
   }
 
   // only the data is modified
-  categoryModified(category) {
-    if (!category || !this.categoriesDataMap.has(category.getName())) {
-      logger.error('Invalid category modified', category);
+  async categoryAccountingModified(category) {
+    if (!this._isInitialized('categoryAccountingModified')) {
+      return;
+    }
+    // Don't use `this.smth` as it set be can to `null` during await
+    const categoriesDb = this.categoriesDb;
+    const cname = category && category.getName();
+    if (!cname || !(await categoriesDb.has(cname))) {
+      logger.error('Invalid category modified', cname);
       return;
     }
     // store only the data
-    this.categoriesDataMap.set(category.getName(), extractCategoryData(category));
+    categoriesDb.set(cname, extractCategoryData(category));
   }
 
-  categoryRemoved(category) {
-    if (category) {
-      this.categoriesPatternsMap.delete(category.getName());
-      this.categoriesDataMap.delete(category.getName());
+  async commitBuild(buildResources) {
+    if (!this._isInitialized('commitBuild')) {
+      return;
     }
-  }
-
-  categoryAdded(category) {
-    if (category) {
-      // here we will split the patterns and the data
-      this.categoriesPatternsMap.set(category.getName(), category.getPatterns());
-      this.categoriesDataMap.set(category.getName(), extractCategoryData(category));
-    }
+    // Don't use `this.smth` as it set be can to `null` during await
+    const categoriesDb = this.categoriesDb;
+    const patternsDb = this.patternsDb;
+    // Delete categories
+    await Promise.all([
+      categoriesDb.bulkDelete(buildResources.removeCategoriesIDs),
+      patternsDb.bulkDelete(buildResources.removeCategoriesIDs)
+    ]);
+    // Set new categories
+    const cats = new Map();
+    buildResources.categories.forEach((cat, cname) =>
+      cats.set(cname, extractCategoryData(cat)));
+    await Promise.all([
+      categoriesDb.bulkSetFromMap(cats),
+      patternsDb.bulkSetFromMap(buildResources.patterns)
+    ]);
   }
 }

@@ -99,14 +99,14 @@ export default {
             description: 'Nur für Neukunden. Code eingeben, zwei Hörbucher aussuchen und anhören',
             promo_code: 'nicht benötigt',
             thumbnail: 'http://cdn.cliqz.com/extension/rh-offers/Audible/74/image.png',
-            title: 'Audible: 2 kostenlose Hörbücher von audible-test.de - Nur für kurze Zeit',
+            title: '> Title - Audible: 2 kostenlose Hörbücher von audible-test.de - Nur für kurze Zeit',
             url_ad: 'https://audible-test.de/myoffrz'
           },
           target_url: 'http://www.audible-test.de/',
           url_ad: 'https://audible-test.de/myoffrz'
         },
         friendlyUrl: 'audible-test.de/myoffrz',
-        title: 'Audible: 2 kostenlose Hörbücher von audible-test.de - Nur für kurze Zeit'
+        title: '> Title - Audible: 2 kostenlose Hörbücher von audible-test.de - Nur für kurze Zeit'
       },
       subType: {
         class: 'EntityKPI',
@@ -210,15 +210,15 @@ export default {
             },
             description: 'Nur für Neukunden. Code eingeben, zwei Hörbucher aussuchen und anhören',
             promo_code: 'nicht benötigt',
-            thumbnail: 'https://imgr.cliqz.com/iGvnBEHWtslOyh2qG3_GbUzOS6cJ2oK_CsAAqtROXw0/fill/0/200/no/1/aHR0cDovL2Nkbi5jbGlxei5jb20vZXh0ZW5zaW9uL3JoLW9mZmVycy9BdWRpYmxlLzc0L2ltYWdlLnBuZw.png',
-            title: 'Audible: 2 kostenlose Hörbücher von audible-test.de - Nur für kurze Zeit',
+            thumbnail: 'http://localhost:3000/static/images/image.png',
+            title: '> Title - Audible: 2 kostenlose Hörbücher von audible-test.de - Nur für kurze Zeit',
             url_ad: 'https://audible-test.de/myoffrz'
           },
           target_url: 'http://www.audible-test.de/',
           url_ad: 'https://audible-test.de/myoffrz'
         },
         friendlyUrl: 'audible-test.de/myoffrz',
-        title: 'Audible: 2 kostenlose Hörbücher von audible-test.de - Nur für kurze Zeit'
+        title: '> Title - Audible: 2 kostenlose Hörbücher von audible-test.de - Nur für kurze Zeit'
       },
       type: 'rh',
       subType: {
@@ -241,7 +241,7 @@ export default {
           },
           m_url: 'https://mobile.audible-test.de'
         },
-        title: 'Hörbücher, Hörspiele \u0026 mehr'
+        title: '> Title - Hörbücher, Hörspiele \u0026 mehr'
       },
       c_url: 'http://www.audible-test.de/',
       similars: [

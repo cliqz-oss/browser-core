@@ -7,8 +7,6 @@
  */
 
 /* global chai, describeModule */
-const urlImports = require('../../core/unit/utils/url-parser');
-
 const nonNumeric = ['', 'ithinkthereis1numberhere', '1240abcd'];
 const mostlyNumeric = ['4902', '1024x768'];
 
@@ -19,7 +17,6 @@ export default describeModule('antitracking/hash', function () {
     'core/resource-loader': {
       default: class MockResourceLoader {},
     },
-    ...urlImports,
   };
 },
 function () {

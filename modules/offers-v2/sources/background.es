@@ -10,6 +10,7 @@ import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import config from '../core/config';
 import events from '../core/events';
+import pacemaker from '../core/services/pacemaker';
 import { isCliqzBrowser } from '../core/platform';
 import background from '../core/base/background';
 import Database from '../core/database-migrate';
@@ -42,13 +43,12 @@ import ChipdeHandler from './whitelabel/chipde/handler';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
-const PRINT_ONBOARDING = 'print_onboarding';
 const DEBUG_DEXIE_MIGRATION = false;
 
 // If the offers are toggled on/off, the real estate modules should
 // be activated or deactivated.
 function touchManagedRealEstateModules(isEnabled) {
-  const managedRealEstateModules = ['offers-banner', 'popup-notification', 'myoffrz-helper'];
+  const managedRealEstateModules = ['offers-banner', 'myoffrz-helper'];
   managedRealEstateModules.forEach(moduleName =>
     prefs.set(`modules.${moduleName}.enabled`, isEnabled));
 }
@@ -59,7 +59,6 @@ function touchManagedRealEstateModules(isEnabled) {
 export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config', 'telemetry', 'pacemaker'],
-  popupNotification: inject.module('popup-notification'),
   core: inject.module('core'),
   helper: inject.module('myoffrz-helper'),
   hpnv2: inject.module('hpnv2'),
@@ -80,10 +79,9 @@ export default background({
     await this.softInit();
   },
 
-  unload() { // always sync
-    return this.softUnload().then(() => {
-      this.registeredRealEstates = null;
-    });
+  async unload() { // called as it were a sync function
+    await this.softUnload();
+    this.registeredRealEstates = null;
   },
 
   // ////////
@@ -93,21 +91,6 @@ export default background({
       this.initialized = false;
       if (isCliqzBrowser) { chrome.browserAction.disable(); }
       return;
-    }
-
-    // check if we need to set dev flags or not
-    // extensions.cliqz.offersDevFlag
-    OffersConfigs.IS_DEV_MODE = prefs.get('offersDevFlag', false);
-    if (OffersConfigs.IS_DEV_MODE) {
-      // new ui system
-      OffersConfigs.LOAD_OFFERS_STORAGE_DATA = false;
-
-      // dont load signals from DB
-      OffersConfigs.SIGNALS_LOAD_FROM_DB = prefs.get('offersLoadSignalsFromDB', false);
-      // avoid loading storage data if needed
-      OffersConfigs.LOAD_OFFERS_STORAGE_DATA = prefs.get('offersSaveStorage', false);
-      // avoid loading db for signals
-      OffersConfigs.SEND_SIG_OP_SHOULD_LOAD = false;
     }
 
     if (DEBUG_DEXIE_MIGRATION) {
@@ -127,7 +110,7 @@ export default background({
       Version: ${OffersConfigs.CURRENT_VERSION}
       timestamp: ${Date.now()}
       OffersConfigs.LOG_LEVEL: ${OffersConfigs.LOG_LEVEL}
-      dev_flag: ${prefs.get('offersDevFlag', false)}
+      developer: ${prefs.get('developer', false)}
       triggersBE: ${OffersConfigs.BACKEND_URL}
       offersTelemetryFreq: ${OffersConfigs.SIGNALS_OFFERS_FREQ_SECS}
       '------------------------------------------------------------------------\n`);
@@ -151,7 +134,7 @@ export default background({
     this.onUrlChange = this.onUrlChange.bind(this);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
 
-    this.signalReEmitter = new EventEmitter(['signal']);
+    this.signalReEmitter = new EventEmitter();
 
     // campaign signals with match patterns
     this.patternsStat = new PatternsStat(
@@ -237,7 +220,6 @@ export default background({
     this.couponHandler = new CouponHandler({
       offersHandler: this.offersHandler,
       core: this.core,
-      popupNotification: this.popupNotification,
       offersDB: this.offersDB,
     });
 
@@ -249,7 +231,7 @@ export default background({
       be_connector: this.backendConnector,
       category_handler: this.categoryHandler,
       offers_status_handler: this.offersHandler.offerStatus,
-      telemetry: inject.service('telemetry', ['onTelemetryEnabled', 'onTelemetryDisabled', 'isEnabled', 'push', 'removeListener']),
+      telemetry: inject.service('telemetry', ['push']),
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
 
@@ -257,11 +239,28 @@ export default background({
       chrome.browserAction.enable();
     }
 
-    // to be checked on unload
     this.initialized = true;
-    if (prefs.get('full_distribution') === 'pk_campaign=fp1' && !prefs.get(PRINT_ONBOARDING, false)) {
-      this.actions.onContentCategories({ categories: ['freundin'], prefix: 'onboarding', url: 'https://myoffrz.com/freundin' });
-      prefs.set(PRINT_ONBOARDING, true);
+
+    // Module initialization should be fast because the whole extension
+    // waits for it. Therefore, heavy initialization (for example,
+    // loading categories from the backend) should be postponed.
+    // There is nothing special in 5 seconds, it is just a guess.
+    const postInitDelayMs = 1000 * 5;
+    this.postInitTimer = pacemaker.setTimeout(
+      this.postInit.bind(this),
+      postInitDelayMs
+    );
+  },
+
+  async postInit() {
+    this.cancelPostInit(); // if called directly, cancel scheduled call
+    await this.categoryFetcher.postInit();
+  },
+
+  cancelPostInit() {
+    if (this.postInitTimer) {
+      pacemaker.clearTimeout(this.postInitTimer);
+      this.postInitTimer = null;
     }
   },
 
@@ -270,6 +269,8 @@ export default background({
     if (this.initialized === false) {
       return;
     }
+
+    this.cancelPostInit();
 
     if (this.triggerMachineExecutor) {
       await this.triggerMachineExecutor.destroy();
@@ -321,7 +322,10 @@ export default background({
       await this.categoryFetcher.unload();
       this.categoryFetcher = null;
     }
-    this.categoryHandler = null;
+    if (this.categoryHandler) {
+      this.categoryHandler.destroy();
+      this.categoryHandler = null;
+    }
 
     this.offersDB = null;
     this.initialized = false;
@@ -393,7 +397,6 @@ export default background({
     const validPrefNames = new Set([
       'offers2UserEnabled',
       'offersLogsEnabled',
-      'offersDevFlag',
       'offersLoadSignalsFromDB',
       'offersSaveStorage',
       'triggersBE',
@@ -554,16 +557,15 @@ export default background({
       if (tab.pinned && !tab.active) { return; }
       if (tab.url) { this._notifyClientsIfNeeded(tab.url); }
     },
-    'popup-notification:pop': function onPopupPop(msg) {
-      return this.couponHandler && this.couponHandler.onPopupPop(msg);
-    },
-    'popup-notification:log': function onPopupLog(msg) {
-      return this.couponHandler && this.couponHandler.onPopupLog(msg);
-    },
     'offers-reminder-recv-ch': function onOffersReminderReceive(msg) {
       const { origin, data: { action = '', domain = '' } = {} } = msg;
       if (origin !== 'offers-reminder') { return; }
       this.shopReminder.receive(domain, action);
+    },
+    'offers-checkout-recv-ch': function onOffersCheckoutReceive(msg) {
+      const { origin, data = {}, type } = msg;
+      if (origin !== 'offers-checkout') { return; }
+      this.couponHandler.dispatcher(type, data);
     },
     'ui:click-on-reward-box-icon': function onClickRewardBoxIcon() {
       this.offersHandler.markOffersAsRead();
@@ -601,7 +603,7 @@ export default background({
     },
 
     /**
-     * Registration realated methods for different real estates to offers core
+     * Registration related methods for different real estates to offers core
      */
 
     registerRealEstate({ realEstateID }) {

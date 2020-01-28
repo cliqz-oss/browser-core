@@ -8,98 +8,118 @@
 
 @import 'variables.scss';
 
-.step.antitracking {
-    .eyes-container {
-        opacity: 0;
-        transition: opacity .4s linear;
+.antitracking {
+    &-ctrl-content {
+        background: url('../images/antitracking_icon_off.png') left center no-repeat;
+        background-size: auto 85%;
+    }
 
-        &.visible {
-            opacity: 1;
+    &-headline {
+        position: relative;
+
+        &:before {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -158px;
+            background-image: url('../images/antitracking_off.png');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: 100% auto;
+            width: 316px;
+            height: 200px;
+        }
+    }
+}
+
+.antitracking-toggled {
+    .antitracking-ctrl {
+        &-status {
+          color: $slider-bg-on;
         }
 
-       .eyes {
-            position: absolute;
-            display: flex;
-            justify-content: space-between;
-            width: 142px;
-            height: 55px;
-            z-index: 1;
-
-            span {
-                width: 55px;
-                height: 100%;
-                background-color: #fff;
-                border-radius: 50%;
-                position: relative;
-
-                &:before {
-                    content: "";
-                    width: 32px;
-                    height: 32px;
-                    background-color: #000;
-                    border-radius: 50%;
-                    position: absolute;
-                    top: 2px;
-                    left: 7px;
-                }
-
-                &:after {
-                    visibility: hidden;
-                    content: "";
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 50%;
-                    border: 3px solid #000;
-                    top: 0;
-                    left: 0;
-                    display: inline-block;
-                    box-sizing: border-box;
-                    border-top-color: transparent;
-                    border-left-color: transparent;
-                    transform: rotateZ(45deg);
-                }
-            }
-
-            &.closed {
-                span {
-                    transform: rotate(0deg) !important;
-                    background-color: transparent;
-
-                    &:before {
-                        visibility: hidden;
-                    }
-
-                    &:after {
-                        visibility: visible;
-                    }
-                }
-            }
+        &-content {
+          background-image: url('../images/antitracking_icon_on.png');
+          color: #000;
         }
     }
 
-    .info {
-        box-shadow: none;
+    .antitracking-headline {
+        color: $cliqz-blue;
 
-        .headline .toggled {
-            background: #000;
+        &:before {
+            background-image: url('../images/antitracking_on.png');
+        }
+    }
+}
+
+.antitracking-layout {
+    opacity: 0;
+    transition: opacity .4s linear;
+
+    &.visible {
+        opacity: 1;
+    }
+
+   .eyes {
+        position: absolute;
+        display: flex;
+        justify-content: space-between;
+        width: 142px;
+        height: 55px;
+        z-index: 1;
+
+        span {
+            width: 55px;
+            height: 100%;
+            background-color: $cliqz-blue;
+            border: 1px solid #000;
+            border-radius: 50%;
+            position: relative;
+
+            &:before {
+                content: "";
+                width: 32px;
+                height: 32px;
+                background-color: $cliqz-blue;
+                border: 1px solid #000;
+                border-radius: 50%;
+                position: absolute;
+                top: 2px;
+                left: 7px;
+            }
+
+            &:after {
+                visibility: hidden;
+                content: "";
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                border: 1px solid #000;
+                top: 0;
+                left: 0;
+                display: inline-block;
+                box-sizing: border-box;
+                border-top-color: transparent;
+                border-left-color: transparent;
+                transform: rotateZ(45deg);
+            }
         }
 
-        .description-area {
-            .description {
-                padding-bottom: 10px;
-                position: relative;
+        &.closed {
+            span {
+                transform: rotate(0deg) !important;
+                background-color: transparent;
+                border: none;
 
-                &:hover .tooltip {
-                    display: block;
+                &:before {
+                    visibility: hidden;
                 }
-            }
 
-            &:not(.toggled) .description {
-                text-decoration: underline;
-            }
-
-            &.toggled {
-                text-decoration: none;
+                &:after {
+                    visibility: visible;
+                }
             }
         }
     }

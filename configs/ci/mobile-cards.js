@@ -17,7 +17,6 @@ module.exports = Object.assign({}, base, {
   default_prefs: Object.assign({}, base.default_prefs, {
     showConsoleLogs: true,
     developer: true,
-    historyLookupEnabled: false,
   }),
   modules: base.modules.concat([
     'integration-tests',

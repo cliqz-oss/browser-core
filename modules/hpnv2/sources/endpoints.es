@@ -21,7 +21,28 @@ import pacemaker from '../core/services/pacemaker';
 const MAX_PROXY_BUCKETS = 10;
 const SECOND = 1000;
 
+// Normally, we force a new connection for each message.
+// Only in rare situations (e.g. search via proxy), are connections reused.
+// That is only done if linking those messages on the server is safe.
+// In addition, we can reuse the same symmetric encryption key (for AES-GCM)
+// and avoid the (more expensive) public key cryptography for the key exchange.
+//
+// In AES-GCM, key+IV pairs must never be reused. It is hard to imagine seeing
+// a collision in practice (for our random 96 bit IV, collisons become likely
+// after 2^48 messages, although if you are unlucky you could see them way earlier).
+// Nevertheless, forcing a guaranteed key rotation and switching to
+// another proxy route should rule out that attack vector. Also it makes
+// it less obvious which messages belong logically together (as the proxy
+// gets rotated, too).
+const MAX_MESSAGE_PER_CONNECTION = 64;
+
 const { subtle } = crypto;
+
+function noisyMaxMessagesPerConnection() {
+  // Add a bit of noise to make it harder for the proxy to
+  // learn what messages belong logically together.
+  return Math.ceil((0.1 + 0.9 * random()) * MAX_MESSAGE_PER_CONNECTION);
+}
 
 async function generateECDH() {
   return subtle.generateKey(
@@ -31,9 +52,9 @@ async function generateECDH() {
   );
 }
 
-async function deriveKey(serverPublicKey, clientPrivateKey) {
+async function deriveKey(serverEcdhPubKey, clientPrivateKey) {
   return subtle.deriveKey(
-    { name: 'ECDH', namedCurve: 'P-256', public: serverPublicKey },
+    { name: 'ECDH', namedCurve: 'P-256', public: serverEcdhPubKey },
     clientPrivateKey,
     { name: 'AES-GCM', length: 256 },
     true,
@@ -67,15 +88,42 @@ async function decryptAES(iv, key, data) {
   return new Uint8Array(await subtle.decrypt({ name: 'AES-GCM', iv, tagLength: 128 }, key, data));
 }
 
-async function encrypt(data, serverPublicKey) {
-  const { publicKey: clientPublicKey, privateKey } = await generateECDH();
-  const derivedKey = await deriveKey(serverPublicKey, privateKey);
+/**
+ * To prevent proxies from reading or modifying the traffic, the
+ * traffic is encrypted with GCM-AES. To negotiate the symmetric
+ * key, a Diffie-Hellman key exchange is performed.
+ *
+ * For performance reasons, we do not want to pay for a separate request.
+ * That is why the server publishes its part of the key exchange in advance
+ * (though the /config endpoint). For forward secrecy, the server rotates this key daily.
+ *
+ * Warnings:
+ *
+ * 1) Make sure that the clients never fetch the /config endpoint
+ * through the proxies. Otherwise, it would allow malicious proxies to act
+ * as a man-in-the-middle and change the DH key. Clients should send messages
+ * through the proxies but should not fetch the config from them!
+ *
+ * 2) Be aware that the server will be able to link message if you
+ * use the same key to send multiple messages. If you are not sure, it is
+ * safer to generate new keys for each message. At the moment, the only
+ * case where we intentionally reuse keys is for the search via proxy option,
+ * as long as they fall into the same (short-lived) interactive search session.
+ */
+async function negotiateAesKey(serverEcdhPubKey) {
+  const { publicKey, privateKey } = await generateECDH();
+  const clientPublicKey = await exportKey(publicKey);
+  const derivedKey = await deriveKey(serverEcdhPubKey.key, privateKey);
   const rawDerived = await exportKey(derivedKey);
   const encryptionKey = (await sha256(rawDerived)).subarray(0, 16);
-  const iv = crypto.getRandomValues(new Uint8Array(12));
   const aesKey = await importAesKey(encryptionKey);
+  return { aesKey, clientPublicKey, serverEcdhPubKey };
+}
+
+async function encrypt(data, aesKey) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
   const encrypted = await encryptAES(iv, aesKey, data);
-  return { iv, encrypted, clientPublicKey: await exportKey(clientPublicKey), aesKey };
+  return { iv, encrypted };
 }
 
 function toRelativeTimeout(absoluteTimeout) {
@@ -87,7 +135,7 @@ function toRelativeTimeout(absoluteTimeout) {
   return { timeoutInMs, isExpired: timeoutInMs <= 0 };
 }
 
-async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs } = {}) {
+async function myfetch(url, { method = 'GET', body, payloadEncryption = null, timeoutInMs } = {}) {
   // eslint-disable-next-line no-param-reassign
   timeoutInMs = timeoutInMs || (60 * SECOND);
 
@@ -110,16 +158,25 @@ async function myfetch(url, { method = 'GET', body, publicKey = {}, timeoutInMs 
     options.body = toUTF8(JSON.stringify(body));
   }
 
+  // When messages are sent through proxies, we cannot rely on TLS alone.
+  // Proxies terminate TLS connections, so we have to apply end-to-end encryption
+  // on top. This step is not needed when we communicate directly with the server
+  // (e.g. for the join operation).
   let aesKey;
-  const { key, date } = publicKey;
-  if (key && options.body) {
-    const out = await encrypt(options.body, key);
-    const { iv, encrypted, clientPublicKey } = out;
-    aesKey = out.aesKey;
-    options.headers.append('Key-Date', date);
+  if (payloadEncryption && options.body) {
+    aesKey = payloadEncryption.aesKey;
+    const { iv, encrypted } = await encrypt(options.body, aesKey);
     options.body = encrypted;
+
+    // Apart from the encrypted payload and the initialization vector, the
+    // server needs to know more information to perform its part of the
+    // key exchange:
+    // 1) client: our Diffie-Hellman public key
+    // 2) server: the date of the prepublished server key that was used
+    // (otherwise, the server would need to try all active keys)
+    options.headers.append('Key-Date', payloadEncryption.serverEcdhPubKey.date);
     const encryption = new Uint8Array(1 + 65 + 12);
-    encryption.set(clientPublicKey, 1);
+    encryption.set(payloadEncryption.clientPublicKey, 1);
     encryption.set(iv, 1 + 65);
     encryption[0] = ECDH_P256_AES_128_GCM;
     options.headers.append('Encryption', toBase64(encryption));
@@ -215,12 +272,12 @@ export default class Endpoints {
         url,
         msg,
         cnt,
-        publicKey,
+        payloadEncryption,
         resolve,
         reject,
         absoluteTimeout
       } = this.messages.splice(n, 1)[0];
-      myfetch(url, { method: 'POST', body: msg, publicKey })
+      myfetch(url, { method: 'POST', body: msg, payloadEncryption })
         .then(resolve, (e) => {
           if (cnt < this.maxRetries) {
             logger.log('Will retry sending msg after error', e);
@@ -228,7 +285,7 @@ export default class Endpoints {
               url,
               msg,
               cnt: cnt + 1,
-              publicKey,
+              payloadEncryption,
               resolve,
               reject,
               absoluteTimeout
@@ -248,18 +305,62 @@ export default class Endpoints {
     }, 500 + Math.floor(random() * 1500)); // TODO: improve?
   }
 
-  // When defined, proxyBucket is random string or number, "big enough" to avoid collisions
-  // Same proxyBucket will be routed via same proxy (e.g. for search queries)
-  async send(msg, { instant, proxyBucket, publicKey, absoluteTimeout } = {}) {
+  _chooseRandomProxyUrl() {
     const MIN_PROXY_NUM = 1;
     const MAX_PROXY_NUM = 100;
     const NUM_PROXIES = MAX_PROXY_NUM - MIN_PROXY_NUM + 1;
-    const randBucket = (randomInt() % NUM_PROXIES) + MIN_PROXY_NUM;
-    const proxyNum = this.proxyBuckets.get(proxyBucket) || randBucket;
-    if (proxyBucket) {
-      this.proxyBuckets.set(proxyBucket, proxyNum);
+    const proxyNum = (randomInt() % NUM_PROXIES) + MIN_PROXY_NUM;
+    return this.ENDPOINT_HPNV2_POST.replace('*', proxyNum);
+  }
+
+  // When defined, proxyBucket is random string or number, "big enough" to avoid collisions.
+  // Same proxyBucket will be routed via same proxy (e.g. for search queries)
+  async send(msg, { instant, proxyBucket, serverEcdhPubKey, absoluteTimeout } = {}) {
+    function prepareEndToEndEncryptionIfNeeded() {
+      if (!serverEcdhPubKey || serverEcdhPubKey.unsupportedByBrowser) {
+        return null;
+      }
+      return negotiateAesKey(serverEcdhPubKey);
     }
-    const url = this.ENDPOINT_HPNV2_POST.replace('*', proxyNum);
+    function tryReuseConnection(bucketInfo) {
+      if (bucketInfo) {
+        if (bucketInfo.maxReuse > 0) {
+          // eslint-disable-next-line no-param-reassign
+          bucketInfo.maxReuse -= 1;
+          return bucketInfo;
+        }
+        logger.info('Message limit reached. Forcing a key rotation...');
+      }
+      return null;
+    }
+
+    let url;
+    let payloadEncryption;
+    if (proxyBucket) {
+      // Special case: connection reuse was intentionally requested
+      // by the caller. Currently, the only use case is the interactive
+      // dropdown search. To reduce latency, network and CPU usage, we
+      // can send multiple messages over the same TLS connection. In addition,
+      // we can reuse the key computed by the Diffie-Hellman key exchange.
+      //
+      // Note that this path is an optimization and should only be used
+      // if linking those messages has no privacy side-effects. Never use it
+      // for Human Web data collection!
+      let bucketInfo = tryReuseConnection(this.proxyBuckets.get(proxyBucket));
+      if (!bucketInfo) {
+        bucketInfo = {
+          payloadEncryption: prepareEndToEndEncryptionIfNeeded(),
+          url: this._chooseRandomProxyUrl(),
+          maxReuse: noisyMaxMessagesPerConnection(),
+        };
+        this.proxyBuckets.set(proxyBucket, bucketInfo);
+      }
+      url = bucketInfo.url;
+      payloadEncryption = await bucketInfo.payloadEncryption;
+    } else {
+      url = this._chooseRandomProxyUrl();
+      payloadEncryption = await prepareEndToEndEncryptionIfNeeded();
+    }
 
     if (instant) {
       try {
@@ -268,7 +369,7 @@ export default class Endpoints {
           throw new MsgTimeoutError('dropping request because the absolute timeout expired');
         }
 
-        const response = await myfetch(url, { method: 'POST', body: msg, publicKey, timeoutInMs });
+        const response = await myfetch(url, { method: 'POST', body: msg, payloadEncryption, timeoutInMs });
         let data = new Uint8Array(await response.arrayBuffer());
         if (data[0] !== 0x7B) {
           const size = (new DataView(data.buffer)).getUint32();
@@ -286,7 +387,7 @@ export default class Endpoints {
 
     // non-instance message
     const pendingSend = new Promise((resolve, reject) => {
-      this.messages.push({ url, msg, cnt: 0, publicKey, resolve, reject, absoluteTimeout });
+      this.messages.push({ url, msg, cnt: 0, payloadEncryption, resolve, reject, absoluteTimeout });
     });
     this._scheduleSend();
 

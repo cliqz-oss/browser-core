@@ -26,15 +26,6 @@ class Cliqz {
           results: response.results,
         });
       },
-      closeNotification: (messageId) => {
-        this.storage.setState((prevState) => {
-          const messages = { ...prevState.messages };
-          delete messages[messageId];
-          return {
-            messages,
-          };
-        });
-      },
       updateSpeedDials: (dials, hasHidden) => {
         this.storage.setState({
           dials: {
@@ -52,14 +43,6 @@ class Cliqz {
           },
         }));
       },
-      addMessage: (message) => {
-        this.storage.setState(prevState => ({
-          messages: {
-            ...prevState.messages,
-            [message.id]: message,
-          }
-        }));
-      }
     });
 
     this.actions.init();

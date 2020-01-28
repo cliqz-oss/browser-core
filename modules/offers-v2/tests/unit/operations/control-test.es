@@ -1162,7 +1162,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           defaultOnBadFilterArgument('not positive', { min_matches: -2, duration_days: -8 });
         });
 
-        function setupEnvironmentWithCategory() {
+        async function setupEnvironmentWithCategory() {
           const o = ['$probe_segment',
             ['someCategory', {
               min_matches: 77,
@@ -1171,7 +1171,7 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           const op = buildOp(o);
           const category = new Category('someCategory', /* patterns */ [], /* version */ 1);
           const pmock = sinon.stub(category, 'probe');
-          categoryHandler.addCategory(category);
+          await categoryHandler.syncCategories([category]);
           ctx.vars = { segment_confidence: 777 };
           return { op, category, probeMock: pmock };
         }
@@ -1181,8 +1181,8 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           let probeMock;
           let op;
 
-          beforeEach(() => {
-            ({ category, probeMock, op } = setupEnvironmentWithCategory());
+          beforeEach(async () => {
+            ({ category, probeMock, op } = await setupEnvironmentWithCategory());
             probeMock.callThrough();
             categoryHandler._resetHistoryThrottle();
           });
@@ -1274,8 +1274,8 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
           let historyMock;
           let op;
 
-          beforeEach(() => {
-            ({ probeMock, op } = setupEnvironmentWithCategory());
+          beforeEach(async () => {
+            ({ probeMock, op } = await setupEnvironmentWithCategory());
             historyMock = sinon.stub(historyFeature, 'performQueryOnHistory');
             historyMock.returns({ pid: 'someCategory|1', d: { match_data: { total: 0, per_day: {} } } });
             categoryHandler._resetHistoryThrottle();

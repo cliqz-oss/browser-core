@@ -13,10 +13,7 @@ import {
   fillIn,
   mockPref,
   mockSearch,
-  press,
   testServer,
-  wait,
-  waitFor,
   waitForPopup,
   withHistory,
 } from './helpers';
@@ -39,7 +36,6 @@ async function getSearchParams(query, { resultsNumber = 1, blur = true } = {}) {
 export default function () {
   context('parameters test', function () {
     const query = 't';
-    let hits;
     let parameters;
     let restorePref;
     let restoreContextSearchPref;
@@ -101,64 +97,6 @@ export default function () {
       });
     });
 
-    context('_sessionSeq and _queryCount', function () {
-      beforeEach(async function () {
-        parameters = await getSearchParams('t');
-      });
-
-      it('parameters n=0, qc=0 received by server', async function () {
-        expect(parameters.n).to.equal('0');
-        expect(parameters.qc).to.equal('0');
-      });
-
-      context('on typing second symbol', function () {
-        beforeEach(async function () {
-          await mockSearch({ results: [{ url: 'https://test.com' }] });
-          withHistory([]);
-
-          // need to wait 500 ms, because qc increases if there is more than 500 ms
-          // between the typing of symbols
-          await wait(500);
-          press({ key: 'a', code: 'KeyA' });
-          await waitForPopup(1);
-          await waitFor(async () => {
-            hits = await testServer.getLastHits();
-            parameters = hits.get('/api/v2/results').query;
-            return parameters.q === `${query}a`;
-          });
-        });
-
-        it('n=1, qc=0', function () {
-          expect(parameters.n).to.equal('1');
-          expect(parameters.qc).to.equal('0');
-        });
-
-        context('on typing third symbol', function () {
-          beforeEach(async function () {
-            await mockSearch({ results: [{ url: 'https://test.com' }] });
-            withHistory([]);
-
-            // need to wait 500 ms, because qc increases if there is more than 500 ms
-            // between the typing of symbols
-            await wait(500);
-
-            press({ key: 'a', code: 'KeyA' });
-            await waitForPopup(1);
-            await waitFor(async () => {
-              hits = await testServer.getLastHits();
-              parameters = hits.get('/api/v2/results').query;
-              return parameters.q === `${query}aa`;
-            });
-          });
-
-          it('n=2, qc=1', function () {
-            expect(parameters.n).to.equal('2');
-            expect(parameters.qc).to.equal('1');
-          });
-        });
-      });
-    });
-
     context('resultOrder', function () {
       beforeEach(async function () {
         parameters = await getSearchParams(query);
@@ -173,9 +111,9 @@ export default function () {
       beforeEach(async function () {
         restorePref = await mockPref('extensions.cliqz-lang.data', '{"de":[-20,-213,-128,-164,-242,86,104,213,242,-6,-180,-36,197,32,-96,-216,-7,160,-90,-65,194,254,239,18,-229,170,-133,63,-251,127,-63,-102,78,-112,-210,199,61,209,-148],"en":[98,-111,-167,-56,246,137,-172,227,-176,-42,-180,194,223,-2,-92,157,89,234,-95,135,125,213,6,-179,-203,-58,184,-10,-208,-7,130,-138,-88,-187,-246,-91,66,195,83,-148,1,101,-77,-151,-102,110,14,-185,128,70,-216,-236,39,18,146,108,-242,-31,165,206,-139,-202,-222,-251,203,-63,-50,226,-248,-219,105,-254,10,180,63,13,210,238,93,-87,199,-164,30,235,-241,-192,44,64,127,-26,-23,-142,-97,-156,252,61,91,-255],"ru":[-56,24,-79,157,-62,7,-210,15,-207,147,108,44,227,145,152,162,-104,140,153,205,-85,73,42,-214,176,-202],"fr":[-73,-111,199],"el":[-28],"sv":[0]}');
 
-        // need to restart core-cliqz to call CliqzLanguage.init()
-        await app.disableModule('core-cliqz');
-        await app.enableModule('core-cliqz');
+        // need to restart core to call CliqzLanguage.init()
+        await app.disableModule('core');
+        await app.enableModule('core');
 
         parameters = await getSearchParams(query);
       });

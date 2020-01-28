@@ -26,11 +26,16 @@ module.exports = {
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'be', 'se', 'dk', 'fi', 'cz', 'gr', 'hu', 'ro', 'no', 'ca', 'au', 'ru', 'ua', 'in', 'pl', 'jp', 'br', 'mx', 'cn', 'ar'],
     antitrackingPlaceholder: 'ghostery',
     antitrackingHeader: 'Ghostery-AntiTracking',
+    telemetry: {
+      demographics: {
+        brand: 'ghostery',
+        name: 'extension',
+      },
+    },
   }),
   default_prefs: {
     'modules.human-web.enabled': true,
     'modules.offers-v2.enabled': true,
-    'modules.message-center.enabled': true,
     'modules.antitracking.enabled': true,
     'modules.anti-phishing.enabled': false,
     'modules.adblocker.enabled': true,
@@ -46,9 +51,10 @@ module.exports = {
     sendAntiTrackingHeader: false,
     telemetry: false,
     attrackCookieTrustReferers: true,
-    'attrack.cookieMode': 'ghostery',
+    'attrack.cookieMode': 'trackers',
     'modules.offers-cc.enabled': false,
     'modules.offers-reminder.enabled': false,
+    'modules.offers-checkout.enabled': false,
   },
   bundles: [
     'core/content-script.bundle.js',
@@ -58,10 +64,10 @@ module.exports = {
     'offers-cc/offers-cc.bundle.js',
     'offers-cc/offers-cc-after.bundle.js',
     'offers-reminder/offers-reminder.bundle.js',
+    'offers-checkout/offers-checkout.bundle.js',
   ],
   modules: [
     'core',
-    'message-center',
     'human-web',
     'hpnv2',
     'antitracking',
@@ -70,11 +76,14 @@ module.exports = {
     'offers-banner',
     'offers-cc',
     'offers-reminder',
+    'offers-checkout',
     'adblocker',
     'anolysis',
     'anti-phishing',
     'myoffrz-helper',
-    'popup-notification',
     'insights',
-  ]
+  ],
+  buildTargets: {
+    firefox: 52,
+  },
 };

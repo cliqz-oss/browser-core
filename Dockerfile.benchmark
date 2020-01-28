@@ -1,12 +1,10 @@
-FROM node:11-stretch
+FROM node:lts-stretch
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update --no-install-recommends \
   && apt-get install -y time jq \
   && rm -rf /var/lib/apt/lists/*
-
-RUN npm install -g npm@latest yarn
 
 RUN mkdir /app
 RUN chown node:node -R /app

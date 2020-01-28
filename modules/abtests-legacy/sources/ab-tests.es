@@ -243,12 +243,6 @@ const CliqzABTests = {
         prefs.set('cliqz-anti-phishing', true);
         prefs.set('cliqz-anti-phishing-enabled', true);
         break;
-      case '1071_A':
-        prefs.set('browser.privatebrowsing.apt', false, '');
-        break;
-      case '1071_B':
-        prefs.set('browser.privatebrowsing.apt', true, '');
-        break;
       case '1078_A':
         prefs.set('modules.anolysis.enabled', false);
         break;
@@ -424,15 +418,6 @@ const CliqzABTests = {
         prefs.set('cookie-monster.nonTracker', true);
         prefs.set('attrack.cookieMode', 'trackers');
         break;
-      case '1124_A':
-        prefs.set('offers-popup.type', 'card');
-        break;
-      case '1124_B':
-        prefs.set('offers-popup.type', 'lodgev1');
-        break;
-      case '1124_C':
-        prefs.set('offers-popup.type', 'lodgev2');
-        break;
       case '1125_B':
         // changes browser cookie setting to enable Firefox blocking cookies and storage for
         // tracker domains in third-party contexts. We do not join the test if user already has a
@@ -441,25 +426,6 @@ const CliqzABTests = {
           return false;
         }
         prefs.set('network.cookie.cookieBehavior', 4, '');
-        break;
-      case '1126_A':
-      case '1126_B':
-        prefs.clear('browser.privatebrowsing.apt', '');
-        break;
-      case '1127_A':
-        prefs.set('offers-popup.image', 'with-image');
-        break;
-      case '1127_B':
-        prefs.set('offers-popup.image', 'with-no-image');
-        break;
-      case '1128_A':
-        prefs.set('offers-popup.copy-code', 'current');
-        break;
-      case '1128_B':
-        prefs.set('offers-popup.copy-code', 'one-step');
-        break;
-      case '1128_C':
-        prefs.set('offers-popup.copy-code', 'two-step');
         break;
       case '1129_A':
         prefs.set('cookie-monster.trackerLocalStorage', false);
@@ -471,18 +437,12 @@ const CliqzABTests = {
         ruleExecuted = false;
     }
     if (ruleExecuted) {
-      const action = {
-        type: 'abtest',
-        action: 'enter',
-        name: abtest
-      };
-      telemetry.push(action, 'metrics.legacy.abtests');
-
+      telemetry.push({ name: abtest }, 'metrics.abtests-legacy.enter');
       return true;
     }
     return false;
   },
-  leave(abtest, disable) {
+  leave(abtest, disable = false) {
     // Restore defaults after an AB test is finished.
     // DO NOT remove test cleanup code too quickly, a user
     // might not start the browser for a long time and
@@ -599,10 +559,6 @@ const CliqzABTests = {
       case '1070_B':
         prefs.clear('cliqz-anti-phishing');
         prefs.clear('cliqz-anti-phishing-enabled');
-        break;
-      case '1071_A':
-      case '1071_B':
-        prefs.clear('browser.privatebrowsing.apt', '');
         break;
       case '1072_A':
       case '1072_B':
@@ -793,23 +749,9 @@ const CliqzABTests = {
         prefs.clear('cookie-monster.nonTracker');
         prefs.clear('attrack.cookieMode');
         break;
-      case '1124_A':
-      case '1124_B':
-      case '1124_C':
-        prefs.clear('offers-popup.type');
-        break;
       case '1125_A':
       case '1125_B':
         prefs.set('network.cookie.cookieBehavior', 4, '');
-        break;
-      case '1127_A':
-      case '1127_B':
-        prefs.clear('offers-popup.image');
-        break;
-      case '1128_A':
-      case '1128_B':
-      case '1128_C':
-        prefs.clear('offers-popup.copy-code');
         break;
       case '1129_A':
       case '1129_B':
@@ -819,13 +761,7 @@ const CliqzABTests = {
         ruleExecuted = false;
     }
     if (ruleExecuted) {
-      const action = {
-        type: 'abtest',
-        action: 'leave',
-        name: abtest,
-        disable
-      };
-      telemetry.push(action, 'metrics.legacy.abtests');
+      telemetry.push({ name: abtest, disable }, 'metrics.abtests-legacy.leave');
       return true;
     }
     return false;

@@ -9,7 +9,6 @@ export default class Promo extends React.Component {
     this.state = {
       isCodeHidden: this.props.isCodeHidden,
       copied: false,
-      shouldHideCopyCode: true,
     };
   }
 
@@ -90,30 +89,10 @@ export default class Promo extends React.Component {
     );
   }
 
-  renderShowCode() {
-    if (!this.state.shouldHideCopyCode) { return this.renderCopyCode(); }
-    const prefix = chooseProduct(this.props.products);
-    return (
-      <div
-        onClick={
-          () => this.setState({
-            shouldHideCopyCode: false,
-            isCodeHidden: false,
-          })
-        }
-        className={_css('button', 'show-code-button', `${prefix}-button`)}
-      >
-        {i18n('show_code')}
-      </div>
-    );
-  }
-
   render() {
-    const { abtestInfo: { popupsCopyCode } = {}, voucher = {} } = this.props;
+    const { voucher = {} } = this.props;
     const { template_data: { code } = {} } = voucher;
     if (!code) { return this.renderButton(); }
-    return popupsCopyCode === 'two-step'
-      ? this.renderShowCode()
-      : this.renderCopyCode();
+    return this.renderCopyCode();
   }
 }

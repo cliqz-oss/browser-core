@@ -33,8 +33,10 @@ module.exports = (program) => {
     .option('--no-launch', 'do not launch a browser')
     .option('--include-tests', 'include tests files in build')
     .action((configPath, options) => {
-      process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment || 'development';
-      process.env.CLIQZ_SOURCE_MAPS = options.maps;
+      const ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment || 'development';
+      const isProduction = ENVIRONMENT === 'production';
+      process.env.CLIQZ_ENVIRONMENT = ENVIRONMENT;
+      process.env.CLIQZ_SOURCE_MAPS = options.maps && !isProduction;
       process.env.CLIQZ_SOURCE_DEBUG = options.debug;
       process.env.CLIQZ_INCLUDE_TESTS = options.includeTests || (
         (configPath || process.env.CLIQZ_CONFIG_PATH).includes('/ci/')
@@ -68,10 +70,9 @@ module.exports = (program) => {
       const prefs = {
         'browser.link.open_newwindow': 3,
         'javascript.options.strict': false,
-        'extensions.cliqz.showConsoleLogs': true,
-        'extensions.cliqz.developer': true,
         'security.sandbox.content.level': 2,
         'extensions.legacy.enabled': true,
+        'extensions.experiments.enabled': true,
         'dom.webcomponents.enabled': true,
         'dom.webcomponents.shadowdom.enabled': true,
         'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
@@ -81,12 +82,20 @@ module.exports = (program) => {
         'extensions.systemAddon.update.enabled': false,
         'extensions.systemAddon.update.url': '',
         'devtools.aboutdebugging.new-enabled': false,
+        'devtools.storage.extensionStorage.enabled': true,
+
+        // Disable built-in tracking protection
+        'privacy.socialtracking.block_cookies.enabled': false,
+        'privacy.trackingprotection.annotate_channels': false,
+        'privacy.trackingprotection.cryptomining.enabled': false,
+        'privacy.trackingprotection.enabled': false,
+        'privacy.trackingprotection.fingerprinting.enabled': false,
+        'privacy.trackingprotection.pbmode.enabled': false,
+        'network.cookie.cookieBehavior': 4, // set pref to same value as Cliqz browser
         ...customPrefs
       };
 
       if (options.includeTests) {
-        prefs['extensions.cliqz.browserOnboarding'] = true;
-        prefs['extensions.cliqz.freshtab.tooltip.enabled'] = true;
         server = spawn('node', ['./tests/test-server.js']);
         process.on('SIGTERM', () => server.kill());
       }

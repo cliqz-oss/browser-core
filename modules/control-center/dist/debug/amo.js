@@ -421,7 +421,6 @@ DATA.push({
     },
     "offers-cc": null,
     "browser-panel": null,
-    "message-center": null,
     "anolysis": null,
     "abtests": null,
     "adult": {

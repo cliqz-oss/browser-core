@@ -17,7 +17,7 @@ const builderConfig = {
     handlebars: 'Handlebars',
     'math-expression-evaluator': 'mexp',
   },
-  sourceMaps: !cliqzEnv.PRODUCTION,
+  sourceMaps: !cliqzEnv.SOURCE_MAPS,
   lowResSourceMaps: true,
   sourceMapContents: true,
   // required in case source module format is not esmb

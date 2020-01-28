@@ -32,9 +32,13 @@ module.exports = Object.assign({}, configBase, {
   modules: configBase.modules.filter(m => BETA_MODULES.indexOf(m) === -1),
   settings: Object.assign({}, configBase.settings, {
     id,
-    name: 'browserAppName'
+    name: 'browserAppName',
+    telemetry: {
+      demographics: {
+        brand: 'cliqz',
+        name: 'browser',
+        platform: 'desktop',
+      },
+    },
   }),
-  default_prefs: Object.assign({}, configBase.default_prefs, {
-    historyLookupEnabled: false,
-  })
 });

@@ -1,17 +1,16 @@
 
 # Requirements
 
-* [Node.js](https://nodejs.org) `8` LTS is recommended, but version `9` will work as well.
+[Node.js](https://nodejs.org) **LTS** (currently v12) is recommended.
 
-(*warning*: Node.js 10 is currently not supported)
+To manage multiple Node.js versions, we recommend using [nvm](https://github.com/creationix/nvm):
 
-To manage multiple Node.js versions, you can use [nvm](https://github.com/creationix/nvm).
-
-1. `curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash`
+1. `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash`
 2. Restart your terminal
-3. Ensure that nvm was installed correctly with ```nvm --version```
-4. Install recommended version of Node `nvm install (8 | 9)`
-5. If multiple versions are installed, set recommended Node version as default `nvm alias default (8 | 9)`
+3. Ensure that nvm was installed correctly with `nvm --version`
+4. Thanks to the `.nvmrc` file from navigation-extension you can run `nvm use` or
+   `nvm install`, which will automatically install and enable the recommended
+   Node.js version.
 
 # Contribution Workflow
 
@@ -48,8 +47,10 @@ changes in the git history.
 
 # Installing dependencies
 
-1. `npm install -g broccoli-cli`
-2. `npm install` (or `yarn install`).
+Installing dependencies can be done using `npm`:
+```sh
+npm ci
+```
 
 # Building the Extension
 
@@ -75,22 +76,6 @@ Examples:
 
 * `./fern.js build ./configs/amo.js`
 * `./fern.js serve ./configs/browser.js`
-
-## Custom prefs
-
-If you want to load your browser with predefined preferences set, all
-you have to do is create a `.custom-prefs.json` file at the root of the
-project and add your custom prefs there.
-
-Example:
-
-```json
-{
-  "extensions.cliqz.triggersBE": " http://10.1.21.104",
-  "extensions.cliqz.offersDevFlag": true,
-  "extensions.cliqz.offersHubTrigger": "auto"
-}
-```
 
 # Testing
 

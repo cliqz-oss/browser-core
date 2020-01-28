@@ -11,7 +11,7 @@ export default {
     {
       url: 'https://www.billiger-mietwagen-test.de/',
       snippet: {
-        title: 'Spielen - Kostenlose Spiele Spielen',
+        title: '> Title - Spielen - Kostenlose Spiele Spielen',
         description: 'Kostenlose Spiele spielen, Kartenspiele, Puzzlespiele, Wortspiele, Actionspiele, Brettspiele, Sportspiele, Denkspiele, Strategiespiele und Flashspiele bei Royalgames.com.',
       },
       type: 'bm',
@@ -27,7 +27,7 @@ export default {
       url: 'https://www.mietwagen-happycar-test.de',
       trigger_method: 'url',
       snippet: {
-        title: 'Mietwagen und Autovermietung im Preisvergleich | HAPPYCAR',
+        title: '> Title - Mietwagen und Autovermietung im Preisvergleich | HAPPYCAR',
         friendlyUrl: 'happycar-test.de',
         description: 'Sparen Sie bis zu 60% bei der Buchung mit unserem Vergleichsportal!',
         extra: {

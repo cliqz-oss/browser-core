@@ -182,17 +182,15 @@ export default describeModule('offers-v2/offers/best-offer',
         await bg.unload();
       });
 
-      function defineCategory(cid, patternLength) {
-        const cat = JSON.parse(JSON.stringify(fixture.VALID_CATEGORY));
+      function createCategoryJson(cid, patternLength) {
         const path = ['level1', 'level2', 'level3'].slice(0, patternLength - 1).join('/');
-        const catObj = new Category(
+        return new Category(
           cid,
           [`||some.com/${path}^$script`],
-          cat.version,
+          fixture.VALID_CATEGORY.version,
           48 * 60 * 60, // timeRangeSecs: 2 days
-          cat.activationData
+          JSON.parse(JSON.stringify(fixture.VALID_CATEGORY.activationData))
         );
-        bg.categoryHandler.addCategory(catObj);
       }
 
       function defineOffer(collection, oid, cats) {
@@ -217,10 +215,10 @@ export default describeModule('offers-v2/offers/best-offer',
         //
         // Arrange: offers
         //
-        defineCategory('c4', 4);
-        defineCategory('c3', 3);
-        defineCategory('c2', 2);
-        bg.categoryHandler.build();
+        const c4 = createCategoryJson('c4', 4);
+        const c3 = createCategoryJson('c3', 3);
+        const c2 = createCategoryJson('c2', 2);
+        await bg.categoryHandler.syncCategories([c4, c3, c2]);
         const offers = [];
         defineOffer(offers, 'o4', ['c4']); // 4-token match
         defineOffer(offers, 'o32', ['c3', 'c2']); // 3-token + 2-token matches

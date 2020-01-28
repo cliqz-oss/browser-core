@@ -15,7 +15,7 @@ export default [
         {
           links: [
             {
-              title: 'extended_forecast',
+              title: '> Title - extended_forecast',
               url: 'https://www.wunderground.com/cgi-bin/findweather/getForecast?query=48.1500,11.5833#forecast'
             }
           ],
@@ -38,7 +38,7 @@ export default [
               day: {
                 weekday: 'Dienstag',
                 description: 'Schneefall',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Di., 8. Jan.',
                 precipitation: {
                   value: 0,
@@ -295,7 +295,7 @@ export default [
               day: {
                 weekday: 'Mittwoch',
                 description: 'Schneefall',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Mi., 9. Jan.',
                 precipitation: {
                   value: 70,
@@ -552,7 +552,7 @@ export default [
               day: {
                 weekday: 'Donnerstag',
                 description: 'Schneefall',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Do., 10. Jan.',
                 precipitation: {
                   value: 100,
@@ -809,7 +809,7 @@ export default [
               day: {
                 weekday: 'Freitag',
                 description: 'Nachm. Schneeschauer',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Fr., 11. Jan.',
                 precipitation: {
                   value: 40,
@@ -1066,7 +1066,7 @@ export default [
               day: {
                 weekday: 'Samstag',
                 description: 'Vorm. Schneeschauer',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Sa., 12. Jan.',
                 precipitation: {
                   value: 40,
@@ -1359,7 +1359,7 @@ export default [
           {
             desc: 'Partly Cloudy',
             description: 'Partly Cloudy',
-            icon: 'http://cdn.cliqz.com/extension/EZ/weather-new2/mostly-sunny.svg',
+            icon: 'http://localhost:3000/static/images/mostly-sunny.svg',
             icon_bck: 'http://icons.wxug.com/i/c/k/partlycloudy.gif',
             max: '11\u00b0',
             min: '0\u00b0',
@@ -1376,7 +1376,7 @@ export default [
           {
             desc: 'Partly Cloudy',
             description: 'Partly Cloudy',
-            icon: 'http://cdn.cliqz.com/extension/EZ/weather-new2/mostly-sunny.svg',
+            icon: 'http://localhost:3000/static/images/mostly-sunny.svg',
             icon_bck: 'http://icons.wxug.com/i/c/k/partlycloudy.gif',
             max: '14\u00b0',
             min: '3\u00b0',
@@ -1401,11 +1401,11 @@ export default [
         },
         searched_city: 'Munich, Germany',
         searched_country: 'Germany - default',
-        title_icon: 'http://cdn.cliqz.com/extension/EZ/weather-new2/weather.svg',
+        title_icon: 'http://localhost:3000/static/images/weather.svg',
         todayDesc: 'Overcast',
         todayDescription: 'Overcast',
-        todayIcon: 'http://cdn.cliqz.com/extension/EZ/weather-new2/cloudy.svg',
-        todayIcon_bck: 'http://icons.wxug.com/i/c/k/cloudy.gif',
+        todayIcon: 'http://localhost:3000/static/images/cloudy.svg',
+        todayIcon_bck: 'http://localhost:3000/static/images/cloudy.gif',
         todayMax: '19\u00b0',
         todayMin: '4\u00b0',
         todayTemp: '17\u00b0',
@@ -1421,7 +1421,7 @@ export default [
         units_label: 'Scale'
       },
       friendlyUrl: 'wunderground.com/cgi-bin/findweather/getforecast',
-      title: 'München, Deutschland'
+      title: '> Title - München, Deutschland'
     },
     type: 'rh',
     subType: {
@@ -1455,7 +1455,7 @@ export const weatherResults = [
               day: {
                 weekday: 'Dienstag',
                 description: 'Schneefall',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Di., 8. Jan.',
                 precipitation: {
                   value: 0,
@@ -1712,7 +1712,7 @@ export const weatherResults = [
               day: {
                 weekday: 'Mittwoch',
                 description: 'Schneefall',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Mi., 9. Jan.',
                 precipitation: {
                   value: 70,
@@ -1969,7 +1969,7 @@ export const weatherResults = [
               day: {
                 weekday: 'Donnerstag',
                 description: 'Schneefall',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Do., 10. Jan.',
                 precipitation: {
                   value: 100,
@@ -2226,7 +2226,7 @@ export const weatherResults = [
               day: {
                 weekday: 'Freitag',
                 description: 'Nachm. Schneeschauer',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Fr., 11. Jan.',
                 precipitation: {
                   value: 40,
@@ -2483,7 +2483,7 @@ export const weatherResults = [
               day: {
                 weekday: 'Samstag',
                 description: 'Vorm. Schneeschauer',
-                icon: 'https://cdn.cliqz.com/extension/EZ/weather-new2/snow.svg',
+                icon: 'http://localhost:3000/static/images/snow.svg',
                 date: 'Sa., 12. Jan.',
                 precipitation: {
                   value: 40,
@@ -2776,7 +2776,7 @@ export const weatherResults = [
           {
             desc: 'Partly Cloudy',
             description: 'Partly Cloudy',
-            icon: 'http://cdn.cliqz.com/extension/EZ/weather-new2/mostly-sunny.svg',
+            icon: 'http://localhost:3000/static/images/mostly-sunny.svg',
             icon_bck: 'http://icons.wxug.com/i/c/k/partlycloudy.gif',
             max: '11\u00b0',
             min: '0\u00b0',
@@ -2793,7 +2793,7 @@ export const weatherResults = [
           {
             desc: 'Partly Cloudy',
             description: 'Partly Cloudy',
-            icon: 'http://cdn.cliqz.com/extension/EZ/weather-new2/mostly-sunny.svg',
+            icon: 'http://localhost:3000/static/images/mostly-sunny.svg',
             icon_bck: 'http://icons.wxug.com/i/c/k/partlycloudy.gif',
             max: '14\u00b0',
             min: '3\u00b0',
@@ -2818,11 +2818,11 @@ export const weatherResults = [
         },
         searched_city: 'Munich, Germany',
         searched_country: 'Germany - default',
-        title_icon: 'http://cdn.cliqz.com/extension/EZ/weather-new2/weather.svg',
+        title_icon: 'http://localhost:3000/static/images/weather.svg',
         todayDesc: 'Overcast',
         todayDescription: 'Overcast',
-        todayIcon: 'http://cdn.cliqz.com/extension/EZ/weather-new2/cloudy.svg',
-        todayIcon_bck: 'http://icons.wxug.com/i/c/k/cloudy.gif',
+        todayIcon: 'http://localhost:3000/static/images/cloudy.svg',
+        todayIcon_bck: 'http://localhost:3000/static/images/cloudy.gif',
         todayMax: '19\u00b0',
         todayMin: '4\u00b0',
         todayTemp: '17\u00b0',
@@ -2838,7 +2838,7 @@ export const weatherResults = [
         units_label: 'Scale'
       },
       friendlyUrl: 'weather.com',
-      title: 'München, Deutschland'
+      title: '> Title - München, Deutschland'
     },
     type: 'rh',
     subType: {
@@ -2865,11 +2865,11 @@ export const weatherResults = [
         og: {
           description: 'Get the Munich weather forecast. Access hourly, 10 day and 15 day forecasts along with up to the minute reports and videos for Munich, Germany from AccuWeather.com',
           image: 'https://vortex.accuweather.com/adc2010/images/awx-orange-sun-logo-650x315.png',
-          title: 'Munich Weather - AccuWeather Forecast for Bavaria Germany',
+          title: '> Title - Munich Weather - AccuWeather Forecast for Bavaria Germany',
           type: 'website'
         }
       },
-      title: 'Munich Weather - AccuWeather Forecast for Bavaria Germany'
+      title: '> Title - Munich Weather - AccuWeather Forecast for Bavaria Germany'
     },
     c_url: 'https://www.wunderground.com/cgi-bin/findweather/getForecast?query=51.6167,13.3167',
     type: 'bm'

@@ -14,7 +14,6 @@ const operators = require('rxjs/operators');
 const moment = require('moment');
 const jsonData = require('../../../antitracking/prob.json');
 const mockDexie = require('../../core/unit/utils/dexie');
-const urlImports = require('../../core/unit/utils/url-parser');
 
 const testPages = require('./attrack-test-data');
 
@@ -76,7 +75,6 @@ const listenerStub = {
 export default describeModule('antitracking/attrack',
   () => ({
     ...mockDexie,
-    ...urlImports,
     rxjs: Rx,
     'rxjs/operators': operators,
     'platform/console': {
@@ -115,6 +113,7 @@ export default describeModule('antitracking/attrack',
         setTimeout() {},
         clearTimeout() {},
         everyHour() {},
+        nextIdle() {},
       },
     },
     'core/search-engines': {},
@@ -211,8 +210,10 @@ export default describeModule('antitracking/attrack',
     'core/services/telemetry': {
       default: {
         isEnabled: () => false,
+        register: () => {},
+        unregister: () => {},
       }
-    }
+    },
   }), function () {
     let attrack;
     let pipeline;

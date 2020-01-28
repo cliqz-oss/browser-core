@@ -13,7 +13,6 @@ const EventHandlerMock = ehMocks.default;
 let currentTS = Date.now();
 const currentDayHour = 0;
 const currentWeekDay = 0;
-let getDetailsFromUrlReal;
 
 const mockOffer = { offer_id: 'HC1', cid: 'cid', click: 0, last_update: 20000, view: 2003 };
 const mockOfferEarlierUpdate = { offer_id: 'HC2', cid: 'cid2', click: 0, last_update: mockOffer.last_update - 100, view: 0 };
@@ -56,12 +55,6 @@ export default describeModule('offers-v2/offers/offers-monitoring',
         return currentWeekDay;
       },
       getABNumber: function () {}
-    },
-    'core/url': {
-      getDetailsFromUrl: function (url) {
-        // we should extract the name here
-        return getDetailsFromUrlReal(url);
-      },
     },
   }),
   () => {
@@ -195,7 +188,6 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           this.system.import('offers-v2/common/pattern-utils'),
           this.system.import('offers-v2/offers/offers-db'),
         ]).then((mods) => {
-          getDetailsFromUrlReal = mods[0].getDetailsFromUrl;
           buildMultiPatternIndex = mods[1].buildMultiPatternIndex;
           buildSimplePatternIndex = mods[1].buildSimplePatternIndex;
           tokenizeUrl = mods[1].default;
@@ -1167,7 +1159,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
 
           it('/coupon: should show autofill pop up', function () {
             const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000 };
-            offer.view = Date.now() - 1000 * 60 * 20; // Small amount of time, f.e. 20 minutes
+            offer.click = Date.now() - 1000 * 60 * 20; // Small amount of time, f.e. 20 minutes
             const monitors = [{
               signalID: '-',
               type: 'coupon',
@@ -1187,7 +1179,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
           });
 
           it('/coupon: should not show autofill pop up due to backend setting', function () {
-            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: null, last_update: 20000, view: 1543231629086 };
+            const offer = { offer_id: 'HC1', cid: 'cid', ui_info: { template_data: { code: 'TEST_CODE' } }, click: Date.now() - 1000, last_update: 20000 };
             const monitors = [{
               signalID: '-',
               type: 'coupon',

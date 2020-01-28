@@ -76,7 +76,7 @@ node('docker && gpu && us-east-1') {
 
     docker.withRegistry("https://${params.DOCKER_REGISTRY_URL}") {
         def image = docker.image(codeDockerImage)
-        
+
         stage('tests: get image') {
             image.pull()
         }
@@ -105,7 +105,7 @@ node('docker && gpu && us-east-1') {
                                 x11vnc -storepasswd vnc /tmp/vncpass
                                 x11vnc -rfbport 5900 -rfbauth /tmp/vncpass -forever > /dev/null 2>&1 &
 
-                                ./fern.js test ${TEST_PARAMS} --environment testing --ci report.xml > /dev/null; true
+                                ./fern.js test ${TEST_PARAMS} --environment development --ci report.xml > /dev/null; true
 
                                 cp report.xml ${env.WORKSPACE}
                                 cat report.xml

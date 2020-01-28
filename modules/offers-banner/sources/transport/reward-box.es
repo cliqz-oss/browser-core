@@ -102,3 +102,11 @@ export function setOptInResult({ optin = true } = {}) {
   const actionId = optin ? 'offer_first_optin' : 'offer_first_optout';
   commonAction({ actionId });
 }
+
+export function onboardingSeen({ interested = true } = {}) {
+  // user just has seen onboarding notification
+  prefs.set('myoffrz.seen_onboarding_notification', true);
+
+  const actionId = interested ? 'onboarding_interested' : 'onboarding_not_interested';
+  commonAction({ actionId });
+}

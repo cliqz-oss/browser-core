@@ -6,15 +6,19 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { share, filter, map, debounceTime } from 'rxjs/operators';
+import {
+  share,
+  filter,
+  map,
+  debounceTime,
+  withLatestFrom,
+  combineLatest,
+  startWith,
+} from 'rxjs/operators';
 
 // operators
-import Enricher from '../operators/enricher';
-
-// mixers
 import ContextSearch from '../mixers/context-search';
 import deduplicate from '../mixers/deduplicate';
-import enrich from '../mixers/enrich';
 import { searchOnEmpty, searchOnNotEmpty } from '../mixers/search-on-empty';
 import updateIncompleteResults from '../mixers/update-incomplete-results';
 import addOffers from '../mixers/add-offers';
@@ -22,12 +26,16 @@ import addSnippets from '../mixers/add-snippets';
 import removeOffers from '../operators/remove-offers';
 import waitForResultsFrom from '../operators/streams/wait-for-results-from';
 import combineAnyLatest from '../operators/streams/static/combine-any-latest';
+import { clearResults } from '../operators/responses/utils';
+import annotateTabs from '../operators/responses/annotate-tabs';
+import cluster from '../operators/cluster';
+import enrich from '../operators/responses/enrich';
 
 /*
  * Constructs a result stream by mixing results from multiple providers
  * for the given query string.
  */
-const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), config) => {
+const mixResults = ({ query, ...params }, providers, config, sessionStore) => {
   const results = {
     instant: Object.create(null),
     calculator: Object.create(null),
@@ -107,13 +115,22 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
     ...searchParams
   ).pipe(share());
 
-  // TODO: how to update 'kind' for enriched history results?
-  results.history.enriched$ = enrich(
-    enricher,
-    results.history.resultsWithOffers$,
-    results.cliqz.expanded$
+  results.history.enriched$ = results.history.resultsWithOffers$.pipe(
+    // 1. Cluster history
+    map(cluster),
+    // 2. Enrich history with backend results
+    combineLatest(
+      results.cliqz.expanded$.pipe(startWith({ results: [] }))
+    ),
+    map(([historyResponse, cliqzResponse]) => enrich(
+      historyResponse,
+      cliqzResponse,
+      // Initialized in `handle-sessions`, persistent per session
+      sessionStore.get('operators.responses.enrich.cache')
+    )),
   );
 
+  // Remove duplicates from backend results
   const deduplicated = deduplicate(
     results.cliqz.expanded$,
     results.history.enriched$,
@@ -121,10 +138,21 @@ const mixResults = ({ query, ...params }, providers, enricher = new Enricher(), 
   results.cliqz.deduplicated$ = deduplicated.target$;
   results.history.annotated$ = deduplicated.reference$;
 
+  // Solution for iOS (and web-extension-based products) to provide switch-to-tab functionality.
+  // Does not affect desktop as the tabs provider is not enabled, thus not emitting results.
+  // For details see doc of `annotateTabs` operator.
+  results.history.annotatedWithTabs$ = results.history.annotated$.pipe(
+    withLatestFrom(results.tabs.source$),
+    map(annotateTabs),
+  );
+  results.tabs.emptied$ = results.tabs.source$.pipe(
+    map(clearResults),
+  );
+
   results.instant.latest$ = results.instant.source$;
   results.calculator.latest$ = results.calculator.source$;
-  results.tabs.latest$ = results.tabs.source$;
-  results.history.latest$ = results.history.annotated$;
+  results.tabs.latest$ = results.tabs.emptied$;
+  results.history.latest$ = results.history.annotatedWithTabs$;
   results.historyView.latest$ = results.historyView.source$;
   results.cliqz.latest$ = results.cliqz.deduplicated$;
   results.querySuggestions.latest$ = results.querySuggestions.source$;

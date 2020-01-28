@@ -11,7 +11,7 @@ import background from '../core/base/background';
 import tabs from '../platform/tabs';
 import { browser } from '../platform/globals';
 import Logger from '../core/logger';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
 import config from '../core/config';
@@ -22,6 +22,10 @@ import ConsentSettings from './settings';
 import { setOnboardingWasCompleted, setOnboardingWasDeferred, shouldShowOnboardingPopup, onBoardingWasDismissed } from './onboarding';
 import Cosmetics from './cosmetics';
 import Telemetry from './telemetry';
+
+// Telemetry schemas
+import metrics from './telemetry/metrics';
+import analyses from './telemetry/analyses';
 
 const tabGuards = new Set();
 
@@ -78,7 +82,7 @@ class TabConsent {
     const tStart = Date.now();
     try {
       tabGuards.add(this.tab.id);
-      await this.cmp.doOptIn();
+      await this.cmp.doOptIn(this.tab);
       this.setConsentStatus(CONSENT_STATES.ALL_ALLOWED);
     } catch (e) {
       this.telemetry.recordConsentError(this.cmp, e.toString());
@@ -110,13 +114,20 @@ class TabConsent {
   @class Background
  */
 export default background({
-  requiresServices: ['telemetry'],
+  requiresServices: ['telemetry', 'pacemaker'],
   core: inject.module('core'),
+  telemetrySchemas: [
+    ...metrics,
+    ...analyses,
+  ],
+
   /**
     @method init
     @param settings
   */
   init() {
+    inject.service('telemetry', ['register']).register(this.telemetrySchemas);
+
     this.logger = Logger.get('autoconsent', { level: 'log' });
     this.autoconsent = new AutoConsent((tabId, msg, { frameId }) =>
       this.core.action('callContentAction', 'autoconsent', 'dispatchAutoconsentMessage', {
@@ -136,7 +147,7 @@ export default background({
     this.onTabUpdated = async (tabId, changeInfo, tabInfo) => {
       if (changeInfo.status === 'complete' && !tabGuards.has(tabId)) {
         this.logger.info('check tab');
-        const url = URLInfo.get(tabInfo.url);
+        const url = parse(tabInfo.url);
         if (!url || !url.protocol.startsWith('http')) {
           return;
         }
@@ -165,6 +176,7 @@ export default background({
               // check for repeated action - did we already try to opt-in/out on this site in the
               // last minute? If so, temporarily disable autoconsent on this site.
               if (this.lastAction && this.lastAction.s === host
+                  && this.lastAction.tab === tabId
                   && Date.now() - this.lastAction.t < 60000) {
                 this.actions.setSiteAction(host, 'none', true);
                 return;
@@ -180,6 +192,7 @@ export default background({
                   this.lastAction = {
                     t: Date.now(),
                     s: host,
+                    tab: tabId,
                   };
                   break;
                 case POPUP_ACTIONS.NONE:
@@ -232,11 +245,13 @@ export default background({
   },
 
   unload() {
+    inject.service('telemetry', ['unregister']).unregister(this.telemetrySchemas);
     if (this.onTabRemoved || this.onTabUpdated) {
       tabs.onUpdated.removeListener(this.onTabUpdated);
       tabs.onRemoved.removeListener(this.onTabRemoved);
       chrome.webNavigation.onDOMContentLoaded.removeListener(this.onFrameLoaded);
     }
+    this.tabConsentManagers = null;
   },
 
   async currentWindowStatus({ id }) {
@@ -346,7 +361,7 @@ export default background({
         };
       }
       const tab = await browser.tabs.get(tabId);
-      const url = URLInfo.get(tab.url);
+      const url = parse(tab.url);
       return {
         status: await this.settings.getStatusForSite(url.hostname),
         setting: await this.settings.getActionOnPopup(url.hostname),

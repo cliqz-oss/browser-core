@@ -9,7 +9,7 @@
 import { combineLatest } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { getMainLink } from '../operators/normalize';
-import { urlStripProtocol } from '../../core/url';
+import { strip } from '../../core/url';
 
 export const addOffer = (results, offer, config) => {
   const { position } = config.operators.offers;
@@ -31,7 +31,12 @@ export const attachOffer = (results, offer) => {
   const mainLink = getMainLink(first);
   const offerMainLink = getMainLink(offer);
 
-  if (mainLink.meta.url !== urlStripProtocol(offerMainLink.extra.target_url)) {
+  if (mainLink.meta.url !== strip(offerMainLink.extra.target_url, {
+    protocol: true,
+    www: true,
+    mobile: true,
+    trailingSlash: true,
+  })) {
     return results;
   }
 

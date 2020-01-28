@@ -7,11 +7,11 @@
  */
 
 import logos from '../core/services/logos';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 
 function mergePlaces(places) {
   const history = places.map((place) => {
-    const details = URLInfo.get(place.url);
+    const details = parse(place.url);
     const baseUrl = place.url.replace(/^(.*?:\/\/)/gi, '');
 
     const visit = {

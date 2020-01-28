@@ -23,10 +23,6 @@ export function checkIsWindowActive() {
 export function forEachWindow() {
 }
 
-export function enableChangeEvents() {}
-
-export function disableChangeEvents() {}
-
 export function setOurOwnPrefs() {
 }
 

@@ -12,13 +12,14 @@ const writeFile = require('broccoli-file-creator');
 
 const util = require('./util');
 const cliqzConfig = require('./config');
+const cliqzEnv = require('./cliqz-env');
 const modules = require('./modules-tree');
 const components = require('./react-components');
 const resources = require('./resources');
 
 // cliqz.json should be saved after not transpiled modules are removed from configration
 const config = writeFile('cliqz.json', JSON.stringify(cliqzConfig));
-console.log('Source maps:', cliqzConfig.sourceMaps);
+console.log('Source maps:', cliqzEnv.SOURCE_MAPS);
 console.log(cliqzConfig);
 // cliqz.json is finalized
 

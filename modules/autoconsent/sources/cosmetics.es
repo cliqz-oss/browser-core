@@ -9,9 +9,10 @@
 import { browser, isContentScriptsSupported } from '../platform/globals';
 import config from '../core/config';
 import ResourceLoader from '../core/resource-loader';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
+import { isBetaVersion } from '../platform/platform';
 
-const COSMETICS_URL = `${config.settings.CDN_BASEURL}/autoconsent/cosmetics.json`;
+const COSMETICS_URL = `${config.settings.CDN_BASEURL}/autoconsent/${isBetaVersion() ? 'staging-' : ''}cosmetics.json`;
 
 export default class Cosmetics {
   constructor(settings) {
@@ -38,7 +39,7 @@ export default class Cosmetics {
       return;
     }
     if (this.contentScript) {
-      this.contentScript.unregister();
+      await this.contentScript.unregister();
       this.contentScript = null;
     }
     if (['allow', 'deny'].indexOf(await this.settings.getDefaultActionOnPopup()) === -1) {
@@ -47,6 +48,11 @@ export default class Cosmetics {
     }
     const siteWhitelist = await this.settings.getDisabledSites();
     const excludeMatches = siteWhitelist.map(d => `*://${d}/*`);
+    // site with custom rules should be omitted from general cosmetics
+    Object.keys(this.rules.site).forEach((site) => {
+      excludeMatches.push(`*://${site}/*`);
+      excludeMatches.push(`*://*.${site}/*`);
+    });
 
     const contentScriptOptions = {
       allFrames: false,
@@ -74,7 +80,7 @@ export default class Cosmetics {
   }
 
   async applySiteSpecificCosmetics(cmp) {
-    const url = URLInfo.get(cmp.url.href);
+    const url = parse(cmp.url.href);
     const siteRules = this.rules.site[url.hostname] || this.rules.site[url.generalDomain] || [];
     const hidden = siteRules.length > 0 ? await cmp.applyCosmetics(siteRules) : [];
     return hidden;

@@ -8,204 +8,102 @@
 
 import telemetry from './base';
 
-const TYPE = 'onboarding';
-
 // control center popup
 
 export function popupCCshow() {
-  telemetry({
-    type: TYPE,
-    view: 'message_cc',
-    action: 'show',
-  });
+  telemetry('metrics.onboarding-v4.show', { view: 'message_cc' });
 }
 
 export function popupCCTryNow() {
-  telemetry({
-    type: TYPE,
-    view: 'message_cc',
-    action: 'click',
-    target: 'try_now',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'message_cc', target: 'try_now' });
 }
 
 export function popupCCSkip() {
-  telemetry({
-    type: TYPE,
-    view: 'message_cc',
-    action: 'click',
-    target: 'skip',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'message_cc', target: 'skip' });
 }
 
 export function popupCCClose() {
-  telemetry({
-    type: TYPE,
-    view: 'message_cc',
-    action: 'click',
-    target: 'close',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'message_cc', target: 'close' });
 }
 
 export function showStep(view) {
-  telemetry({
-    type: TYPE,
-    view,
-    action: 'show',
-  });
+  telemetry('metrics.onboarding-v4.show', { view });
 }
 
 // antitracking tooltip
 
 export function trackingInfoShow() {
-  telemetry({
-    type: TYPE,
-    view: 'tracking_info',
-    action: 'show',
-  });
+  telemetry('metrics.onboarding-v4.show', { view: 'tracking_info' });
 }
 
 export function trackingInfoClick() {
-  telemetry({
-    type: TYPE,
-    view: 'tracking_info',
-    action: 'click',
-    target: 'learn_more',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'tracking_info', target: 'learn_more' });
 }
 
 export function onToggle(view) {
-  telemetry({
-    type: TYPE,
-    view,
-    action: 'click',
-    target: 'toggle',
-  });
+  telemetry('metrics.onboarding-v4.click', { view, target: 'toggle' });
 }
 
 export function importData() {
-  telemetry({
-    type: TYPE,
-    view: 'import-data',
-    action: 'click',
-    target: 'import',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'import-data', target: 'import' });
 }
 
 export function dotsClick(view, index) {
-  telemetry({
-    type: TYPE,
-    view,
-    action: 'click',
-    target: 'menu_right',
-    index,
-  });
+  telemetry('metrics.onboarding-v4.click', { view, index, target: 'menu_right' });
 }
 
 export function nextBtnClick(view) {
-  telemetry({
-    type: TYPE,
-    view,
-    action: 'click',
-    target: 'next',
-  });
+  telemetry('metrics.onboarding-v4.click', { view, target: 'next' });
 }
 
 export function skipBtnClick(view) {
-  telemetry({
-    type: TYPE,
-    view,
-    action: 'click',
-    target: 'skip',
-  });
+  telemetry('metrics.onboarding-v4.click', { view, target: 'skip' });
 }
 
 // popup protection
 
 export function popupProtectionShow() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_protection',
-    action: 'show',
-  });
+  telemetry('metrics.onboarding-v4.show', { view: 'popup_protection' });
 }
 
 export function popupProtectionClose() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_protection',
-    action: 'click',
-    target: 'close',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'popup_protection', target: 'close' });
 }
 
 export function popupProtectionActivate() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_protection',
-    action: 'click',
-    target: 'activate',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'popup_protection', target: 'activate' });
 }
 
 export function popupProtectionProceed() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_protection',
-    action: 'click',
-    target: 'proceed',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'popup_protection', target: 'proceed' });
 }
 
 export function popupProtectionHide() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_protection',
-    action: 'hide',
-  });
+  telemetry('metrics.onboarding-v4.hide', { view: 'popup_protection' });
 }
 
 // popup skip
 
 export function popupSkipShow() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_skip',
-    action: 'show',
-  });
+  telemetry('metrics.onboarding-v4.show', { view: 'popup_skip' });
 }
 
 export function popupSkipClose() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_skip',
-    action: 'click',
-    target: 'close',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'popup_skip', target: 'close' });
 }
 
 export function popupSkipContinue() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_skip',
-    action: 'click',
-    target: 'continue',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'popup_skip', target: 'continue' });
 }
 
 export function popupSkipSkip() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_skip',
-    action: 'click',
-    target: 'skip',
-  });
+  telemetry('metrics.onboarding-v4.click', { view: 'popup_skip', target: 'skip' });
 }
 
 export function popupSkipHide() {
-  telemetry({
-    type: TYPE,
-    view: 'popup_skip',
-    action: 'hide',
-  });
+  telemetry('metrics.onboarding-v4.hide', { view: 'popup_skip' });
+}
+
+export function shareDataClick() {
+  telemetry('metrics.onboarding-v4.click', { view: 'intro', target: 'share-data-btn' });
 }

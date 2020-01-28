@@ -15,15 +15,15 @@ export default [
         {
           links: [
             {
-              title: 'Prämien',
+              title: '> Title - Prämien',
               url: 'https://www.bing.com/rewards/dashboard'
             },
             {
-              title: 'Karten',
+              title: '> Title - Karten',
               url: 'https://www.bing.com/maps?FORM=Z9LH3'
             },
             {
-              title: 'News',
+              title: '> Title - News',
               url: 'https://www.bing.com/news?FORM=Z9LH4'
             }
           ],
@@ -38,7 +38,7 @@ export default [
         }
       },
       friendlyUrl: 'bing.com',
-      title: 'Bing'
+      title: '> Title - Bing'
     },
     c_url: 'https://www.bing.com/',
     type: 'rh',
@@ -63,27 +63,27 @@ export const bmWithButtons = [
         {
           links: [
             {
-              title: 'Einstellungen',
+              title: '> Title - Einstellungen',
               url: 'https://www.google.de/preferences?hl=de'
             },
             {
-              title: 'Datenschutzerklärung',
+              title: '> Title - Datenschutzerklärung',
               url: 'https://www.google.de/intl/de/policies/privacy/?fg=1'
             },
             {
-              title: 'Erweiterte Suche',
+              title: '> Title - Erweiterte Suche',
               url: 'https://www.google.de/advanced_search?hl=de\u0026fg=1'
             },
             {
-              title: 'Unternehmen',
+              title: '> Title - Unternehmen',
               url: 'https://www.google.de/services/?fg=1'
             },
             {
-              title: 'Nutzungsbedingungen',
+              title: '> Title - Nutzungsbedingungen',
               url: 'https://www.google.de/intl/de/policies/terms/?fg=1'
             },
             {
-              title: 'Werbeprogramme',
+              title: '> Title - Werbeprogramme',
               url: 'https://www.google.de/intl/de/ads/?fg=1'
             }
           ],
@@ -102,7 +102,7 @@ export const bmWithButtons = [
         }
       },
       friendlyUrl: 'google.de',
-      title: 'Google'
+      title: '> Title - Google'
     },
     c_url: 'https://www.google.de/',
     type: 'rh',
@@ -126,7 +126,7 @@ export const bmWithButtons = [
         }
       },
       friendlyUrl: 'google.com/intl/de/gmail/about',
-      title: 'Gmail – kostenloser ...'
+      title: '> Title - Gmail – kostenloser ...'
     },
     c_url: 'https://www.google.com/intl/de/gmail/about/',
     type: 'bm'

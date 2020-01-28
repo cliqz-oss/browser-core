@@ -30,9 +30,13 @@ import CookieMonster, { cookieId } from './cookie-monster';
 import logger from './logger';
 import { browser } from '../platform/globals';
 
+// Telemetry schemas
+import metrics from './telemetry/metrics';
+import analyses from './telemetry/analyses';
+
 const TELEMETRY_PREFIX = 'cookie-monster';
 
-const BATCH_UPDATE_FREQUENCY = 180000;
+const BATCH_UPDATE_FREQUENCY = 30000;
 
 async function isPrivateTab(tabId) {
   return (await browser.tabs.get(tabId)).incognito;
@@ -46,8 +50,14 @@ export default background({
 
   requiresServices: ['telemetry'],
   antitracking: inject.module('antitracking'),
+  telemetrySchemas: [
+    ...metrics,
+    ...analyses,
+  ],
 
   init() {
+    inject.service('telemetry', ['register']).register(this.telemetrySchemas);
+
     this.cookieMonster = new CookieMonster(this.isTrackerDomain.bind(this), {
       expireSession: prefs.get('cookie-monster.expireSession', false),
       nonTracker: prefs.get('cookie-monster.nonTracker', false),
@@ -98,8 +108,13 @@ export default background({
     );
 
     this.trackerCookiesStream = batchObservable
-      .subscribe((ckis) => {
-        this.onCookieBatch(ckis);
+      .subscribe(async (ckis) => {
+        const { unprocessed } = await this.onCookieBatch(ckis);
+        logger.debug('some cookies not yet processed due to open tabs', unprocessed);
+        unprocessed.forEach((cookie) => {
+          // cookie is for open tab so we resubmit it for later processing
+          this.subjectCookies.next({ cookie });
+        });
       });
 
     const initDb = this.cookieMonster.init();
@@ -123,6 +138,7 @@ export default background({
   },
 
   unload() {
+    inject.service('telemetry', ['unregister']).unregister(this.telemetrySchemas);
     cookies.onChanged.removeListener(this.onCookieChanged);
     clearTimeout(this.initialRun);
     this.trackerCookiesStream.unsubscribe();

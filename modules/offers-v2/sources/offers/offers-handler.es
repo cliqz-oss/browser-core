@@ -4,7 +4,6 @@
 // Component description see the comment to `OffersHandler` class below
 
 import MessageQueue from '../../core/message-queue';
-import md5 from '../../core/helpers/md5';
 import events from '../../core/events';
 import prefs from '../../core/prefs';
 import config from '../../core/config';
@@ -16,7 +15,7 @@ import OffersGeneralStats from './offers-general-stats';
 import OfferStatus from './offers-status';
 import OffersAPI from './offers-api';
 import OfferDBObserver from './offers-db-observer';
-import Offer from './offer';
+import Offer, { NOTIF_TYPE_DOT } from './offer';
 import IntentOffersHandler from './intent-offers-handler';
 import OffersMonitorHandler from './offers-monitoring';
 import ActionID from './actions-defs';
@@ -30,9 +29,9 @@ import { getDynamicContent } from './dynamic-offer';
 import IntentGatherer from './jobs/intent-gather';
 import DBReplacer from './jobs/db-replacer';
 import HardFilters from './jobs/hard-filters';
-import SoftFilters from './jobs/soft-filters';
+import SoftFilters, { shouldTriggerOnAdvertiser } from './jobs/soft-filters';
 import ContextFilter from './jobs/context-filters';
-import ThrottlePushToRewardsFilter from './jobs/throttle';
+import ThrottlePushToRewardsFilter, { THROTTLE_PER_DOMAIN, THROTTLE_IGNORE_DOMAIN } from './jobs/throttle';
 import ShuffleFilter from './jobs/shuffle';
 
 const REWARD_BOX_REAL_ESTATE_TYPE = isGhostery ? 'ghostery' : 'offers-cc';
@@ -166,32 +165,33 @@ export default class OffersHandler {
 
     // we build the process pipeline here that will basically produce the list
     // of prioritized offers
-    this.throttlePushRewardsBoxFilter = new ThrottlePushToRewardsFilter();
+    this.throttlePushRewardsBoxFilter = new ThrottlePushToRewardsFilter(
+      config.settings.THROTTLE_OFFER_APPEARANCE_MODE === 'PER_DOMAIN'
+        ? THROTTLE_PER_DOMAIN
+        : THROTTLE_IGNORE_DOMAIN
+    );
     this.jobsPipeline = [
       new IntentGatherer(),
       new DBReplacer(),
+      // Add after `DBReplacer`, so that offers in `OffersDB` can be
+      // updated to new versions from the backend.
+      chipdeHandler && chipdeHandler.getOffersJobFilter(),
       new HardFilters(),
       this.throttlePushRewardsBoxFilter,
       new ContextFilter(),
       new SoftFilters(),
       ShuffleFilter, // for competing offers, avoid first-offer-from-backend bias
-    ];
-    if (chipdeHandler) {
-      // Add after `DBReplacer`, so that offers in `OffersDB` can be
-      // updated to new versions from the backend.
-      this.jobsPipeline.splice(2, 0, chipdeHandler.getOffersJobFilter());
-    }
+    ]
+      .filter(Boolean); // remove undefined entries
 
     this.nEventsProcessed = 0; // Used as a wait marker by tests
   }
 
   async init() {
-    this.throttlePushRewardsBoxFilter.init();
-    return Promise.resolve(true);
+    return true;
   }
 
   destroy() {
-    this.throttlePushRewardsBoxFilter.unload();
     this.blacklist.unload();
     this.blacklist = null;
     this.offersToPageRelationStats = null;
@@ -288,34 +288,67 @@ export default class OffersHandler {
   /**
    * this method will be called whenever an offer is accepted to be sent to the
    * real estate
+   *
+   * @param {Offer} offer
+   * @param {UrlData} urlData
+   * @param {CategoriesMatchTraits} catMatches
+   * @param {PushOffersToRealEstatesOptions?} opts object with the following optional property:
+   *   * {object?} offerData
+   *   `offer_data` to publish instead of that from `offer`
+   * @return {Promise<Boolean>} resolves to `true` on success
    */
-  _pushOffersToRealEstates(offer, urlData, catMatches) {
-    const displayRuleInfo = {
+  _pushOffersToRealEstatesWrapped(offer, urlData, catMatches, { offerData } = {}) {
+    const url = urlData.getRawUrl();
+
+    const displayRule = {
       type: 'exact_match',
-      url: [urlData.getRawUrl()],
+      url: [url],
       display_time_secs: offer.ruleInfo.display_time_secs,
     };
-    const domainHash = md5(urlData.getDomain() || '');
-    const result = this.offersAPI.pushOffer(
-      offer,
-      displayRuleInfo,
-      null, /* originID */
-      new OfferMatchTraits(catMatches, offer.categories, domainHash)
+
+    const matchTraits = new OfferMatchTraits(
+      catMatches,
+      offer.categories,
+      urlData.getDomain() || ''
     );
+
+    const result = this.offersAPI.pushOffer(offer, { displayRule, matchTraits, offerData });
+
     return Promise.resolve(result);
   }
 
-  _updateOffers() {
-    const next = this.intentOffersHandler.thereIsNewData()
-      ? this.intentOffersHandler.updateIntentOffers()
-      : Promise.resolve([]);
+  /**
+   * decorates the `_pushOffersToRealEstatesWrapped` method
+   * to properly handle an offer triggered on the advertiser's url,
+   * i.e. that has bypassed the global blacklist
+   * (see soft-filters/shouldTriggerOnAdvertiser).
+   *
+   * @param {Offer} offer
+   * @param {UrlData} urlData
+   * @param {CategoriesMatchTraits} catMatches
+   * @return {Promise<Boolean>} resolves to `true` on success
+   */
+  _pushOffersToRealEstates(offer, urlData, catMatches) {
+    const url = urlData.getRawUrl();
+    const offerData = shouldTriggerOnAdvertiser(offer, url)
+      && offer.getDataObjectWithNotifType(NOTIF_TYPE_DOT);
+    const opts = offerData ? { offerData } : {};
+
+    return this._pushOffersToRealEstatesWrapped(offer, urlData, catMatches, opts);
+  }
+
+  async _updateOffers() {
+    if (this.intentOffersHandler.thereIsNewData()) {
+      await this.intentOffersHandler.updateIntentOffers();
+    }
 
     const jobContext = {
       ...this.context,
       offersHandler: this,
       offerIsFilteredOutCb: this._onOfferIsFilteredOut.bind(this)
     };
-    return next.then(() => executeJobList(this.jobsPipeline, jobContext));
+
+    return executeJobList(this.jobsPipeline, jobContext);
   }
 
   /**
@@ -329,6 +362,7 @@ export default class OffersHandler {
   }
 
   async _processEventWrapped({ urlData, catMatches }) {
+    // notification about unread offers is required in any case
     const unreminderedOfferId = this._notifyAboutUnreadOffers(catMatches, urlData);
     const wasChosen = await this._chooseBestOfferIfCan(catMatches, urlData);
     if (!wasChosen && unreminderedOfferId) {
@@ -350,7 +384,7 @@ export default class OffersHandler {
     if (!offers) {
       return false;
     }
-    let bestOffer = this._chooseBestOffer(offers, urlData, catMatches);
+    let bestOffer = this._chooseBestOffer(offers, catMatches);
     if (!bestOffer) {
       return false;
     }
@@ -359,11 +393,12 @@ export default class OffersHandler {
     }
     await this._preloadImages(bestOffer);
     await this._pushOffersToRealEstates(bestOffer, urlData, catMatches);
+    this.throttlePushRewardsBoxFilter.onTriggerOffer(bestOffer, urlData.getDomain());
     return true;
   }
 
   // sync
-  _chooseBestOffer(offers, urlData, catMatches) {
+  _chooseBestOffer(offers, catMatches) {
     //
     // Prepare calculations
     //
@@ -482,9 +517,11 @@ export default class OffersHandler {
     if (!offer) { return; }
     const { ui_info: uiInfo = {} } = offer;
     const newuiInfo = { ...uiInfo, notif_type: 'tooltip' };
+    // pushOffer will not update the notif_type in the OffersDB because
+    // this offer is from OffersDB and its `version` is unchanged
     this.offersAPI.pushOffer(
       new Offer({ ...offer, ui_info: newuiInfo }),
-      { url: [urlData.getRawUrl()] } // displayRuleInfo
+      { displayRule: { url: [urlData.getRawUrl()] } }
     );
   }
 }

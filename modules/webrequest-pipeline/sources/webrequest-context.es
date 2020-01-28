@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 import logger from './logger';
 
 
@@ -86,10 +86,21 @@ export default class WebRequestContext {
     this._requestHeadersMap = null;
     this._responseHeadersMap = null;
 
-    this.urlParts = URLInfo.get(this.url);
-    this.frameUrlParts = URLInfo.get(this.frameUrl);
-    this.tabUrlParts = URLInfo.get(this.tabUrl);
-    this.originUrlParts = URLInfo.get(this.originUrl);
+    this.urlParts = parse(this.url);
+    this.frameUrlParts = parse(this.frameUrl);
+    this.tabUrlParts = parse(this.tabUrl);
+    this.originUrlParts = parse(this.originUrl);
+  }
+
+  /**
+   * Optionally, a CNAME record can be requested from DNS for `this.url`. If
+   * available, it will be communicated by calling this method. We then set two
+   * new attributes on the WebRequestContext object so that users of the
+   * pipeline can access this information.
+   */
+  setCNAME(cname) {
+    this.cnameUrl = this.url.replace(this.urlParts.hostname, cname);
+    this.cnameUrlParts = parse(this.cnameUrl);
   }
 
   getRequestHeader(name) {

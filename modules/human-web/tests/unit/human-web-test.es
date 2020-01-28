@@ -10,7 +10,6 @@
 
 const expect = chai.expect;
 const crypto = require('crypto');
-const urlImports = require('../../core/unit/utils/url-parser');
 
 const MOCK = {
   'core/services/pacemaker': {
@@ -70,6 +69,14 @@ const MOCK = {
   'human-web/content-extraction-patterns-loader': {
     default: class {},
   },
+  'human-web/human-web-patterns-loader': {
+    default: class {},
+  },
+  'platform/platform': {
+    default: {
+      isBetaVersion: false,
+    },
+  },
   'human-web/safebrowsing-endpoint': {
     default: class {},
   },
@@ -109,15 +116,6 @@ const MOCK = {
     default: {}
   },
 
-  // transitive dependencies: core/url
-  'platform/url': {
-    default: {}
-  },
-
-  'platform/globals': {
-    default: {}
-  },
-
   // transitive dependencies: human-web/network
   'human-web/fallback-dns': {
     default: class {
@@ -132,7 +130,6 @@ const MOCK = {
       flushExpiredCacheEntries() {}
     }
   },
-  ...urlImports,
 };
 
 export default describeModule('human-web/human-web',
@@ -170,12 +167,12 @@ export default describeModule('human-web/human-web',
         //
         // If it creates problems, feel free to delete it.
         //
-        it('assume that "getDetailsFromUrl" in the tests works as expected', function () {
+        it('assume that "parse" in the tests works as expected', function () {
           return this.system.import('core/url').then((mod) => {
-            const result = mod.getDetailsFromUrl('http://www.abc.test?0123456789');
+            const result = mod.parse('http://www.abc.test?0123456789');
             expect(result).to.include({
               host: 'www.abc.test',
-              query: '0123456789',
+              search: '?0123456789',
             });
           });
         });

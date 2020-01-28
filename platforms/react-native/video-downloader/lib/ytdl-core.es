@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-export { getInfo as default } from 'ytdl-core';
+export { filterFormats, getInfo as default } from 'ytdl-core';
 
 if (!global.location) {
   global.location = { protocol: 'https://' };

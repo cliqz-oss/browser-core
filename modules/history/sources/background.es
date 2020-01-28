@@ -14,7 +14,7 @@ import { getActiveTab, openLink, getWindow } from '../core/browser';
 import HistoryService from '../core/history-service';
 import background from '../core/base/background';
 import createHistoryDTO from './history-dto';
-import { equals, getDetailsFromUrl } from '../core/url';
+import { equals, parse } from '../core/url';
 import LRU from '../core/LRU';
 import migrate from './history-migration';
 import { isCliqzBrowser, getResourceUrl } from '../core/platform';
@@ -134,7 +134,15 @@ export default background({
   },
 
   fillFromVisit(url, triggeringUrl) {
-    const { scheme, path, originalUrl } = getDetailsFromUrl(url);
+    const uri = parse(url);
+    if (uri === null) {
+      return Promise.resolve();
+    }
+
+    const originalUrl = uri.href;
+    const path = uri.pathname;
+    const scheme = uri.scheme;
+
     let cleanUrl = originalUrl;
 
     // normalize url
@@ -162,8 +170,8 @@ export default background({
     }).then(() => {
       // TODO don't
       pacemaker.setTimeout(() => {
-        this.fillFromVisit(url, queryUrl).catch(({ visitId }) => {
-          if (!visitId) {
+        this.fillFromVisit(url, queryUrl).then(({ visitId, success }) => {
+          if (!success || !visitId) {
             // If there is no visitId, it may be Automatic Forget Tab
             // taking over this url load, in such case we remove 'Cliqz Search'
             // visit from history
@@ -201,7 +209,10 @@ export default background({
         domain,
         query,
       }).then(({ places, from, to }) => {
-        const dtoP = createHistoryDTO({ places });
+        const extRootUrl = chrome.extension.getURL('/');
+        const refinedPlaces = places.filter(place =>
+          place && place.url.startsWith(extRootUrl) === false);
+        const dtoP = createHistoryDTO({ places: refinedPlaces });
 
         return dtoP.then(dto => (
           { frameStartsAt: from,
@@ -231,7 +242,7 @@ export default background({
     },
 
     getConstUrls() {
-      return ({ NEW_TAB_URL, HISTORY_URL });
+      return ({ NEW_TAB_URL });
     }
   },
 });

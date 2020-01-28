@@ -29,6 +29,7 @@ export class TrackerCookiePolicy {
     return cookie.created + ONE_HOUR;
   }
 }
+TrackerCookiePolicy.prototype.name = 'TrackerCookiePolicy';
 
 export class SessionCookiePolicy {
   appliesTo(cookie) {
@@ -44,6 +45,7 @@ export class SessionCookiePolicy {
     return cookie.created + (ONE_HOUR * 24);
   }
 }
+SessionCookiePolicy.prototype.name = 'SessionCookiePolicy';
 
 export class NonTrackerCookiePolicy {
   appliesTo(cookie, isTracker) {
@@ -65,10 +67,12 @@ export class NonTrackerCookiePolicy {
     return Date.now() + THIRTY_DAYS;
   }
 }
+NonTrackerCookiePolicy.prototype.name = 'NonTrackerCookiePolicy';
 
 const cookieSpecialTreatment = {
   _ga: ONE_WEEK,
   _gid: ONE_HOUR,
+  __gads: ONE_HOUR,
   _fbp: 1,
 };
 
@@ -85,3 +89,4 @@ export class SpecialCookiePolicy {
     return cookie.created + cookieSpecialTreatment[cookie.name];
   }
 }
+SpecialCookiePolicy.prototype.name = 'SpecialCookiePolicy';

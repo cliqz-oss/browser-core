@@ -15,7 +15,12 @@ import inject from '../core/kord/inject';
 import {
   createUITourTarget,
   deleteUITourTarget,
+  showUITour,
+  hideUITour,
 } from '../core/ui-tour';
+import telemetry from '../core/services/telemetry';
+
+import metrics from './telemetry/metrics';
 
 /**
   @namespace onboarding-v4
@@ -23,6 +28,8 @@ import {
   @class Background
  */
 export default background({
+  requiresServices: ['telemetry'],
+
   deps: {
     controlCenter: inject.module('control-center'),
   },
@@ -32,12 +39,15 @@ export default background({
     @param settings
   */
   init() {
+    telemetry.register(metrics);
+
     const styleUrl = getResourceUrl('onboarding-v4/styles/popup.css');
     chrome.cliqz.initTheme(styleUrl, 'onboarding-v4-stylesheet');
     createUITourTarget('onboarding-v4', '#cliqz_cliqz_com-browser-action2', 'cliqz_cliqz_com-browser-action2');
   },
 
   unload() {
+    telemetry.unregister(metrics);
     deleteUITourTarget('onboarding-v4');
   },
 
@@ -65,5 +75,21 @@ export default background({
       await this.deps.controlCenter.action('updateInstantly');
       return true;
     },
+
+    openPrivacyReport({ tab: { windowId } = {} } = {}) {
+      chrome.omnibox2.navigateTo(windowId, 'about:preferences#privacy-reports', { target: 'tab' });
+    },
+
+    openImportDialog() {
+      chrome.cliqz.openImportDialog();
+    },
+
+    hideUITour() {
+      hideUITour();
+    },
+
+    showUITour(settings, tryButton, skipButton) {
+      return showUITour(settings, tryButton, skipButton);
+    }
   },
 });

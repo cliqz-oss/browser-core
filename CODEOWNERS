@@ -8,7 +8,6 @@
 /configs/ci/cliqz-ios.js @chrmod
 /configs/ci/mobile-cards.js @chrmod
 /configs/cliqz-android.js @chrmod
-/configs/cliqz-ios.js @chrmod
 /configs/common/urls-lumen.js @chrmod
 /configs/experiments/cliqzs.json @chrmod @sammacbeth
 /configs/ghostery-android-privacy.js @chrmod
@@ -29,8 +28,6 @@
 /configs/releases/offers-chrome.js @luciancor
 /configs/releases/offers-edge.js @luciancor
 /configs/releases/offers-firefox.js @luciancor
-/configs/releases/offers-freundin-firefox.js @luciancor
-/configs/releases/offers-incent-firefox.js @luciancor
 
 # MODULES - Commons (default)
 /modules/ @private-face @sammacbeth @remusao @philipp-classen
@@ -52,7 +49,6 @@
 /modules/dropdown/ @private-face @chrmod
 /modules/freshtab/ @private-face @tsl143
 /modules/geolocation/ @chrmod
-/modules/history-search/ @mai-cliqz
 /modules/history/ @private-face @aleksei-cliqz
 /modules/hpnv2/ @philipp-classen @konark-cliqz
 /modules/https-everywhere/ @private-face @luciancor
@@ -60,11 +56,10 @@
 /modules/insights/ @sammacbeth
 /modules/integration-tests/ @remusao @zhonghao-cliqz @chrmod @sammacbeth
 /modules/inter-ext-messaging/ @sammacbeth
-/modules/message-center/ @private-face
 /modules/notifications/ @chrmod
 /modules/omnibox/ @private-face
 /modules/onboarding-v3/ @mai-cliqz @luciancor
-/modules/onboarding-v4/ @private-face
+/modules/onboarding-v4/ @aleksei-cliqz
 /modules/overlay/ @private-face
 /modules/p2p/ @philipp-classen
 /modules/pairing/ @philipp-classen
@@ -93,7 +88,7 @@
 /modules/offers-cc/ @aleksandr-cliqz @gabriel-cliqz @giota-cliqz @mai-cliqz
 /modules/offers-reminder/ @aleksandr-cliqz @olpa-cliqz
 /modules/offers-v2/ @eleniS @aleksandr-cliqz @olpa-cliqz
-/modules/popup-notification/ @aleksandr-cliqz @olpa-cliqz
+/modules/offers-checkout/ @aleksandr-cliqz @olpa-cliqz
 
 # PLATFORMS
 /platforms/ @private-face @sammacbeth @remusao @philipp-classen

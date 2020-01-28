@@ -1,60 +1,72 @@
 {
-    "adblocking_headline": {
-        "message": "Werbung lenkt dich ab und stiehlt dir deine Zeit?"
+    "adblocking_description_off_1": {
+        "message": "Schon gewusst?"
     },
-    "adblocking_toggle_off": {
-        "message": "Entferne sie"
+    "adblocking_description_off_2": {
+        "message": "Werbung lenkt nicht nur ab, sondern stiehlt auch deine wertvolle Zeit"
     },
-    "adblocking_toggle_on": {
-        "message": "Jetzt kannst du ungestört surfen und webseiten laden schneller"
+    "adblocking_description_on_1": {
+        "message": "Jetzt kannst du"
     },
-    "antiphishing_headline": {
-        "message": "Phishing-Seiten versuchen, deine Passwörter und Kreditkartendaten zu stehlen"
+    "adblocking_description_on_2": {
+        "message": "ungestört surfen, und Webseiten laden schneller"
     },
-    "antiphishing_headline_on": {
-        "message": "*************** ********** ***** ********** *** ***************** ** ********"
+    "adblocking_header": {
+        "message": "Cliqz Werbeblocker"
     },
-    "antiphishing_toggle_off": {
-        "message": "Schütze dich"
+    "antiphishing_description_off_1": {
+        "message": "Schon gewusst?"
     },
-    "antiphishing_toggle_on": {
-        "message": "Du bist jetzt vor phishing-seiten und identitätsdiebstahl geschützt"
+    "antiphishing_description_off_2": {
+        "message": "Betrugswebsites versuchen, deine Passwörter und Kreditkartendaten abzufischen"
     },
-    "antitracking_headline": {
-        "message": "Tracker überwachen alles, was du im Internet machst"
+    "antiphishing_description_on_1": {
+        "message": "Jetzt bist du"
     },
-    "antitracking_toggle_off": {
-        "message": "Blockiere neugierige tracker"
+    "antiphishing_description_on_2": {
+        "message": "vor Phishing und Identitätsdiebstahl geschützt"
     },
-    "antitracking_toggle_on": {
-        "message": "Jetzt bist du für tracker unsichtbar"
+    "antiphishing_header": {
+        "message": "Cliqz Anti-Phishing"
     },
-    "antitracking_tooltip_headline": {
-        "message": "Wir blockieren Drittanbieter-Tracker"
+    "antitracking_description_off_1": {
+        "message": "Schon gewusst?"
     },
-    "antitracking_tooltip_learn_more": {
-        "message": "Erfahre mehr"
+    "antitracking_description_off_2": {
+        "message": "Datensammler überwachen alles, was du im Internet machst"
     },
-    "antitracking_tooltip_text": {
-        "message": "Das bedeutet, dass sie keine privaten Daten mehr sammeln können, um daraus ein persönliches Profil von dir zu erstellen."
+    "antitracking_description_on_1": {
+        "message": "Jetzt bist du vor den"
+    },
+    "antitracking_description_on_2": {
+        "message": "neugierigen Blicken der Datensammler sicher. Genieße die digitale Freiheit!"
+    },
+    "antitracking_header": {
+        "message": "Cliqz Anti-Tracking"
+    },
+    "button_back": {
+        "message": "Zurück"
     },
     "button_next": {
-        "message": "weiter"
+        "message": "Weiter"
     },
     "button_skip": {
-        "message": "überspringen"
+        "message": "Überspringen"
+    },
+    "enjoy_cliqz": {
+        "message": "Viel Spaß mit Cliqz!"
     },
     "import_data_button": {
-        "message": "jetzt importieren"
+        "message": "Jetzt importieren"
     },
-    "import_data_description": {
-        "message": "Importiere jetzt Lesezeichen, Passwörter und Chronik"
+    "import_data_description_1": {
+        "message": "Fühl dich wie zu Hause."
     },
-    "import_data_headline": {
-        "message": "Fühl dich wie zu Hause"
+    "import_data_description_2": {
+        "message": "Du kannst einfach deine Lesezeichen, Passwörter und Chronik importieren"
     },
     "popup_button_skip": {
-        "message": "überspringen"
+        "message": "Überspringen"
     },
     "popup_button_try": {
         "message": "Jetzt ausprobieren"
@@ -63,28 +75,28 @@
         "message": "Hier kannst du deine Privatsphäre- und Sucheinstellungen jederzeit ändern"
     },
     "popup_protection_action_button": {
-        "message": "aktivieren"
+        "message": "Aktivieren"
     },
     "popup_protection_description": {
-        "message": "Aktiviere alle Funktionen zum Schutz deiner Privatsphäre."
+        "message": "Aktiviere alle Funktionen zum Schutz deiner Privatsphäre"
     },
     "popup_protection_headline": {
         "message": "Du bist noch nicht vollständig geschützt"
     },
     "popup_protection_skip_button": {
-        "message": "trotzdem fortfahren"
+        "message": "Trotzdem fortfahren"
     },
     "popup_skip_action_button": {
-        "message": "fortsetzen"
+        "message": "Fortfahren"
     },
     "popup_skip_description": {
-        "message": "Beim Überspringen werden alle Schutzfunktionen aktiviert."
+        "message": "Beim Überspringen werden alle Schutzfunktionen aktiviert"
     },
     "popup_skip_headline": {
         "message": "Einrichten des Browsers überspringen?"
     },
     "popup_skip_skip_button": {
-        "message": "überspringen"
+        "message": "Überspringen"
     },
     "protection_explanation": {
         "message": "Hier kannst du deine Privatsphäre- und Sucheinstellungen jederzeit ändern"
@@ -95,7 +107,28 @@
     "protection_partial_headline": {
         "message": "Browser fertig eingerichtet"
     },
+    "status_off": {
+        "message": "Aus"
+    },
+    "status_on": {
+        "message": "An"
+    },
     "welcome": {
-        "message": "Willkommen"
+        "message": "Willkommen bei Cliqz!"
+    },
+    "welcome_ctrl": {
+        "message": "Los geht's"
+    },
+    "welcome_data_collection": {
+        "message": "Cliqz nutzt anonymisierte Nutzungsdaten um den Browser für dich besser zu machen."
+    },
+    "welcome_data_share": {
+        "message": "Zu übermittelnde Daten festlegen"
+    },
+    "welcome_description": {
+        "message": "Wir schaffen eine unabhängige europäische Alternative zu den marktbeherrschenden US-Plattformen. Vielen Dank für dein Vertrauen und dass du den Weg in die digitale Ära mit uns gehst."
+    },
+    "welcome_skip": {
+        "message": "Einführung überspringen"
     }
 }

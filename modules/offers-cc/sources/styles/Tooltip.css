@@ -35,10 +35,6 @@
   background-size: contain;
   border-radius: 25%;
 }
-.tooltip__image.tooltip__freundin-image {
-  background: url(../images/freundin-tooltip-logo.svg) no-repeat center;
-  background-size: contain;
-}
 .tooltip__image.tooltip__ghostery-image {
   background: url(../images/ghosty-white-star.svg) no-repeat center;
   background-size: unset;

@@ -23,9 +23,6 @@ definitions:
 * **Urlbar-with-results** Search field with Cliqz results only on Google Chrome
 * **Top news**: News from top domains that are displayed to all users.
 * **History based news**: Most frequent news domains present in user's history
-* **Top-messages**: Static or dynamic messages displayed on top part of Freshtab regarding feature updates
-* **Message-center**: All type of messages mentioned above are managed by message-center
-
 
 # Technologies
 HTML, CSS, React.js
@@ -45,10 +42,6 @@ New tab page doesn't have a storage, it relies on background to get all its data
 
 ## Pull workflow
 When we open a new tab, Freshtab will ask background for information to render. For example it will ask for user's speed-dials, news and notifications.
-
-## Push workflow
-Once Freshtab is running, due to different user interactions we might want to update the contents of Freshtab. For example some notifications might be pushed to an open tab, whenever they are available. These notifications are routed by another module, message-center, which basically holds a queue of messages that will be sent to Freshtab.
-
 
 # Testing
 Inside Freshtab module there are 3 types of tests: content tests, integration tests and unit tests.

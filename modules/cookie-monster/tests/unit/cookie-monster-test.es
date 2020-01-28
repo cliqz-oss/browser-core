@@ -76,6 +76,7 @@ function mockCookieChange(domain, name, expirationDate, value = 'random', httpOn
 function nowSeconds() {
   return Date.now() / 1000;
 }
+let mockTabs = [];
 
 export default describeModule('cookie-monster/cookie-monster',
   () => ({
@@ -89,6 +90,9 @@ export default describeModule('cookie-monster/cookie-monster',
     'platform/cookies': {
       default: cookieMock,
     },
+    'platform/tabs': {
+      queryTabs: () => Promise.resolve(mockTabs),
+    }
   }), function () {
     let CookieMonster;
     let cm;
@@ -101,13 +105,14 @@ export default describeModule('cookie-monster/cookie-monster',
     afterEach(async () => {
       cm.unload();
       await cm.db.delete();
+      mockTabs = [];
     });
 
     function trackerCookieTests() {
       context('#processBatch', () => {
         it('updates tracker cookie expiry', async () => {
           mockTrackerCookie.cookie.expirationDate = nowSeconds() + 10000000;
-          chai.expect(await cm.processBatch([mockTrackerCookie])).to.eql(['update']);
+          chai.expect((await cm.processBatch([mockTrackerCookie])).actions).to.eql(['update']);
           chai.expect(cookieMock.cookiesDeleted).to.eql([]);
           chai.expect(cookieMock.cookiesSet).to.have.length(1);
           const cookie = cookieMock.cookiesSet[0];
@@ -115,11 +120,21 @@ export default describeModule('cookie-monster/cookie-monster',
           chai.expect(cookie.expirationDate).to.be.lessThan(Date.now() / 1000 + 3600);
         });
 
+        it('does not update cookies for open tabs', async () => {
+          mockTrackerCookie.cookie.expirationDate = nowSeconds() + 10000000;
+          mockTabs.push({ url: 'http://tracker.com' });
+          const { actions, unprocessed } = await cm.processBatch([mockTrackerCookie]);
+          chai.expect(actions).to.eql(['open']);
+          chai.expect(unprocessed).to.have.length(1);
+          chai.expect(cookieMock.cookiesDeleted).to.eql([]);
+          chai.expect(cookieMock.cookiesSet).to.have.length(0);
+        });
+
         it('expiration sticks on subsequent set', async () => {
           mockTrackerCookie.cookie.expirationDate = nowSeconds() + 10000000;
           const cookieInfo = mockTrackerCookie;
           // first batch
-          chai.expect(await cm.processBatch([cookieInfo])).to.eql(['update']);
+          chai.expect((await cm.processBatch([cookieInfo])).actions).to.eql(['update']);
           chai.expect(cookieMock.cookiesSet).to.have.length(1);
           const cookie = cookieMock.cookiesSet[0];
           chai.expect(cookie.url).to.eql('http://tracker.com/');
@@ -127,7 +142,7 @@ export default describeModule('cookie-monster/cookie-monster',
 
           // second batch
           cookieMock.reset();
-          chai.expect(await cm.processBatch([cookieInfo])).to.eql(['update']);
+          chai.expect((await cm.processBatch([cookieInfo])).actions).to.eql(['update']);
           chai.expect(cookieMock.cookiesSet).to.have.length(1);
           chai.expect(cookieMock.cookiesSet[0].expirationDate).to.eql(cookie.expirationDate);
         });
@@ -137,7 +152,7 @@ export default describeModule('cookie-monster/cookie-monster',
         it('sets longer expiry if domain visited', async () => {
           mockTrackerCookie.cookie.expirationDate = nowSeconds() + 10000000;
           await cm.addVisit('tracker.com');
-          chai.expect(await cm.processBatch([mockTrackerCookie])).to.eql(['update']);
+          chai.expect((await cm.processBatch([mockTrackerCookie])).actions).to.eql(['update']);
           chai.expect(cookieMock.cookiesDeleted).to.eql([]);
           chai.expect(cookieMock.cookiesSet).to.have.length(1);
           const cookie = cookieMock.cookiesSet[0];
@@ -163,12 +178,12 @@ export default describeModule('cookie-monster/cookie-monster',
           d.setDate(d.getDate() - 1);
           await cm.addVisit('tracker.com', d);
 
-          chai.expect(await cm.getTrackerCookieVisits([mockTrackerCookie])).to.eql({
+          chai.expect(await cm.getTrackerCookieVisits(['tracker.com'])).to.eql({
             'tracker.com': {
               visits: 7,
             }
           });
-          chai.expect(await cm.processBatch([mockTrackerCookie])).to.eql(['update']);
+          chai.expect((await cm.processBatch([mockTrackerCookie])).actions).to.eql(['update']);
           chai.expect(cookieMock.cookiesDeleted).to.eql([]);
           chai.expect(cookieMock.cookiesSet).to.have.length(1);
           const cookie = cookieMock.cookiesSet[0];
@@ -242,10 +257,10 @@ export default describeModule('cookie-monster/cookie-monster',
 
       context('non tracker cookies', () => {
         it('30 days for httpOnly, 7 days otherwise', async () => {
-          chai.expect(await cm.processBatch([
+          chai.expect((await cm.processBatch([
             mockCookieChange('example.com', 'test', nowSeconds() + 10000000, 'test', false),
             mockCookieChange('example.com', 'httptest', nowSeconds() + 10000000, 'test', true),
-          ])).to.eql(['update', 'update']);
+          ])).actions).to.eql(['update', 'update']);
           chai.expect(cookieMock.cookiesDeleted).to.eql([]);
           chai.expect(cookieMock.cookiesSet).to.have.length(2);
           // non-httpOnly cookie: one week expiry
@@ -269,10 +284,10 @@ export default describeModule('cookie-monster/cookie-monster',
         });
 
         it('special case cookies', async () => {
-          chai.expect(await cm.processBatch([
+          chai.expect((await cm.processBatch([
             mockCookieChange('example.com', '_ga', nowSeconds() + 10000000),
             mockCookieChange('example.com', '_gid', nowSeconds() + 10000000),
-          ])).to.eql(['update', 'update']);
+          ])).actions).to.eql(['update', 'update']);
           chai.expect(cookieMock.cookiesSet).to.have.length(2);
 
           chai.expect(cookieMock.cookiesSet[0].url).to.eql('http://example.com/');

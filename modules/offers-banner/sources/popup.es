@@ -30,19 +30,12 @@ export default class Popup {
     return true; // we have to return true, because of passing sendResponse to a function
   }
 
-  _sendTelemetry() {
-    const action = 'sendTelemetry';
-    const data = { target: 'icon' };
-    transport.dispatcher('offers-cc', null, { action, data }, false);
-  }
-
   _dispatcher = async (action, sendResponse) => {
     if (action === 'getEmptyFrameAndData') {
       this.onPopupOpen();
       const banner = isGhostery ? 'ghostery' : 'offers-cc';
       const payload = await this.getOffers(banner);
       sendResponse({ action: 'pushData', data: payload.data });
-      this._sendTelemetry();
       events.pub('ui:click-on-reward-box-icon', {});
     } else {
       sendResponse({});

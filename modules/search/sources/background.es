@@ -48,6 +48,19 @@ import config from '../core/config';
 import { bindAll } from '../core/helpers/bind-functions';
 import { chrome } from '../platform/globals';
 
+// Telemetry schemas
+import historyVisitMetric from './telemetry/metrics/history-visits';
+import latencyMetric from './telemetry/metrics/session/latency';
+import sessionMetric from './telemetry/metrics/session/interaction';
+
+import newsAnalysis from './telemetry/analyses/sessions/news';
+import interactionAnalysis from './telemetry/analyses/sessions/interaction';
+import smartCliqzAnalysis from './telemetry/analyses/sessions/smart-cliqz';
+import searchEnginesAnalysis from './telemetry/analyses/sessions/search-engines';
+import historyVisitAnalysis from './telemetry/analyses/history-visits';
+
+const ADULT_FILTER_PREF = 'adultContentFilter';
+
 const performanceTelemetryEnabled = !!chrome.webRequest;
 
 function getProviders() {
@@ -93,14 +106,26 @@ export default background({
 
   searchSession: inject.service('search-session', [
     'setSearchSession',
-    'setQueryLastDraw',
   ]),
+
+  telemetrySchemas: [
+    historyVisitMetric,
+    latencyMetric,
+    sessionMetric,
+    newsAnalysis,
+    interactionAnalysis,
+    smartCliqzAnalysis,
+    searchEnginesAnalysis,
+    historyVisitAnalysis,
+  ],
 
   /**
     @method init
     @param settings
   */
   init(settings, browser) {
+    telemetry.register(this.telemetrySchemas);
+
     this.settings = settings;
     this.searchSessions = new Map();
     this.adultAssistant = new AdultAssistant();
@@ -110,6 +135,7 @@ export default background({
     });
 
     addCustomSearchEngines();
+    this.searchSession.setSearchSession();
     const { tabs } = browser;
 
     this.providers = {
@@ -140,6 +166,8 @@ export default background({
   },
 
   unload() {
+    telemetry.unregister(this.telemetrySchemas);
+
     if (performanceTelemetryEnabled) {
       performance.unload();
     }
@@ -221,6 +249,7 @@ export default background({
       });
 
       this.resetAssistantStates();
+      this.searchSession.setSearchSession();
       if (!this.searchSessions.has(sessionId)) {
         return;
       }
@@ -249,10 +278,11 @@ export default background({
       {
         allowEmptyQuery = false,
         isPasted = false,
+        queryId,
         isPrivate = false,
         isTyped = true,
         keyCode,
-        forceUpdate = !config.isMobile,
+        forceUpdate = false,
       } = {},
       { contextId, frameId, tab: { id: tabId } = {} } = { tab: {} },
     ) {
@@ -272,6 +302,7 @@ export default background({
           forceUpdate,
           allowEmptyQuery,
           assistantStates,
+          queryId,
           ts: now,
         });
         return;
@@ -309,7 +340,7 @@ export default background({
 
       const telemetry$ = searchTelemetry(focus$, query$, results$, selection$, highlight$);
       const telemetrySubscription = telemetry$.subscribe(
-        data => telemetry.push(data, 'search.session'),
+        data => telemetry.push(data, 'search.metric.session.interaction'),
         error => logger.error('Failed preparing telemetry', error)
       );
 
@@ -321,7 +352,7 @@ export default background({
           }
 
           if (Number.isInteger(data.selection.index)) { // If user selected a result
-            if (data.selection.sources[0] === 'custom-search') {
+            if (data.selection.sources[0] === 'default-search') {
               return; // Alternative search engine, we don't count this
             }
 
@@ -343,7 +374,7 @@ export default background({
 
       const telemetryLatency$ = telemetryLatency(focus$, query$, results$);
       const telemetryLatencySubscription = telemetryLatency$.subscribe(
-        data => telemetry.push(data, 'metrics.search.latency'),
+        data => telemetry.push(data, 'search.metric.session.latency'),
         error => logger.error('Failed preparing latency telemetry', error)
       );
 
@@ -352,14 +383,17 @@ export default background({
         const {
           tabId: _tabId,
           query: _query,
-          ts: queriedAt,
+          queryId, // eslint-disable-line no-shadow
+          forceUpdate, // eslint-disable-line no-shadow
+          ts,
           ...meta
         } = responses.query;
 
         const response = {
           tabId: _tabId,
           query: _query,
-          queriedAt,
+          queryId,
+          forceUpdate,
           meta,
           results,
           suggestions,
@@ -407,6 +441,7 @@ export default background({
         isPasted,
         allowEmptyQuery,
         assistantStates,
+        queryId,
         ts: now,
       });
 
@@ -496,7 +531,11 @@ export default background({
     },
 
     setAdultFilter(filter) {
-      prefs.set('adultContentFilter', filter);
+      prefs.set(ADULT_FILTER_PREF, filter);
+    },
+
+    getAdultFilter() {
+      return prefs.get(ADULT_FILTER_PREF);
     },
 
     setQuerySuggestions(enabled) {
@@ -535,14 +574,6 @@ export default background({
         offers: offersAssistant.getState(),
         settings: settingsAssistant.getState(),
       };
-    },
-
-    setSearchSession() {
-      this.searchSession.setSearchSession();
-    },
-
-    setQueryLastDraw(ts) {
-      this.searchSession.setQueryLastDraw(ts);
     },
   },
 });

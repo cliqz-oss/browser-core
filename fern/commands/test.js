@@ -34,7 +34,7 @@ module.exports = (program) => {
     .option('-l --launchers [launchers]', 'comma separted list of launchers')
     .option('--extension-log [output]', 'save extension logger messages to the file. When using with `run_tests_in_docker.sh`, the file should be in the directory `report`.')
     .action((configPath, options) => {
-      process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment;
+      process.env.CLIQZ_ENVIRONMENT = process.env.CLIQZ_ENVIRONMENT || options.environment || 'development';
       process.env.CLIQZ_INCLUDE_TESTS = 'true';
       const cfg = setConfigPath(configPath);
       const CONFIG = cfg.CONFIG;

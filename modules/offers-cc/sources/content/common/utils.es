@@ -15,6 +15,7 @@ export const i18n = (key, ...params) => chrome.i18n.getMessage(`myoffrz_${key}`,
 /** **************************************************************** */
 
 const MAX_WINDOW_HEIGHT = 600;
+const MAX_WINDOW_HEIGHT_AUTOTRIGGER = 650;
 
 function calcHeight(selector) {
   return (document.querySelector(selector) || {}).offsetHeight || 0;
@@ -39,13 +40,14 @@ function tooltipHeight() {
   return calcHeight('#cliqz-offers-cc');
 }
 
-function getHeight(type = 'card', padding) {
+function getHeight(type, padding, autoTrigger) {
   const heightMapper = {
     tooltip: tooltipHeight,
     card: popupHeight,
   };
   const height = heightMapper[type](padding) || 0;
-  return Math.min(height, MAX_WINDOW_HEIGHT);
+  const maxHeight = autoTrigger ? MAX_WINDOW_HEIGHT_AUTOTRIGGER : MAX_WINDOW_HEIGHT;
+  return Math.min(height, maxHeight);
 }
 
 function getWidth({ type, products, autoTrigger }) {
@@ -60,7 +62,7 @@ function getWidth({ type, products, autoTrigger }) {
 export function resize({ type = 'card', products = {}, autoTrigger = false } = {}) {
   const width = getWidth({ type, products, autoTrigger });
   setStyles('#cliqz-offers-cc', { 'min-width': `${width}px`, 'max-width': `${width}px` });
-  const height = getHeight(type, /* padding */ -1);
+  const height = getHeight(type, /* padding */ -2, autoTrigger);
 
   if (IS_POPUP) {
     setStyles('html', { height: `${height}px`, width: `${width}px` });
@@ -71,7 +73,7 @@ export function resize({ type = 'card', products = {}, autoTrigger = false } = {
 
 /** **************************************************************** */
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent', 'cliqz', 'amo', 'ghostery'];
+const ALLOWED_PRODUCTS = ['chip', 'cliqz', 'amo', 'ghostery'];
 
 export function chooseProduct(products = {}) {
   return ALLOWED_PRODUCTS.find(product => products[product]) || 'myoffrz';

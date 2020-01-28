@@ -9,14 +9,8 @@
 /* global chai */
 /* global describeModule */
 
-
-const tldts = require('tldts-experimental');
-
-
 export default describeModule('core/tlds',
-  () => ({
-    'platform/lib/tldts': tldts,
-  }),
+  () => ({}),
   () => {
     let sameGeneralDomain;
     let getGeneralDomain;

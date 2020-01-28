@@ -65,12 +65,7 @@ function allPrefixes(query) {
  * to search). If possible, the tests should not be too opinionated.
  */
 export default describeModule('search/providers/cliqz/query-sanitizer',
-  () => ({
-    'core/fast-url-parser': {
-      /* eslint-disable-next-line global-require */
-      default: (global.URL || require('url').URL)
-    }
-  }),
+  () => ({}),
   () => {
     describe('query-sanitizer module:', function () {
       let sanitizeSearchQuery;
@@ -412,6 +407,7 @@ export default describeModule('search/providers/cliqz/query-sanitizer',
           // We could filter smaller URIs, too. But it is not so clear how you
           // can easily leak personal information with these kind of URIs.
           // Probably not worth to bother.
+
           unintendedOK('data:text/plain;charset=UTF-8;page=21,the%20data:1234,5678');
           unintendedOK('data:text/vnd-example+xyz;foo=bar;base64,R0lGODdh');
         });

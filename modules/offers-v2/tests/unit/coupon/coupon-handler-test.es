@@ -18,6 +18,7 @@ export default describeModule('offers-v2/coupon/coupon-handler',
 
         beforeEach(async function () {
           persistenceMocks.lib.reset();
+          await persistenceMocks.lib.dexieReset(this.system);
           Offer = (await this.system.import('offers-v2/offers/offer')).default;
           bg = (await this.system.import('offers-v2/background')).default;
           await bg.init();
@@ -44,14 +45,17 @@ export default describeModule('offers-v2/coupon/coupon-handler',
           return trigger[0].origin_data[signalName];
         }
 
-        async function messageToPopupNotification(msgName, data) {
-          const offerInfo = { pattern: fixture.VALID_OFFER_COUPON_URL_PATTERN };
-          return bg.events[`popup-notification:${msgName}`]({
-            target: 'offers-v2',
+        async function messageToPopupNotification(type, action) {
+          const back = {
+            pattern: fixture.VALID_OFFER_COUPON_URL_PATTERN,
+            url: 'https://cliqz.com/',
+          };
+          return bg.events['offers-checkout-recv-ch']({
+            origin: 'offers-checkout',
+            type, // e.g. log
             data: {
-              ...data,
-              url: 'https://cliqz.com/',
-              back: offerInfo
+              action, // e.g. coupon_autofill_field_show
+              back,
             }
           });
         }
@@ -66,10 +70,9 @@ export default describeModule('offers-v2/coupon/coupon-handler',
           // Journey: page loaded
           //
           await bg.actions.couponFormUsed({ type: 'coupon_form_not_found', offerInfo });
-          await messageToPopupNotification('log', { type: 'pre-show', ok: false });
+          await messageToPopupNotification('log', 'coupon_autofill_field_failed');
           await bg.actions.couponFormUsed({ type: 'coupon_form_found', offerInfo });
-          await messageToPopupNotification('log', { type: 'pre-show', ok: true });
-          await bg.events['popup-notification:log']({ target: 'offers-v2', data: { type: 'pre-show', ok: true, url: 'https://cliqz.com/', offerInfo } });
+          await messageToPopupNotification('log', 'coupon_autofill_field_show');
           await bg.actions.couponFormUsed({
             type: 'coupon_form_prices',
             offerInfo,
@@ -89,7 +92,7 @@ export default describeModule('offers-v2/coupon/coupon-handler',
           //
           // Journey: apply our coupon, with success
           //
-          await messageToPopupNotification('pop', { ok: true });
+          await messageToPopupNotification('log', 'coupon_autofill_field_apply_action');
           const ownCoupon = fixture.VALID_OFFER_OBJ.ui_info.template_data.code;
           await bg.actions.couponFormUsed({ type: 'coupon_submitted', offerInfo, couponValue: ownCoupon });
           await bg.actions.couponFormUsed({
@@ -128,52 +131,6 @@ export default describeModule('offers-v2/coupon/coupon-handler',
           const otherUsed = extractCouponSignalData(httpPostMock, 'coupon_other_used');
           chai.expect(ownUsed, 'signal coupon_own_used is sent').to.eq(1);
           chai.expect(otherUsed, 'signal coupon_other_used is sent').to.eq(1);
-        });
-
-        context('/calculate delta of prices', () => {
-          const prices1 = { total: 40.50 };
-          const prices2 = { total: 35.50, base: 40.50 };
-          let onCouponPrices;
-
-          beforeEach(() => {
-            onCouponPrices = bg.couponHandler._onCouponPrices.bind(bg.couponHandler);
-          });
-
-          it('/from no prices to some prices (only total)', () => {
-            const s = onCouponPrices(prices1, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('{D40.50}');
-          });
-
-          it('/from no prices to some prices (both total and base)', () => {
-            const s = onCouponPrices(prices2, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('{D35.50/40.50}');
-          });
-
-          it('/store prices, make zero delta', () => {
-            onCouponPrices(prices1, fixture.VALID_OFFER_OBJ.offer_id);
-
-            const s = onCouponPrices(prices1, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('Z');
-          });
-
-          it('/store prices, make delta (only total)', () => {
-            onCouponPrices({ total: 30.00 }, fixture.VALID_OFFER_OBJ.offer_id);
-
-            const s = onCouponPrices(prices1, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('{D10.50}');
-          });
-
-          it('/store prices, make delta (both total and base)', () => {
-            onCouponPrices({ total: 30.00, base: 33.00 }, fixture.VALID_OFFER_OBJ.offer_id);
-
-            const s = onCouponPrices(prices2, fixture.VALID_OFFER_OBJ.offer_id);
-
-            chai.expect(s).eq('{D5.50/7.50}');
-          });
         });
       });
     });

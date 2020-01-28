@@ -1,4 +1,4 @@
-FROM node:11-stretch
+FROM node:lts-stretch
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -19,8 +19,6 @@ RUN pip install     \
   awscli==1.15.32  \
   pycrypto==2.6.1   \
   requests==2.18.4
-
-RUN npm install -g npm@latest yarn
 
 RUN cd /tmp && \
   wget https://www.openssl.org/source/old/0.9.x/openssl-0.9.8zg.tar.gz && \

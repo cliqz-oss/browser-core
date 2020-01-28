@@ -51,6 +51,10 @@ body {
   padding-bottom: 20px;
 }
 
+.privacy-policy-chip {
+  display: none;
+}
+
 .form-title {
   color: #f67057;
   font-size: 16px;
@@ -131,23 +135,10 @@ body.chip a {
   text-decoration: none;
 }
 
-body.freundin {
-  background: #f7f7f7;
+body.chip .privacy-policy-default {
+  display: none;
 }
 
-body.freundin .form-message {
-  background: #f7f7f7;
-  color: #cd071e;
-}
-
-body.freundin .logo {
-  content: url(./images/freundin-logo.svg);
-}
-
-body.freundin .form-title {
-  color: #cd071e;
-}
-
-body.freundin .form-button {
-  background: #cd071e;
+body.chip .privacy-policy-chip {
+  display: initial;
 }

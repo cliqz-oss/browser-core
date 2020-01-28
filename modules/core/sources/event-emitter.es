@@ -6,7 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import console from './console';
 import { nextTick } from './decorators';
 
 /**
@@ -28,13 +27,9 @@ const CALLBACK_KIND = {
 export default class EventEmitter {
   /**
    * @constructor
-   * @param {Array<String>} eventNames - Array of events which can be registered with the emitter
    */
-  constructor(eventNames = []) {
+  constructor() {
     this.events = new Map();
-    for (let i = 0; i < eventNames.length; i += 1) {
-      this.events.set(eventNames[i], new Map());
-    }
   }
 
   /**
@@ -46,6 +41,17 @@ export default class EventEmitter {
    */
   on(eventName, callback) {
     this._registerCallback(eventName, callback, CALLBACK_KIND.FOREVER);
+  }
+
+  /**
+   * Register listener
+   *
+   * @method off
+   * @param {String} eventName - Name of the event to stop listening to
+   * @param {Function} callback - Listener function
+   */
+  off(eventName, callback) {
+    return this.unsubscribe(eventName, callback);
   }
 
   /**
@@ -75,8 +81,7 @@ export default class EventEmitter {
           eventListeners.delete(callback);
         }
 
-        nextTick(() => callback(...args)).catch(ex =>
-          console.error('Error while emitting event', eventName, callback, args, ex));
+        nextTick(() => callback(...args));
       });
     }
   }
@@ -92,12 +97,12 @@ export default class EventEmitter {
   }
 
   _registerCallback(eventName, callback, kind) {
-    if (!this.events.has(eventName)) {
-      throw new Error(`${eventName} is not a valid app lifecycle event`, this);
-    }
-
     if (typeof callback !== 'function') {
       return;
+    }
+
+    if (!this.events.has(eventName)) {
+      this.events.set(eventName, new Map());
     }
 
     this.events.get(eventName).set(callback, kind);

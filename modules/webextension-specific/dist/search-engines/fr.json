@@ -7,10 +7,10 @@
       "text/html": {
         "type": "text/html",
         "method": "GET",
-        "template": "https://suchen.cliqz.com/#{searchTerms}"
+        "template": "https://beta.cliqz.com/search?q={searchTerms}#channel=amo"
       }
     },
-    "searchForm": "https://suchen.cliqz.com",
+    "searchForm": "https://beta.cliqz.com/search",
     "alias": "#cl"
   },
   {

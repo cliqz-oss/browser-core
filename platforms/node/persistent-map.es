@@ -57,4 +57,12 @@ export default class PersistentMap {
     this.db.forEach((key, value) => entries.push([key, value]));
     return Promise.resolve(entries);
   }
+
+  bulkDelete() {
+    throw new Error('not implemented');
+  }
+
+  bulkSetFromMap() {
+    throw new Error('not implemented');
+  }
 }

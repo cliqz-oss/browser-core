@@ -17,6 +17,10 @@ import { LazyPersistentObject } from '../core/persistent-state';
 import * as datetime from '../antitracking/time';
 import config from '../core/config';
 import console from '../core/console';
+import ResourceLoader from '../core/resource-loader';
+import BloomFilter from '../core/bloom-filter';
+import logger from './logger';
+import { extractHostname } from '../core/tlds';
 
 function queryHTML(...args) {
   const core = inject.module('core');
@@ -94,8 +98,7 @@ function checkHTML(url, callback) {
 }
 
 function checkScript(url, callback) {
-  const domain = url.replace('http://', '')
-    .replace('https://', '').split('/')[0];
+  const domain = extractHostname(url);
 
   queryHTML(url, 'script', 'src').then((srcs) => {
     const suspicious = srcs.filter(src => src).some((src) => {
@@ -150,10 +153,27 @@ const CliqzAntiPhishing = {
   forceWhiteList: new LazyPersistentObject('anti-phishing-fw'),
   blackWhiteList: new LazyPersistentObject('anti-phishing-bw'),
 
-  init() {
+  async init() {
     CliqzAntiPhishing.blackWhiteList.load();
     CliqzAntiPhishing.clearBWList();
     CliqzAntiPhishing.forceWhiteList.load();
+
+    // Let's load BloomFilter of safe domains from CDN.
+    try {
+      this._loader = new ResourceLoader(['antiphishing', 'safe_domains_bf.json'], {
+        remoteURL: `${config.settings.ANTIPHISHING_BLOOMFILTER}`,
+        cron: 24 * 60 * 60 * 1000
+      });
+      const { bkt, k } = await this._loader.load();
+      this.bloomFilter = new BloomFilter(bkt, k);
+
+      // Listen for updates:
+      this._loader.onUpdate((data) => {
+        this.bloomFilter = new BloomFilter(data.bkt, data.k);
+      });
+    } catch (e) {
+      logger.info('Failed loading bloom filter.', e);
+    }
   },
 
   clearBWList() {
@@ -169,7 +189,7 @@ const CliqzAntiPhishing = {
           CliqzAntiPhishing.blackWhiteList.setDirty();
         }
       } else {
-        // this one does not have a timestampe, suppose it's out of date
+        // this one does not have a timestamp, suppose it's out of date
         delete bwList[prefix];
         CliqzAntiPhishing.blackWhiteList.setDirty();
       }
@@ -178,6 +198,9 @@ const CliqzAntiPhishing = {
 
   unload() {
     CliqzAntiPhishing.saveLists();
+    if (this._loader) {
+      this._loader.stop();
+    }
   },
 
   clear() {
@@ -192,16 +215,16 @@ const CliqzAntiPhishing = {
 
   getSplitMd5(url) {
     const urlMd5 = getDomainMd5(url);
-    const md5Prefix = urlMd5.substring(0, urlMd5.length - 16);
-    const md5Surfix = urlMd5.substring(16, urlMd5.length);
-    return [md5Prefix, md5Surfix];
+    const md5Prefix = urlMd5.substring(0, 3);
+    const md5Suffix = urlMd5.substring(3);
+    return [md5Prefix, md5Suffix];
   },
 
   onHwActiveURL(msg) {
     const url = msg.activeURL;
-    const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(url);
+    const [md5Prefix, md5Suffix] = CliqzAntiPhishing.getSplitMd5(url);
     if (CliqzAntiPhishing.blackWhiteList[md5Prefix]
-      && CliqzAntiPhishing.blackWhiteList[md5Prefix][md5Surfix]) {
+      && CliqzAntiPhishing.blackWhiteList[md5Prefix][md5Suffix]) {
       // don't update if the status is already set
       return;
     }
@@ -210,7 +233,7 @@ const CliqzAntiPhishing = {
 
   whitelist(url, tp) {
     tp = tp || CliqzAntiPhishing.WHITELISTED_PERMANENTLY;
-    const md5Prefix = CliqzAntiPhishing.getSplitMd5(url)[0];
+    const md5Prefix = CliqzAntiPhishing.getSplitMd5(url);
     const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
     forceWhiteList[md5Prefix] = tp;
     CliqzAntiPhishing.forceWhiteList.setDirty();
@@ -225,7 +248,7 @@ const CliqzAntiPhishing = {
   },
 
   getUrlWhitelistStatus(url) {
-    const md5Prefix = CliqzAntiPhishing.getSplitMd5(url)[0];
+    const md5Prefix = CliqzAntiPhishing.getSplitMd5(url);
     const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
     return forceWhiteList[md5Prefix] || CliqzAntiPhishing.WHITELISTED_NONE;
   },
@@ -236,7 +259,7 @@ const CliqzAntiPhishing = {
   },
 
   removeForceWhitelist(url) {
-    const md5Prefix = CliqzAntiPhishing.getSplitMd5(url)[0];
+    const md5Prefix = CliqzAntiPhishing.getSplitMd5(url);
     const forceWhiteList = CliqzAntiPhishing.forceWhiteList.value;
     if (md5Prefix in forceWhiteList) {
       delete forceWhiteList[md5Prefix];
@@ -264,9 +287,9 @@ const CliqzAntiPhishing = {
 
   updateSuspiciousStatus(url, status) {
     const blackWhiteList = CliqzAntiPhishing.blackWhiteList.value;
-    const [md5Prefix, md5Surfix] = CliqzAntiPhishing.getSplitMd5(url);
+    const [md5Prefix, md5Suffix] = CliqzAntiPhishing.getSplitMd5(url);
 
-    if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Surfix]) {
+    if (blackWhiteList[md5Prefix] && blackWhiteList[md5Prefix][md5Suffix]) {
       // don't update if the status is already set
       return;
     }
@@ -275,7 +298,7 @@ const CliqzAntiPhishing = {
       blackWhiteList[md5Prefix] = {};
     }
 
-    blackWhiteList[md5Prefix][md5Surfix] = `suspicious:${status}`;
+    blackWhiteList[md5Prefix][md5Suffix] = `suspicious:${status}`;
     CliqzAntiPhishing.blackWhiteList.setDirty();
     addDataToUrl(url, 'isMU', status).catch(() => console.log('failed to update url', url));
   },

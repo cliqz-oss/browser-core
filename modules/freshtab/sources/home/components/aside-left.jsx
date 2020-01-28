@@ -21,14 +21,6 @@ function AsideLeft({
     <aside className="aside">
       <AsideElement
         condition={isHistoryEnabled}
-        href="#"
-        id="cliqz-home"
-        label="Home"
-        title={t('cliqz_tab_button')}
-      />
-
-      <AsideElement
-        condition={isHistoryEnabled}
         href={historyUrl}
         id="cliqz-history"
         onClick={onHistoryClick}

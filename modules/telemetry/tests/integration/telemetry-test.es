@@ -18,7 +18,7 @@ export default function () {
   context('telemetry tests', function () {
     afterEach(async function () {
       prefs.clear('telemetry');
-      await prefs.set('uploadEnabled', true, 'datareporting.healthreport.');
+      await inject.service('host-settings', ['set']).set('datareporting.healthreport.uploadEnabled', true);
     });
 
     [
@@ -32,7 +32,7 @@ export default function () {
 
         beforeEach(async function () {
           telemetryModule = app.modules.telemetry.background;
-          await prefs.set('uploadEnabled', uploadEnabled, 'datareporting.healthreport.');
+          await inject.service('host-settings', ['set']).set('datareporting.healthreport.uploadEnabled', uploadEnabled);
           prefs.set('telemetry', telemetryEnabled);
 
           await inject.service('telemetry', ['verifyStatus']).verifyStatus();

@@ -128,6 +128,9 @@ const ActionID = {
   AID_COUPON_AUTOFILL_SUCCESS_USE: 'coupon_autofill_field_success_use',
   AID_COUPON_AUTOFILL_ERROR_USE: 'coupon_autofill_field_error_use',
   AID_COUPON_AUTOFILL_APPLICATION_NOT_FOUND: 'coupon_autofill_field_application_not_found',
+  AID_COUPON_AUTOFILL_NOT_FOUND_WHY_OPTION1: 'coupon_autofill_field_not_found_why_option1',
+  AID_COUPON_AUTOFILL_NOT_FOUND_WHY_OPTION2: 'coupon_autofill_field_not_found_why_option2',
+  AID_COUPON_AUTOFILL_NOT_FOUND_WHY_OPTION3: 'coupon_autofill_field_not_found_why_option3',
 
   // Processor
 
@@ -140,6 +143,7 @@ const ActionID = {
 
   AID_OFFER_FILTERED_EXP_PREFIX: 'filter_exp__',
   AID_OFFER_FILTERED_CONTEXT: 'filtered_by_context',
+  AID_OFFER_FILTERED_THROTTLE: 'filtered_by_throttle',
 
   AID_OFFER_FILTERED_GLOBAL_BLACKLIST: 'filtered_by_global_blacklist',
   AID_OFFER_FILTERED_OFFER_BLACKLIST: 'filtered_by_offer_blacklist',
@@ -166,6 +170,10 @@ const ActionID = {
   AID_GH_SHOWN_0: 'offer_shown_0',
   AID_GH_REWARDS_ON: 'rewards_on',
   AID_GH_REWARDS_OFF: 'rewards_off',
+
+  // onboarding notification
+  AID_ONBOARDING_INTERESTED: 'onboarding_interested',
+  AID_ONBOARDING_NOT_INTERESTED: 'onboarding_not_interested',
 };
 
 export default ActionID;

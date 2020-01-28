@@ -15,7 +15,7 @@ const finalWithoutHistoryView = {
       href: 'https://www.google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'headphones',
@@ -42,7 +42,7 @@ const finalWithoutHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'headphones'
       }
@@ -51,7 +51,7 @@ const finalWithoutHistoryView = {
       url: 'https://bestbuy.com/',
       href: 'https://bestbuy.com/',
       friendlyUrl: 'bestbuy.com',
-      title: 'bestbuy.com',
+      title: '> Title - bestbuy.com',
       kind: [
         'C'
       ],
@@ -85,7 +85,7 @@ const finalWithoutHistoryView = {
             url: 'https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
             href: 'https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
             friendlyUrl: 'bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
-            title: 'Best Buy International: Select your Country - Best Buy',
+            title: '> Title - Best Buy International: Select your Country - Best Buy',
             extra: {},
             kind: [
               'C'
@@ -115,7 +115,7 @@ const finalWithoutHistoryView = {
             url: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
             href: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
             friendlyUrl: 'bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
-            title: 'Best Buy International: Select your Country - Best Buy',
+            title: '> Title - Best Buy International: Select your Country - Best Buy',
             extra: {},
             kind: [
               'C'
@@ -148,7 +148,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128/',
       href: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128/',
       friendlyUrl: 'argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
-      title: 'Headphones & Earphones | Argos',
+      title: '> Title - Headphones & Earphones | Argos',
       kind: [
         'H',
         'm'
@@ -186,7 +186,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       href: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       friendlyUrl: 'currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
-      title: 'Headphones & Earphones - Deals on Headphones | Currys',
+      title: '> Title - Headphones & Earphones - Deals on Headphones | Currys',
       kind: [
         'H',
         'm'
@@ -230,7 +230,7 @@ const finalWithHistoryView = {
       href: 'https://www.google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'headphones',
@@ -257,7 +257,7 @@ const finalWithHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'headphones'
       }
@@ -266,7 +266,7 @@ const finalWithHistoryView = {
       url: 'https://bestbuy.com/',
       href: 'https://bestbuy.com/',
       friendlyUrl: 'bestbuy.com',
-      title: 'bestbuy.com',
+      title: '> Title - bestbuy.com',
       kind: [
         'C'
       ],
@@ -300,7 +300,7 @@ const finalWithHistoryView = {
             url: 'https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
             href: 'https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
             friendlyUrl: 'bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
-            title: 'Best Buy International: Select your Country - Best Buy',
+            title: '> Title - Best Buy International: Select your Country - Best Buy',
             extra: {},
             kind: [
               'C'
@@ -330,7 +330,7 @@ const finalWithHistoryView = {
             url: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
             href: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
             friendlyUrl: 'bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
-            title: 'Best Buy International: Select your Country - Best Buy',
+            title: '> Title - Best Buy International: Select your Country - Best Buy',
             extra: {},
             kind: [
               'C'
@@ -363,7 +363,7 @@ const finalWithHistoryView = {
       url: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128/',
       href: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128/',
       friendlyUrl: 'argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
-      title: 'Headphones & Earphones | Argos',
+      title: '> Title - Headphones & Earphones | Argos',
       kind: [
         'H',
         'm'
@@ -401,7 +401,7 @@ const finalWithHistoryView = {
       url: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       href: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       friendlyUrl: 'currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
-      title: 'Headphones & Earphones - Deals on Headphones | Currys',
+      title: '> Title - Headphones & Earphones - Deals on Headphones | Currys',
       kind: [
         'H',
         'm'
@@ -482,7 +482,7 @@ const results = {
         searchEngineName: 'Google'
       },
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'headphones',
@@ -514,7 +514,7 @@ const results = {
             en: 0.99
           }
         },
-        title: 'All Headphones - Best Buy'
+        title: '> Title - All Headphones - Best Buy'
       },
       c_url: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
       type: 'bm'
@@ -533,10 +533,10 @@ const results = {
           },
           og: {
             description: 'Online shopping for Electronics from a great selection of Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & more at everyday low prices.',
-            title: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
+            title: '> Title - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
           }
         },
-        title: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
+        title: '> Title - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
       },
       c_url: 'https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
       type: 'bm'
@@ -552,7 +552,7 @@ const results = {
             en: 0.99
           }
         },
-        title: 'Headphones & Earphones - Deals on Headphones | Currys'
+        title: '> Title - Headphones & Earphones - Deals on Headphones | Currys'
       },
       c_url: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       type: 'bm'
@@ -570,7 +570,7 @@ const results = {
             en: 0.99
           }
         },
-        title: 'Headphones & Earphones | Argos'
+        title: '> Title - Headphones & Earphones | Argos'
       },
       c_url: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
       type: 'bm'
@@ -586,7 +586,7 @@ const results = {
             fr: 0.52
           }
         },
-        title: 'Best Buy International: Select your Country - Best Buy'
+        title: '> Title - Best Buy International: Select your Country - Best Buy'
       },
       c_url: 'https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
       type: 'bm'
@@ -597,35 +597,35 @@ const results = {
       style: 'favicon',
       value: 'https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
       image: 'page-icon:https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
-      comment: 'Best Buy International: Select your Country - Best Buy',
+      comment: '> Comment - Best Buy International: Select your Country - Best Buy',
       label: 'https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000'
     },
     {
       style: 'favicon',
       value: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128/',
       image: 'page-icon:https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128/',
-      comment: 'Headphones & Earphones | Argos',
+      comment: '> Comment - Headphones & Earphones | Argos',
       label: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128/'
     },
     {
       style: 'favicon',
       value: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       image: 'page-icon:https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
-      comment: 'Headphones & Earphones - Deals on Headphones | Currys',
+      comment: '> Comment - Headphones & Earphones - Deals on Headphones | Currys',
       label: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html'
     },
     {
       style: 'favicon',
       value: 'https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
       image: 'page-icon:https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
-      comment: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More',
+      comment: '> Comment - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More',
       label: 'https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541'
     },
     {
       style: 'favicon',
       value: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
       image: 'page-icon:https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
-      comment: 'Best Buy International: Select your Country - Best Buy',
+      comment: '> Comment - Best Buy International: Select your Country - Best Buy',
       label: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004'
     }
   ]

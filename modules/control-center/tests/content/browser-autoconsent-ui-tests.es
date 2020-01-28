@@ -39,8 +39,8 @@ describe('Control Center: autoconsent UI', () => {
     });
 
     it('renders "Turned off for all websites"', function () {
-      expect(subject.query('#autoconsent .row-text .description')).to.exist;
-      expect(subject.query('#autoconsent .row-text .description').textContent.trim()).to.equal('control_center_autoconsent_off');
+      expect(subject.query('#autoconsent .row-text > p')).to.exist;
+      expect(subject.query('#autoconsent .row-text > p').textContent.trim()).to.equal('control_center_autoconsent_off');
     });
 
     it('renders dropdown', function () {
@@ -68,8 +68,8 @@ describe('Control Center: autoconsent UI', () => {
     });
 
     it('renders "Cookie banners blocked"', function () {
-      expect(subject.query('#autoconsent .row-text .description')).to.exist;
-      expect(subject.query('#autoconsent .row-text .description').textContent.trim()).to.equal('control_center_autoconsent');
+      expect(subject.query('#autoconsent .row-text > p')).to.exist;
+      expect(subject.query('#autoconsent .row-text > p').textContent.trim()).to.equal('control_center_autoconsent');
     });
 
     it('dropdown is invisible', function () {
@@ -97,8 +97,8 @@ describe('Control Center: autoconsent UI', () => {
     });
 
     it('renders "Turned off for this domain"', function () {
-      expect(subject.query('#autoconsent .row-text .description')).to.exist;
-      expect(subject.query('#autoconsent .row-text .description').textContent.trim()).to.equal('control_center_autoconsent_inactive');
+      expect(subject.query('#autoconsent .row-text > p')).to.exist;
+      expect(subject.query('#autoconsent .row-text > p').textContent.trim()).to.equal('control_center_autoconsent_inactive');
     });
 
     it('renders dropdown', function () {

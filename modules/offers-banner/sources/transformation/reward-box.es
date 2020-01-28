@@ -8,9 +8,13 @@ import { products, getResourceUrl } from '../utils';
 import { calculateValidity } from './helpers';
 
 function commonData() {
+  const _products = products();
+  const shouldShowOnboarding = (_products.chip || _products.myoffrz)
+    && !prefs.get('myoffrz.seen_onboarding_notification', false);
   return {
-    products: products(),
+    products: _products,
     shouldShowOptIn: isGhostery && !prefs.get('myoffrz.opted_in', null),
+    shouldShowOnboarding,
 
     // the next two for browser-panel
     isCliqzBrowser,
@@ -110,8 +114,6 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
       ...commonData(),
       vouchers: [offer],
       showExpandButton: false,
-      popupsImage: prefs.get('offers-popup.image', 'with-image'),
-      popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
     }
   };
   return [true, payload];
@@ -131,8 +133,6 @@ function tooltipWrapper(offerId, {
         ...commonData(),
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
         showExpandButton: false,
-        popupsImage: prefs.get('offers-popup.image', 'with-image'),
-        popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
       },
     },
     offerId,
@@ -195,8 +195,6 @@ export function transformMany({ offers = [] } = {}) {
       vouchers: newOffers,
       noVoucher: newOffers.length === 0,
       showExpandButton: false,
-      popupsImage: prefs.get('offers-popup.image', 'with-image'),
-      popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
     }
   };
 }

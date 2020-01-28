@@ -144,7 +144,6 @@ export default class Results {
     {
       query,
       rawResults,
-      queriedAt,
     },
     resultTools,
   ) {
@@ -158,7 +157,6 @@ export default class Results {
     };
 
     this.query = query;
-    this.queriedAt = queriedAt;
 
     this.results = ResultFactory.createAll(rawResults, this.resultTools);
 

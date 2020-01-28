@@ -8,7 +8,8 @@
 
 import { combineLatest } from 'rxjs';
 import { filter, share, switchMap, startWith, map, withLatestFrom, scan } from 'rxjs/operators';
-import { getDetailsFromUrl } from '../core/url';
+import { parse, getName } from '../core/url';
+import { RESULT_CLASSES } from './telemetry/helpers';
 
 const getOrigin = ({ provider, type }) => {
   if (provider === 'cliqz' || provider === 'history' || provider === 'calculator') {
@@ -30,10 +31,19 @@ const getOrigin = ({ provider, type }) => {
 // 'X|{"class":"EntityGeneric"}' -> { source: 'X', class: 'EntityGeneric' }
 const parseKindItem = (item) => {
   const [source, params] = item.split('|');
-  return {
-    source,
-    class: JSON.parse(params || '{}').class,
-  };
+  const parsedItem = { source, class: undefined };
+
+  const paramsClass = JSON.parse(params || '{}').class;
+  if (!paramsClass) {
+    return parsedItem;
+  }
+
+  const isValidClass = RESULT_CLASSES.includes(paramsClass);
+  parsedItem.class = isValidClass
+    ? paramsClass
+    : 'other';
+
+  return parsedItem;
 };
 
 // ['m', 'X|{"class":"EntityGeneric"}'] -> { sources: ['m', 'X'], classes: ['EntityGeneric']}
@@ -46,31 +56,34 @@ const parseKind = (kind) => {
 };
 
 const isSearchEngine = (url) => {
-  try {
-    const { name, subdomains, path } = getDetailsFromUrl(url);
-    // allow only 'www' and 'de' (for Yahoo) subdomains to exclude
-    // 'maps.google.com' etc. and empty path only to exclude
-    // 'www.google.com/maps' etc.
-    const [firstSubdomain] = subdomains;
-    const hasNoPath = !path || (path.length === 1 && path[0] === '/');
-
-    return hasNoPath && (
-      (
-        (
-          name === 'google'
-          || name === 'bing'
-          || name === 'duckduckgo'
-          || name === 'startpage'
-        ) && (!firstSubdomain || firstSubdomain === 'www')
-      )
-      || (
-        name === 'yahoo'
-        && (!firstSubdomain || firstSubdomain === 'de')
-      )
-    );
-  } catch (e) {
+  const parsed = parse(url);
+  if (parsed === null) {
     return false;
   }
+
+  const name = getName(parsed);
+  const subdomain = parsed.domainInfo.subdomain;
+  const path = parsed.pathname;
+
+  // allow only 'www' and 'de' (for Yahoo) subdomains to exclude
+  // 'maps.google.com' etc. and empty path only to exclude
+  // 'www.google.com/maps' etc.
+  const hasNoPath = path.length === 0 || (path.length === 1 && path[0] === '/');
+
+  return hasNoPath && (
+    (
+      (
+        name === 'google'
+        || name === 'bing'
+        || name === 'duckduckgo'
+        || name === 'startpage'
+      ) && (subdomain.length === 0 || subdomain === 'www' || subdomain.startsWith('www.'))
+    )
+    || (
+      name === 'yahoo'
+      && (subdomain.length === 0 || subdomain === 'de' || subdomain.startsWith('de.'))
+    )
+  );
 };
 
 const telemetry = (focus$, query$, results$, selection$, highlight$) => {

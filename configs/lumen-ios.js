@@ -32,6 +32,13 @@ module.exports = {
     RESULTS_PROVIDER_ORDER: ['calculator', 'history', 'cliqz', 'querySuggestions'],
     CLEAR_RESULTS_AT_SESSION_START: false,
     'search.config.providers.instant.isEnabled': false,
+    telemetry: {
+      demographics: {
+        brand: 'cliqz',
+        name: 'lumen',
+        platform: 'ios',
+      },
+    },
   }),
   modules: [
     'core',

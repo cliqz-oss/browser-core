@@ -6,8 +6,7 @@ CLIQZ.app.ready().then(async () => {
   if (!CLIQZ.app.modules['cookie-monster'].isEnabled) {
     await CLIQZ.app.modules['cookie-monster'].enable();
   }
-});
-
-browser.privacy.cookieConfig.set({
-  value: 'allow_visited',
+  if (!CLIQZ.app.modules.anolysis.isEnabled) {
+    await CLIQZ.app.modules.anolysis.enable();
+  }
 });

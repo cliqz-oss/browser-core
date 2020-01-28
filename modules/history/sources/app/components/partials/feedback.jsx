@@ -9,16 +9,13 @@ import FeedbackVote from './feedback-vote';
 export default class Feedback extends React.Component {
   state = {
     feedbackStep: 0,
-    hasVoted: false,
     vote: undefined,
   }
 
   handleOpenClick = () => {
-    if (!this.state.hasVoted) {
-      this.setState({
-        feedbackStep: 1,
-      });
-    }
+    this.setState({
+      feedbackStep: 1,
+    });
   }
 
   handleCloseClick = () => {
@@ -48,7 +45,6 @@ export default class Feedback extends React.Component {
     setTimeout(() => {
       this.setState({
         feedbackStep: 0,
-        hasVoted: true,
       });
     }, 1500);
 

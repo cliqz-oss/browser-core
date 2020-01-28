@@ -13,7 +13,6 @@ import {
   clearPref,
   init,
   getAllCliqzPrefs,
-  PLATFORM_TELEMETRY_WHITELIST,
 } from '../platform/prefs';
 import config from './config';
 
@@ -22,31 +21,29 @@ export default {
    * Get a value from preferences db
    * @param {string}  pref - preference identifier
    * @param {*=}      defautlValue - returned value in case pref is not defined
-   * @param {string=} prefix - prefix for pref
    */
-  get(pref, defaultValue, prefix) {
+  get(pref, defaultValue) {
     let value = defaultValue;
-    if (!prefix && config.default_prefs) {
+    if (config.default_prefs) {
       value = typeof config.default_prefs[pref] === 'undefined' ? defaultValue : config.default_prefs[pref];
     }
-    return getPref(pref, value, prefix);
+    return getPref(pref, value);
   },
   /**
    * Set a value in preferences db
    * @param {string}  pref - preference identifier
-   * @param {string=} prefix - prefix for pref
+   * @param {*=}      value
    */
   set: setPref,
+
   /**
    * Check if there is a value in preferences db
    * @param {string}  pref - preference identifier
-   * @param {string=} prefix - prefix for pref
    */
   has: hasPref,
   /**
    * Clear value in preferences db
    * @param {string}  pref - preference identifier
-   * @param {string=} prefix - prefix for pref
    */
   clear: clearPref,
 
@@ -118,10 +115,6 @@ export function getCliqzPrefs() {
   for (let i = 0; i < cliqzPrefsKeys.length; i += 1) {
     cliqzPrefs[cliqzPrefsKeys[i]] = getPref(cliqzPrefsKeys[i]);
   }
-
-  PLATFORM_TELEMETRY_WHITELIST.forEach((key) => {
-    cliqzPrefs[key] = getPref(key, undefined, '');
-  });
 
   return cliqzPrefs;
 }

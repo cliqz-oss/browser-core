@@ -11,7 +11,7 @@ import events from '../core/events';
 import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
 import ResourceLoader from '../core/resource-loader';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 
 const _getURLWithProtocol = (url) => {
   const fullUrl = url.startsWith('http')
@@ -22,7 +22,7 @@ const _getURLWithProtocol = (url) => {
 
 const _getFullURL = ({ newUrl, prevUrl }) => {
   let fullUrl = _getURLWithProtocol(newUrl);
-  const hostInfo = URLInfo.get(prevUrl);
+  const hostInfo = parse(prevUrl);
   const parameters = hostInfo.href.replace(hostInfo.origin, '');
 
   if (fullUrl[fullUrl.length - 1] === '/') {
@@ -96,7 +96,7 @@ export default background({
   actions: {
     getEndpointsState() {
       return {
-        endpointsUrl: URLInfo.get(this.settings.RESULTS_PROVIDER).href,
+        endpointsUrl: parse(this.settings.RESULTS_PROVIDER).href,
       };
     },
     async getHumanWebState(url) {

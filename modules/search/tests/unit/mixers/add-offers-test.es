@@ -17,7 +17,7 @@ const mock = {
     getMainLink: ({ links }) => links[0],
   },
   'core/url': {
-    urlStripProtocol: x => x,
+    strip: x => x,
   },
 };
 

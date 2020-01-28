@@ -1,5 +1,4 @@
 import {
-  CliqzEvents,
   newTab,
   queryHTML,
   testServer,
@@ -15,15 +14,7 @@ import {
 export default async function triggerOffer(dest) {
   await mockOffersBackend({ dest });
 
-  // Simulate location change, to trigger offers' expression evaluation.
-  CliqzEvents.pub('content:location-change', {
-    url: 'https://fake.url.com',
-    windowTreeInformation: { tabId: 0 },
-    tabId: 0,
-  });
-
   await waitFor(() => testServer.hasHit('/api/v1/categories'));
-  await waitFor(() => testServer.hasHit('/api/v1/loadsubtriggers'));
 
   const pageUrl = getPage(`landing?q=${triggerKeyword}`);
   const tabId = await newTab(pageUrl, { focus: true });

@@ -19,7 +19,17 @@ import {
 } from '../helpers';
 import { expectSelection } from './common';
 import { bmWithButtons } from '../../../core/integration/fixtures/resultsBigMachineWithButtons';
-import { urlStripProtocol } from '../../../../core/content/url';
+import { strip } from '../../../../core/url';
+
+function stripProtocol(url) {
+  return strip(url, {
+    spaces: true,
+    protocol: true,
+    www: true,
+    mobile: true,
+    trailingSlash: true,
+  });
+}
 
 export default function () {
   context('keyboard navigation bm results with buttons', function () {
@@ -51,22 +61,22 @@ export default function () {
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(
           button1Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[0].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[0].url),
         ), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(
           button2Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[1].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[1].url),
         ), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(
           button3Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[2].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[2].url),
         ), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(
           button4Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[3].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[3].url),
         ), 600);
         press({ key: 'ArrowDown' });
         await waitFor(() => expectSelection(
@@ -81,27 +91,27 @@ export default function () {
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(
           result2Selector,
-          urlStripProtocol(results[1].snippet.friendlyUrl),
+          stripProtocol(results[1].snippet.friendlyUrl),
         ), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(
           button4Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[3].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[3].url),
         ), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(
           button3Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[2].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[2].url),
         ), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(
           button2Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[1].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[1].url),
         ), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(
           button1Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[0].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[0].url),
         ), 600);
         press({ key: 'ArrowUp' });
         await waitFor(() => expectSelection(
@@ -116,22 +126,22 @@ export default function () {
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(
           button1Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[0].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[0].url),
         ), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(
           button2Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[1].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[1].url),
         ), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(
           button3Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[2].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[2].url),
         ), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(
           button4Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[3].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[3].url),
         ), 600);
         press({ key: 'Tab' });
         await waitFor(() => expectSelection(
@@ -155,22 +165,22 @@ export default function () {
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(
           button4Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[3].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[3].url),
         ), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(
           button3Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[2].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[2].url),
         ), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(
           button2Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[1].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[1].url),
         ), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(
           button1Selector,
-          urlStripProtocol(results[0].snippet.deepResults[0].links[0].url),
+          stripProtocol(results[0].snippet.deepResults[0].links[0].url),
         ), 600);
         press({ key: 'Tab', shiftKey: true });
         await waitFor(() => expectSelection(

@@ -94,3 +94,16 @@ export function truncateDomain(host, depth) {
     .filter(p => p.length > 0);
   return `${subdomains.slice(Math.max(subdomains.length - depth, 0)).join('.')}.${generalDomain}`;
 }
+
+export function shuffle(s) {
+  const a = s.split('');
+  const n = a.length;
+
+  for (let i = n - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+  }
+  return a.join('');
+}

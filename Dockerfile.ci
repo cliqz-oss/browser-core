@@ -1,4 +1,4 @@
-FROM node:11-stretch
+FROM node:lts-stretch
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -83,23 +83,21 @@ RUN mkdir /tmp/.X11-unix \
 # Expose port for VNC
 EXPOSE 5900
 
-RUN npm install -g npm@latest yarn@latest
-
 USER node
 
-RUN wget https://ftp.mozilla.org/pub/devedition/releases/60.0b16/linux-x86_64/en-US/firefox-60.0b16.tar.bz2 -O /home/node/firefox.tar.bz2 \
-  && mkdir /home/node/firefox60 \
-  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox60 \
+RUN wget https://ftp.mozilla.org/pub/devedition/releases/64.0b14/linux-x86_64/en-US/firefox-64.0b14.tar.bz2 -O /home/node/firefox.tar.bz2 \
+  && mkdir /home/node/firefox64 \
+  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox64 \
   && rm -f /home/node/firefox.tar.bz2
 
-RUN wget https://ftp.mozilla.org/pub/devedition/releases/62.0b20/linux-x86_64/en-US/firefox-62.0b20.tar.bz2 -O /home/node/firefox.tar.bz2 \
-  && mkdir /home/node/firefox62 \
-  && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox62 \
-  && rm -f /home/node/firefox.tar.bz2
+RUN wget https://ftp.mozilla.org/pub/devedition/releases/69.0b9/linux-x86_64/en-US/firefox-69.0b9.tar.bz2 -O /home/node/firefox.tar.bz2 \
+ && mkdir /home/node/firefox69 \
+ && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox69 \
+ && rm -f /home/node/firefox.tar.bz2
 
-RUN wget https://ftp.mozilla.org/pub/devedition/releases/66.0b9/linux-x86_64/en-US/firefox-66.0b9.tar.bz2 -O /home/node/firefox.tar.bz2 \
- && mkdir /home/node/firefox66 \
- && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox66 \
+RUN wget https://ftp.mozilla.org/pub/devedition/releases/70.0b14/linux-x86_64/en-US/firefox-70.0b14.tar.bz2 -O /home/node/firefox.tar.bz2 \
+ && mkdir /home/node/firefox70 \
+ && tar xjvf /home/node/firefox.tar.bz2 -C /home/node/firefox70 \
  && rm -f /home/node/firefox.tar.bz2
 
 RUN wget 'https://download.mozilla.org/?product=firefox-devedition-latest&os=linux64&lang=en-US' -O /home/node/firefox.tar.bz2 \

@@ -15,7 +15,7 @@ const finalWithoutHistoryView = {
       href: 'https://www.google.com/search?q=paper&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=paper&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'paper',
@@ -42,7 +42,7 @@ const finalWithoutHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'paper'
       }
@@ -51,7 +51,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.michaels.com/papercraft/paper/809188525',
       href: 'https://www.michaels.com/papercraft/paper/809188525',
       friendlyUrl: 'michaels.com/papercraft/paper/809188525',
-      title: 'Papercraft Paper and Stationery | Michaels',
+      title: '> Title - Papercraft Paper and Stationery | Michaels',
       kind: [
         'H'
       ],
@@ -87,7 +87,7 @@ const finalWithoutHistoryView = {
       url: 'http://paper-io.com/',
       href: 'http://paper-io.com/',
       friendlyUrl: 'paper-io.com',
-      title: 'Paper.io play online',
+      title: '> Title - Paper.io play online',
       description: 'Paper.io - play game. Invade as many lands as possible and become the biggest on the server!',
       kind: [
         'm'
@@ -126,7 +126,7 @@ const finalWithoutHistoryView = {
           og: {
             description: 'New game from the creator of agar.io - PAPER-IO.COM! Hey, play with me!',
             image: 'https://imgr.cliqz.com/sQTsYmOoONNUlm3RYcniKfGimonNUA15ko5kkarrgeI/fill/0/200/no/1/aHR0cDovL3N0YXRpYy5wYXBlci1pby5jb20vaW1hZ2VzL3BhcGVyLW5ldy5wbmc.png',
-            title: 'Play Paperio with me!',
+            title: '> Title - Play Paperio with me!',
             type: 'website',
             url: 'paper-io.com'
           }
@@ -140,7 +140,7 @@ const finalWithoutHistoryView = {
       url: 'https://en.wikipedia.org/wiki/Paper',
       href: 'https://en.wikipedia.org/wiki/Paper',
       friendlyUrl: 'en.wikipedia.org/wiki/Paper',
-      title: 'Paper',
+      title: '> Title - Paper',
       description: 'Paper is a thin material produced by pressing together moist fibres of cellulose pulp derived from wood, rags or grasses, and drying them into flexible sheets. It is a versatile material with many uses, including writing, printing, packaging, cleaning, decorating, and a number of industrial and construction processes. Papers are essential in legal or non-legal documentation.',
       kind: [
         'h'
@@ -382,7 +382,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#History',
                 href: 'https://en.wikipedia.org/wiki/Paper#History',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#History',
-                title: 'History',
+                title: '> Title - History',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#History'
                 },
@@ -410,7 +410,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Early_sources_of_fibre',
                 href: 'https://en.wikipedia.org/wiki/Paper#Early_sources_of_fibre',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Early_sources_of_fibre',
-                title: 'Early sources of fibre',
+                title: '> Title - Early sources of fibre',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Early_sources_of_fibre'
                 },
@@ -438,7 +438,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Etymology',
                 href: 'https://en.wikipedia.org/wiki/Paper#Etymology',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Etymology',
-                title: 'Etymology',
+                title: '> Title - Etymology',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Etymology'
                 },
@@ -466,7 +466,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Papermaking',
                 href: 'https://en.wikipedia.org/wiki/Paper#Papermaking',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Papermaking',
-                title: 'Papermaking',
+                title: '> Title - Papermaking',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Papermaking'
                 },
@@ -494,7 +494,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Applications',
                 href: 'https://en.wikipedia.org/wiki/Paper#Applications',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Applications',
-                title: 'Applications',
+                title: '> Title - Applications',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Applications'
                 },
@@ -522,7 +522,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight',
                 href: 'https://en.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight',
-                title: 'Types, thickness and weight',
+                title: '> Title - Types, thickness and weight',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight'
                 },
@@ -550,7 +550,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Paper_stability',
                 href: 'https://en.wikipedia.org/wiki/Paper#Paper_stability',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Paper_stability',
-                title: 'Paper stability',
+                title: '> Title - Paper stability',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Paper_stability'
                 },
@@ -578,7 +578,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Environmental_impact',
                 href: 'https://en.wikipedia.org/wiki/Paper#Environmental_impact',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Environmental_impact',
-                title: 'Environmental impact',
+                title: '> Title - Environmental impact',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Environmental_impact'
                 },
@@ -606,7 +606,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Future',
                 href: 'https://en.wikipedia.org/wiki/Paper#Future',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Future',
-                title: 'Future',
+                title: '> Title - Future',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Future'
                 },
@@ -634,7 +634,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#See_also',
                 href: 'https://en.wikipedia.org/wiki/Paper#See_also',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#See_also',
-                title: 'See also',
+                title: '> Title - See also',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#See_also'
                 },
@@ -662,7 +662,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Notes',
                 href: 'https://en.wikipedia.org/wiki/Paper#Notes',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Notes',
-                title: 'Notes',
+                title: '> Title - Notes',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Notes'
                 },
@@ -690,7 +690,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#References',
                 href: 'https://en.wikipedia.org/wiki/Paper#References',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#References',
-                title: 'References',
+                title: '> Title - References',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#References'
                 },
@@ -718,7 +718,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Further_reading',
                 href: 'https://en.wikipedia.org/wiki/Paper#Further_reading',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Further_reading',
-                title: 'Further reading',
+                title: '> Title - Further reading',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Further_reading'
                 },
@@ -746,7 +746,7 @@ const finalWithoutHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#External_links',
                 href: 'https://en.wikipedia.org/wiki/Paper#External_links',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#External_links',
-                title: 'External links',
+                title: '> Title - External links',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#External_links'
                 },
@@ -774,7 +774,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/History_of_paper',
                 href: 'http://en.wikipedia.org/wiki/History_of_paper',
                 friendlyUrl: 'en.wikipedia.org/wiki/History_of_paper',
-                title: 'History of paper',
+                title: '> Title - History of paper',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/History_of_paper'
                 },
@@ -802,7 +802,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Papermaking',
                 href: 'http://en.wikipedia.org/wiki/Papermaking',
                 friendlyUrl: 'en.wikipedia.org/wiki/Papermaking',
-                title: 'Papermaking',
+                title: '> Title - Papermaking',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Papermaking'
                 },
@@ -830,7 +830,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/kraft_process',
                 href: 'http://en.wikipedia.org/wiki/kraft_process',
                 friendlyUrl: 'en.wikipedia.org/wiki/kraft_process',
-                title: 'kraft process',
+                title: '> Title - kraft process',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/kraft_process'
                 },
@@ -858,7 +858,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Paper_machine',
                 href: 'http://en.wikipedia.org/wiki/Paper_machine',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper_machine',
-                title: 'Paper machine',
+                title: '> Title - Paper machine',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_machine'
                 },
@@ -886,7 +886,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Paper_size',
                 href: 'http://en.wikipedia.org/wiki/Paper_size',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper_size',
-                title: 'Paper size',
+                title: '> Title - Paper size',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_size'
                 },
@@ -914,7 +914,7 @@ const finalWithoutHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Environmental_impact_of_paper',
                 href: 'http://en.wikipedia.org/wiki/Environmental_impact_of_paper',
                 friendlyUrl: 'en.wikipedia.org/wiki/Environmental_impact_of_paper',
-                title: 'Environmental impact of paper',
+                title: '> Title - Environmental impact of paper',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Environmental_impact_of_paper'
                 },
@@ -978,7 +978,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.dropbox.com/de/paper',
       href: 'https://www.dropbox.com/de/paper',
       friendlyUrl: 'dropbox.com/de/paper',
-      title: 'Paper – Dropbox',
+      title: '> Title - Paper – Dropbox',
       description: 'Dropbox Paper ist ein ganz neues Dokumenttool, das speziell für die kreative Zusammenarbeit geschaffen wurde. Hier können Sie in Echtzeit zusammenarbeiten, Ihren Kollegen Aufgaben zuweisen, Aufgabenlisten erstellen und vieles mehr. Fangen Sie gleich an!',
       kind: [
         'm'
@@ -1018,7 +1018,7 @@ const finalWithoutHistoryView = {
             description: 'Dropbox Paper ist ein ganz neues Dokumenttool, das speziell für die kreative Zusammenarbeit geschaffen wurde. Hier können Sie in Echtzeit zusammenarbeiten, Ihren Kollegen Aufgaben zuweisen, Aufgabenlisten erstellen und vieles mehr. Fangen Sie gleich an!',
             image: 'https://imgr.cliqz.com/2rOvlx8WDmeDxkgaQ3XpbMfywU6eqmkYpQPOERtb64k/fill/0/200/no/1/aHR0cHM6Ly9jZmwuZHJvcGJveHN0YXRpYy5jb20vc3RhdGljL2ltYWdlcy9wYXBlci9oZXJvLXZmbDJ6WUNyWi5qcGc.jpg',
             site_name: 'Dropbox',
-            title: 'Paper – Dropbox',
+            title: '> Title - Paper – Dropbox',
             type: 'website',
             url: 'https://www.dropbox.com/de/paper',
             video: 'https://cfl.dropboxstatic.com/static/images/paper/landing_page/video/DB_Paper_V5F-vflZqpPSR.mp4'
@@ -1039,7 +1039,7 @@ const finalWithHistoryView = {
       href: 'https://www.google.com/search?q=paper&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=paper&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'paper',
@@ -1066,7 +1066,7 @@ const finalWithHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'paper'
       }
@@ -1075,7 +1075,7 @@ const finalWithHistoryView = {
       url: 'https://www.michaels.com/papercraft/paper/809188525',
       href: 'https://www.michaels.com/papercraft/paper/809188525',
       friendlyUrl: 'michaels.com/papercraft/paper/809188525',
-      title: 'Papercraft Paper and Stationery | Michaels',
+      title: '> Title - Papercraft Paper and Stationery | Michaels',
       kind: [
         'H'
       ],
@@ -1145,7 +1145,7 @@ const finalWithHistoryView = {
       url: 'http://paper-io.com/',
       href: 'http://paper-io.com/',
       friendlyUrl: 'paper-io.com',
-      title: 'Paper.io play online',
+      title: '> Title - Paper.io play online',
       description: 'Paper.io - play game. Invade as many lands as possible and become the biggest on the server!',
       kind: [
         'm'
@@ -1184,7 +1184,7 @@ const finalWithHistoryView = {
           og: {
             description: 'New game from the creator of agar.io - PAPER-IO.COM! Hey, play with me!',
             image: 'https://imgr.cliqz.com/sQTsYmOoONNUlm3RYcniKfGimonNUA15ko5kkarrgeI/fill/0/200/no/1/aHR0cDovL3N0YXRpYy5wYXBlci1pby5jb20vaW1hZ2VzL3BhcGVyLW5ldy5wbmc.png',
-            title: 'Play Paperio with me!',
+            title: '> Title - Play Paperio with me!',
             type: 'website',
             url: 'paper-io.com'
           }
@@ -1198,7 +1198,7 @@ const finalWithHistoryView = {
       url: 'https://en.wikipedia.org/wiki/Paper',
       href: 'https://en.wikipedia.org/wiki/Paper',
       friendlyUrl: 'en.wikipedia.org/wiki/Paper',
-      title: 'Paper',
+      title: '> Title - Paper',
       description: 'Paper is a thin material produced by pressing together moist fibres of cellulose pulp derived from wood, rags or grasses, and drying them into flexible sheets. It is a versatile material with many uses, including writing, printing, packaging, cleaning, decorating, and a number of industrial and construction processes. Papers are essential in legal or non-legal documentation.',
       kind: [
         'h'
@@ -1440,7 +1440,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#History',
                 href: 'https://en.wikipedia.org/wiki/Paper#History',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#History',
-                title: 'History',
+                title: '> Title - History',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#History'
                 },
@@ -1468,7 +1468,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Early_sources_of_fibre',
                 href: 'https://en.wikipedia.org/wiki/Paper#Early_sources_of_fibre',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Early_sources_of_fibre',
-                title: 'Early sources of fibre',
+                title: '> Title - Early sources of fibre',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Early_sources_of_fibre'
                 },
@@ -1496,7 +1496,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Etymology',
                 href: 'https://en.wikipedia.org/wiki/Paper#Etymology',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Etymology',
-                title: 'Etymology',
+                title: '> Title - Etymology',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Etymology'
                 },
@@ -1524,7 +1524,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Papermaking',
                 href: 'https://en.wikipedia.org/wiki/Paper#Papermaking',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Papermaking',
-                title: 'Papermaking',
+                title: '> Title - Papermaking',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Papermaking'
                 },
@@ -1552,7 +1552,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Applications',
                 href: 'https://en.wikipedia.org/wiki/Paper#Applications',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Applications',
-                title: 'Applications',
+                title: '> Title - Applications',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Applications'
                 },
@@ -1580,7 +1580,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight',
                 href: 'https://en.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight',
-                title: 'Types, thickness and weight',
+                title: '> Title - Types, thickness and weight',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight'
                 },
@@ -1608,7 +1608,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Paper_stability',
                 href: 'https://en.wikipedia.org/wiki/Paper#Paper_stability',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Paper_stability',
-                title: 'Paper stability',
+                title: '> Title - Paper stability',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Paper_stability'
                 },
@@ -1636,7 +1636,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Environmental_impact',
                 href: 'https://en.wikipedia.org/wiki/Paper#Environmental_impact',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Environmental_impact',
-                title: 'Environmental impact',
+                title: '> Title - Environmental impact',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Environmental_impact'
                 },
@@ -1664,7 +1664,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Future',
                 href: 'https://en.wikipedia.org/wiki/Paper#Future',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Future',
-                title: 'Future',
+                title: '> Title - Future',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Future'
                 },
@@ -1692,7 +1692,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#See_also',
                 href: 'https://en.wikipedia.org/wiki/Paper#See_also',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#See_also',
-                title: 'See also',
+                title: '> Title - See also',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#See_also'
                 },
@@ -1720,7 +1720,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Notes',
                 href: 'https://en.wikipedia.org/wiki/Paper#Notes',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Notes',
-                title: 'Notes',
+                title: '> Title - Notes',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Notes'
                 },
@@ -1748,7 +1748,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#References',
                 href: 'https://en.wikipedia.org/wiki/Paper#References',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#References',
-                title: 'References',
+                title: '> Title - References',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#References'
                 },
@@ -1776,7 +1776,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#Further_reading',
                 href: 'https://en.wikipedia.org/wiki/Paper#Further_reading',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#Further_reading',
-                title: 'Further reading',
+                title: '> Title - Further reading',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Further_reading'
                 },
@@ -1804,7 +1804,7 @@ const finalWithHistoryView = {
                 url: 'https://en.wikipedia.org/wiki/Paper#External_links',
                 href: 'https://en.wikipedia.org/wiki/Paper#External_links',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper#External_links',
-                title: 'External links',
+                title: '> Title - External links',
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#External_links'
                 },
@@ -1832,7 +1832,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/History_of_paper',
                 href: 'http://en.wikipedia.org/wiki/History_of_paper',
                 friendlyUrl: 'en.wikipedia.org/wiki/History_of_paper',
-                title: 'History of paper',
+                title: '> Title - History of paper',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/History_of_paper'
                 },
@@ -1860,7 +1860,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Papermaking',
                 href: 'http://en.wikipedia.org/wiki/Papermaking',
                 friendlyUrl: 'en.wikipedia.org/wiki/Papermaking',
-                title: 'Papermaking',
+                title: '> Title - Papermaking',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Papermaking'
                 },
@@ -1888,7 +1888,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/kraft_process',
                 href: 'http://en.wikipedia.org/wiki/kraft_process',
                 friendlyUrl: 'en.wikipedia.org/wiki/kraft_process',
-                title: 'kraft process',
+                title: '> Title - kraft process',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/kraft_process'
                 },
@@ -1916,7 +1916,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Paper_machine',
                 href: 'http://en.wikipedia.org/wiki/Paper_machine',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper_machine',
-                title: 'Paper machine',
+                title: '> Title - Paper machine',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_machine'
                 },
@@ -1944,7 +1944,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Paper_size',
                 href: 'http://en.wikipedia.org/wiki/Paper_size',
                 friendlyUrl: 'en.wikipedia.org/wiki/Paper_size',
-                title: 'Paper size',
+                title: '> Title - Paper size',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_size'
                 },
@@ -1972,7 +1972,7 @@ const finalWithHistoryView = {
                 url: 'http://en.wikipedia.org/wiki/Environmental_impact_of_paper',
                 href: 'http://en.wikipedia.org/wiki/Environmental_impact_of_paper',
                 friendlyUrl: 'en.wikipedia.org/wiki/Environmental_impact_of_paper',
-                title: 'Environmental impact of paper',
+                title: '> Title - Environmental impact of paper',
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Environmental_impact_of_paper'
                 },
@@ -2036,7 +2036,7 @@ const finalWithHistoryView = {
       url: 'https://www.dropbox.com/de/paper',
       href: 'https://www.dropbox.com/de/paper',
       friendlyUrl: 'dropbox.com/de/paper',
-      title: 'Paper – Dropbox',
+      title: '> Title - Paper – Dropbox',
       description: 'Dropbox Paper ist ein ganz neues Dokumenttool, das speziell für die kreative Zusammenarbeit geschaffen wurde. Hier können Sie in Echtzeit zusammenarbeiten, Ihren Kollegen Aufgaben zuweisen, Aufgabenlisten erstellen und vieles mehr. Fangen Sie gleich an!',
       kind: [
         'm'
@@ -2076,7 +2076,7 @@ const finalWithHistoryView = {
             description: 'Dropbox Paper ist ein ganz neues Dokumenttool, das speziell für die kreative Zusammenarbeit geschaffen wurde. Hier können Sie in Echtzeit zusammenarbeiten, Ihren Kollegen Aufgaben zuweisen, Aufgabenlisten erstellen und vieles mehr. Fangen Sie gleich an!',
             image: 'https://imgr.cliqz.com/2rOvlx8WDmeDxkgaQ3XpbMfywU6eqmkYpQPOERtb64k/fill/0/200/no/1/aHR0cHM6Ly9jZmwuZHJvcGJveHN0YXRpYy5jb20vc3RhdGljL2ltYWdlcy9wYXBlci9oZXJvLXZmbDJ6WUNyWi5qcGc.jpg',
             site_name: 'Dropbox',
-            title: 'Paper – Dropbox',
+            title: '> Title - Paper – Dropbox',
             type: 'website',
             url: 'https://www.dropbox.com/de/paper',
             video: 'https://cfl.dropboxstatic.com/static/images/paper/landing_page/video/DB_Paper_V5F-vflZqpPSR.mp4'
@@ -2100,7 +2100,7 @@ const results = {
         searchEngineName: 'Google'
       },
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'paper',
@@ -2132,12 +2132,12 @@ const results = {
           og: {
             description: 'New game from the creator of agar.io - PAPER-IO.COM! Hey, play with me!',
             image: 'https://imgr.cliqz.com/sQTsYmOoONNUlm3RYcniKfGimonNUA15ko5kkarrgeI/fill/0/200/no/1/aHR0cDovL3N0YXRpYy5wYXBlci1pby5jb20vaW1hZ2VzL3BhcGVyLW5ldy5wbmc.png',
-            title: 'Play Paperio with me!',
+            title: '> Title - Play Paperio with me!',
             type: 'website',
             url: 'paper-io.com'
           }
         },
-        title: 'Paper.io play online'
+        title: '> Title - Paper.io play online'
       },
       c_url: 'http://paper-io.com/',
       type: 'bm'
@@ -2190,140 +2190,140 @@ const results = {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#History'
                 },
-                title: 'History',
+                title: '> Title - History',
                 url: 'https://en.wikipedia.org/wiki/Paper#History'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Early_sources_of_fibre'
                 },
-                title: 'Early sources of fibre',
+                title: '> Title - Early sources of fibre',
                 url: 'https://en.wikipedia.org/wiki/Paper#Early_sources_of_fibre'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Etymology'
                 },
-                title: 'Etymology',
+                title: '> Title - Etymology',
                 url: 'https://en.wikipedia.org/wiki/Paper#Etymology'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Papermaking'
                 },
-                title: 'Papermaking',
+                title: '> Title - Papermaking',
                 url: 'https://en.wikipedia.org/wiki/Paper#Papermaking'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Applications'
                 },
-                title: 'Applications',
+                title: '> Title - Applications',
                 url: 'https://en.wikipedia.org/wiki/Paper#Applications'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight'
                 },
-                title: 'Types, thickness and weight',
+                title: '> Title - Types, thickness and weight',
                 url: 'https://en.wikipedia.org/wiki/Paper#Types.2C_thickness_and_weight'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Paper_stability'
                 },
-                title: 'Paper stability',
+                title: '> Title - Paper stability',
                 url: 'https://en.wikipedia.org/wiki/Paper#Paper_stability'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Environmental_impact'
                 },
-                title: 'Environmental impact',
+                title: '> Title - Environmental impact',
                 url: 'https://en.wikipedia.org/wiki/Paper#Environmental_impact'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Future'
                 },
-                title: 'Future',
+                title: '> Title - Future',
                 url: 'https://en.wikipedia.org/wiki/Paper#Future'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#See_also'
                 },
-                title: 'See also',
+                title: '> Title - See also',
                 url: 'https://en.wikipedia.org/wiki/Paper#See_also'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Notes'
                 },
-                title: 'Notes',
+                title: '> Title - Notes',
                 url: 'https://en.wikipedia.org/wiki/Paper#Notes'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#References'
                 },
-                title: 'References',
+                title: '> Title - References',
                 url: 'https://en.wikipedia.org/wiki/Paper#References'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#Further_reading'
                 },
-                title: 'Further reading',
+                title: '> Title - Further reading',
                 url: 'https://en.wikipedia.org/wiki/Paper#Further_reading'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper#External_links'
                 },
-                title: 'External links',
+                title: '> Title - External links',
                 url: 'https://en.wikipedia.org/wiki/Paper#External_links'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/History_of_paper'
                 },
-                title: 'History of paper',
+                title: '> Title - History of paper',
                 url: 'http://en.wikipedia.org/wiki/History_of_paper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Papermaking'
                 },
-                title: 'Papermaking',
+                title: '> Title - Papermaking',
                 url: 'http://en.wikipedia.org/wiki/Papermaking'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/kraft_process'
                 },
-                title: 'kraft process',
+                title: '> Title - kraft process',
                 url: 'http://en.wikipedia.org/wiki/kraft_process'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_machine'
                 },
-                title: 'Paper machine',
+                title: '> Title - Paper machine',
                 url: 'http://en.wikipedia.org/wiki/Paper_machine'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_size'
                 },
-                title: 'Paper size',
+                title: '> Title - Paper size',
                 url: 'http://en.wikipedia.org/wiki/Paper_size'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Environmental_impact_of_paper'
                 },
-                title: 'Environmental impact of paper',
+                title: '> Title - Environmental impact of paper',
                 url: 'http://en.wikipedia.org/wiki/Environmental_impact_of_paper'
               }
             ],
@@ -2358,7 +2358,7 @@ const results = {
             source_name: 'Wikipedia'
           }
         },
-        title: 'Paper'
+        title: '> Title - Paper'
       },
       c_url: 'https://en.wikipedia.org/wiki/Paper',
       similars: [
@@ -2381,13 +2381,13 @@ const results = {
             description: 'Dropbox Paper ist ein ganz neues Dokumenttool, das speziell für die kreative Zusammenarbeit geschaffen wurde. Hier können Sie in Echtzeit zusammenarbeiten, Ihren Kollegen Aufgaben zuweisen, Aufgabenlisten erstellen und vieles mehr. Fangen Sie gleich an!',
             image: 'https://imgr.cliqz.com/2rOvlx8WDmeDxkgaQ3XpbMfywU6eqmkYpQPOERtb64k/fill/0/200/no/1/aHR0cHM6Ly9jZmwuZHJvcGJveHN0YXRpYy5jb20vc3RhdGljL2ltYWdlcy9wYXBlci9oZXJvLXZmbDJ6WUNyWi5qcGc.jpg',
             site_name: 'Dropbox',
-            title: 'Paper – Dropbox',
+            title: '> Title - Paper – Dropbox',
             type: 'website',
             url: 'https://www.dropbox.com/de/paper',
             video: 'https://cfl.dropboxstatic.com/static/images/paper/landing_page/video/DB_Paper_V5F-vflZqpPSR.mp4'
           }
         },
-        title: 'Paper – Dropbox'
+        title: '> Title - Paper – Dropbox'
       },
       c_url: 'https://www.dropbox.com/de/paper',
       similars: [
@@ -2406,245 +2406,245 @@ const results = {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper_(disambiguation)#Publishing_and_academia'
                 },
-                title: 'Publishing and academia',
+                title: '> Title - Publishing and academia',
                 url: 'https://en.wikipedia.org/wiki/Paper_(disambiguation)#Publishing_and_academia'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper_(disambiguation)#Society.2C_government.2C_and_business'
                 },
-                title: 'Society, government, and business',
+                title: '> Title - Society, government, and business',
                 url: 'https://en.wikipedia.org/wiki/Paper_(disambiguation)#Society.2C_government.2C_and_business'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper_(disambiguation)#Popular_culture'
                 },
-                title: 'Popular culture',
+                title: '> Title - Popular culture',
                 url: 'https://en.wikipedia.org/wiki/Paper_(disambiguation)#Popular_culture'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper_(disambiguation)#Other'
                 },
-                title: 'Other',
+                title: '> Title - Other',
                 url: 'https://en.wikipedia.org/wiki/Paper_(disambiguation)#Other'
               },
               {
                 extra: {
                   m_url: 'https://en.m.wikipedia.org/wiki/Paper_(disambiguation)#See_also'
                 },
-                title: 'See also',
+                title: '> Title - See also',
                 url: 'https://en.wikipedia.org/wiki/Paper_(disambiguation)#See_also'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Newspaper'
                 },
-                title: 'Newspaper',
+                title: '> Title - Newspaper',
                 url: 'http://en.wikipedia.org/wiki/Newspaper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_(magazine)'
                 },
-                title: 'Paper (magazine)',
+                title: '> Title - Paper (magazine)',
                 url: 'http://en.wikipedia.org/wiki/Paper_(magazine)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/The_Paper_(newspaper)'
                 },
-                title: 'The Paper (newspaper)',
+                title: '> Title - The Paper (newspaper)',
                 url: 'http://en.wikipedia.org/wiki/The_Paper_(newspaper)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Papers_(software)'
                 },
-                title: 'Papers (software)',
+                title: '> Title - Papers (software)',
                 url: 'http://en.wikipedia.org/wiki/Papers_(software)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Scholarly_paper'
                 },
-                title: 'Scholarly paper',
+                title: '> Title - Scholarly paper',
                 url: 'http://en.wikipedia.org/wiki/Scholarly_paper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Term_paper'
                 },
-                title: 'Term paper',
+                title: '> Title - Term paper',
                 url: 'http://en.wikipedia.org/wiki/Term_paper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Banknote'
                 },
-                title: 'Banknote',
+                title: '> Title - Banknote',
                 url: 'http://en.wikipedia.org/wiki/Banknote'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Commercial_paper'
                 },
-                title: 'Commercial paper',
+                title: '> Title - Commercial paper',
                 url: 'http://en.wikipedia.org/wiki/Commercial_paper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Document'
                 },
-                title: 'Document',
+                title: '> Title - Document',
                 url: 'http://en.wikipedia.org/wiki/Document'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Legal_instrument'
                 },
-                title: 'Legal instrument',
+                title: '> Title - Legal instrument',
                 url: 'http://en.wikipedia.org/wiki/Legal_instrument'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Identity_documents'
                 },
-                title: 'Identity documents',
+                title: '> Title - Identity documents',
                 url: 'http://en.wikipedia.org/wiki/Identity_documents'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Breed_registry'
                 },
-                title: 'Breed registry',
+                title: '> Title - Breed registry',
                 url: 'http://en.wikipedia.org/wiki/Breed_registry'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/White_paper'
                 },
-                title: 'White paper',
+                title: '> Title - White paper',
                 url: 'http://en.wikipedia.org/wiki/White_paper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Green_paper'
                 },
-                title: 'Green paper',
+                title: '> Title - Green paper',
                 url: 'http://en.wikipedia.org/wiki/Green_paper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/The_Paper_(film)'
                 },
-                title: 'The Paper (film)',
+                title: '> Title - The Paper (film)',
                 url: 'http://en.wikipedia.org/wiki/The_Paper_(film)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_(film)'
                 },
-                title: 'Paper (film)',
+                title: '> Title - Paper (film)',
                 url: 'http://en.wikipedia.org/wiki/Paper_(film)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/The_Paper_(TV_series)'
                 },
-                title: 'The Paper (TV series)',
+                title: '> Title - The Paper (TV series)',
                 url: 'http://en.wikipedia.org/wiki/The_Paper_(TV_series)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/The_Paper_(SpongeBob_SquarePants)'
                 },
-                title: 'The Paper (SpongeBob SquarePants)',
+                title: '> Title - The Paper (SpongeBob SquarePants)',
                 url: 'http://en.wikipedia.org/wiki/The_Paper_(SpongeBob_SquarePants)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_(album)'
                 },
-                title: 'Paper (album)',
+                title: '> Title - Paper (album)',
                 url: 'http://en.wikipedia.org/wiki/Paper_(album)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_(Krayzie_Bone_song)'
                 },
-                title: 'Paper (Krayzie Bone song)',
+                title: '> Title - Paper (Krayzie Bone song)',
                 url: 'http://en.wikipedia.org/wiki/Paper_(Krayzie_Bone_song)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_(Queen_Latifah_song)'
                 },
-                title: 'Paper (Queen Latifah song)',
+                title: '> Title - Paper (Queen Latifah song)',
                 url: 'http://en.wikipedia.org/wiki/Paper_(Queen_Latifah_song)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Paper_(Svala_song)'
                 },
-                title: 'Paper (Svala song)',
+                title: '> Title - Paper (Svala song)',
                 url: 'http://en.wikipedia.org/wiki/Paper_(Svala_song)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Papers_(song)'
                 },
-                title: 'Papers (song)',
+                title: '> Title - Papers (song)',
                 url: 'http://en.wikipedia.org/wiki/Papers_(song)'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Fear_of_Music'
                 },
-                title: 'Fear of Music',
+                title: '> Title - Fear of Music',
                 url: 'http://en.wikipedia.org/wiki/Fear_of_Music'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Yomiko_Readman'
                 },
-                title: 'Yomiko Readman',
+                title: '> Title - Yomiko Readman',
                 url: 'http://en.wikipedia.org/wiki/Yomiko_Readman'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Allan_Stratton'
                 },
-                title: 'Allan Stratton',
+                title: '> Title - Allan Stratton',
                 url: 'http://en.wikipedia.org/wiki/Allan_Stratton'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Precision_Array_for_Probing_the_Epoch_of_Reionization'
                 },
-                title: 'Precision Array for Probing the Epoch of Reionization',
+                title: '> Title - Precision Array for Probing the Epoch of Reionization',
                 url: 'http://en.wikipedia.org/wiki/Precision_Array_for_Probing_the_Epoch_of_Reionization'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Facebook_Paper'
                 },
-                title: 'Facebook Paper',
+                title: '> Title - Facebook Paper',
                 url: 'http://en.wikipedia.org/wiki/Facebook_Paper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Dropbox_Paper'
                 },
-                title: 'Dropbox Paper',
+                title: '> Title - Dropbox Paper',
                 url: 'http://en.wikipedia.org/wiki/Dropbox_Paper'
               },
               {
                 extra: {
                   m_url: 'http://en.m.wikipedia.org/wiki/Papier_(disambiguation)'
                 },
-                title: 'Papier (disambiguation)',
+                title: '> Title - Papier (disambiguation)',
                 url: 'http://en.wikipedia.org/wiki/Papier_(disambiguation)'
               }
             ],
@@ -2676,7 +2676,7 @@ const results = {
             source_name: 'Wikipedia'
           }
         },
-        title: 'Paper (disambiguation)'
+        title: '> Title - Paper (disambiguation)'
       },
       c_url: 'https://en.wikipedia.org/wiki/Paper_(disambiguation)',
       type: 'bm',
@@ -2698,11 +2698,11 @@ const results = {
             'image:height': '2000',
             'image:width': '2000',
             site_name: 'PAPER',
-            title: 'PAPER',
+            title: '> Title - PAPER',
             type: 'website'
           }
         },
-        title: 'PAPER'
+        title: '> Title - PAPER'
       },
       c_url: 'http://www.papermag.com/',
       type: 'bm'
@@ -2713,7 +2713,7 @@ const results = {
       style: 'favicon',
       value: 'https://www.michaels.com/papercraft/paper/809188525',
       image: 'page-icon:https://www.michaels.com/papercraft/paper/809188525',
-      comment: 'Papercraft Paper and Stationery | Michaels',
+      comment: '> Comment - Papercraft Paper and Stationery | Michaels',
       label: 'https://www.michaels.com/papercraft/paper/809188525'
     }
   ]

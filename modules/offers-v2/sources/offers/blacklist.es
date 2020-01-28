@@ -47,6 +47,6 @@ export default class Blacklist {
   }
 
   has(url) {
-    return this.engine.match(Adblocker.makeRequest({ url })).match;
+    return this.engine.match(Adblocker.makeRequest({ url, sourceUrl: url })).match;
   }
 }

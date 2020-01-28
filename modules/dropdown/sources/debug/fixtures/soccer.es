@@ -79,7 +79,7 @@ export default {
                     description: 'Der finanziell angeschlagene Drittligist 1. FC Kaiserslautern erhält auf seiner Rettungsmission Unterstützung vom FC Bayern München.',
                     domain: 'sport.sky.de',
                     murl: 'https://sport.sky.de/fussball/artikel/fc-bayern-muenchen-hilft-1-fc-kaiserslautern-mit-retterspiel/11714702/34240',
-                    thumbnail: 'https://imgr.cliqz.com/k0Qn1RH7NR91M9SuMzxlaaCfd9BEBojlGBJ2iWqdtKY/fill/0/200/no/1/aHR0cHM6Ly9lNi4zNjVkbS5kZS8xOS8wNS8xNjAweDkwMC9za3lzcG9ydF9kZS1ob2VuZS1mYy1iYXllcm5fNDY2MjgyNy5qcGc_MjAxOTA1MDgxNjU0NTA.png'
+                    thumbnail: 'http://localhost:3000/static/images/skysport_de-hoene-fc-bayern_4662827.jpg?201905081654'
                   },
                   kind: [
                     'X|{"class":"SoccerEZ"}'
@@ -128,7 +128,7 @@ export default {
                     description: 'Die Münchner unterstützen den finanziell angeschlagenen Traditionsverein aus der Pfalz mit einem Freundschaftsspiel am Saisonende.',
                     domain: 'goal.com',
                     murl: 'https://www.goal.com/de/meldungen/bayern-muenchen-retterspiel-1-fc-kaiserslautern/1lwu4tqbwcyts1um6u8b3y0nzn',
-                    thumbnail: 'https://imgr.cliqz.com/4-62C3dHxnlHd-dKKkXfWbrCCF42_El5uXpgYF580Z0/fill/0/200/no/1/aHR0cHM6Ly9pbWFnZXMucGVyZm9ybWdyb3VwLmNvbS9kaS9saWJyYXJ5L0dPQUwvYTAvZmMvcnVtbWVuaWdnZS1iYXllcm4tbXVuY2hlbl8yc2NhcXF0c2dzMWExdzlhbHdxMDJzOXRjLmpwZz90PS02NzczOTE3NzcmcXVhbGl0eT0xMDAmaD0zMDA.png'
+                    thumbnail: 'http://localhost:3000/static/images/rummenigge-bayern-munchen_2scaqqtsgs1a1w9alwq02s9tc.jpg?t=-677391777&quality=100&h=3'
                   },
                   kind: [
                     'X|{"class":"SoccerEZ"}'
@@ -393,7 +393,7 @@ export default {
             },
             matches: [],
             og: {
-              image: 'https://imgr.cliqz.com/VeEE8Aac2Pd5jaQgBl1V-_U7QMTzS9h6c1IjcPMpHKQ/fill/0/200/no/1/aHR0cHM6Ly93d3cubGl2ZXRpY2tlci5jb20vcmVzL19zcy9pbWFnZS9tZXRhL2xpdmV0aWNrZXJfY29tLmpwZw.jpg'
+              image: 'http://localhost:3000/static/images/liveticker_com.jpg'
             },
             spielTag: null,
             title: '1. Bundesliga Spieltag - Spielplan - Ergebnisse',

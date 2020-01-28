@@ -113,6 +113,9 @@ const getSignalNameForCoupon = (offerCouponCodes, couponUsed) => {
     'coupon_autofill_field_success_use',
     'coupon_autofill_field_error_use',
     'coupon_autofill_field_application_not_found',
+    'coupon_autofill_field_not_found_why_option1',
+    'coupon_autofill_field_not_found_why_option2',
+    'coupon_autofill_field_not_found_why_option3',
   ];
   if (autofillWhiteList.includes(couponUsed)) {
     return couponUsed;
@@ -235,11 +238,10 @@ export default class OffersMonitorHandler {
     const activeOffer = selectActiveMonitors(couponsMonitors)[0];
     const couponInfo = JSON.parse(JSON.stringify(activeOffer.couponInfo)); // deep copy
     couponInfo.pattern = activeOffer.patterns[0];
-    const pastDay = moment() - 24 * 60 * 60 * 1000;
+    const recentInteractionCutoff = moment() - 48 * 60 * 60 * 1000;
     const autoFillField = couponInfo.autoFillField
-      && (activeOffer.click > pastDay || activeOffer.view > pastDay);
+      && (activeOffer.click > recentInteractionCutoff);
     couponInfo.autoFillField = autoFillField;
-    logger.log('shouldActivateOfferForUrl: autoFillField:', autoFillField, ' for:', JSON.stringify(activeOffer));
     return {
       offerID: activeOffer.offerID,
       offerInfo: couponInfo,

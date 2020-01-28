@@ -15,29 +15,15 @@ import getConfig from '../config';
 import search from '../search';
 import templates from '../templates';
 import globalConfig from '../../core/config';
-import prefs from '../../core/prefs';
 import pluckResults from '../operators/streams/pluck-results';
 import { setGlobal } from '../../core/kord/inject';
 import { parseKind } from '../telemetry';
-import createModuleWrapper from '../../core/helpers/action-module-wrapper';
 import { COLORS, COLOR_MAP, IGNORED_PROVIDERS, IMAGE_PATHS } from './helpers';
 import { overrideFetchHandler, fetch } from '../../core/http';
 import { setTimeout } from '../../core/timers';
 
-const historySearch = createModuleWrapper('history-search');
-
 const app = {
   modules: {
-    'history-search': {
-      isReady() { return Promise.resolve(); },
-      background: {
-        actions: {
-          search(...args) {
-            return historySearch.search(...args);
-          }
-        }
-      }
-    }
   },
   services: {
     logos: {
@@ -154,7 +140,6 @@ Handlebars.registerHelper('checkImg', (json) => {
 });
 
 window.addEventListener('load', () => {
-  prefs.set('historyLookupEnabled', false);
   const $urlbar = $('#urlbar');
   const $mixer = $('#mixer');
 

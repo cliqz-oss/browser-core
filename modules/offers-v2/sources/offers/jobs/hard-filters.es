@@ -24,7 +24,7 @@ const isInRange = (x, A, B) => (x >= A && x <= B);
  * true or false if the offer should be removed or not (true == filtered out, false otherwise).
  * The promise will be evaluated once we get the final result on all the filters
  */
-const shouldFilterOffer = async (
+const shouldFilterOffer = (
   offer,
   { presentRealEstates, geoChecker, categoryHandler, offerIsFilteredOutCb }
 ) => {
@@ -49,23 +49,23 @@ const shouldFilterOffer = async (
 
   // all the filters here
   const allFiltersFunctions = [
-    filterByValidity,
-    filterByABTest,
-    filterByRealEstates,
-    filterByGeo,
-    filterByCategories,
+    ['filterByValidity', filterByValidity],
+    ['filterByABTest', filterByABTest],
+    ['filterByRealEstates', filterByRealEstates],
+    ['filterByGeo', filterByGeo],
+    ['filterByCategories', filterByCategories],
   ];
 
-  for (let i = 0; i < allFiltersFunctions.length; i += 1) {
-    /* eslint-disable no-await-in-loop */
-    const fn = allFiltersFunctions[i];
-    const filtered = await fn();
+  function applyFilterFunction([name, fn]) {
+    const filtered = fn();
     if (filtered) {
-      offerIsFilteredOutCb(offer, `${ActionID.AID_OFFER_FILTERED_HARD_PREFIX}${fn.name}`);
+      offerIsFilteredOutCb(offer, `${ActionID.AID_OFFER_FILTERED_HARD_PREFIX}${name}`);
       return true;
     }
+    return false;
   }
-  return false;
+
+  return allFiltersFunctions.some(applyFilterFunction);
 };
 
 
@@ -94,17 +94,7 @@ export default class HardFilters extends OfferJob {
    * }
    */
   process(offerList, context) {
-    // we need to iterate over all the offers here and remove all the ones that
-    // are filtered out
-    const offersFiltered = offerList.map(offer => shouldFilterOffer(offer, context)) || [];
-    return Promise.all(offersFiltered).then((shouldFilterOfferResults) => {
-      const resultOffersList = [];
-      for (let i = 0; i < offerList.length; i += 1) {
-        if (shouldFilterOfferResults[i] === false) {
-          resultOffersList.push(offerList[i]);
-        }
-      }
-      return Promise.resolve(resultOffersList);
-    });
+    const filteredOfferList = offerList.filter(offer => !shouldFilterOffer(offer, context));
+    return Promise.resolve(filteredOfferList);
   }
 }

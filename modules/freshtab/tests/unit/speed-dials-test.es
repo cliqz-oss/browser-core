@@ -1,6 +1,4 @@
 /* global chai, describeModule */
-const urlImports = require('../../core/unit/utils/url-parser');
-
 const DIALS_PREF = 'extensions.cliqzLocal.freshtab.speedDials';
 const mockTopUrls = [
   {
@@ -69,7 +67,6 @@ export default describeModule('freshtab/speed-dials',
           return mockTopUrls.filter(({ url }) => !e.has(url));
         } }
       },
-      ...urlImports,
     };
   },
   function () {
@@ -233,6 +230,20 @@ export default describeModule('freshtab/speed-dials',
           chai.expect(dial.displayTitle).equal(dialFacebook1.title);
           chai.expect(result.error).equal(true);
           chai.expect(result.reason).equal('invalid');
+        });
+
+        it('should correctly edit "custom" speed dials with encoded URL', async function () {
+          const mockCustom = [
+            { url: 'http%3A%2F%2Fcliqz.com%3Fsearch%3Dsome%20query' },
+          ];
+          const url = 'http://cliqz.com?search=some%20query';
+          const newURL = 'http://example.com';
+          this.deps('core/prefs').default.setObject(DIALS_PREF, { custom: mockCustom });
+          const result = SpeedDials.editCustom(url, { url: newURL });
+          chai.expect(result.url).equal(newURL);
+
+          const { custom } = await SpeedDials.get();
+          chai.expect(custom[0].url).equal(newURL);
         });
       });
 

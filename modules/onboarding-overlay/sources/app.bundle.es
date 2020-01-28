@@ -7,40 +7,40 @@
  */
 
 import config from '../core/config';
+import createModuleWrapper from '../core/helpers/action-module-wrapper';
+import { getMessage } from '../core/i18n';
 
-const ALLOWED_PRODUCTS = { chip: 'chip', myoffrz: 'myoffrz', cliqz: 'cliqz' };
+const ALLOWED_PRODUCTS = { chip: 'chip', myoffrz: 'myoffrz', cliqz: 'cliqz', ghosterytab: 'ghosterytab' };
 const PRODUCT = ALLOWED_PRODUCTS[config.PRODUCT_PREFIX] || 'cliqz';
 
 document.body.classList.add(PRODUCT);
 
-function saveOptions() {
-  (chrome || browser).runtime.sendMessage({
-    module: 'offers-banner',
-    args: [{
-      humanWebOptOut: !document.getElementById('humanWebOptOut').checked,
-      telemetry: document.getElementById('telemetry').checked,
-    }],
-    action: 'setPref',
-  });
+const onboarding = createModuleWrapper('onboarding-overlay');
 
-  window.postMessage({ action: 'continue' }, '*');
+function saveOptions() {
+  return onboarding.saveConsentStatus({
+    humanWebOptOut: !document.getElementById('humanWebOptOut').checked,
+    telemetry: document.getElementById('telemetry').checked,
+  });
 }
 
-function restoreOptions() {
-  (chrome || browser).runtime.sendMessage({
-    module: 'offers-banner',
-    args: [['telemetry', 'humanWebOptOut']],
-    action: 'getPref'
-  }, (prefs = {}) =>
-    Object.keys(prefs).forEach((key) => {
-      const node = document.getElementById(key);
-      if (!node) { return; }
-      node.checked = key === 'humanWebOptOut' ? !prefs[key] : prefs[key];
-    }));
+async function saveOptionsAndClose() {
+  await saveOptions();
+  window.parent.postMessage({ action: 'continue' }, '*');
+}
+
+async function restoreOptions() {
+  const prefs = await onboarding.getConsentStatus();
+  Object.keys(prefs || {}).forEach((key) => {
+    const node = document.getElementById(key);
+    if (!node) { return; }
+    node.checked = key === 'humanWebOptOut' ? !prefs[key] : prefs[key];
+  });
 }
 
 document.addEventListener('DOMContentLoaded', restoreOptions);
-document.querySelector('button').addEventListener('click', saveOptions);
+document.querySelector('.content').addEventListener('change', saveOptions);
+document.querySelector('button').addEventListener('click', saveOptionsAndClose);
 document.querySelector('.show-more').addEventListener('click', () => {
   document.querySelector('.more').classList.toggle('hide');
   document.querySelector('.show-more').classList.toggle('hide');
@@ -48,5 +48,5 @@ document.querySelector('.show-more').addEventListener('click', () => {
 
 Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {
   // eslint-disable-next-line no-param-reassign
-  el.innerHTML = chrome.i18n.getMessage(`onboarding_${PRODUCT}_${el.dataset.i18n}`);
+  el.innerHTML = getMessage(`onboarding_${PRODUCT}_${el.dataset.i18n}`);
 });

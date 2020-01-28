@@ -15,19 +15,19 @@ export default [
         {
           links: [
             {
-              title: 'Tickets',
+              title: '> Title - Tickets',
               url: 'https://fcbayern.com/de/tickets'
             },
             {
-              title: 'FC Bayern.tv',
+              title: '> Title - FC Bayern.tv',
               url: 'https://fcbayern.com/fcbayerntv/de'
             },
             {
-              title: 'Profis',
+              title: '> Title - Profis',
               url: 'https://fcbayern.com/de/teams/profis'
             },
             {
-              title: 'Termine',
+              title: '> Title - Termine',
               url: 'https://fcbayern.com/de/termine'
             },
           ],
@@ -41,10 +41,10 @@ export default [
                 description: 'Die Anhänger des Rekordmeisters müssen laut einer Studie in dieser Saison den weitesten Weg zu den Auswärtsspielen zurücklegen - über 7000 Kilometer mehr als die der Eintracht.',
                 domain: 'sport1.de',
                 murl: 'http://m.sport1.de/fussball/bundesliga/2017/09/bundesliga-fans-von-bayern-muenchen-muessen-am-weitesten-reisen',
-                thumbnail: 'https://imgr.cliqz.com/8336CdL5QHvhOZJd-Rzd5hFB8rJShMdljTuykMaRdMs/fill/0/200/no/1/aHR0cHM6Ly93d3cud2VsdC5kZS9pbWcvc3BvcnQvZnVzc2JhbGwvYnVuZGVzbGlnYS9tb2JpbGUxODc4MTI3NTYvNjgxMTM1MjY5Ny1jaTE2eDktdzEyMDAvRkMtQmF5ZXJuLU11ZW5jaGVuLXYtVmZCLVN0dXR0Z2FydC1CdW5kZXNsaWdhLmpwZw.jpg',
+                thumbnail: 'http://localhost:3000/static/images/sport1_de_soccerResults.jpg',
                 tweet_count: 1
               },
-              title: 'Bundesliga: Fans von Bayern München müssen am weitesten reisen',
+              title: '> Title - Bundesliga: Fans von Bayern München müssen am weitesten reisen',
               url: 'http://www.sport1.de/fussball/bundesliga/2017/09/bundesliga-fans-von-bayern-muenchen-muessen-am-weitesten-reisen'
             },
             {
@@ -53,10 +53,10 @@ export default [
                 description: 'James Rodriguez führt den FC Bayern München am 5. Spieltag bei Schalke 04 zu einem souveränen Sieg - und an die Spitze. Der Kolumbianer ist an allen Toren beteiligt.',
                 domain: 'sport1.de',
                 murl: 'http://m.sport1.de/fussball/bundesliga/2017/09/bundesliga-spielbericht-fc-schalke-04-fc-bayern-muenchen',
-                thumbnail: 'https://imgr.cliqz.com/lzA2CLuWx_r7jUxK8koiwfk9OOMSNJFx0A-hsvOu0MI/fill/0/200/no/1/aHR0cHM6Ly93d3cud2VsdC5kZS9pbWcvc3BvcnQvZnVzc2JhbGwvYnVuZGVzbGlnYS9tb2JpbGUxODc4MDM3MDIvNzc5MTM1Njg3Ny1jaTE2eDktdzEyMDAvQnVuZGVzbGlnYS1CYXllcm4tTXVuaWNoLXYtVmZCLVN0dXR0Z2FydC5qcGc.jpg',
+                thumbnail: 'http://localhost:3000/static/images/sport1_de_soccerResults.jpg',
                 tweet_count: 2
               },
-              title: 'Bundesliga-Spielbericht: FC Schalke 04 - FC Bayern München',
+              title: '> Title - Bundesliga-Spielbericht: FC Schalke 04 - FC Bayern München',
               url: 'http://www.sport1.de/fussball/bundesliga/2017/09/bundesliga-spielbericht-fc-schalke-04-fc-bayern-muenchen'
             },
             {
@@ -65,10 +65,10 @@ export default [
                 description: 'Schock für den FC Bayern München: Keeper Manuel Neuer ist wegen eines Haarrisses im linken Fuß operiert worden. Er hatte sich beim Abschlusstraining vor der Partie auf Schalke erneut am Fuß verletzt.',
                 domain: 'spiegel.de',
                 murl: 'http://m.spiegel.de/sport/fussball/a-1168662.html',
-                thumbnail: 'http://cdn4.spiegel.de/images/image-1191337-galleryV9-vkfw-1191337.jpg',
+                thumbnail: 'http://localhost:3000/static/images/image-1191337-galleryV9-vkfw-1191337.jpg',
                 tweet_count: 14
               },
-              title: 'Bayern München: Nationaltorhüter Neuer fällt für Rest der Hinrunde aus',
+              title: '> Title - Bayern München: Nationaltorhüter Neuer fällt für Rest der Hinrunde aus',
               url: 'http://www.spiegel.de/sport/fussball/manuel-neuer-nationaltorhueter-faellt-fuer-den-rest-der-hinrunde-aus-a-1168662.html'
             }
           ],
@@ -186,11 +186,11 @@ export default [
         spielTag: '5. Spieltag',
         status: 'FINISHED',
         teamId: '14',
-        title: 'Bayern München Spieltag - Spielplan - Ergebnisse',
+        title: '> Title - Bayern München Spieltag - Spielplan - Ergebnisse',
         url: 'http://www.kicker.de/news/fussball/bundesliga/vereine/1-bundesliga/2017-18/bayern-muenchen-14/vereinsinformationen.html'
       },
       friendlyUrl: 'fcbayern.de',
-      title: 'Home - FC Bayern München'
+      title: '> Title - Home - FC Bayern München'
     },
     c_url: 'http://www.fcbayern.de/',
     type: 'rh',
@@ -222,10 +222,10 @@ export const soccerResults = [
                 description: 'Die Anhänger des Rekordmeisters müssen laut einer Studie in dieser Saison den weitesten Weg zu den Auswärtsspielen zurücklegen - über 7000 Kilometer mehr als die der Eintracht.',
                 domain: 'sport1.de',
                 murl: 'http://m.sport1.de/fussball/bundesliga/2017/09/bundesliga-fans-von-bayern-muenchen-muessen-am-weitesten-reisen',
-                thumbnail: 'https://images.sport1.de/imagix/filter2/jpeg/_set=og_image,focus=51x62/imagix/970b076f-9d20-11e7-b3ce-f80f41fc6a62',
+                thumbnail: 'http://localhost:3000/static/images/sport1_de_soccerResults.jpg',
                 tweet_count: 1
               },
-              title: 'Bundesliga: Fans von Bayern München müssen am weitesten reisen',
+              title: '> Title - Bundesliga: Fans von Bayern München müssen am weitesten reisen',
               url: 'http://www.sport1.de/fussball/bundesliga/2017/09/bundesliga-fans-von-bayern-muenchen-muessen-am-weitesten-reisen'
             },
             {
@@ -234,10 +234,10 @@ export const soccerResults = [
                 description: 'James Rodriguez führt den FC Bayern München am 5. Spieltag bei Schalke 04 zu einem souveränen Sieg - und an die Spitze. Der Kolumbianer ist an allen Toren beteiligt.',
                 domain: 'sport1.de',
                 murl: 'http://m.sport1.de/fussball/bundesliga/2017/09/bundesliga-spielbericht-fc-schalke-04-fc-bayern-muenchen',
-                thumbnail: 'https://images.sport1.de/imagix/filter2/jpeg/_set=og_image,focus=60x41/imagix/52cbf04b-9d75-11e7-b3ce-f80f41fc6a62',
+                thumbnail: 'http://localhost:3000/static/images/sport1_de_soccerResults.jpg',
                 tweet_count: 2
               },
-              title: 'Bundesliga-Spielbericht: FC Schalke 04 - FC Bayern München',
+              title: '> Title - Bundesliga-Spielbericht: FC Schalke 04 - FC Bayern München',
               url: 'http://www.sport1.de/fussball/bundesliga/2017/09/bundesliga-spielbericht-fc-schalke-04-fc-bayern-muenchen'
             },
             {
@@ -246,10 +246,10 @@ export const soccerResults = [
                 description: 'Schock für den FC Bayern München: Keeper Manuel Neuer ist wegen eines Haarrisses im linken Fuß operiert worden. Er hatte sich beim Abschlusstraining vor der Partie auf Schalke erneut am Fuß verletzt.',
                 domain: 'spiegel.de',
                 murl: 'http://m.spiegel.de/sport/fussball/a-1168662.html',
-                thumbnail: 'http://cdn4.spiegel.de/images/image-1191337-galleryV9-vkfw-1191337.jpg',
+                thumbnail: 'http://localhost:3000/static/images/image-1191337-galleryV9-vkfw-1191337.jpg',
                 tweet_count: 14
               },
-              title: 'Bayern München: Nationaltorhüter Neuer fällt für Rest der Hinrunde aus',
+              title: '> Title - Bayern München: Nationaltorhüter Neuer fällt für Rest der Hinrunde aus',
               url: 'http://www.spiegel.de/sport/fussball/manuel-neuer-nationaltorhueter-faellt-fuer-den-rest-der-hinrunde-aus-a-1168662.html'
             }
           ],
@@ -367,11 +367,11 @@ export const soccerResults = [
         spielTag: '5. Spieltag',
         status: 'FINISHED',
         teamId: '14',
-        title: 'Bayern München Spieltag - Spielplan - Ergebnisse',
+        title: '> Title - Bayern München Spieltag - Spielplan - Ergebnisse',
         url: 'http://www.kicker.de/news/fussball/bundesliga/vereine/1-bundesliga/2017-18/bayern-muenchen-14/vereinsinformationen.html'
       },
       friendlyUrl: 'fcbayern.de',
-      title: 'Home - FC Bayern München'
+      title: '> Title - Home - FC Bayern München'
     },
     c_url: 'http://www.fcbayern.de/',
     type: 'rh',

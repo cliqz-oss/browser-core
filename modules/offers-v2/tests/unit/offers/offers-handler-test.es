@@ -7,8 +7,7 @@ const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const beMocks = require('../utils/offers/intent');
 const eventsMock = require('../utils/events');
-const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
-const VALID_OOTW_OFFER_OBJ = require('../utils/offers/data').VALID_OOTW_OFFER_OBJ;
+const { VALID_OFFER_OBJ, VALID_OOTW_OFFER_OBJ } = require('../utils/offers/data');
 const SignalHandlerMock = require('../utils/offers/signals')['offers-v2/signals/signals_handler'].default;
 const ehMocks = require('../utils/offers/event_handler')['offers-v2/event_handler'];
 
@@ -18,35 +17,23 @@ const HistoryMatcherMock = beMocks['offers-v2/backend-connector'].HistoryMatcher
 const CategoryHandlerMock = beMocks['offers-v2/backend-connector'].CategoryHandlerMock;
 const EventHandlerMock = ehMocks.default;
 const buildUrlData = ehMocks.buildUrlData;
+const prefs = commonMocks['core/prefs'].default;
 
 const currentTS = Date.now();
 let latestOffersInstalledTs = 0;
 const currentDayHour = 0;
 const currentWeekDay = 0;
-let getDetailsFromUrlReal;
-let shouldFilterOfferID = '';
 
 let globalActiveCats = new Set();
 
 const cloneObject = obj => JSON.parse(JSON.stringify(obj));
-const cloneOffer = () => cloneObject(VALID_OFFER_OBJ);
-
-const buildOffer = (offerID, campaignID, clientID, displayPriority, filterRules) => {
-  const offer = cloneOffer();
-  if (offerID) { offer.offer_id = offerID; }
-  if (campaignID) { offer.campaign_id = campaignID; }
-  if (clientID) { offer.client_id = clientID; }
-  if (displayPriority) { offer.displayPriority = displayPriority; }
-  if (filterRules) { offer.filterRules = filterRules; }
-  return offer;
+const cloneOffer = (offer = VALID_OFFER_OBJ) => cloneObject(offer);
+const tap = fn => function (...args) {
+  fn(...args);
+  return args[0];
 };
 
-const VALID_4_OFFERS = [
-  buildOffer('o1', 'cid1', 'client1', 0.6),
-  buildOffer('o2', 'cid1', 'client1', 0.4),
-  buildOffer('o3', 'cid2', 'client2', 0.9),
-  buildOffer('o4', 'cid3', 'client3', 0.8),
-];
+const BLACKLIST_URL_PREFIX = 'http://global.blacklist';
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              MOCKS
@@ -88,15 +75,8 @@ export default describeModule('offers-v2/offers/offers-handler',
         init() {}
 
         has(url) {
-          return url.startsWith('http://global.blacklist');
+          return url.startsWith(BLACKLIST_URL_PREFIX);
         }
-      }
-    },
-    './patterns_stat': {
-      default: class {
-        init() {}
-
-        add() {}
       }
     },
     'offers-v2/utils': {
@@ -115,18 +95,7 @@ export default describeModule('offers-v2/offers/offers-handler',
         return latestOffersInstalledTs;
       },
       shouldKeepResource: () => 1,
-      isDeveloper: () => true,
-    },
-    'core/url': {
-      getDetailsFromUrl: function (url) {
-        // we should extract the name here
-        return getDetailsFromUrlReal(url);
-      },
-    },
-    'offers-v2/offers/soft-filter': {
-      default: (offer) => {
-        return !offer || offer.uniqueID === shouldFilterOfferID;
-      }
+      isDeveloper: () => prefs.get('developer'),
     },
     'offers-v2/background': {
       default: {
@@ -149,7 +118,6 @@ export default describeModule('offers-v2/offers/offers-handler',
         persistenceMocks['core/persistence/map'].reset();
         OffersHandler = this.module().default;
         events.clearAll();
-        getDetailsFromUrlReal = (await this.system.import('core/url')).getDetailsFromUrl;
         ImageDownloaderMod = await this.system.import('offers-v2/offers/image-downloader');
         ImageDownloader = ImageDownloaderMod.ImageDownloaderForPush;
         Offer = (await this.system.import('offers-v2/offers/offer')).default;
@@ -172,8 +140,6 @@ export default describeModule('offers-v2/offers/offers-handler',
 
           beforeEach(function () {
             globalActiveCats = new Set();
-
-            shouldFilterOfferID = '';
 
             intentHandlerMock = new IntentHandlerMock();
             backendConnectorMock = new BackendConnectorMock();
@@ -201,7 +167,6 @@ export default describeModule('offers-v2/offers/offers-handler',
                 setTimeout: () => {}, // no timeout for `fetch`
               }),
             });
-            ohandler._notifyAboutUnreadOffers = () => {};
 
             events.clearAll();
             latestOffersInstalledTs = 0;
@@ -216,40 +181,96 @@ export default describeModule('offers-v2/offers/offers-handler',
             }
           }
 
-          function checkEventPushedForOffer(offerID) {
-            const msgs = events.getMessagesForChannel('offers-send-ch');
-            chai.expect(msgs).to.be.not.undefined;
-            chai.expect(msgs).to.be.not.empty;
-            const msg = msgs[0];
-            chai.expect(msg.type).eql('push-offer');
-            chai.expect(msg.origin).eql('offers-core');
-            chai.expect(msg.data.offer_id).eql(offerID);
+          // offer data getters/setters
+          const getOfferAbTestInfo = ({ abTestInfo }) => abTestInfo;
+          const getOfferClientID = ({ client_id: cid }) => cid;
+          const getOfferData = ({ offer_data: offer }) => offer;
+          const getOfferID = ({ offer_id: oid }) => oid;
+          const getOfferMonitorData = ({ monitorData }) => monitorData;
+          const getOfferNotifType = ({ ui_info: { notif_type: nt } }) => nt;
+          const getOfferTemplateData = ({ ui_info: { template_data: td } }) => td;
+          const getOfferVersion = ({ offer_data: { version } }) => version;
+          const getMonitorSignalID = ({ signalID }) => signalID;
+
+          const setOfferAbTestInfo = tap((offer, abTestInfo) => { offer.abTestInfo = abTestInfo; });
+          const setOfferBlacklistPatterns = tap(
+            (offer, blackListPatterns) => { offer.blackListPatterns = blackListPatterns; }
+          );
+          const setOfferCampaignID = tap(
+            (offer, campaignID) => { offer.campaign_id = campaignID; }
+          );
+          const setOfferClientID = tap((offer, clientID) => { offer.client_id = clientID; });
+          const setOfferDisplayPriority = tap(
+            (offer, displayPriority) => { offer.displayPriority = displayPriority; }
+          );
+          const setOfferFilterRules = tap(
+            (offer, filterRules) => { offer.filterRules = filterRules; }
+          );
+          const setOfferID = tap((offer, offerID) => { offer.offer_id = offerID; });
+          const setOfferNotifType = tap(
+            (offer, notifType) => { offer.ui_info.notif_type = notifType; }
+          );
+          const setOfferTriggerOnAdvertiser = tap(
+            (offer, triggerOnAdvertiser) => { offer.trigger_on_advertiser = triggerOnAdvertiser; }
+          );
+          const setOfferVersion = tap((offer, version) => { offer.version = version; });
+          const setMonitorSignalID = tap(
+            (monitor, signalID) => { monitor.signalID = signalID; }
+          );
+          const setMonitorPatterns = tap(
+            (monitor, patterns) => { monitor.patterns = patterns; }
+          );
+
+          const buildOffer = (offerID, campaignID, clientID, displayPriority, filterRules) => {
+            const offer = cloneOffer();
+            if (offerID) { setOfferID(offer, offerID); }
+            if (campaignID) { setOfferCampaignID(offer, campaignID); }
+            if (clientID) { setOfferClientID(offer, clientID); }
+            if (displayPriority) { setOfferDisplayPriority(offer, displayPriority); }
+            if (filterRules) { setOfferFilterRules(offer, filterRules); }
+            return offer;
+          };
+
+          // predicate factories
+          const hasOfferID = offerID => offer => getOfferID(offer) === offerID;
+          const hasOfferVersion = version => offer => getOfferVersion(offer) === version;
+          const hasMonitorSignalID = signalID =>
+            monitor => getMonitorSignalID(monitor) === signalID;
+
+          // queue message getters
+          const getMsgType = ({ type }) => type;
+          const getMsgOrigin = ({ origin }) => origin;
+
+          const isPushOfferMsgFromOffersCore = msg =>
+            getMsgType(msg) === 'push-offer' && getMsgOrigin(msg) === 'offers-core';
+
+          function getPushedOffers() {
+            const msgs = events.getMessagesForChannel('offers-send-ch') || [];
+            return msgs.filter(isPushOfferMsgFromOffersCore).map(({ data }) => data);
           }
 
-          function checkOfferPushed(offerID) {
-            checkEventPushedForOffer(offerID);
-            // TODO: check signal handler here?
-          }
-
-          function getPushedOffer(offerID) {
-            checkEventPushedForOffer(offerID);
-            const msgs = events.getMessagesForChannel('offers-send-ch');
-            return msgs[0].data;
-          }
-
-          function checkZeroOfferPushed() {
-            chai.expect(events.countMsgs('offers-send-ch')).eql(0);
+          function expectSinglePushedOffer(offer) {
+            const pushedOffers = getPushedOffers();
+            chai.expect(pushedOffers.length).to.equal(1);
+            const pushedOffer = getOfferData(pushedOffers[0]);
+            chai.expect(getOfferID(pushedOffer)).to.equal(getOfferID(offer));
+            // assert the offer was not pushed with another notif_type,
+            // e.g. red-dot on advertiser or tooltip unread
+            chai.expect(getOfferNotifType(pushedOffer)).to.equal(getOfferNotifType(offer));
           }
 
           function waitForBEPromise() {
             return Promise.resolve(true);
           }
 
-          function simulateUrlEventsAndWait(urls) {
+          function simulateUrlEventsAndWait(urls = ['http://www.google.com']) {
             const promises = [];
             urls.forEach((u) => {
               const urlData = buildUrlData(u, null, globalActiveCats);
               const catMatches = urlData.getCategoriesMatchTraits();
+              // warning: the internal message queue is currently bypassed
+              // because it returns a queue-based Promise,
+              // not the event processing Promise
               promises.push(ohandler._processEvent({ urlData, catMatches }));
             });
             return Promise.all(promises);
@@ -279,300 +300,14 @@ export default describeModule('offers-v2/offers/offers-handler',
             }
           }
 
-          it('/check offers handler exists', function () {
-            chai.expect(ohandler).to.exist;
-            chai.expect(offersDB).to.exist;
-          });
+          const OFFERS_LIST = [
+            buildOffer('o1', 'cid1', 'client1', 0.9),
+            buildOffer('o2', 'cid1', 'client1', 0.8),
+            buildOffer('o3', 'cid2', 'client2', 0.7),
+            buildOffer('o4', 'cid3', 'client3', 0.6),
+          ];
 
-          it('/check one intent activates offers properly', function () {
-            const mockData = {
-              backendResult: { 'intent-1': [VALID_OFFER_OBJ] },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            return waitForBEPromise().then(() => {
-              // wait for the fetch
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers([VALID_OFFER_OBJ]);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkOfferPushed('x');
-              });
-            });
-          });
-
-          it('/check if offer is fresh installed we do not show an offer', function () {
-            const mockData = {
-              backendResult: { 'intent-1': [VALID_OOTW_OFFER_OBJ] },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // set the latest installed time to the same than current one =>
-            // this should produce freshInstalled = true => do not show offers
-            latestOffersInstalledTs = currentTS;
-            return waitForBEPromise().then(() => {
-              // wait for the fetch
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers([VALID_OOTW_OFFER_OBJ]);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check no offer were pushed
-                checkZeroOfferPushed();
-              });
-            });
-          });
-
-          it('/check showing 3 times same offer can still be shown', function () {
-            const offersList = [
-              buildOffer('o1', 'cid1', 'client1', 0.9),
-              buildOffer('o2', 'cid1', 'client1', 0.8),
-              buildOffer('o3', 'cid2', 'client2', 0.7),
-              buildOffer('o4', 'cid3', 'client3', 0.6),
-            ];
-
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              incOfferActions([offersList[0]], 'offer_dsp_session', 3);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkOfferPushed('o1');
-              });
-            });
-          });
-
-          it('/check showing 3 times 2 offer can still be shown', function () {
-            const offersList = [
-              buildOffer('o1', 'cid1', 'client1', 0.9),
-              buildOffer('o2', 'cid1b', 'client1', 0.8),
-              buildOffer('o3', 'cid2', 'client2', 0.7),
-              buildOffer('o4', 'cid3', 'client3', 0.6),
-            ];
-
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              incOfferActions([offersList[0], offersList[1]], 'offer_dsp_session', 3);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkOfferPushed('o1');
-              });
-            });
-          });
-
-          it('/check adding 4 offers will still show another offer', function () {
-            const offersList = [
-              buildOffer('o1', 'cid1', 'client1', 0.9),
-              buildOffer('o2', 'cid1b', 'client1', 0.8),
-              buildOffer('o3', 'cid2', 'client2', 0.7),
-              buildOffer('o4', 'cid3', 'client3', 0.6),
-              buildOffer('o5', 'cid4', 'client', 0.6),
-              buildOffer('o6', 'cid5', 'client4', 0.6),
-            ];
-
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              incOfferActions([offersList[0], offersList[1], offersList[2], offersList[3]], 'offer_dsp_session', 1);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                checkOfferPushed('o1');
-              });
-            });
-          });
-
-          it('/check adding 5 offers will not show any other offer after', function () {
-            const offersList = [
-              buildOffer('o1', 'cid1', 'client1', 0.9),
-              buildOffer('o2', 'cid1', 'client1', 0.8),
-              buildOffer('o3', 'cid2', 'client2', 0.7),
-              buildOffer('o4', 'cid3', 'client3', 0.6),
-              buildOffer('o5', 'cid4', 'client', 0.6),
-              buildOffer('o6', 'cid5', 'client4', 0.6),
-            ];
-
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              incOfferActions([offersList[0], offersList[1], offersList[2], offersList[3], offersList[4]], 'offer_dsp_session', 1);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkZeroOfferPushed();
-              });
-            });
-          });
-
-          it('/check multiple offers are properly sorted by priority', function () {
-            const mockData = {
-              backendResult: { 'intent-1': VALID_4_OFFERS },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(VALID_4_OFFERS);
-
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkOfferPushed('o3');
-              });
-            });
-          });
-
-          it('/check that filtering offers works', function () {
-            const offersList = [
-              buildOffer('o1', 'cid1', 'client1', 0.9),
-              buildOffer('o2', 'cid1', 'client1', 0.8),
-              buildOffer('o3', 'cid2', 'client2', 0.7),
-              buildOffer('o4', 'cid3', 'client3', 0.6),
-            ];
-            // make o1, o2, o3 invalid since we only have offer-cc
-            offersList[0].rs_dest = ['browser-panel'];
-            offersList[1].rs_dest = ['browser-panel'];
-            offersList[2].rs_dest = ['browser-panel'];
-            // offersList[3].rs_dest = [];
-
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkOfferPushed('o4');
-              });
-            });
-          });
-
-          it('/offer is removed after it doesnt match the soft filters and we proceed to the next', function () {
-            const offersList = [
-              buildOffer('o1', 'cid1', 'client1', 0.1),
-              buildOffer('o2', 'cid2', 'client2', 0.9),
-            ];
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // check that we could push the
-                checkOfferPushed('o2');
-                // sim again and we should show now the o1 offer
-                events.clearAll();
-                shouldFilterOfferID = 'o2';
-                setActiveCategoriesFromOffers(offersList);
-                return simulateUrlEventsAndWait(urls).then(() => {
-                  // check that we could push the
-                  checkOfferPushed('o1');
-                });
-              });
-            });
-          });
-
-          function prepareTriggerOffers(offersList) {
+          function prepareTriggerOffers(offersList = OFFERS_LIST) {
             const mockData = {
               backendResult: { 'intent-1': offersList },
             };
@@ -581,6 +316,7 @@ export default describeModule('offers-v2/offers/offers-handler',
               { name: 'intent-1', active: true },
             ];
             intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+            return offersList;
           }
 
           function triggerOffers(offersList, urls = ['http://www.google.com']) {
@@ -588,229 +324,329 @@ export default describeModule('offers-v2/offers/offers-handler',
             return simulateUrlEventsAndWait(urls);
           }
 
+          it('/check offers handler exists', function () {
+            chai.expect(ohandler).to.exist;
+            chai.expect(offersDB).to.exist;
+          });
+
+          it('/check one intent activates offers properly', async () => {
+            const offer = cloneOffer();
+            const offersList = [offer];
+            prepareTriggerOffers(offersList);
+
+            await waitForBEPromise();
+            await triggerOffers(offersList);
+
+            expectSinglePushedOffer(offersList[0]);
+          });
+
+          context('/production version', () => {
+            const devFlag = prefs.get('developer');
+            before(() => {
+              prefs.set('developer', false);
+            });
+            after(() => {
+              prefs.set('developer', devFlag);
+            });
+            it('/check if offer is fresh installed we do not show an offer', async () => {
+              const offer = cloneOffer(VALID_OOTW_OFFER_OBJ);
+              const offersList = [offer];
+              prepareTriggerOffers(offersList);
+
+              // set the latest installed time to the same than current one =>
+              // this should produce freshInstalled = true => do not show offers
+              latestOffersInstalledTs = currentTS;
+
+              await waitForBEPromise();
+              await triggerOffers(offersList);
+
+              chai.expect(getPushedOffers()).to.be.empty;
+            });
+          });
+
+          it('/check showing 3 times same offer can still be shown', async () => {
+            const offersList = prepareTriggerOffers();
+
+            await waitForBEPromise();
+            incOfferActions([offersList[0]], 'offer_dsp_session', 3);
+            await triggerOffers(offersList);
+
+            expectSinglePushedOffer(offersList[0]);
+          });
+
+          it('/check showing 3 times 2 offer can still be shown', async () => {
+            const offersList = prepareTriggerOffers([
+              buildOffer('o1', 'cid1', 'client1', 0.9),
+              buildOffer('o2', 'cid1b', 'client1', 0.8),
+              buildOffer('o3', 'cid2', 'client2', 0.7),
+              buildOffer('o4', 'cid3', 'client3', 0.6),
+            ]);
+
+            await waitForBEPromise();
+            incOfferActions([offersList[0], offersList[1]], 'offer_dsp_session', 3);
+            await triggerOffers(offersList);
+
+            expectSinglePushedOffer(offersList[0]);
+          });
+
+          it('/check adding 4 offers will still show another offer', async () => {
+            const offersList = prepareTriggerOffers([
+              buildOffer('o1', 'cid1', 'client1', 0.9),
+              buildOffer('o2', 'cid1b', 'client1', 0.8),
+              buildOffer('o3', 'cid2', 'client2', 0.7),
+              buildOffer('o4', 'cid3', 'client3', 0.6),
+              buildOffer('o5', 'cid4', 'client', 0.6),
+              buildOffer('o6', 'cid5', 'client4', 0.6),
+            ]);
+
+            await waitForBEPromise();
+            incOfferActions([offersList[0], offersList[1], offersList[2], offersList[3]], 'offer_dsp_session', 1);
+            await triggerOffers(offersList);
+
+            expectSinglePushedOffer(offersList[0]);
+          });
+
+          it('/check adding 5 offers will not show any other offer after', async () => {
+            const offersList = prepareTriggerOffers([
+              buildOffer('o1', 'cid1', 'client1', 0.9),
+              buildOffer('o2', 'cid1', 'client1', 0.8),
+              buildOffer('o3', 'cid2', 'client2', 0.7),
+              buildOffer('o4', 'cid3', 'client3', 0.6),
+              buildOffer('o5', 'cid4', 'client', 0.6),
+              buildOffer('o6', 'cid5', 'client4', 0.6),
+            ]);
+
+            await waitForBEPromise();
+            incOfferActions([offersList[0], offersList[1], offersList[2], offersList[3], offersList[4]], 'offer_dsp_session', 1);
+            await triggerOffers(offersList);
+
+            const o6 = getPushedOffers().find(hasOfferID('o6'));
+            chai.expect(o6).to.be.undefined;
+          });
+
+          it('/check multiple offers are properly sorted by priority', async () => {
+            const offersList = prepareTriggerOffers([
+              buildOffer('o1', 'cid1', 'client1', 0.6),
+              buildOffer('o2', 'cid1', 'client1', 0.4),
+              buildOffer('o3', 'cid2', 'client2', 0.9),
+              buildOffer('o4', 'cid3', 'client3', 0.8),
+            ]);
+
+            await waitForBEPromise();
+            await triggerOffers(offersList);
+
+            expectSinglePushedOffer(offersList[2]);
+          });
+
+          it('/check that filtering offers works', async () => {
+            const offersList = cloneObject(OFFERS_LIST);
+            // make o1, o2, o3 invalid since we only have offer-cc
+            offersList[0].rs_dest = ['browser-panel'];
+            offersList[1].rs_dest = ['browser-panel'];
+            offersList[2].rs_dest = ['browser-panel'];
+            // offersList[3].rs_dest = [];
+            prepareTriggerOffers(offersList);
+
+            await waitForBEPromise();
+            await triggerOffers(offersList);
+
+            expectSinglePushedOffer(offersList[3]);
+          });
+
+          it('/offer is removed after it doesnt match the soft filters and we proceed to the next', async () => {
+            const offersList = prepareTriggerOffers([
+              buildOffer('o1', 'cid1', 'client1', 0.1),
+              buildOffer('o2', 'cid2', 'client2', 0.9),
+            ]);
+
+            await waitForBEPromise();
+            await triggerOffers(offersList);
+
+            expectSinglePushedOffer(offersList[1]);
+
+            // sim again and we should show now the o1 offer
+            events.clearAll();
+
+            await simulateUrlEventsAndWait();
+
+            expectSinglePushedOffer(offersList[0]);
+          });
+
           // This test actually checks selection by display priority
-          it('/if offer of same campaign exists we replace and show that one', function () {
-            const offersList = [
+          it('/if offer of same campaign exists we replace and show that one', async () => {
+            const offersList = prepareTriggerOffers([
               buildOffer('o1', 'cid1', 'client1', 0.1),
               buildOffer('o2', 'cid1', 'client1', 0.9),
-            ];
-            prepareTriggerOffers(offersList);
-            // wait for the fetch
-            return waitForBEPromise()
-              .then(() => triggerOffers(offersList))
-              .then(() => {
-                // check that we could push
-                checkOfferPushed('o2');
-                events.clearAll();
+            ]);
+            await waitForBEPromise();
+            await triggerOffers(offersList);
 
-                // we now should get again the same offer since it is stored on the DB
-                return triggerOffers(offersList).then(() => {
-                  //
-                  checkOfferPushed('o2');
-                });
-              });
+            expectSinglePushedOffer(offersList[1]);
+
+            events.clearAll();
+
+            // we now should get again the same offer since it is stored on the DB
+            await simulateUrlEventsAndWait();
+
+            expectSinglePushedOffer(offersList[1]);
           });
 
           context('/some offer in DB is of the same campaign', () => {
             const campaignId = 'cid';
             const dboffer = buildOffer('oid', campaignId, 'client', 1);
 
-            it('/drop a new offer variant ', () => {
-              offersDB.addOfferObject(dboffer.offer_id, dboffer);
+            it('/drop a new offer variant ', async () => {
+              offersDB.addOfferObject(getOfferID(dboffer), dboffer);
               const newCampaignOffer = buildOffer('onew', campaignId, 'client', 1);
               prepareTriggerOffers([newCampaignOffer]);
-              return waitForBEPromise()
+              await waitForBEPromise();
 
-                .then(() => triggerOffers([newCampaignOffer]))
+              await triggerOffers([newCampaignOffer]);
 
-                .then(() => {
-                  const newOfferInDb = offersDB.getOfferObject('onew');
-                  chai.expect(newOfferInDb, 'Offer should not be added').is.null;
-                });
+              const newOfferInDb = offersDB.getOfferObject('onew');
+              chai.expect(newOfferInDb, 'Offer should not be added').is.null;
             });
 
-            it('/inherit ab-info', () => {
-              const setAbInfo = function (offer, start, end) {
-                offer.abTestInfo = { start, end };
-              };
-              setAbInfo(dboffer, 0, 10000);
-              const offerId = dboffer.offer_id;
+            it('/inherit ab-info', async () => {
+              setOfferAbTestInfo(dboffer, { start: 0, end: 10000 });
+              const offerId = getOfferID(dboffer);
               offersDB.addOfferObject(offerId, dboffer);
-              const updatingOffer = buildOffer(offerId, campaignId, dboffer.client_id, 1);
-              setAbInfo(updatingOffer, -100, -50);
-              updatingOffer.ui_info.template_data.desc = 'Updated description';
-              updatingOffer.version = 'new-version';
+              const updatingOffer = buildOffer(offerId, campaignId, getOfferClientID(dboffer), 1);
+              setOfferAbTestInfo(updatingOffer, { start: -100, end: -50 });
+              getOfferTemplateData(updatingOffer).desc = 'Updated description';
+              setOfferVersion(updatingOffer, 'new-version');
               prepareTriggerOffers([updatingOffer]);
-              return waitForBEPromise()
 
-                .then(() => triggerOffers([updatingOffer]))
+              await waitForBEPromise();
+              await triggerOffers([updatingOffer]);
 
-                .then(() => {
-                  const updatedOffer = offersDB.getOfferObject(offerId);
-                  chai.expect(updatedOffer.abTestInfo).to.eql({
-                    start: 0, end: 10000
-                  });
-                  chai.expect(updatedOffer.ui_info.template_data.desc)
-                    .to.be.equal('Updated description');
-                });
+              const updatedOffer = offersDB.getOfferObject(offerId);
+              chai.expect(getOfferAbTestInfo(updatedOffer)).to.eql({
+                start: 0, end: 10000
+              });
+              chai.expect(getOfferTemplateData(updatedOffer).desc)
+                .to.be.equal('Updated description');
             });
           });
 
-          it('/offers that fail when trying to update are discarded', function () {
+          it('/offers that fail when trying to update are discarded', async () => {
             const goodOffer = buildOffer('o1', 'cid1', 'client1', 0.9);
             // clone the offer but update the version
-            const clonedOffer = cloneObject(goodOffer);
-            clonedOffer.version = 'other';
+            const badOffer = cloneObject(goodOffer);
+            setOfferVersion(badOffer, 'bad');
             // NOTE THAT WE NOW SUPPORT MIGRATION OF display id
-            clonedOffer.campaign_id = 'wrong-cid-id';
+            setOfferCampaignID(badOffer, 'wrong-cid-id');
 
             // add the good offer to the DB
             updateOfferOnDB(goodOffer);
 
-            const mockData = {
-              backendResult: { 'intent-1': [clonedOffer] },
-            };
-            configureMockData(mockData);
+            prepareTriggerOffers([badOffer]);
 
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+            await waitForBEPromise();
+            await triggerOffers([badOffer]);
 
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.com',
-              ];
-              setActiveCategoriesFromOffers([clonedOffer]);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // we should check no offers were push since its invalid one
-                checkZeroOfferPushed();
-              });
-            });
+            const badVersion = getPushedOffers().find(hasOfferVersion('bad'));
+            chai.expect(badVersion).to.be.undefined;
           });
 
-          it('/blacklist works', function () {
-            const offersList = [
-              buildOffer('o1', 'cid1', 'client1', 0.1),
-            ];
-            offersList[0].blackListPatterns = ['||google.de'];
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
+          it('/blacklist works', async () => {
+            const offer = buildOffer('o1', 'cid1', 'client1', 0.1);
+            const offersList = [offer];
+            setOfferBlacklistPatterns(offer, ['||google.de']);
+            prepareTriggerOffers(offersList);
 
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+            await waitForBEPromise();
+            await triggerOffers(offersList, ['http://www.google.de']);
 
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.google.de',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                // none of the offers should be pushed
-                checkZeroOfferPushed();
+            // none of the offers should be pushed
+            chai.expect(getPushedOffers()).to.be.empty;
 
-                // now we should push again and with anything except google.de and
-                // should work
-                urls[0] = 'http://www.amazon.de';
-                events.clearAll();
-                setActiveCategoriesFromOffers(offersList);
-                return simulateUrlEventsAndWait(urls).then(() => {
-                  // check that we could push the
-                  checkOfferPushed('o1');
-                });
-              });
-            });
+            // now we should push again and with anything except google.de and should work
+            events.clearAll();
+            await simulateUrlEventsAndWait(['http://www.amazon.de']);
+
+            expectSinglePushedOffer(offersList[0]);
           });
 
-          it('/blacklist works and keeps the offer on the list', function () {
+          it('/blacklist works and keeps the offer on the list', async () => {
             const offersList = [
               buildOffer('o1', 'cid1', 'client1', 0.1),
               buildOffer('o2', 'cid2', 'client2', 0.2),
             ];
-            offersList[0].blackListPatterns = ['||google.de'];
-            offersList[1].blackListPatterns = ['||yahoo.de'];
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
-
-            // wait for the fetch
-            return waitForBEPromise().then(() => {
-              const urls = [
-                'http://www.yahoo.de',
-              ];
-              setActiveCategoriesFromOffers(offersList);
-              return simulateUrlEventsAndWait(urls).then(() => {
-                checkOfferPushed('o1');
-
-                // now we should push again and with google.de and should work
-                urls[0] = 'http://www.amazon.de';
-                events.clearAll();
-                setActiveCategoriesFromOffers(offersList);
-                return simulateUrlEventsAndWait(urls).then(() => {
-                  // check that we could push the
-                  checkOfferPushed('o2');
-
-                  // now we should push again and with google.de and should work
-                  urls[0] = 'http://www.focus.de';
-                  events.clearAll();
-                  setActiveCategoriesFromOffers(offersList);
-                  return simulateUrlEventsAndWait(urls).then(() => {
-                    // check that we could push the
-                    checkOfferPushed('o2');
-                  });
-                });
-              });
-            });
-          });
-
-          it('/we can show the same offer multiple times if no filter happens', async function () {
-            const offersList = [
-              buildOffer('o1', 'cid1', 'client1', 0.1),
-              buildOffer('o2', 'cid2', 'client2', 0.9),
-            ];
-            const mockData = {
-              backendResult: { 'intent-1': offersList },
-            };
-            configureMockData(mockData);
-
-            // activate intents
-            const intents = [
-              { name: 'intent-1', active: true },
-            ];
-            intents.forEach(i => intentHandlerMock.activateIntentMock(i));
+            setOfferBlacklistPatterns(offersList[0], ['||google.de']);
+            setOfferBlacklistPatterns(offersList[1], ['||yahoo.de']);
+            prepareTriggerOffers(offersList);
 
             await waitForBEPromise();
-            const urls = ['http://www.google.com'];
-            setActiveCategoriesFromOffers(offersList);
+            await triggerOffers(offersList, ['http://www.yahoo.de']);
 
+            // highest display priority is blacklisted -> lower display priority
+            expectSinglePushedOffer(offersList[0]);
+
+            events.clearAll();
+            await simulateUrlEventsAndWait(['http://www.amazon.de']);
+
+            // none are blacklisted -> highest display priority
+            expectSinglePushedOffer(offersList[1]);
+
+            events.clearAll();
+            await simulateUrlEventsAndWait(['http://www.focus.de']);
+
+            expectSinglePushedOffer(offersList[1]);
+          });
+
+          it(`/global blacklist filter is overridden on offer's advertiser url and offer is published as "dot" notif_type
+when its trigger_on_advertiser property is true and its real estates include "offers-cc"`, async () => {
+            const BLACKLIST_ADVERTISER_URL = `${BLACKLIST_URL_PREFIX}.advertiser.com`;
+
+            // create an offer with a trigger_on_advertiser property set to true,
+            // a 'popup' notif_type, real estates including 'offers-cc',
+            // and a page_imp monitor for the blacklisted url
+            const offerID = 'offer-with-trigger-on-advertiser';
+            const offer = buildOffer(offerID, 'cid', 'client'); // real estates already include "offers-cc"
+            setOfferTriggerOnAdvertiser(offer, true);
+            setOfferNotifType(offer, 'popup');
+            const monitor = getOfferMonitorData(offer).find(hasMonitorSignalID('success'));
+            setMonitorSignalID(monitor, 'page_imp');
+            const { hostname } = new URL(BLACKLIST_ADVERTISER_URL);
+            setMonitorPatterns(monitor, [`||${hostname}$script`]);
+
+            const offersList = [offer];
+            prepareTriggerOffers(offersList);
+
+            await waitForBEPromise();
+            await triggerOffers(offersList, [BLACKLIST_ADVERTISER_URL]);
+
+            const pushedOffers = getPushedOffers();
+            chai.expect(pushedOffers.length).to.equal(1);
+            const pushedOffer = getOfferData(pushedOffers[0]);
+            chai.expect(getOfferID(pushedOffer)).to.equal(offerID);
+            chai.expect(getOfferNotifType(pushedOffer)).to.equal('dot'); // instead of popup
+          });
+
+          it('/we can show the same offer multiple times if no filter happens', async () => {
+            const offersList = prepareTriggerOffers([
+              buildOffer('o1', 'cid1', 'client1', 0.1),
+              buildOffer('o2', 'cid2', 'client2', 0.9),
+            ]);
+
+            await waitForBEPromise();
             // activate offer selection
-            await simulateUrlEventsAndWait(urls);
-            checkOfferPushed('o2');
+            await triggerOffers(offersList);
+
+            expectSinglePushedOffer(offersList[1]); // highest display priority
             events.clearAll();
 
             // again (but this time the competing offer wins)
-            await simulateUrlEventsAndWait(urls);
-            checkOfferPushed('o1');
+            await simulateUrlEventsAndWait();
+
+            expectSinglePushedOffer(offersList[0]);
             events.clearAll();
 
             // and again (the first offer wins and is shown again)
-            await simulateUrlEventsAndWait(urls);
-            checkOfferPushed('o2');
+            await simulateUrlEventsAndWait();
+
+            expectSinglePushedOffer(offersList[1]);
           });
 
           it('/context filters works for offers categories not activated recently', async () => {
@@ -826,61 +662,53 @@ export default describeModule('offers-v2/offers/offers-handler',
             prepareTriggerOffers(offersList);
             await waitForBEPromise();
 
-            const urls = [
-              'http://www.google.com',
-            ];
-            const activateAndCheck = async (activeCatsOffers, expectedPushedOffer) => {
-              setActiveCategoriesFromOffers(activeCatsOffers);
-              await simulateUrlEventsAndWait(urls);
-              checkOfferPushed(expectedPushedOffer);
-              events.clearAll();
-            };
-
             // activate only categories of offer 1 and 2 only
-            let activeCatsOffers = [
-              offersList[0],
-              offersList[1],
-            ];
-            await activateAndCheck(activeCatsOffers, 'o2');
+            await triggerOffers([offersList[0], offersList[1]]);
+
+            expectSinglePushedOffer(offersList[1]); // highest display priority
+            events.clearAll();
 
             // activate now 1 and 3
-            activeCatsOffers = [
-              offersList[0],
-              offersList[2],
-            ];
-            await activateAndCheck(activeCatsOffers, 'o3');
+            await triggerOffers([offersList[0], offersList[2]]);
+
+            expectSinglePushedOffer(offersList[2]); // highest display priority
+            events.clearAll();
 
             // activate now 1 only
-            activeCatsOffers = [
-              offersList[0],
-            ];
-            await activateAndCheck(activeCatsOffers, 'o1');
+            await triggerOffers([offersList[0]]);
+
+            expectSinglePushedOffer(offersList[0]);
           });
 
           it('/store how offer was matched', async () => {
             const offer = buildOffer('oid', 'cid', 'client', 1);
-            prepareTriggerOffers([offer]);
+            const offersList = prepareTriggerOffers([offer]);
             await waitForBEPromise();
 
-            await triggerOffers([offer]);
+            await triggerOffers(offersList);
 
-            const r = offersDB.getReasonForHaving(offer.offer_id);
-            const expected = [{ pattern: 'SomeMatchPattern',
-              domainHash: '1d5920f4b44b27a802bd77c4f0536f5a' }];
+            const r = offersDB.getReasonForHaving(getOfferID(offer));
+            const expected = [{
+              pattern: 'SomeMatchPattern',
+              domainHash: '1d5920f4b44b27a802bd77c4f0536f5a'
+            }];
             chai.expect(r.getReason()).is.eql(expected);
           });
 
           it('/check offer of the week is pushed', async () => {
-            prepareTriggerOffers([VALID_OOTW_OFFER_OBJ]);
+            const offer = cloneOffer(VALID_OOTW_OFFER_OBJ);
+            const offersList = prepareTriggerOffers([offer]);
             await waitForBEPromise();
 
-            await triggerOffers([VALID_OOTW_OFFER_OBJ]);
+            await triggerOffers(offersList);
 
-            checkOfferPushed(VALID_OOTW_OFFER_OBJ.offer_id);
+            expectSinglePushedOffer(offer);
           });
 
           describe('/augment offer with pre-downloaded images, seen by push and offerDB', () => {
             const offer = cloneObject(VALID_OFFER_OBJ);
+            const offerID = getOfferID(offer);
+            const offersList = [offer];
 
             beforeEach(() => {
               offer.ui_info.template_data = {
@@ -892,19 +720,13 @@ export default describeModule('offers-v2/offers/offers-handler',
               };
             });
 
-            async function triggerOffer() {
-              prepareTriggerOffers([offer]);
-              await waitForBEPromise();
-              await triggerOffers([offer]);
-            }
-
             function getPushedAndDbOfers() {
-              const pushedOffer = new Offer(getPushedOffer(offer.offer_id).offer_data);
-              const dbOffer = new Offer(offersDB.getOfferObject(offer.offer_id));
-              return [pushedOffer, dbOffer];
+              const pushedOffer = getPushedOffers().find(hasOfferID(offerID));
+              const dbOffer = offersDB.getOfferObject(offerID);
+              return [getOfferData(pushedOffer), dbOffer].map(o => new Offer(o));
             }
 
-            function checkDataurlInOffer(
+            function expectDataurlInOffer(
               expectedLogoDataurl = 'data:image/smth;base64,c29tZSBkYXRh',
               expectedPictureDataurl = 'data:image/smth;base64,YW5vdGhlciBkYXRh'
             ) {
@@ -921,25 +743,33 @@ export default describeModule('offers-v2/offers/offers-handler',
             it('/new offer', async () => {
               chai.expect(offersDB.getOfferObject(offer.offer_id)).is.null;
 
-              await triggerOffer();
+              prepareTriggerOffers(offersList);
 
-              checkDataurlInOffer();
+              await waitForBEPromise();
+              await triggerOffers(offersList);
+
+              expectDataurlInOffer();
             });
 
             it('/offer already in database', async () => {
               offersDB.addOfferObject(offer.offer_id, offer);
+              prepareTriggerOffers(offersList);
 
-              await triggerOffer();
+              await waitForBEPromise();
+              await triggerOffers(offersList);
 
-              checkDataurlInOffer();
+              expectDataurlInOffer();
             });
 
             it('/on error, use url for pushed offer', async () => {
               const fakeFailUrl = 'fake://?status=404';
-              offer.ui_info.template_data.logo_url = fakeFailUrl;
-              offer.ui_info.template_data.picture_url = fakeFailUrl;
+              const template = getOfferTemplateData(offer);
+              template.logo_url = fakeFailUrl;
+              template.picture_url = fakeFailUrl;
+              prepareTriggerOffers(offersList);
 
-              await triggerOffer();
+              await waitForBEPromise();
+              await triggerOffers(offersList);
 
               const [pushedOffer] = getPushedAndDbOfers();
               chai.expect(pushedOffer.getLogoDataurl()).to.eq(fakeFailUrl);

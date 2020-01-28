@@ -12,5 +12,7 @@ const IS_BETA = process.env.CLIQZ_BETA === 'True';
 module.exports = {
   [env]: true,
   IS_BETA,
-  INCLUDE_TESTS: process.env.CLIQZ_INCLUDE_TESTS || env === 'TESTING',
+  INCLUDE_TESTS: process.env.CLIQZ_INCLUDE_TESTS,
+  SOURCE_MAPS: !(process.env.CLIQZ_SOURCE_MAPS === 'false'),
+  DEBUG_PAGES: !(process.env.CLIQZ_SOURCE_DEBUG === 'false'),
 };

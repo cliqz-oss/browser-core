@@ -20,7 +20,6 @@ const R = require('ramda');
 const FileHound = require('filehound');
 
 const stripJsonComments = require('strip-json-comments');
-const urlImports = require('../../core/unit/utils/url-parser');
 
 function jsonParse(text) {
   return JSON.parse(stripJsonComments(text));
@@ -84,7 +83,6 @@ export default describeModule('human-web/content-extractor',
         };
       } }
     },
-    ...urlImports,
   }),
   () => {
     describe('ContentExtractor', function () {

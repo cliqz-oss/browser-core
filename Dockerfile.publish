@@ -1,4 +1,4 @@
-FROM node:11-stretch
+FROM node:lts-stretch
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -37,8 +37,6 @@ RUN groupadd jenkins -g $GID \
 
 RUN mkdir /app
 RUN chown jenkins:jenkins -R /app
-
-RUN npm install -g npm@latest yarn
 
 USER jenkins
 

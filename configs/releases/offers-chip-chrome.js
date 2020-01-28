@@ -21,7 +21,7 @@ module.exports = Object.assign({}, configBase, {
     channel: 'MC10', // CHIP Sparalarm Chrome Release
     OFFERS_CHANNEL: 'chip',
     OFFERS_BRAND: 'chip',
-    ONBOARDING_URL: 'https://sparalarm.chip.de/onboarding',
+    ONBOARDING_URL: 'https://sparalarm.chip.de/onboarding#step-0',
     OFFBOARDING_URL: 'https://sparalarm.chip.de/offboarding',
     SUPPORTED_LANGS: ['de'],
     'dynamic-offers.enabled': false,

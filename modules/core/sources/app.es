@@ -16,8 +16,6 @@ import Module from './app/module';
 import { setApp } from './kord';
 import console, { isLoggingEnabled, enable as enableConsole, disable as disableConsole } from './console';
 import Logger from './logger';
-import telemetry from './services/telemetry';
-import { enableChangeEvents, disableChangeEvents } from '../platform/browser';
 import Defer from './helpers/defer';
 import { getChannel } from '../platform/demographics';
 import createSettings from './settings';
@@ -79,14 +77,16 @@ export default class App {
      */
     this.services = Object.create(null);
 
+    this._browser = browser;
+
     this._startedDefer = new Defer();
 
     config.modules.forEach((moduleName) => {
-      const module = new Module(moduleName, this.settings, browser);
+      const module = new Module(moduleName);
 
       // special handling for core as it is not really a module and it manages app state
-      if (moduleName === 'core' && module.backgroundModule) {
-        module.backgroundModule.app = this;
+      if (moduleName === 'core' && module.background) {
+        module.background.app = this;
       }
 
       this.modules[moduleName] = module;
@@ -143,62 +143,12 @@ export default class App {
     }
     await this.setupPrefs();
     await this.load();
-    enableChangeEvents();
     this.injectHelpers();
   }
 
-  /**
-   * Stops the Cliqz App
-   *
-   * @method stop
-   * @params {boolean} isShutdown
-   * @params {boolean} disable
-   * @params {string} telemetrySignal
-   */
-  stop(isShutdown, disable, telemetrySignal) {
+  stop() {
     this.isRunning = false;
-    // NOTE: Disable this warning locally since the solution is hacky anyway.
-    /* eslint-disable no-param-reassign */
-
-    telemetry.push({
-      type: 'activity',
-      action: telemetrySignal,
-      lifecyle: 'stop'
-    }, undefined, true /* force push */);
-
-    /*
-     *
-     *  There are different reasons on which extension does shutdown:
-     *  https://developer.mozilla.org/en-US/Add-ons/Bootstrapped_extensions#Reason_constants
-     *
-     *  We handle them differently:
-     *  * APP_SHUTDOWN - nothing need to be unloaded as browser shutdown, but
-     *      there may be data that we may like to persist
-     *  * ADDON_DISABLE, ADDON_UNINSTALL - full cleanup + bye bye messages
-     *  * ADDON_UPGRADE, ADDON_DOWNGRADE - fast cleanup
-     *
-     */
-
-    if (disable && this.settings.channel === '40') {
-      // in the Cliqz browser the extension runns as a system addon and
-      // the user cannot disable or uninstall it. Therefore we do not need
-      // to consider an uninstall signal.
-      //
-      // we need this override to avoid an issue in FF52. Please check:
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1351617
-      //
-      // TODO: find a nicer way to detect if this runs in the Cliqz browser
-      disable = false;
-    }
-
-    if (isShutdown) {
-      this.unload();
-      return;
-    }
-
     this.unload();
-
-    disableChangeEvents();
   }
 
   get moduleList() {
@@ -221,7 +171,7 @@ export default class App {
 
     setupConsole();
 
-    await migrate();
+    await migrate(this);
 
     this.prefchangeEventListener = subscribe('prefchange', this.onPrefChange, this);
   }
@@ -232,9 +182,10 @@ export default class App {
         // service is initialized only once, so calling init multiple times is fine
         async (serviceName) => {
           try {
-            await this.services[serviceName].init(this);
+            await this.services[serviceName].init(this, this._browser);
           } catch (e) {
             console.error('App', 'cannot load service', serviceName, e);
+            throw e;
           }
         }
       )
@@ -258,19 +209,26 @@ export default class App {
    * @method loadModule
    * @private
    */
-  loadModule(module) {
-    if (module.isEnabled || module.isEnabling) {
-      console.log('App', 'loadModule', 'module already loaded');
-      return module.isReady();
+  async loadModule(module) {
+    try {
+      await this.prepareServices(module.requiredServices);
+
+      const services = {};
+      const scopedServices = await Promise.all(
+        module.requiredServices.map(
+          serviceName => this.services[serviceName].moduleFactory(module.name)
+        )
+      );
+      module.requiredServices.forEach((serviceName, i) => {
+        services[serviceName] = scopedServices[i];
+      });
+
+      await module.enable(this.settings, this._browser, {
+        services,
+      });
+    } catch (e) {
+      console.error('App', 'Error on loading module:', module.name, e);
     }
-
-    module.markAsEnabling();
-
-    return this.prepareServices(module.requiredServices).then(
-      () => module.enable()
-        .catch(e => console.error('App', 'Error on loading module:', module.name, e)),
-      e => console.error('App', 'Error on loading services', e)
-    );
   }
 
   /**
@@ -285,7 +243,7 @@ export default class App {
 
     // all modules start in undefined state
     // they have to be marked as disabled so they wont accept kord actions
-    disabledModules.forEach(m => m.markAsDisabled());
+    disabledModules.forEach(m => m.disable());
 
     // we load core first before any other module
     return this.loadModule(core)
@@ -369,18 +327,18 @@ export default class App {
    * @params {string} moduleName - name of the module
    * @returns {Promise}
    */
-  enableModule(moduleName) {
+  async enableModule(moduleName) {
     const module = this.modules[moduleName];
+    if (module.isEnabled || !this.isRunning) {
+      return;
+    }
+
+    await (module.isEnabling ? module.isReady() : this.loadModule(module));
+
     const prefName = `modules.${moduleName}.enabled`;
     if (prefs.has(prefName) && prefs.get(prefName) !== true) {
       prefs.set(prefName, true);
     }
-
-    if (module.isEnabled || !this.isRunning) {
-      return Promise.resolve();
-    }
-
-    return module.isEnabling ? module.isReady() : this.loadModule(module);
   }
 
   /**
@@ -389,31 +347,30 @@ export default class App {
    * It sets the `modules.<moduleName>.enabled` pref to false. So if called
    * before startup, it will prevent module start.
    *
-   * It returns a Promsie but side effects synchronously.
-   * If module did not finish initilizaton it waits and then disable it.
+   * It returns a Promise but side effects synchronously.
+   * If module did not finish initialization it waits and then disable it.
    *
    * @method disableModule
    * @param {string} moduleName - name of a module
    * @returns {Promise}
    */
-  disableModule(moduleName) {
+  async disableModule(moduleName) {
     const module = this.modules[moduleName];
+
+    if (module.isNotInitialized || module.isDisabled || !this.isRunning) {
+      return;
+    }
+
+    if (module.isEnabling) {
+      await module.isReady();
+    }
+
+    module.disable(); // intentionally not waiting
+
     const prefName = `modules.${moduleName}.enabled`;
     if (!prefs.has(prefName) || prefs.get(prefName) !== false) {
       prefs.set(prefName, false);
     }
-
-    if (module.isNotInitialized || module.isDisabled || !this.isRunning) {
-      return Promise.resolve();
-    }
-
-    if (module.isEnabling) {
-      return module.isReady().then(() => module.disable());
-    }
-
-    module.disable();
-
-    return Promise.resolve();
   }
 
   ready() {

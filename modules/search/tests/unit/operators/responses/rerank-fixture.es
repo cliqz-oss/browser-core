@@ -17,7 +17,7 @@ const resultsBeforeRerank = [
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         provider: 'instant',
         suggestion: 'fc bayern ',
@@ -186,7 +186,7 @@ const resultsBeforeRerank = [
           description: 'Magere Auftritte gegen Mainz, SV Rödinghausen und den SC Freiburg setzen Trainer Niko Kovac beim Fußball-Bundesligisten Bayern München unter Druck. Peter Neururer, Ex-Coach des VfL Bochum, fand nun klare Worte.',
           domain: 'weltfussball.de',
           murl: 'https://www.weltfussball.de/news/_n3421336_/neururer-sicher-bayern-muenchen-ist-schwaecher-geworden/',
-          thumbnail: 'https://imgr.cliqz.com/AB_-IoZ7fJWCGCrpox0MWpWuiKFyz3duHvXiTSKnNSE/fill/0/200/no/1/aHR0cHM6Ly9zLmhzLWRhdGEuY29tL3BpY21vbi8xMy8yT2p5X2U4MkRkaF9sLmpwZw.jpg'
+          thumbnail: 'http://localhost:3000/static/images/2Ojy_e82Ddh_l.jpg'
         },
         kind: [
 
@@ -216,7 +216,7 @@ const resultsBeforeRerank = [
           description: 'Sportliche Krise, Zweifel am Trainer und Spitzenspiel gegen den BVB vor der Brust: Rund um den FC Bayern ist im Moment eine Menge los.',
           domain: 'goal.com',
           murl: 'https://www.goal.com/de/meldungen/fc-bayern-muenchen-news-transfer-geruechte-fcb-goretzka-bvb/1l6y11t0bf3dp17ncqiu5u9lz1',
-          thumbnail: 'https://imgr.cliqz.com/Jm3-6O2rCY5OY1xAGKqwGUJybSd_qkzRF_Wv70pgIFk/fill/0/200/no/1/aHR0cHM6Ly9pbWFnZXMucGVyZm9ybWdyb3VwLmNvbS9kaS9saWJyYXJ5L0dPQUwvYzAvYzYvamF2aS1tYXJ0aW5lei1iYXllcm4tMDQxMTIwMThfYmFvanBvcm4xM3B3MTR0YXA1dmpueWU2NC5qcGc_dD0tNDA0OTE3OTA2JnF1YWxpdHk9MTAwJmg9MzAw.png'
+          thumbnail: 'http://localhost:3000/static/images/javi-martinez-bayern-04112018_baojporn13pw14tap5vjnye64.jpg?t=-404917906&quality=100&h=300'
         },
         kind: [
 
@@ -246,7 +246,7 @@ const resultsBeforeRerank = [
           description: 'Seit ihrem kritischen Instagram-Post am Samstag kehrt bei Lisa Müller, der Ehefrau von FC-Bayern-Star Thomas Müller, einfach keine Ruhe mehr ein.Während des...',
           domain: 'derwesten.de',
           murl: 'https://www.derwesten.de/sport/fussball/fc-bayern-muenchen-lisa-mueller-instagram-fotos-id215731359.html',
-          thumbnail: 'https://imgr.cliqz.com/v5dvuAwDO2XWLAZSEM-wB9D1qBb8pJTZNFQJBwGZG6I/fill/0/200/no/1/aHR0cHM6Ly9pbWcuZGVyd2VzdGVuLmRlL2ltZy9mdXNzYmFsbC9jcm9wMjE1NzMxMzQxLzU2ODA1NjI2NzAtdzI2MC1jdjNfMi9UaG9tYXMtdW5kLUxpc2EtTXVlbGxlci5qcGc.jpg'
+          thumbnail: 'http://localhost:3000/static/images/Thomas-und-Lisa-Mueller.jpg'
         },
         kind: [
 
@@ -330,7 +330,7 @@ const resultsAfterRerank = [
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         provider: 'instant',
         suggestion: 'fc bayern ',
@@ -499,7 +499,7 @@ const resultsAfterRerank = [
           description: 'Magere Auftritte gegen Mainz, SV Rödinghausen und den SC Freiburg setzen Trainer Niko Kovac beim Fußball-Bundesligisten Bayern München unter Druck. Peter Neururer, Ex-Coach des VfL Bochum, fand nun klare Worte.',
           domain: 'weltfussball.de',
           murl: 'https://www.weltfussball.de/news/_n3421336_/neururer-sicher-bayern-muenchen-ist-schwaecher-geworden/',
-          thumbnail: 'https://imgr.cliqz.com/AB_-IoZ7fJWCGCrpox0MWpWuiKFyz3duHvXiTSKnNSE/fill/0/200/no/1/aHR0cHM6Ly9zLmhzLWRhdGEuY29tL3BpY21vbi8xMy8yT2p5X2U4MkRkaF9sLmpwZw.jpg'
+          thumbnail: 'http://localhost:3000/static/images/2Ojy_e82Ddh_l.jpg'
         },
         kind: [
 
@@ -529,7 +529,7 @@ const resultsAfterRerank = [
           description: 'Sportliche Krise, Zweifel am Trainer und Spitzenspiel gegen den BVB vor der Brust: Rund um den FC Bayern ist im Moment eine Menge los.',
           domain: 'goal.com',
           murl: 'https://www.goal.com/de/meldungen/fc-bayern-muenchen-news-transfer-geruechte-fcb-goretzka-bvb/1l6y11t0bf3dp17ncqiu5u9lz1',
-          thumbnail: 'https://imgr.cliqz.com/Jm3-6O2rCY5OY1xAGKqwGUJybSd_qkzRF_Wv70pgIFk/fill/0/200/no/1/aHR0cHM6Ly9pbWFnZXMucGVyZm9ybWdyb3VwLmNvbS9kaS9saWJyYXJ5L0dPQUwvYzAvYzYvamF2aS1tYXJ0aW5lei1iYXllcm4tMDQxMTIwMThfYmFvanBvcm4xM3B3MTR0YXA1dmpueWU2NC5qcGc_dD0tNDA0OTE3OTA2JnF1YWxpdHk9MTAwJmg9MzAw.png'
+          thumbnail: 'http://localhost:3000/static/images/javi-martinez-bayern-04112018_baojporn13pw14tap5vjnye64.jpg?t=-404917906&quality=100&h=300'
         },
         kind: [
 
@@ -559,7 +559,7 @@ const resultsAfterRerank = [
           description: 'Seit ihrem kritischen Instagram-Post am Samstag kehrt bei Lisa Müller, der Ehefrau von FC-Bayern-Star Thomas Müller, einfach keine Ruhe mehr ein.Während des...',
           domain: 'derwesten.de',
           murl: 'https://www.derwesten.de/sport/fussball/fc-bayern-muenchen-lisa-mueller-instagram-fotos-id215731359.html',
-          thumbnail: 'https://imgr.cliqz.com/v5dvuAwDO2XWLAZSEM-wB9D1qBb8pJTZNFQJBwGZG6I/fill/0/200/no/1/aHR0cHM6Ly9pbWcuZGVyd2VzdGVuLmRlL2ltZy9mdXNzYmFsbC9jcm9wMjE1NzMxMzQxLzU2ODA1NjI2NzAtdzI2MC1jdjNfMi9UaG9tYXMtdW5kLUxpc2EtTXVlbGxlci5qcGc.jpg'
+          thumbnail: 'http://localhost:3000/static/images/Thomas-und-Lisa-Mueller.jpg'
         },
         kind: [
 

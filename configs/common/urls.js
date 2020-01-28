@@ -18,20 +18,24 @@ module.exports = (base, cdn = 'cdn') => ({
   ENDPOINT_ANONPATTERNSURL: `https://${cdn}.${base}/human-web/patterns-anon`,
   ENDPOINT_HPNV2_DIRECT: `https://collector-hpn.${base}`, // hpnv2/sources/endpoints.es
   ENDPOINT_HPNV2_ANONYMOUS: `https://collector-hpn.${base}`, // hpnv2/sources/endpoints.es
+  ENDPOINT_HUMAN_WEB_PATTERNS: `https://${cdn}.${base}/human-web/hw-patterns.gz`,
   ENDPOINT_PATTERNSURL: `https://${cdn}.${base}/human-web/patterns`,
   ENDPOINT_SAFE_QUORUM_ENDPOINT: `https://safe-browsing-quorum.privacy.${base}/`,
   ENDPOINT_SAFE_QUORUM_PROVIDER: `https://safe-browsing-quorum.privacy.${base}/config`,
   FEEDBACK: `https://${base}/feedback/`, // core/sources/utils.es
+  // not used as URL, but as key to signal to ambassor to fetch news
   HB_NEWS: `hb-news.${base}`, // freshtab/sources/news.es, history/sources/rich-header-proxy.es
   OFFERS_BE_BASE_URL: `https://offers-api.${base}`,
   PRIVACY_SCORE_URL: `https://anti-tracking.${base}/api/v1/score?`, // antitracking/sources/privacy-score.es
   RESULTS_PROVIDER: `https://api.${base}/api/v2/results?nrh=1&q=`, // core/config.es
   RESULTS_PROVIDER_LOG: `https://api.${base}/api/v1/logging?q=`, // core/config.es
   RICH_HEADER: `https://api.${base}/api/v2/rich-header?path=/v2/map`,
+  // not used as URL, but as key to signal to ambassor to fetch news
   ROTATED_TOP_NEWS: `rotated-top-news.${base}`, // freshtab/sources/news.es
   SAFE_BROWSING: `https://safe-browsing.${base}`, // core/sources/utils.es
   STATISTICS: `https://stats.${base}`, // core/sources/utils.es
   SUGGESTIONS_URL: `https://${base}/search?q=`, // dropdown/sources/results/suggestions.es, freshtab/sources/background.es, history/sources/background.es, history/sources/content.es
   UNINSTALL: `https://${base}/home/offboarding`, // core/sources/utils.es
   WTM_API: 'https://whotracks.me/data/',
+  ANTIPHISHING_BLOOMFILTER: `https://${cdn}.${base}/anti-phishing/bloom_filter.json.gz`
 });

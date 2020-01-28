@@ -1,9 +1,12 @@
+const VALID_CATEGORY_MATCH_URL1 = 'http://www.google.de/';
+const VALID_CATEGORY_MATCH_URL2 = 'http://www.domain1.de/';
+
 const VALID_CATEGORY = {
   name: 'cat1',
   timeRangeSecs: 900,
   patterns: [
-    'http://www.domain1.de/',
-    'http://www.google.co.uk/',
+    VALID_CATEGORY_MATCH_URL1,
+    VALID_CATEGORY_MATCH_URL2,
   ],
   revHash: 'f91dd7bd96',
   activationData: {
@@ -157,6 +160,8 @@ const VALID_OOTW_OFFER_OBJ = {
 
 module.exports = {
   VALID_CATEGORY,
+  VALID_CATEGORY_MATCH_URL1,
+  VALID_CATEGORY_MATCH_URL2,
   VALID_OFFER_LANDING_URL,
   VALID_OFFER_SUCCESS_URL,
   VALID_OFFER_COUPON_URL_PATTERN,

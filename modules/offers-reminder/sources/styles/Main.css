@@ -13,7 +13,7 @@
 .main__floating-button.main__ghostery-floating-button {
   background: url('../images/ghosty-white-star.svg') no-repeat center;
   border-radius: 25%;
-  background-color: var(--ghostery-primary-color);
+  background-color: var(--ghostery-primary-color, #5B005C);
   width: 52px;
   height: 52px;
 }
@@ -26,9 +26,8 @@
   background: url('../images/chip-floating-button.svg') no-repeat center;
   width: 52px;
   height: 52px;
-}
-.main__floating-button.main__freundin-floating-button {
-  background: url('../images/freundin-floating-button.svg') no-repeat center;
+  background-color: var(--chip-primary-color, #eb443f);
+  background-size: contain;
 }
 
 .main__floating-button:hover {

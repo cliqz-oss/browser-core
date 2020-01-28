@@ -15,7 +15,7 @@ const finalWithoutHistoryView = {
       href: 'https://www.google.com/search?q=highest peaks in europe&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=highest peaks in europe&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'highest peaks in europe',
@@ -42,7 +42,7 @@ const finalWithoutHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'highest peaks in europe'
       }
@@ -51,7 +51,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392',
       href: 'https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392',
       friendlyUrl: 'pandotrip.com/top-10-highest-peaks-in-europe-23392',
-      title: 'Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
+      title: '> Title - Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
       kind: [
         'H',
         'm'
@@ -148,7 +148,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.lannoopublishers.com/en/peaks-europe',
       href: 'https://www.lannoopublishers.com/en/peaks-europe',
       friendlyUrl: 'lannoopublishers.com/en/peaks-europe',
-      title: 'Peaks of Europe | Lannoo Publishers',
+      title: '> Title - Peaks of Europe | Lannoo Publishers',
       description: 'Johan Lolos is a Belgian-born self-taught travel photographer with a passion for the outdoors and the wilderness. After he graduated in PR in 2013, he left Europe for the first time at the age of twenty-five and spent an initial whole year exploring Australia, then another year in New Zealand, showcasing the beauty of both countries to his ever-growing Instagram audience, which now totals more than 500,000 followers. In 2015, his seven-month-long stay in Wanaka, New Zealand, made him discover a ',
       kind: [
         'm'
@@ -187,7 +187,7 @@ const finalWithoutHistoryView = {
           og: {
             description: 'Johan Lolos is a Belgian-born self-taught travel photographer with a passion for the outdoors and the wilderness. After he graduated in PR in 2013, he left Europe for the first time at the age of twenty-five and spent an initial whole year exploring Australia, then another year in New Zealand, showcasing the  beauty of both countries to his ever-growing Instagram audience, which now  totals more than 500,000 followers. In 2015, his seven-month-long stay in  Wanaka, New Zealand, made him discover',
             site_name: 'Lannoo Publishers',
-            title: 'Peaks of Europe',
+            title: '> Title - Peaks of Europe',
             type: 'article',
             updated_time: '2019-02-08T03:26:01+01:00',
             url: 'https://www.lannoopublishers.com/en/peaks-europe'
@@ -202,7 +202,7 @@ const finalWithoutHistoryView = {
       url: 'http://www.placestoseeinyourlifetime.com/top-10-highest-peaks-in-europe-23392',
       href: 'http://www.placestoseeinyourlifetime.com/top-10-highest-peaks-in-europe-23392',
       friendlyUrl: 'placestoseeinyourlifetime.com/top-10-highest-peaks-in-europe-23392',
-      title: 'Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
+      title: '> Title - Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
       description: 'Europe is known for being culturally versatile, but its nature is as diverse as countries and people. Various mountainous ranges cover vast areas and feature',
       kind: [
         'm'
@@ -239,7 +239,7 @@ const finalWithoutHistoryView = {
           og: {
             description: 'Europe is known for being culturally versatile, but its nature is as diverse as countries and people. Various mountainous ranges cover vast areas and feature some incredibly tall summits.',
             image: 'https://imgr.cliqz.com/Yo6rk3KYMPYt69IsskAAmgAQMSOdR36nxKzBsRAKxAE/fill/0/200/no/1/aHR0cDovL3d3dy5wbGFjZXN0b3NlZWlueW91cmxpZmV0aW1lLmNvbS93cC1jb250ZW50L3VwbG9hZHMvMjAxNS8xMS9BaWd1aWxsZTIuanBn.jpg',
-            title: 'Top 10 Highest Peaks in Europe',
+            title: '> Title - Top 10 Highest Peaks in Europe',
             type: 'article'
           }
         },
@@ -258,7 +258,7 @@ const finalWithHistoryView = {
       href: 'https://www.google.com/search?q=highest peaks in europe&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=highest peaks in europe&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'highest peaks in europe',
@@ -285,7 +285,7 @@ const finalWithHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'highest peaks in europe'
       }
@@ -294,7 +294,7 @@ const finalWithHistoryView = {
       url: 'https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392',
       href: 'https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392',
       friendlyUrl: 'pandotrip.com/top-10-highest-peaks-in-europe-23392',
-      title: 'Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
+      title: '> Title - Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
       kind: [
         'H',
         'm'
@@ -425,7 +425,7 @@ const finalWithHistoryView = {
       url: 'https://www.lannoopublishers.com/en/peaks-europe',
       href: 'https://www.lannoopublishers.com/en/peaks-europe',
       friendlyUrl: 'lannoopublishers.com/en/peaks-europe',
-      title: 'Peaks of Europe | Lannoo Publishers',
+      title: '> Title - Peaks of Europe | Lannoo Publishers',
       description: 'Johan Lolos is a Belgian-born self-taught travel photographer with a passion for the outdoors and the wilderness. After he graduated in PR in 2013, he left Europe for the first time at the age of twenty-five and spent an initial whole year exploring Australia, then another year in New Zealand, showcasing the beauty of both countries to his ever-growing Instagram audience, which now totals more than 500,000 followers. In 2015, his seven-month-long stay in Wanaka, New Zealand, made him discover a ',
       kind: [
         'm'
@@ -464,7 +464,7 @@ const finalWithHistoryView = {
           og: {
             description: 'Johan Lolos is a Belgian-born self-taught travel photographer with a passion for the outdoors and the wilderness. After he graduated in PR in 2013, he left Europe for the first time at the age of twenty-five and spent an initial whole year exploring Australia, then another year in New Zealand, showcasing the  beauty of both countries to his ever-growing Instagram audience, which now  totals more than 500,000 followers. In 2015, his seven-month-long stay in  Wanaka, New Zealand, made him discover',
             site_name: 'Lannoo Publishers',
-            title: 'Peaks of Europe',
+            title: '> Title - Peaks of Europe',
             type: 'article',
             updated_time: '2019-02-08T03:26:01+01:00',
             url: 'https://www.lannoopublishers.com/en/peaks-europe'
@@ -479,7 +479,7 @@ const finalWithHistoryView = {
       url: 'http://www.placestoseeinyourlifetime.com/top-10-highest-peaks-in-europe-23392',
       href: 'http://www.placestoseeinyourlifetime.com/top-10-highest-peaks-in-europe-23392',
       friendlyUrl: 'placestoseeinyourlifetime.com/top-10-highest-peaks-in-europe-23392',
-      title: 'Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
+      title: '> Title - Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
       description: 'Europe is known for being culturally versatile, but its nature is as diverse as countries and people. Various mountainous ranges cover vast areas and feature',
       kind: [
         'm'
@@ -516,7 +516,7 @@ const finalWithHistoryView = {
           og: {
             description: 'Europe is known for being culturally versatile, but its nature is as diverse as countries and people. Various mountainous ranges cover vast areas and feature some incredibly tall summits.',
             image: 'https://imgr.cliqz.com/Yo6rk3KYMPYt69IsskAAmgAQMSOdR36nxKzBsRAKxAE/fill/0/200/no/1/aHR0cDovL3d3dy5wbGFjZXN0b3NlZWlueW91cmxpZmV0aW1lLmNvbS93cC1jb250ZW50L3VwbG9hZHMvMjAxNS8xMS9BaWd1aWxsZTIuanBn.jpg',
-            title: 'Top 10 Highest Peaks in Europe',
+            title: '> Title - Top 10 Highest Peaks in Europe',
             type: 'article'
           }
         },
@@ -538,7 +538,7 @@ const results = {
         searchEngineName: 'Google'
       },
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'highest peaks in europe',
@@ -599,13 +599,13 @@ const results = {
           og: {
             description: 'Johan Lolos is a Belgian-born self-taught travel photographer with a passion for the outdoors and the wilderness. After he graduated in PR in 2013, he left Europe for the first time at the age of twenty-five and spent an initial whole year exploring Australia, then another year in New Zealand, showcasing the  beauty of both countries to his ever-growing Instagram audience, which now  totals more than 500,000 followers. In 2015, his seven-month-long stay in  Wanaka, New Zealand, made him discover',
             site_name: 'Lannoo Publishers',
-            title: 'Peaks of Europe',
+            title: '> Title - Peaks of Europe',
             type: 'article',
             updated_time: '2019-02-08T03:26:01+01:00',
             url: 'https://www.lannoopublishers.com/en/peaks-europe'
           }
         },
-        title: 'Peaks of Europe | Lannoo Publishers'
+        title: '> Title - Peaks of Europe | Lannoo Publishers'
       },
       c_url: 'https://www.lannoopublishers.com/en/peaks-europe',
       type: 'bm'
@@ -623,11 +623,11 @@ const results = {
           og: {
             description: 'Europe is known for being culturally versatile, but its nature is as diverse as countries and people. Various mountainous ranges cover vast areas and feature some incredibly tall summits.',
             image: 'https://imgr.cliqz.com/Yo6rk3KYMPYt69IsskAAmgAQMSOdR36nxKzBsRAKxAE/fill/0/200/no/1/aHR0cDovL3d3dy5wbGFjZXN0b3NlZWlueW91cmxpZmV0aW1lLmNvbS93cC1jb250ZW50L3VwbG9hZHMvMjAxNS8xMS9BaWd1aWxsZTIuanBn.jpg',
-            title: 'Top 10 Highest Peaks in Europe',
+            title: '> Title - Top 10 Highest Peaks in Europe',
             type: 'article'
           }
         },
-        title: 'Top 10 Highest Peaks in Europe | Places To See In Your Lifetime'
+        title: '> Title - Top 10 Highest Peaks in Europe | Places To See In Your Lifetime'
       },
       c_url: 'http://www.placestoseeinyourlifetime.com/top-10-highest-peaks-in-europe-23392',
       type: 'bm'
@@ -645,7 +645,7 @@ const results = {
             en: 0.9900000095367432
           }
         },
-        title: 'The Top 5 Highest Mountains in Europe'
+        title: '> Title - The Top 5 Highest Mountains in Europe'
       },
       c_url: 'https://top5ofanything.com/list/0c0b8946/Highest-Mountains-in-Europe',
       type: 'bm'
@@ -669,13 +669,13 @@ const results = {
             'image:width': '740',
             locale: 'en_US',
             site_name: 'Places To See In Your Lifetime',
-            title: 'Top 10 Highest Peaks in Europe',
+            title: '> Title - Top 10 Highest Peaks in Europe',
             type: 'article',
             updated_time: '2018-04-09T14:22:49+00:00',
             url: 'https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392/'
           }
         },
-        title: 'Top 10 Highest Peaks in Europe | Places To See In Your Lifetime'
+        title: '> Title - Top 10 Highest Peaks in Europe | Places To See In Your Lifetime'
       },
       c_url: 'https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392',
       type: 'bm'
@@ -686,7 +686,7 @@ const results = {
       style: 'favicon',
       value: 'https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392',
       image: 'page-icon:https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392',
-      comment: 'Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
+      comment: '> Comment - Top 10 Highest Peaks in Europe | Places To See In Your Lifetime',
       label: 'https://www.pandotrip.com/top-10-highest-peaks-in-europe-23392'
     }
   ]

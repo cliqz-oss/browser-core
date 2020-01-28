@@ -37,7 +37,7 @@ export default describeModule('search/operators/responses/rerank',
                 extra: {
                   searchEngineName: 'Google'
                 },
-                kind: ['custom-search'],
+                kind: ['default-search'],
                 provider: 'instant',
                 suggestion: 'simple  ',
                 text: 'simple  ',

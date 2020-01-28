@@ -118,7 +118,7 @@ $cliqz-blue-color: #00AEF0;
         .button-link {
             padding: 4px 10px 4px 8px;
             margin: 0 0 0 10px;
-            color: #fff;
+            color: $cliqz-blue-color !important;
             min-width: 20px;
             border-radius: 3px;
             border: 1px solid transparent;
@@ -130,7 +130,7 @@ $cliqz-blue-color: #00AEF0;
             }
 
             &:hover {
-                border-color: #fff;
+                border-color: $cliqz-blue-color !important;
             }
         }
     }

@@ -12,8 +12,8 @@ import md5 from '../core/helpers/md5';
 import { sha1 } from '../core/crypto/utils';
 import random from '../core/crypto/random';
 import { fetch, httpGet } from '../core/http';
-import { getDetailsFromUrl, isIpAddress } from '../core/url';
-import URL from '../core/fast-url-parser';
+import { parse, isIpAddress } from '../core/url';
+import { extractHostname } from '../core/tlds';
 import Storage from '../platform/human-web/storage';
 import config from '../core/config';
 import { getAllOpenPages } from '../platform/human-web/opentabs';
@@ -21,6 +21,7 @@ import { normalizeAclkUrl } from './ad-detection';
 import { getActiveTab, isPrivateMode, getWindow } from '../core/browser';
 import DoublefetchHandler from './doublefetch-handler';
 import ContentExtractionPatternsLoader from './content-extraction-patterns-loader';
+import HumanWebPatternsLoader from './human-web-patterns-loader';
 import { ContentExtractor, parseQueryString } from './content-extractor';
 import logger from './logger';
 import { parseHtml, getContentDocument } from './html-helpers';
@@ -110,9 +111,27 @@ const CliqzHumanWeb = {
         search: {}
     },
 
-    patternsLoader: new ContentExtractionPatternsLoader((patternsConfig, ruleset) => {
-      CliqzHumanWeb.contentExtractor.updatePatterns(patternsConfig, ruleset);
-    }),
+    patternsLoader: (() => {
+      // enable the new loader by default
+      // (TODO: once it is out on all channels, remove the obsolete loader code.)
+      if (true) {
+        return new HumanWebPatternsLoader(config.settings.ENDPOINT_HUMAN_WEB_PATTERNS, (content) => {
+          try {
+            const { normal, strict } = JSON.parse(content);
+            CliqzHumanWeb.contentExtractor.updatePatterns(normal, 'normal');
+            CliqzHumanWeb.contentExtractor.updatePatterns(strict, 'strict');
+            logger.info('Human Web patterns successfully updated');
+          } catch (e) {
+            logger.warn('Failed to apply new Human Web patterns', e);
+          }
+        });
+      }
+
+      // old, stable patterns loader
+      return new ContentExtractionPatternsLoader((patternsConfig, ruleset) => {
+          CliqzHumanWeb.contentExtractor.updatePatterns(patternsConfig, ruleset);
+      });
+    })(),
 
     ts : "",
     mRefresh : {},
@@ -628,14 +647,15 @@ const CliqzHumanWeb = {
         var ihttps = targetURL.lastIndexOf('https://')
         var ihttp = targetURL.lastIndexOf('http://')
         if (ihttps>0 || ihttp>0) {
-            // contains either http or https not ont he query string, very suspicious
-            try {
-                const parqs = new URL(targetURL);
-                const urlParam = parqs.searchParams.params.find(kv => kv[0] === 'url');
-                if (urlParam) {
-                    return decodeURIComponent(urlParam[1]);
-                }
-            } catch (e) {}
+            // contains either http or https not on the query string, very suspicious
+            const parqs = parse(targetURL);
+            if (parqs === null) {
+              return null;
+            }
+            const urlParam = parqs.searchParams.params.find(kv => kv[0] === 'url');
+            if (urlParam) {
+              return decodeURIComponent(urlParam[1]);
+            }
         }
         else return null;
     },
@@ -1426,8 +1446,8 @@ const CliqzHumanWeb = {
                 canonical_url = canonical_url.replace('//', '');
             }
 
-            let _urlDetails = getDetailsFromUrl(canonical_url);
-            if (_urlDetails.scheme.startsWith('chrome') || _urlDetails.scheme === '' || (_urlDetails.name && !_urlDetails.tld)) {
+            let _urlDetails = parse(canonical_url);
+            if (_urlDetails !== null && _urlDetails.scheme.startsWith('chrome') || _urlDetails.scheme === '') {
                 canonical_url =  `${ourl.protocol}:\/\/${ourl.hostname}${_urlDetails.path}`;
             }
         }
@@ -1622,7 +1642,6 @@ const CliqzHumanWeb = {
 
                               if (CliqzHumanWeb.state['v'][currURL] != null) {
                                   CliqzHumanWeb.addURLtoDB(currURL, CliqzHumanWeb.state['v'][currURL]['ref'], CliqzHumanWeb.state['v'][currURL]);
-                                  CliqzHumanWeb.queryCache[currURL];
                               }
 
                             }, function () {
@@ -2489,10 +2508,10 @@ const CliqzHumanWeb = {
         if (filterByExactUrl && url !== filterByExactUrl) {
           return false;
         }
-        if (filterByDomain && !new URL(url).host.includes(filterByDomain)) {
+        if (filterByDomain && !extractHostname(url).includes(filterByDomain)) {
           return false;
         }
-        if (filterByExactDomain && new URL(url).host !== filterByExactDomain) {
+        if (filterByExactDomain && extractHostname(url) !== filterByExactDomain) {
           return false;
         }
         return true;
@@ -3042,8 +3061,7 @@ const CliqzHumanWeb = {
         let sanitisedQuery = null;
         let url = msg.u;
 
-        const hostNameDetails = getDetailsFromUrl(url);
-        const hostName = hostNameDetails.host;
+        const hostName = extractHostname(url) || '';
 
         // Check if there is a query.
         if (!query || query.length == 0) {

@@ -52,7 +52,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'I, Tonya',
+                  title: '> Title - I, Tonya',
                   website: 'https://www.itonyamovie.com'
                 },
                 {
@@ -72,7 +72,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'Call Me by Your Name',
+                  title: '> Title - Call Me by Your Name',
                   website: 'http://sonyclassics.com/callmebyyourname/'
                 },
                 {
@@ -92,7 +92,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'Call Me by Your Name 2',
+                  title: '> Title - Call Me by Your Name 2',
                   website: 'http://sonyclassics.com/callmebyyourname/'
                 }
               ]
@@ -124,7 +124,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'I, Tonya',
+                  title: '> Title - I, Tonya',
                   website: 'https://www.itonyamovie.com'
                 },
                 {
@@ -144,7 +144,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'Call Me by Your Name',
+                  title: '> Title - Call Me by Your Name',
                   website: 'http://sonyclassics.com/callmebyyourname/'
                 }
               ]
@@ -176,7 +176,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'I, Tonya',
+                  title: '> Title - I, Tonya',
                   website: 'https://www.itonyamovie.com'
                 },
                 {
@@ -196,7 +196,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'Call Me by Your Name',
+                  title: '> Title - Call Me by Your Name',
                   website: 'http://sonyclassics.com/callmebyyourname/'
                 }
               ]
@@ -228,7 +228,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'I, Tonya',
+                  title: '> Title - I, Tonya',
                   website: 'https://www.itonyamovie.com'
                 },
                 {
@@ -248,7 +248,7 @@ export const notLocalResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'Call Me by Your Name',
+                  title: '> Title - Call Me by Your Name',
                   website: 'http://sonyclassics.com/callmebyyourname/'
                 }
               ]
@@ -262,12 +262,12 @@ export const notLocalResults = [
         og: {
           description: 'Yorck Kinogruppe GmbH',
           image: 'https://yorck.de/yorck_icon_google.png',
-          title: 'Yorck Kinos Berlin',
+          title: '> Title - Yorck Kinos Berlin',
           type: 'website'
         }
       },
       friendlyUrl: 'yorck.de',
-      title: 'Yorck Kinos Berlin'
+      title: '> Title - Yorck Kinos Berlin'
     },
     c_url: 'https://www.yorck.de/',
     type: 'rh',
@@ -314,7 +314,7 @@ export const localResults = [
                       subtitle_language: 'undetermined'
                     },
                   ],
-                  title: 'Distant Sky - Nick Cave \u0026 The Bad Seeds Live in Copenhagen',
+                  title: '> Title - Distant Sky - Nick Cave \u0026 The Bad Seeds Live in Copenhagen',
                   website: 'https://www.distantskyfilm.com'
                 },
                 {
@@ -334,7 +334,7 @@ export const localResults = [
                       subtitle_language: 'de'
                     }
                   ],
-                  title: 'Call Me by Your Name',
+                  title: '> Title - Call Me by Your Name',
                   website: 'http://sonyclassics.com/callmebyyourname/'
                 },
               ]
@@ -352,7 +352,7 @@ export const localResults = [
                       subtitle_language: null
                     }
                   ],
-                  title: 'Ghost Stories',
+                  title: '> Title - Ghost Stories',
                   website: null
                 }
               ]
@@ -370,7 +370,7 @@ export const localResults = [
                       subtitle_language: 'undetermined'
                     }
                   ],
-                  title: 'Pitbull. Ostatni pies',
+                  title: '> Title - Pitbull. Ostatni pies',
                   website: null
                 }
               ]
@@ -391,7 +391,7 @@ export const localResults = [
         }
       },
       friendlyUrl: 'cinemaxx.de',
-      title: 'Kinoprogramm, aktuelle Filmstarts und Tickets direkt auf dein Handy - Willkommen im CinemaxX Kino'
+      title: '> Title - Kinoprogramm, aktuelle Filmstarts und Tickets direkt auf dein Handy - Willkommen im CinemaxX Kino'
     },
     c_url: 'https://www.cinemaxx.de/',
     type: 'rh',

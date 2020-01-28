@@ -91,20 +91,7 @@ const getBackendResults = (originalQuery, config, params = {}) => {
 
   const url = config.settings.RESULTS_PROVIDER + getResultsProviderQueryString(q, params);
 
-  const searchSessionService = inject.service('search-session', [
-    'incrementSessionSeq',
-    'getQueryLastDraw',
-    'setQueryLastDraw',
-    'incrementQueryCount',
-  ]);
-  searchSessionService.incrementSessionSeq();
-
   // if the user sees the results more than 500ms we consider that he starts a new query
-  const queryLastDraw = searchSessionService.getQueryLastDraw();
-  if (queryLastDraw && Date.now() > queryLastDraw + 500) {
-    searchSessionService.incrementQueryCount();
-  }
-  searchSessionService.setQueryLastDraw(0);
   const privacyOptions = {
     credentials: 'omit',
     cache: 'no-store',
@@ -196,7 +183,7 @@ export default class Cliqz extends BackendProvider {
               query,
               provider: null,
               latency,
-              backendCountry: params.backendCountry,
+              backendCountry,
             }).map(normalize),
             state: 'done',
           }),

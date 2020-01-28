@@ -59,6 +59,23 @@ const testFiles = [];
     mocha.addFile(path);
   });
 
+// Instead of having to load all mocks manually in unit tests, we provide all
+// the libraries declared in `dependencies` from package.json as global mocks
+// automatically. This allows to simplify mocking from tests.
+//
+// eslint-disable-next-line global-require, import/no-dynamic-require
+const { dependencies } = require(path.join(__dirname, '..', '..', 'package.json'));
+const defaultMocks = {};
+for (const dep of Object.keys(dependencies)) {
+  try {
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    const mod = require(dep);
+    defaultMocks[dep] = typeof mod === 'object' ? mod : { default: mod };
+  } catch (ex) {
+    // ignore
+  }
+}
+
 function describeModule(moduleName, loadDeps, testFn) {
   const localSystem = new systemjs.constructor();
   localSystem.config({
@@ -139,7 +156,10 @@ function describeModule(moduleName, loadDeps, testFn) {
   return new Promise(function (resolve /* , reject */) {
     describe(moduleName, function () {
       beforeEach(function () {
-        deps = loadDeps();
+        deps = {
+          ...defaultMocks,
+          ...loadDeps(),
+        };
 
         return loadModules(deps).then((mod) => {
           this.system = localSystem;

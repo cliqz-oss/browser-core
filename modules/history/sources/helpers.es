@@ -1,49 +1,4 @@
-import { URLInfo } from '../core/url-info';
-
-const SHORTENERS = new Set([
-  'adf.ly',
-  'amp.gs',
-  'bc.vc',
-  'bit.do',
-  'bit.ly',
-  'bitly.com',
-  'cutt.us',
-  'db.tt',
-  'filoops.info',
-  'goo.gl',
-  'hive.am',
-  'is.gd',
-  'ity.im',
-  'j.mp',
-  'joturl.com',
-  'link.zip.net',
-  'lnkd.in',
-  'lnnk.in',
-  'ow.ly',
-  'po.st',
-  'q.gs',
-  'qr.ae',
-  'qr.net',
-  'shrt.li',
-  'shorter.is',
-  'shorturl.is',
-  'shtn.me',
-  't2mio.com',
-  't.co',
-  'tinyurl.com',
-  'tr.im',
-  'u.to',
-  'urlways.com',
-  'ux9.de',
-  'v.gd',
-  'vzturl.com',
-  'x.co',
-  'youtu.be',
-  'yourls.org',
-  'zii.bz',
-]);
-
-const isURLShortener = url => url !== null && SHORTENERS.has(url.hostname);
+import { parse, isUrlShortener } from '../core/url';
 
 export const worthShowing = (visit) => {
   if (!visit
@@ -55,7 +10,7 @@ export const worthShowing = (visit) => {
   }
 
   return visit.title.trim() !== ''
-    && (!isURLShortener(URLInfo.get(visit.url))
+    && (!isUrlShortener(parse(visit.url))
     || `${visit.baseUrl}` === `${visit.host}/`);
 };
 

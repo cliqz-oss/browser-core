@@ -1,6 +1,11 @@
 # Human Web Overview
 
-(Note: the following text is taken from https://gist.github.com/solso/423a1104a9e3c1e3b8d7c9ca14e885e5)
+The Human Web was featured in our tech blog:
+[Human Web - Collecting data in a socially responsible manner](https://0x65.dev/blog/2019-12-03/human-web-collecting-data-in-a-socially-responsible-manner.html).
+We recommend to start with it first, as it is the most recent source of information (published: 3th Dec 2019).
+If there are conflicts with the documentation below (copied from the
+[older documentation](https://gist.github.com/solso/423a1104a9e3c1e3b8d7c9ca14e885e5))
+the information from the tech blog article should be preferred.
 
 ## Motivation
 

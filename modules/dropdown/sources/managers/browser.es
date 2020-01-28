@@ -20,11 +20,12 @@ import {
 } from './utils';
 
 export default class BrowserDropdownManager extends BaseDropdownManager {
-  constructor({ window, windowId, lastQuery, startupReason }, dropdownAPI) {
+  constructor({ window, windowId, urlbar, startupReason }, dropdown) {
     super();
 
-    this.dropdownAPI = dropdownAPI;
-    this.shortcutAPI = lastQuery;
+    this._dropdown = dropdown;
+    this._urlbar = urlbar;
+    this._lastQuery = urlbar.lastQuery;
     this.windowId = windowId;
     this.window = window;
     this.urlbar = window.gURLBar;
@@ -46,7 +47,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   get inputField() {
-    return this.window.gURLBar.inputField;
+    return this._urlbar.inputField;
   }
 
   init() {
@@ -59,12 +60,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     TAB_CHANGE_EVENTS.forEach(eventName =>
       tabContainer.addEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
 
-    this.shortcutAPI.on('click', this._onShortcutClicked);
+    this._lastQuery.on('click', this._onShortcutClicked);
   }
 
   unload() {
-    this.shortcutAPI.off('click', this._onShortcutClicked);
-    this.dropdownAPI.off('message', this._onMessage);
+    this._lastQuery.off('click', this._onShortcutClicked);
+    this._dropdown.off('message', this._onMessage);
     this.urlbar.goButton.removeEventListener('click', stopEvent, true);
 
     PASSIVE_EVENTS.forEach(eventName =>
@@ -80,7 +81,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
   createIframeWrapper() {
     const iframeWrapper = new Spanan(({ action, ...rest }) => {
-      this.dropdownAPI.sendMessage(this.windowId, {
+      this._dropdown.sendMessage({
         target: 'cliqz-dropdown',
         action,
         ...rest,
@@ -89,11 +90,11 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
     this.iframeWrapper = iframeWrapper;
 
-    this.dropdownAPI.on('message', this._onMessage);
+    this._dropdown.on('message', this._onMessage);
 
     iframeWrapper.export(this.actions, {
       respond: (response, request) => {
-        this.dropdownAPI.sendMessage(this.windowId, {
+        this._dropdown.sendMessage({
           type: 'response',
           uuid: request.uuid,
           response,
@@ -105,14 +106,12 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     this._iframeWrapperDefer.resolve();
   }
 
-  _onMessage = (_, windowId, data) => {
-    if (this.windowId === windowId) {
-      this.onMessage({ data });
-    }
+  _onMessage = (data) => {
+    this.onMessage({ data });
   }
 
   _telemetry(payload) {
-    this.dropdownAPI.emit('telemetry', this.window, payload);
+    this._dropdown.emit('telemetry', this.windowId, payload);
   }
 
   _copyToClipboard(text) {
@@ -122,7 +121,8 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _navigateTo(url, newTab = false) {
-    this.dropdownAPI.navigateTo(this.windowId, url, { target: newTab ? 'tabshifted' : 'current' });
+    this._urlbar.constructor
+      .navigateTo(this.window, url, { target: newTab ? 'tabshifted' : 'current' });
   }
 
   _switchToTab(url) {
@@ -163,16 +163,16 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       ...rest,
     });
 
-    const { id: tabId } = this.dropdownAPI.getCurrentTab(this.window);
+    const { id: tabId } = this._dropdown.getCurrentTab();
     if (newTab
       || this._isPrivate()
       || !url
       || isFromFirstAutocompletedURL
       || isUrl(result.query)
     ) {
-      this.shortcutAPI.hideLastQuery(tabId);
+      this._lastQuery.hideLastQuery(tabId);
     } else {
-      this.shortcutAPI.update(tabId, result.query);
+      this._lastQuery.update(tabId, result.query);
     }
   }
 
@@ -180,16 +180,17 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     super._handleEnter(newTab);
 
     const query = this.query;
-    const { id: tabId } = this.dropdownAPI.getCurrentTab(this.window);
+    const { id: tabId } = this._dropdown.getCurrentTab();
 
     if (newTab
+      || !query.trim()
       || this.hasCompletion
       || this._isPrivate()
       || isUrl(query)
     ) {
-      this.shortcutAPI.hideLastQuery(tabId);
+      this._lastQuery.hideLastQuery(tabId);
     } else {
-      this.shortcutAPI.update(tabId, query);
+      this._lastQuery.update(tabId, query);
     }
   }
 
@@ -200,7 +201,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _focus() {
-    this.urlbar.focus();
+    this._urlbar.focus();
   }
 
   _isUrlbarFocused() {
@@ -235,20 +236,20 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _getUrlbarAttributes() {
-    return this.dropdownAPI.getURLBarAttributes(this.window);
+    return this._urlbar.URLBarAttributes;
   }
 
   _isPrivate() {
-    const { incognito } = this.dropdownAPI.getCurrentTab(this.window);
+    const { incognito } = this._dropdown.getCurrentTab();
     return incognito;
   }
 
   _setHeight(height) {
-    this.dropdownAPI.setHeight(this.windowId, height);
+    this._dropdown.height = height;
   }
 
   _getHeight() {
-    return this.dropdownAPI.getState(this.window).height;
+    return this._dropdown.height;
   }
 
   onKeydown(event) {

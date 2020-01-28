@@ -43,7 +43,8 @@ export default () =>
 
     if (lastIndexOfInstantResult > -1 && (trimmedResults.length > lastIndexOfInstantResult + 1)) {
       const nextResult = getMainLink(trimmedResults[lastIndexOfInstantResult + 1]);
-      const nextResultIsAutocompletable = nextResult.meta.completion;
+      const nextResultIsAutocompletable = nextResult.meta.completion
+        || nextResult.url === nextResult.text;
       const nextResultIsNotAdult = !nextResult.extra || !nextResult.extra.adult;
       const shouldShowAdultResults = !isBlockingAdult && !isAskingForAdult;
 

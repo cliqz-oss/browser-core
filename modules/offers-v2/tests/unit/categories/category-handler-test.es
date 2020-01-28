@@ -36,8 +36,6 @@ let tokenizeUrl;
 export default describeModule('offers-v2/categories/category-handler',
   () => ({
     ...commonMocks,
-    ...persistenceMocks,
-    'core/url': {},
     // Stub that user visits a set of urls each day
     'platform/history/history': {
       default: {
@@ -52,18 +50,18 @@ export default describeModule('offers-v2/categories/category-handler',
           return [...generate()];
         }
       }
-    }
+    },
   }),
   () => {
     describe('#category-handler-test', function () {
       let CategoryHandler;
-      let sharedDB;
       let FeatureHandler;
       let Category;
       let ThrottleError;
 
       beforeEach(async function () {
         persistenceMocks['core/persistence/simple-db'].reset();
+        await persistenceMocks.lib.dexieReset(this.system);
         CategoryHandler = this.module().default;
         FeatureHandler = (await this.system.import('offers-v2/features/feature-handler')).default;
         const catModule = await this.system.import('offers-v2/categories/category');
@@ -108,18 +106,33 @@ export default describeModule('offers-v2/categories/category-handler',
         let fh;
         let historyFeatureMock;
         let catHandler;
+        let updateCategoryAccounting;
 
         beforeEach(async function () {
-          sharedDB = { remove: () => {} };
           fh = new FeatureHandler();
           historyFeatureMock = fh.getFeature('history');
           catHandler = new CategoryHandler(historyFeatureMock);
-          await catHandler.init(sharedDB);
+          await catHandler.init();
           await catHandler.loadPersistentData();
+          // Categories is a mix of sync and async code. Updating categories
+          // in persistence is async without await. The spy helps tests
+          // to know when the updating is done.
+          updateCategoryAccounting = sinon.spy(
+            catHandler.persistentHelper,
+            'categoryAccountingModified'
+          );
+          catHandler._acquireBuildResources('unittest');
         });
 
+        async function setCategories(cats) {
+          catHandler._releaseBuildResources();
+          await catHandler.syncCategories(cats, { ifSyncEmpty: true });
+          catHandler._acquireBuildResources('unittest');
+        }
+
         afterEach(async () => {
-          await catHandler.persistentHelper.destroyDB();
+          await setCategories([]);
+          updateCategoryAccounting.restore();
           await MockDate.reset();
         });
 
@@ -161,21 +174,32 @@ export default describeModule('offers-v2/categories/category-handler',
           ];
           const cats = [];
           catNames.forEach(cname => cats.push(createCategory(GENERIC_CAT_DATA, cname)));
-          cats.forEach((c) => {
+          for (const c of cats) {
             chai.expect(catHandler.hasCategory(c.getName())).eql(false);
             catHandler.addCategory(c);
-          });
+          }
           catHandler.build();
           catNames.forEach(cname => chai.expect(catHandler.hasCategory(cname)).eql(true));
         });
 
-        it('/remove category works', function () {
+        it('/remove deep category', () => {
+          const cname = 'level1.level2.leaf';
+          const cat = createCategory(GENERIC_CAT_DATA, cname);
+          catHandler.addCategory(cat);
+
+          catHandler.removeCategory(cat);
+
+          chai.expect(catHandler.hasCategory(cname)).eql(false);
+        });
+
+        it('/remove category works', async function () {
           const c = createCategory();
           chai.expect(catHandler.hasCategory(c.getName())).eql(false);
-          catHandler.addCategory(c);
+          await setCategories([c]);
           chai.expect(catHandler.hasCategory(c.getName())).eql(true);
           catHandler.removeCategory(c);
           chai.expect(catHandler.hasCategory(c.getName())).eql(false);
+
           const catNames = [
             'c1',
             'c1.c11',
@@ -184,23 +208,24 @@ export default describeModule('offers-v2/categories/category-handler',
           ];
           const cats = [];
           catNames.forEach(cname => cats.push(createCategory(GENERIC_CAT_DATA, cname)));
-          cats.forEach((_c) => {
+          for (const _c of cats) {
             chai.expect(catHandler.hasCategory(_c.getName())).eql(false);
             catHandler.addCategory(_c);
-          });
+          }
           catHandler.build();
-          cats.forEach(_c => catHandler.removeCategory(_c));
+          for (const _c of cats) {
+            catHandler.removeCategory(_c);
+          }
           catNames.forEach(cname => chai.expect(catHandler.hasCategory(cname)).eql(false));
         });
 
-        it('/basic url events works 1', function () {
+        it('/basic url events works 1', async function () {
           const catData = [
             { name: 'c1', patterns: ['||google.com'] },
             { name: 'c2', patterns: ['||yahoo.com'] },
           ];
           const cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
+          await setCategories(cats);
           catHandler.doDailyAccounting();
           chai.expect(cats[0].getTotalMatches()).eql(0);
           chai.expect(cats[1].getTotalMatches()).eql(0);
@@ -221,15 +246,14 @@ export default describeModule('offers-v2/categories/category-handler',
           chai.expect(cats[1].getTotalMatches()).eql(1);
         });
 
-        it('/basic url event with multiple patterns works', function () {
+        it('/basic url event with multiple patterns works', async function () {
           const catData = [
             { name: 'c1', patterns: ['||google.com'] },
             { name: 'c2', patterns: ['||yahoo.com'] },
             { name: 'c3', patterns: ['||google.com', '||yahoo.com'] },
           ];
           const cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
+          await setCategories(cats);
           catHandler.doDailyAccounting();
           chai.expect(cats[0].getTotalMatches()).eql(0);
           chai.expect(cats[1].getTotalMatches()).eql(0);
@@ -254,15 +278,14 @@ export default describeModule('offers-v2/categories/category-handler',
           chai.expect(cats[2].getTotalMatches()).eql(2);
         });
 
-        it('/basic url event and getMatchesForCategory works', function () {
+        it('/basic url event and getMatchesForCategory works', async function () {
           const catData = [
             { name: 'c1', patterns: ['||google.com'] },
             { name: 'c2', patterns: ['||yahoo.com'] },
             { name: 'c3', patterns: ['||google.com', '||yahoo.com'] },
           ];
           const cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
+          await setCategories(cats);
           catHandler.doDailyAccounting();
           chai.expect(catHandler.getMatchesForCategory('c1')).eql(0);
           chai.expect(catHandler.getMatchesForCategory('c2')).eql(0);
@@ -277,14 +300,13 @@ export default describeModule('offers-v2/categories/category-handler',
           chai.expect(catHandler.getMatchesForCategory('c3')).eql(2);
         });
 
-        it('/basic url event and getMatchesForCategory for sub cat works', function () {
+        it('/basic url event and getMatchesForCategory for sub cat works', async function () {
           const catData = [
             { name: 'c1.c11', patterns: ['||yahoo.com'] },
             { name: 'c1.c11.c111', patterns: ['||facebook.com'] },
           ];
           const cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
+          await setCategories(cats);
           catHandler.doDailyAccounting();
           chai.expect(catHandler.getMatchesForCategory('c1')).eql(0);
           chai.expect(catHandler.getMatchesForCategory('c1.c11')).eql(0);
@@ -316,8 +338,7 @@ export default describeModule('offers-v2/categories/category-handler',
             { name: 'c3', patterns: ['||google.com', '||yahoo.com'] },
           ];
           const cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
+          await setCategories(cats);
           catHandler.doDailyAccounting();
 
           catHandler.newUrlEvent(tokenizeUrl('http://www.google.com'));
@@ -327,10 +348,11 @@ export default describeModule('offers-v2/categories/category-handler',
           chai.expect(catHandler.getMatchesForCategory('c2')).eql(1);
           chai.expect(catHandler.getMatchesForCategory('c3')).eql(2);
 
-          await catHandler.persistentHelper.unloadDB();
-
+          await Promise.all(updateCategoryAccounting.returnValues);
           const catHandler2 = new CategoryHandler(historyFeatureMock);
-          await catHandler2.init(sharedDB);
+          await catHandler2.init();
+          // Persistent helper must be a singleton
+          catHandler2.persistentHelper = catHandler.persistentHelper;
           chai.expect(catHandler2.hasCategory('c1')).eql(false);
           chai.expect(catHandler2.hasCategory('c2')).eql(false);
           chai.expect(catHandler2.hasCategory('c3')).eql(false);
@@ -344,22 +366,45 @@ export default describeModule('offers-v2/categories/category-handler',
           chai.expect(catHandler2.getMatchesForCategory('c3')).eql(2);
         });
 
-        it('/check history works', function () {
+        it('/removeCategory and addCategory affect persistence', async function () {
+          const [cat1, cat2, cat3] = createCategories([
+            { name: 'cat1', patterns: ['||google.com'] },
+            { name: 'cat2', patterns: ['||yahoo.com'] },
+            { name: 'cat3', patterns: ['||google.com', '||yahoo.com'] },
+          ]);
+          await setCategories([cat1, cat2]);
+          catHandler._releaseBuildResources();
+          await catHandler.loadPersistentData();
+          chai.expect(catHandler.hasCategory('cat1')).eql(true);
+          chai.expect(catHandler.hasCategory('cat2')).eql(true);
+          chai.expect(catHandler.hasCategory('cat3')).eql(false);
+
+          // Delete `cat1` and add `cat3`
+          await setCategories([cat2, cat3]);
+
+          catHandler._releaseBuildResources();
+          await catHandler.loadPersistentData();
+          chai.expect(catHandler.hasCategory('cat1'), 'cat1 is removed').eql(false);
+          chai.expect(catHandler.hasCategory('cat2')).eql(true);
+          chai.expect(catHandler.hasCategory('cat3'), 'cat3 is added').eql(true);
+        });
+
+        it('/check history works', async function () {
           const catData = {
             name: 'c42',
             patterns: ['||google.com'],
             timeRangeSecs: (4 * DAY_MS) / 1000
           };
-          const [cat] = createCategories([catData]);
-          catHandler.addCategory(cat);
-          catHandler.build();
+          const cats = createCategories([catData]);
+          await setCategories(cats);
+          const cat = cats[0];
           return waitForHistoryReady(cat).then(() => {
             chai.expect(catHandler.getMatchesForCategory('c42')).eql(3 * 5);
             return Promise.resolve();
           });
         });
 
-        it('/check activation works for simpleCount func for numDays', function () {
+        it('/check activation works for simpleCount func for numDays', async function () {
           const activationData = {
             activationTimeSecs: 10,
             func: 'simpleCount',
@@ -389,8 +434,7 @@ export default describeModule('offers-v2/categories/category-handler',
             },
           ];
           const cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
+          await setCategories(cats);
           chai.expect(catHandler.isCategoryActive('c1'), 'c1 first check').eql(false);
           chai.expect(catHandler.isCategoryActive('c2'), 'c2 first check').eql(false);
           return waitForMultipleCatHistory(cats).then(() => {
@@ -404,7 +448,7 @@ export default describeModule('offers-v2/categories/category-handler',
           });
         });
 
-        it('/check activation works for simpleCount func for totNumHits', function () {
+        it('/check activation works for simpleCount func for totNumHits', async function () {
           const activationData = {
             activationTimeSecs: 10,
             func: 'simpleCount',
@@ -431,10 +475,7 @@ export default describeModule('offers-v2/categories/category-handler',
             activationData: activationData2
           }];
           const cats = createCategories(catData);
-          cats.forEach(function (c) {
-            return catHandler.addCategory(c);
-          });
-          catHandler.build();
+          await setCategories(cats);
           chai.expect(catHandler.isCategoryActive('c1'), 'c1 first check').eql(false);
           chai.expect(catHandler.isCategoryActive('c2'), 'c2 first check').eql(false);
           return waitForMultipleCatHistory(cats).then(function () {
@@ -451,7 +492,7 @@ export default describeModule('offers-v2/categories/category-handler',
           });
         });
 
-        it('/check activation works for simpleCount func for totNumHits & numDays', function () {
+        it('/check activation works for simpleCount func for totNumHits & numDays', async function () {
           const activationData = {
             activationTimeSecs: 10,
             func: 'simpleCount',
@@ -467,10 +508,7 @@ export default describeModule('offers-v2/categories/category-handler',
             activationData: activationData
           }];
           const cats = createCategories(catData);
-          cats.forEach(function (c) {
-            return catHandler.addCategory(c);
-          });
-          catHandler.build();
+          await setCategories(cats);
           chai.expect(catHandler.isCategoryActive('c1'), 'c1 first check').eql(false);
           return waitForMultipleCatHistory(cats).then(function () {
             chai.expect(catHandler.isCategoryActive('c1'), 'c1 snd check').eql(false);
@@ -484,7 +522,7 @@ export default describeModule('offers-v2/categories/category-handler',
           });
         });
 
-        it('/check activation works for categories tree', function () {
+        it('/check activation works for categories tree', async function () {
           const activationData = {
             activationTimeSecs: 10,
             func: 'simpleCount',
@@ -493,6 +531,8 @@ export default describeModule('offers-v2/categories/category-handler',
             }
           };
           const catData = [
+            { name: 'c1', patterns: [] },
+            { name: 'c1.c11', patterns: [] },
             {
               name: 'c1.c11.c111',
               patterns: ['||google.com'],
@@ -501,8 +541,7 @@ export default describeModule('offers-v2/categories/category-handler',
             },
           ];
           const cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
+          await setCategories(cats);
           return waitForMultipleCatHistory(cats).then(() => {
             chai.expect(catHandler.isCategoryActive('c1')).eql(true);
             chai.expect(catHandler.isCategoryActive('c1.c11')).eql(true);
@@ -511,7 +550,7 @@ export default describeModule('offers-v2/categories/category-handler',
           });
         });
 
-        it('/update categories works when version is higher', function () {
+        it('/update categories works when version is higher', async function () {
           const activationData = {
             activationTimeSecs: 10,
             func: 'simpleCount',
@@ -529,9 +568,8 @@ export default describeModule('offers-v2/categories/category-handler',
             },
           ];
           let cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
-          return waitForMultipleCatHistory(cats).then(() => {
+          await setCategories(cats);
+          return waitForMultipleCatHistory(cats).then(async () => {
             chai.expect(catHandler.isCategoryActive('c1')).eql(false);
 
             // replace it
@@ -545,8 +583,7 @@ export default describeModule('offers-v2/categories/category-handler',
               },
             ];
             cats = createCategories(catData);
-            cats.forEach(c => catHandler.addCategory(c));
-            catHandler.build();
+            await setCategories(cats);
             return waitForMultipleCatHistory(cats).then(() => {
               chai.expect(catHandler.isCategoryActive('c1')).eql(true);
               return Promise.resolve();
@@ -554,7 +591,7 @@ export default describeModule('offers-v2/categories/category-handler',
           });
         });
 
-        it('/update categories doesnt update if version is lower', function () {
+        it('/update categories doesnt update if version is lower', async function () {
           const activationData = {
             activationTimeSecs: 10,
             func: 'simpleCount',
@@ -566,15 +603,14 @@ export default describeModule('offers-v2/categories/category-handler',
             {
               name: 'c1',
               patterns: ['||xyz.com'],
-              timeRangeSecs: DAY_MS / 1000,
+              timeRangeSecs: 777,
               activationData,
               version: 1,
             },
           ];
           let cats = createCategories(catData);
-          cats.forEach(c => catHandler.addCategory(c));
-          catHandler.build();
-          return waitForMultipleCatHistory(cats).then(() => {
+          await setCategories(cats);
+          return waitForMultipleCatHistory(cats).then(async () => {
             chai.expect(catHandler.isCategoryActive('c1')).eql(false);
 
             // replace it
@@ -588,11 +624,10 @@ export default describeModule('offers-v2/categories/category-handler',
               },
             ];
             cats = createCategories(catData);
-            cats.forEach(c => catHandler.addCategory(c));
-            catHandler.build();
+            await setCategories(cats);
             // check the category is the old one
             const cat = catHandler.getCategory('c1');
-            chai.expect(cat.getPatterns()).eql(['||xyz.com']);
+            chai.expect(cat.timeRangeSecs).eql(777);
           });
         });
 
@@ -662,16 +697,17 @@ export default describeModule('offers-v2/categories/category-handler',
         context('/update categories from backend', () => {
           let cat1;
           let cat3;
-          beforeEach(() => {
+          beforeEach(async () => {
             const cats = createCategories([
               { name: 'cat1' },
               { name: 'cat2' },
               { name: 'cat3' },
               { name: 'cat4' },
             ]);
-            cats.forEach(cat => catHandler.addCategory(cat));
+            await setCategories(cats);
             cat1 = cats[0];
             cat3 = cats[2];
+            catHandler._releaseBuildResources();
           });
 
           function getCategoryNames() {
@@ -680,14 +716,15 @@ export default describeModule('offers-v2/categories/category-handler',
               .map(node => node.name);
           }
 
-          it('/delete categories that are not on backend', () => {
-            catHandler.syncCategories([cat1, cat3]);
+          it('/delete categories that are not on backend', async () => {
+            await setCategories([cat1, cat3]);
 
             chai.expect(getCategoryNames().sort()).to.eql(['', 'cat1', 'cat3']);
           });
 
-          it('/retain categories if backend provided no update', () => {
-            catHandler.syncCategories([]);
+          it('/retain categories if backend provided no update', async () => {
+            catHandler._releaseBuildResources();
+            await catHandler.syncCategories([]);
 
             chai.expect(getCategoryNames().sort()).to.eql(
               ['', 'cat1', 'cat2', 'cat3', 'cat4']

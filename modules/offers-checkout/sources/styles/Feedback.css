@@ -1,0 +1,17 @@
+.feedback__container {
+  display: flex;
+}
+
+.feedback__logo {
+  border-radius: 25%;
+  background: url('../images/chip-floating-button.svg') no-repeat center;
+  width: 52px;
+  height: 52px;
+  box-shadow: rgba(0, 0, 0, 0.12) 2px 3px 3px;
+}
+
+.feedback__logo-area {
+  width: 55px;
+  height: 55px;
+  padding-right: 5px;
+}

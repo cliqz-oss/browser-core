@@ -1,4 +1,14 @@
 # Objective / goal
+
+A category is:
+
+- a collection of patterns, plus
+- a history of matching.
+
+The section "Peculiarities" describes a few of non-obvious technical decisions.
+
+## More introduction
+
 The main idea of this module (`categories/*`) is provide an interface on to
 the trigger engine to detect if a category is active or not.
 The categories are organized in hierarchy, for example: `Electronics.Computer.Mouses`
@@ -66,25 +76,19 @@ Is the entry point to handle everything regarding categories:
   - checking if a given url (pattern) matches some category and in that case
     increment (hit) each of them.
 
-# Using categories
+# Peculiarities
 
-There are 2 new operations in (`trigger_machine/ops/category_expr`) that will
-be the interface to the triggers:
-  - add_categories (this is for now to be able to update categories using the
-  same mechanisms, in the future we may change this to a resource or new endpoint).
-  - is_category_active: which provides the minimum and almost unique function
-  we need to check if a category is active or not.
+For performance reasons,
 
-# why we do this
+- categories patterns are not stored in memory (except outside
+  categories in adblocker wrapper).
+- Also, it is not possible to voluntary change the set of categories. 
+  The only API entry to do it is `syncCategories`.
 
-Basically because:
-  - Because will be much easier to create campaigns, just selectiong the
-  categories that the offer belongs. => scale in terms of creating campaigns.
-  - It is much easier to create a proper trigger tree (more efficient) than the
-  current one.
-  - It will perform much faster as it is currently on the client side.
-  - Will be the first step for splitting the intent detection from the showing
-  offers, which currently  are alltogeather in the triggers and is giving us
-  some problems (complexity).
+The logic of `syncCategories`:
 
-
+- acquire build resources
+- modify categories (using `addCategory` or `removeCategory`)
+- build search index
+- safe category to persistence
+- release build resources

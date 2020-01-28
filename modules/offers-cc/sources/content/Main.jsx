@@ -137,10 +137,10 @@ export default class Main extends React.Component {
     const { isMenuOpen, currentView } = this.state;
     const {
       data: {
-        abtestInfo = {},
         vouchers = [],
         products = {},
         autoTrigger = false,
+        shouldShowOnboarding = false,
       } = {}
     } = this.props;
     /* eslint-disable jsx-a11y/no-static-element-interactions */
@@ -150,12 +150,12 @@ export default class Main extends React.Component {
         {isMenuOpen && <Menu products={products} onClick={this.onClickMenuOption} />}
         <div className={_css('content')}>
           <Content
-            abtestInfo={abtestInfo}
             products={products}
             onChangeView={this.onChangeView}
             currentView={currentView}
             vouchers={vouchers}
             autoTrigger={autoTrigger}
+            shouldShowOnboarding={shouldShowOnboarding}
           />
         </div>
         {this.renderFooter()}

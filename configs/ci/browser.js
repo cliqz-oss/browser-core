@@ -20,7 +20,6 @@ module.exports = Object.assign({}, browserBase, {
         image: 'bg-default'
       }
     }),
-    historyLookupEnabled: false,
   }),
   modules: browserBase.modules
     .concat([

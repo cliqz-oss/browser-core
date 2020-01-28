@@ -18,6 +18,9 @@ if (env.BRANCH_NAME.startsWith('v1.')) {
     matrix['browser-pre'] = [
         'config': 'releases/browser.js',
     ]
+    matrix['user-agent-ios'] = [
+        'config': 'user-agent-ios.js',
+    ]
 }
 
 if (env.BRANCH_NAME.startsWith('v3.')) {
@@ -32,9 +35,6 @@ if (env.BRANCH_NAME.startsWith('v3.')) {
     ]
     matrix['lumen-ios'] = [
         'config': 'lumen-ios.js',
-    ]
-    matrix['cliqz-ios'] = [
-        'config': 'cliqz-ios.js',
     ]
     matrix['user-agent-ios'] = [
         'config': 'user-agent-ios.js',
@@ -78,9 +78,6 @@ if (env.BRANCH_NAME.startsWith('v11.')) {
     matrix['offers-firefox'] = [
         'config': 'releases/offers-firefox.js',
     ]
-    matrix['offers-edge'] = [
-        'config': 'releases/offers-edge.js',
-    ]
 }
 
 if (env.BRANCH_NAME.startsWith('v12.')) {
@@ -104,33 +101,15 @@ if (env.BRANCH_NAME.startsWith('v14.')) {
     ]
 }
 
-if (env.BRANCH_NAME.startsWith('v15.')) {
-    matrix['offers-freundin-firefox'] = [
-        'config': 'releases/offers-freundin-firefox.js',
-    ]
-}
-
-if (env.BRANCH_NAME.startsWith('v16.')) {
-    matrix['offers-incent-firefox'] = [
-        'config': 'releases/offers-incent-firefox.js',
-    ]
-}
-
-if (isIntegrationBranch || env.BRANCH_NAME == 'serp') {
-    matrix['serp'] = [
-        'config': 'serp.js',
-    ]
-}
-
 if (isIntegrationBranch) {
     matrix['browser'] = [
         'config': 'browser.js',
         'cert_credentials_id': '766bbf53-83c2-4917-a837-ee612afcbb87',
         'cert_pass_credentials_id': '9983e1f3-9c73-42e7-8036-3b34a592dd52',
     ]
-    matrix['cliqz-tab-chrome-nightly'] = [
-        'config': 'cliqz-tab-chrome.js',
-    ]
+    // matrix['cliqz-tab-chrome-nightly'] = [
+    //     'config': 'cliqz-tab-chrome.js',
+    // ]
     matrix['instant-search'] = [
         'config': 'instant-search.js',
     ]
@@ -139,20 +118,16 @@ if (isIntegrationBranch) {
     //     'upload_api_id': '17f59394-d13b-476e-84d5-7888c9737ced',
     //     'upload_api_secret': '64b879c6-90f0-4242-9da8-87e1f0cacf94',
     // ]
-    matrix['ghostery-tab-chrome-nightly'] = [
-        'config': 'ghostery-tab-chrome.js',
-    ]
-    matrix['ghostery-tab-firefox-nightly'] = [
-        'config': 'ghostery-tab-firefox.js',
-        'upload_api_id': '17f59394-d13b-476e-84d5-7888c9737ced',
-        'upload_api_secret': '64b879c6-90f0-4242-9da8-87e1f0cacf94',
-    ]
+    // matrix['ghostery-tab-chrome-nightly'] = [
+    //     'config': 'ghostery-tab-chrome.js',
+    // ]
+    // matrix['ghostery-tab-firefox-nightly'] = [
+    //     'config': 'ghostery-tab-firefox.js',
+    //     'upload_api_id': '17f59394-d13b-476e-84d5-7888c9737ced',
+    //     'upload_api_secret': '64b879c6-90f0-4242-9da8-87e1f0cacf94',
+    // ]
     matrix['offers-nightly'] = [
         'config': 'offers.js',
-    ]
-
-    matrix['cliqz-ios'] = [
-        'config': 'cliqz-ios.js',
     ]
 
     matrix['user-agent-ios'] = [
@@ -391,33 +366,34 @@ try{
             body: bodytxt,
         )
     }
+    if (env.BRANCH_NAME.startsWith('v')) {
+        stage('update jira') {
+            if (isIntegrationBranch) {
+                withEnv(['JIRA_SITE=cliqztix']) {
+                    def issueIds = getIssueList(/EX-[0-9]+/)
+                    def transitionInput = [
+                        transition: [
+                            id: '121',
+                        ],
+                    ]
 
-    stage('update jira') {
-        if (isIntegrationBranch) {
-            withEnv(['JIRA_SITE=cliqztix']) {
-                def issueIds = getIssueList(/EX-[0-9]+/)
-                def transitionInput = [
-                    transition: [
-                        id: '121',
-                    ],
-                ]
+                    if (issueIds.size() > 0) {
+                        echo 'Detected JIRA tickets'
+                        echo issueIds.toString()
+                    } else {
+                        echo 'No JIRA tickets detected'
+                    }
 
-                if (issueIds.size() > 0) {
-                    echo 'Detected JIRA tickets'
-                    echo issueIds.toString()
-                } else {
-                    echo 'No JIRA tickets detected'
-                }
+                    for (id in issueIds) {
+                        try {
+                            def issue = jiraGetIssue idOrKey: id
 
-                for (id in issueIds) {
-                    try {
-                        def issue = jiraGetIssue idOrKey: id
-
-                        if (issue.data.fields.status.name == "Resolved") {
-                            jiraTransitionIssue idOrKey: id, input: transitionInput
+                            if (issue.data.fields.status.name == "Resolved") {
+                                jiraTransitionIssue idOrKey: id, input: transitionInput
+                            }
+                        } catch (Error e) {
+                            echo e
                         }
-                    } catch (Error e) {
-                        echo e
                     }
                 }
             }
@@ -466,6 +442,7 @@ def getIssueList(re) {
     return list
 }
 
+@NonCPS
 def getUrls(output) {
     def out = []
     def log = output
@@ -475,5 +452,5 @@ def getUrls(output) {
         def u = y.group().toString().trim().replaceFirst(/^s3:\/\/cdncliqz\//, 'https://s3.amazonaws.com/cdncliqz/')
         out.add(u)
     }
-    return out
+    return out.sort().unique()
 }

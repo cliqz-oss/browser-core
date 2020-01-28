@@ -6,6 +6,7 @@
 import logger from '../common/offers_v2_logger';
 import PatternMatching from '../../platform/lib/adblocker';
 import { MultiPatternIndex, SimplePatternIndex } from './pattern-utils-imp';
+import { extractHostname } from '../../core/tlds';
 
 
 /**
@@ -27,6 +28,36 @@ export default function tokenizeUrl(url, cpt = 'script') {
   return null;
 }
 
+/**
+ * @param {string[]} patterns
+ * @param {string} url
+ * @return {boolean} `true` when the given `url` matches
+ * any of the given `patterns`,
+ * `false` otherwise.
+ */
+export function matchUrl(patterns = [], url = '') {
+  // https://www.npmjs.com/package/@cliqz/adblocker#network-filters
+  const request = PatternMatching.Request.fromRawDetails({ url, type: 'script' });
+
+  function matchRequest(pattern) {
+    const filter = PatternMatching.NetworkFilter.parse(pattern);
+    return filter && filter.match(request);
+  }
+
+  return patterns.some(matchRequest);
+}
+
+/**
+ * @param {string[]} patterns
+ * @param {string} url
+ * @return {boolean} `true` when the hostname of the given `url`
+ * is defined and matches any of the given `patterns`,
+ * `false` otherwise.
+ */
+export function matchHostname(patterns = [], url = '') {
+  const hostname = extractHostname(url);
+  return Boolean(hostname) && matchUrl(patterns, hostname);
+}
 
 /**
  * This method will take a list of "tuples" containing

@@ -8,23 +8,12 @@
 
 /* global describeModule */
 
-const moment = require('moment');
+const mocks = require('../../mocks');
 const storageTests = require('./impl');
-
-const DATE_FORMAT = 'YYYY-MM-DD';
-let currentDate = '2017-01-01';
-const setCurrentDate = (date) => { currentDate = date; };
-const getCurrentMoment = () => moment(currentDate, DATE_FORMAT);
-const getFormattedCurrentDate = () => getCurrentMoment().format(DATE_FORMAT);
 
 export default describeModule('anolysis/internals/storage/memory',
   () => ({
-    'anolysis/internals/synchronized-date': {
-      DATE_FORMAT,
-      default() {
-        return getCurrentMoment();
-      },
-    },
+    ...mocks,
     'anolysis/internals/logger': {
       default: {
         debug() {},
@@ -34,9 +23,19 @@ export default describeModule('anolysis/internals/storage/memory',
     },
   }),
   () => {
+    let SafeDate = null;
     let Storage = null;
 
-    beforeEach(function () {
+    let currentDate = '2017-01-01';
+
+    const setCurrentDate = (date) => { currentDate = date; };
+    const getCurrentDate = () => SafeDate.fromBackend(currentDate);
+
+    beforeEach(async function () {
+      if (SafeDate === null) {
+        SafeDate = (await this.system.import('anolysis/internals/date')).default;
+      }
+
       if (Storage === null) {
         Storage = this.module().default;
       }
@@ -44,11 +43,9 @@ export default describeModule('anolysis/internals/storage/memory',
 
     describe('Run tests', function () {
       storageTests({
-        DATE_FORMAT,
-        getCurrentMoment,
-        getFormattedCurrentDate,
+        getCurrentDate,
         setCurrentDate,
-        getStorage: () => Storage,
+        getStorage: () => new Storage(),
         forceReloadDuringTests: false,
       });
     });

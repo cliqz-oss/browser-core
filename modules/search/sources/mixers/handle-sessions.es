@@ -8,7 +8,6 @@
 
 import { tap, switchMap, takeUntil } from 'rxjs/operators';
 
-import Enricher from '../operators/enricher';
 import logger from '../logger';
 import mixResults from '../mixers/mix-results';
 
@@ -19,10 +18,11 @@ import finalize from '../operators/streams/finalize';
  * Takes a query stream, creates a (mixed) result stream for each query.
  * Stop updating if user highlighted a result.
  */
-export default function handleSessions(query$, highlight$, providers, config) {
-  const enricher = new Enricher();
+export default function handleSession(query$, highlight$, providers, config) {
+  // Storage with session scope
+  const sessionStore = new Map();
+  sessionStore.set('operators.responses.enrich.cache', new Map());
 
-  // TODO: create session ID here
   const highlightWithLogger$ = highlight$.pipe(
     tap(() => logger.log('Highlight'))
   );
@@ -38,8 +38,8 @@ export default function handleSessions(query$, highlight$, providers, config) {
           resultOrder: getResultOrder(lastResult),
         },
         providers,
-        enricher,
         config,
+        sessionStore,
       ).pipe(takeUntil(highlightWithLogger$)),
     ),
     finalize(config),

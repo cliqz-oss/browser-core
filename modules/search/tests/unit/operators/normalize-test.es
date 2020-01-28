@@ -11,17 +11,13 @@
 const mock = {
   'core/url': {
     tryDecodeURI: u => u,
-    urlStripProtocol: () => 'STRIPPED_URL',
+    strip: () => 'STRIPPED_URL',
     getFriendlyUrl: () => '',
+    parse: () => ({
+      hostname: 'domain',
+      generalDomain: 'domain'
+    }),
   },
-  'core/url-info': {
-    URLInfo: {
-      get: () => ({
-        hostname: 'domain',
-        generalDomain: 'domain'
-      })
-    }
-  }
 };
 
 const prototype = {

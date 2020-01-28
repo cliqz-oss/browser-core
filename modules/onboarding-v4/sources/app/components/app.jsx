@@ -11,24 +11,21 @@ import createModuleWrapper from '../../../core/helpers/action-module-wrapper';
 import cliqz from '../../cliqz';
 import tabs from '../../../platform/tabs';
 
-import Antitracking from './antitracking';
-import Adblocking from './adblocking';
-import Antiphishing from './antiphishing';
-import Dots from './dots';
-import Final from './final';
-import ImportData from './import-data';
+import Layout from './layout';
+
 import PopupConfirmation from './popup-confirmation';
 import PopupControlCenter from './popup-control-center';
-import Welcome from './welcome';
 
 import * as telemetry from '../services/telemetry/telemetry';
 
-import t from '../../i18n';
-
 export default class App extends React.Component {
   state = {
-    currentStep: -1,
+    currentStep: 0,
     steps: [
+      {
+        name: 'welcome',
+        visited: true,
+      },
       {
         name: 'antitracking',
         visited: false,
@@ -49,6 +46,9 @@ export default class App extends React.Component {
         visited: false,
         enabled: false,
       },
+      {
+        name: 'final',
+      }
     ],
     popupSkip: false,
     popupProtection: false,
@@ -109,17 +109,15 @@ export default class App extends React.Component {
     window.addEventListener('beforeunload', beforeUnloadListener);
 
     this.addOnTabChangedListener();
-
-    setTimeout(() => {
-      this.setState({ currentStep: 0 });
-      this.updateStep(0, { visited: true });
-    }, 700);
   }
 
   get view() {
     const index = this.state.currentStep;
     const name = this.state.steps[index].name;
-    if (index === 3) {
+    // We need to collect status from
+    // antiphishing, antitracking and adblocking only;
+    // For other modals we just return their name;
+    if (name !== 'adblocking' && name !== 'antitracking' && name !== 'antiphishing') {
       return name;
     }
     const status = this.state.steps[index].enabled ? 'on' : 'off';
@@ -134,14 +132,23 @@ export default class App extends React.Component {
 
   handleImportBtnClicked = () => {
     telemetry.importData();
-    chrome.cliqz.openImportDialog();
+    cliqz.onboarding.openImportDialog();
   }
 
-  navigateToLastStep = () => {
-    this.setState(prevState => ({ currentStep: prevState.currentStep + 1 }));
-  }
+  handleInfoNavigationClick = (event) => {
+    const target = event.target;
+    if (target.nodeName.toLowerCase() !== 'button') {
+      return;
+    }
 
-  // dots component
+    let index = target.getAttribute('data-index');
+    if (index === 'next') {
+      index = this.state.currentStep + 1;
+      this.handleNextBtnClicked();
+    } else {
+      this.handleDotsComponentClicked(index * 1);
+    }
+  }
 
   handleDotsComponentClicked = (index) => {
     telemetry.dotsClick(this.view, index);
@@ -150,17 +157,10 @@ export default class App extends React.Component {
     }, () => { telemetry.showStep(this.view); });
   }
 
-  // next button
-
-  get nextButtonClass() {
-    const stepName = this.state.steps[this.state.currentStep].name;
-    const isEnabled = this.state.steps[this.state.currentStep].enabled;
-    return `next-button ${stepName} ${isEnabled ? 'active' : ''}`;
-  }
-
   handleNextBtnClicked = () => {
     telemetry.nextBtnClick(this.view);
-    if (this.state.currentStep < 3) {
+
+    if (this.state.currentStep < 4) {
       this.setState(prevState => ({ currentStep: prevState.currentStep + 1 }),
         () => this.updateStep(this.state.currentStep, { visited: true }));
     } else if (this.state.steps.filter(step => step.enabled === true).length < 2) {
@@ -205,7 +205,7 @@ export default class App extends React.Component {
     this.setState(prevState => (
       {
         steps: prevState.steps.map((step, ind) => {
-          if (ind < 3) {
+          if (ind < 4) {
             return (
               {
                 ...step,
@@ -215,7 +215,7 @@ export default class App extends React.Component {
           }
           return step;
         }),
-        currentStep: 4,
+        currentStep: 5,
         popupSkip: false,
       }
     ));
@@ -243,7 +243,7 @@ export default class App extends React.Component {
     this.setState(prevState => (
       {
         steps: prevState.steps.map((step, ind) => {
-          if (ind < 3) {
+          if (ind < 4) {
             return (
               {
                 ...step,
@@ -279,6 +279,52 @@ export default class App extends React.Component {
     this.hideProtectionPopup();
   }
 
+  finalComponentDidUpdate = () => {
+    this.removeOnTabChangedListener();
+    this.updatePrefs();
+
+    setTimeout(() => {
+      this.setState(prevState => ({ currentStep: prevState.currentStep + 1 }));
+    }, 1500);
+  }
+
+  handleShareDataClick = () => {
+    const handleTabChange = (activeInfo) => {
+      tabs.get(activeInfo.tabId, (tab) => {
+        if (tab.id && tab.id === this.onboardingId) {
+          return;
+        }
+
+        this.addOnTabChangedListener();
+        tabs.onActivated.removeListener(handleTabChange);
+      });
+    };
+
+    tabs.onActivated.addListener(handleTabChange);
+
+    this.removeOnTabChangedListener();
+
+    this.background.openPrivacyReport();
+    telemetry.shareDataClick();
+  }
+
+  updatePrefs = () => {
+    const prefs = [];
+
+    this.state.steps.forEach(async (step) => {
+      if (step.name === 'antiphishing') {
+        prefs.push({ name: 'cliqz-anti-phishing-enabled', value: step.enabled });
+      }
+      if (step.name === 'adblocking') {
+        prefs.push({ name: 'cliqz-adb', value: step.enabled });
+      }
+      if (step.name === 'antitracking') {
+        prefs.push({ name: 'modules.antitracking.enabled', value: step.enabled });
+      }
+      await this.background.setPrefs(prefs);
+    });
+  }
+
   render() {
     const {
       currentStep,
@@ -289,74 +335,16 @@ export default class App extends React.Component {
 
     return (
       <div className="app">
-        <div className={popupSkip || popupProtection ? 'main blur' : 'main'}>
-          <Welcome
-            visible={currentStep === -1}
-          />
-
-          <Antitracking
-            visible={currentStep === 0}
-            stepState={steps[0]}
-            onToggle={this.onToggle}
-          />
-
-          <Adblocking
-            visible={currentStep === 1}
-            stepState={steps[1]}
-            onToggle={this.onToggle}
-          />
-
-          <Antiphishing
-            visible={currentStep === 2}
-            stepState={steps[2]}
-            onToggle={this.onToggle}
-          />
-
-          <ImportData
-            visible={currentStep === 3}
-            stepState={steps[3]}
-            onClick={this.handleImportBtnClicked}
-          />
-
-          <Final
-            cliqz={this.background}
-            showSkipPopup={this.showSkipPopup}
-            stepsState={this.state.steps.slice(0, 3)}
-            updateStep={this.navigateToLastStep}
-            visible={currentStep === 4}
-            removeOnTabChangedListener={this.removeOnTabChangedListener}
-          />
-
-          <PopupControlCenter
-            visible={currentStep === 5}
-          />
-
-          {currentStep >= 0 && currentStep < 4 && (
-            <React.Fragment>
-              <Dots
-                currentStep={currentStep}
-                stepsState={steps}
-                updateCurrentStep={this.handleDotsComponentClicked}
-              />
-
-              <button
-                type="button"
-                className={this.nextButtonClass}
-                onClick={this.handleNextBtnClicked}
-              >
-                {t('button_next')}
-              </button>
-
-              <button
-                type="button"
-                className="skip-button"
-                onClick={this.handleSkipBtnClicked}
-              >
-                {t('button_skip')}
-              </button>
-            </React.Fragment>
-          )}
-        </div>
+        <Layout
+          currentStep={currentStep}
+          stepStates={steps}
+          onToggle={this.onToggle}
+          handleShareDataClick={this.handleShareDataClick}
+          handleImportBtnClick={this.handleImportBtnClicked}
+          handleInfoNavigationClick={this.handleInfoNavigationClick}
+          finalComponentDidUpdate={this.finalComponentDidUpdate}
+          skipOnSkipClick={this.skipOnSkipClick}
+        />
 
         {popupSkip && (
           <PopupConfirmation
@@ -377,6 +365,10 @@ export default class App extends React.Component {
             onHideClick={this.protectionOnHideClick}
           />
         )}
+
+        <PopupControlCenter
+          visible={currentStep === 6}
+        />
       </div>
     );
   }

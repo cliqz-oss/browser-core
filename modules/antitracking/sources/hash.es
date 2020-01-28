@@ -97,8 +97,8 @@ export function shouldCheckToken(hashProb, minLength, str) {
   if (str.length < minLength) {
     return false;
   }
-  // exclude IP addresses
-  if (isIpv4Address(str)) {
+  // exclude IPv4 addresses
+  if (str.length > 6 && str.length < 16 && isIpv4Address(str)) {
     return false;
   }
   // numeric short (< 13 digits)

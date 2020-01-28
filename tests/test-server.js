@@ -49,7 +49,7 @@ function normalizePath(path) {
   const app = express();
 
   app.use(bodyParser.json());
-  app.use(express.static('public'));
+  app.use('/static', express.static(__dirname + '/public'));
   app.use(compression());
   app.use(cookieParser());
 

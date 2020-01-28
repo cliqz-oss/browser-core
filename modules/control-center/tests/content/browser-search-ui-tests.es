@@ -133,7 +133,7 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.adultContentFilter');
+                expect(message).to.have.nested.property('args[0].pref', 'adultContentFilter');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'search_adult');
               }
@@ -193,7 +193,7 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.share_location');
+                expect(message).to.have.nested.property('args[0].pref', 'share_location');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'search_location');
               }
@@ -290,7 +290,7 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.hpn-query');
+                expect(message).to.have.nested.property('args[0].pref', 'hpn-query');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'search_proxy');
               }
@@ -341,7 +341,7 @@ describe('Search options UI browser', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.humanWebOptOut');
+                expect(message).to.have.nested.property('args[0].pref', 'humanWebOptOut');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'search_humanweb');
               }
@@ -506,7 +506,7 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.adultContentFilter');
+                expect(message).to.have.nested.property('args[0].pref', 'adultContentFilter');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'search_adult');
               }
@@ -566,7 +566,7 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.share_location');
+                expect(message).to.have.nested.property('args[0].pref', 'share_location');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'search_location');
               }
@@ -663,7 +663,7 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.hpn-query');
+                expect(message).to.have.nested.property('args[0].pref', 'hpn-query');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].prefType', 'boolean');
                 expect(message).to.have.nested.property('args[0].target', 'search_proxy');
@@ -715,7 +715,7 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.humanWebOptOut');
+                expect(message).to.have.nested.property('args[0].pref', 'humanWebOptOut');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'search_humanweb');
               }
@@ -767,7 +767,7 @@ describe('AMO Search options tests', function () {
               () => subject.messages.find(message => message.action === 'updatePref')
             ).then(
               (message) => {
-                expect(message).to.have.nested.property('args[0].pref', 'extensions.cliqz.telemetry');
+                expect(message).to.have.nested.property('args[0].pref', 'telemetry');
                 expect(message).to.have.nested.property('args[0].value', `${currentValue}`);
                 expect(message).to.have.nested.property('args[0].target', 'telemetry');
               }

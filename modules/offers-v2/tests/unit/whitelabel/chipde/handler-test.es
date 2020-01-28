@@ -39,7 +39,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
           config.reset();
         });
 
-        function activateOffer() {
+        async function activateOffer() {
           const cat = JSON.parse(JSON.stringify(fixture.VALID_CATEGORY));
           cat.patterns.push('||mediamarkt.de$script');
           cat.patterns.push('Beauty$domain=amazon.de,xmlhttprequest');
@@ -50,8 +50,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
             48 * 60 * 60, // timeRangeSecs: 2 days
             cat.activationData
           );
-          bg.categoryHandler.addCategory(catObj);
-          bg.categoryHandler.build();
+          await bg.categoryHandler.syncCategories([catObj]);
           //
           const intent = new Intent('intent1', 48 * 60 * 60);
           bg.offersHandler.intentOffersHandler.setIntentOffers(intent, [fixture.VALID_OFFER_OBJ]);
@@ -84,7 +83,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
           //
           // Arrange
           //
-          activateOffer();
+          await activateOffer();
           const pushMock = sinon.stub(bg.offersAPI, 'pushOffer');
           const httpPostMock = sinon.spy(bg.signalsHandler.sender, 'httpPost');
           followRedirects(urls.defaultChain);
@@ -104,7 +103,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
         });
 
         it('/show offers again after 24 hours', async () => {
-          activateOffer();
+          await activateOffer();
           const pushMock = sinon.stub(bg.offersAPI, 'pushOffer');
           followRedirects(urls.defaultChain);
 
@@ -118,7 +117,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
           //
           // Arrange: add an offer that is triggered on the target site
           //
-          activateOffer();
+          await activateOffer();
           followRedirects(urls.defaultChain);
 
           //
@@ -132,7 +131,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
           //
           const pushMock = sinon.stub(bg.offersAPI, 'pushOffer');
           const httpPostMock = sinon.spy(bg.signalsHandler.sender, 'httpPost');
-          activateOffer();
+          await activateOffer();
 
           //
           // Action 2: visit the page where an offer is possible
@@ -152,7 +151,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
           //
           // Arrange
           //
-          activateOffer();
+          await activateOffer();
           const pushMock = sinon.stub(bg.offersAPI, 'pushOffer');
           const httpPostMock = sinon.spy(bg.signalsHandler.sender, 'httpPost');
           followRedirects([...urls.defaultChain, 'https://www.amazon.de/some/page']);

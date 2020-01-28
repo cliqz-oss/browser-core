@@ -29,6 +29,13 @@ module.exports = {
     antitrackingPlaceholder: 'cliqz.com/tracking',
     antitrackingHeader: 'CLIQZ-AntiTracking',
     INSIGHTS_INTERNAL: true,
+    telemetry: {
+      demographics: {
+        brand: 'cliqz',
+        name: 'browser',
+        platform: 'android',
+      },
+    },
   }),
   default_prefs: {
     attrackBloomFilter: true,

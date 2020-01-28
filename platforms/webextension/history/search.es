@@ -66,10 +66,10 @@ if (chrome.tabs) {
   updateOpenedTabsCache();
 }
 
-export default function getHistory(query, callback) {
+export default function getHistory(query, callback, isPrivate = false) {
   // we use the unified search experimental API in the Cliqz browser
   if (unifiedSearchAvailable) {
-    browser.cliqzHistory.unifiedSearch(query).then(callback);
+    browser.cliqzHistory.unifiedSearch(query, isPrivate).then(callback);
     return;
   }
 

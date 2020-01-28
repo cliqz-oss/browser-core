@@ -72,17 +72,17 @@ export function filterValues(obj, predicate) {
 }
 
 export function products() {
+  const brand = config.settings.OFFERS_BRAND;
   return {
     cliqz: isCliqzBrowser,
     amo: isAMO,
     ghostery: isGhostery,
-    chip: config.settings.OFFERS_BRAND === 'chip',
-    freundin: config.settings.OFFERS_BRAND === 'freundin',
-    incent: config.settings.OFFERS_BRAND === 'incent',
+    chip: brand === 'chip',
+    myoffrz: brand === 'myoffrz',
   };
 }
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo', 'ghostery'];
+const ALLOWED_PRODUCTS = ['chip', 'cliqz', 'amo', 'ghostery'];
 export function chooseProduct(options = {}) {
   return ALLOWED_PRODUCTS.find(product => options[product]) || 'myoffrz';
 }

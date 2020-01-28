@@ -135,7 +135,9 @@ export default class LastQuery extends EventEmitter {
   }
 
   hide() {
-    this.container.style.display = 'none';
+    if (this.attached) {
+      this.container.style.display = 'none';
+    }
   }
 
   update(tabId, text) {

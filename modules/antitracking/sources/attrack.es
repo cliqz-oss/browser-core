@@ -26,12 +26,11 @@ import { truncatedHash } from '../core/helpers/md5';
 import telemetry from './telemetry';
 import { HashProb, shouldCheckToken } from './hash';
 import { getDefaultTrackerTxtRule } from './tracker-txt';
-import { isPrivateIP, getGeneralDomainMinusTLD } from '../core/url';
-import { URLInfo, shuffle } from '../core/url-info';
+import { parse, isPrivateIP, getName } from '../core/url';
 import { VERSION, TELEMETRY, COOKIE_MODE } from './config';
 import { checkInstalledPrivacyAddons } from '../platform/addon-check';
 import { compressionAvailable, compressJSONToBase64 } from './compression';
-import { generateAttrackPayload } from './utils';
+import { generateAttrackPayload, shuffle } from './utils';
 import buildPageLoadObject from './page-telemetry';
 import AttrackDatabase from './database';
 import getTrackingStatus from './dnt';
@@ -921,8 +920,11 @@ export default class CliqzAttrack {
       state.incrementStat('cookie_allow_nottracker');
       return false;
     }
-    if (mode === COOKIE_MODE.GHOSTERY && !this.ghosteryDomains[state.urlParts.generalDomain]
-        && !getGeneralDomainMinusTLD(state.urlParts) !== 'google') {
+    if (
+      mode === COOKIE_MODE.GHOSTERY
+      && !this.ghosteryDomains[state.urlParts.generalDomain]
+      && getName(state.urlParts) !== 'google'
+    ) {
       // in Ghostery mode: if the domain did not match a ghostery bug we allow it. One exception
       // are third-party google.tld cookies, which we do not allow with this mechanism.
       state.incrementStat('cookie_allow_ghostery');
@@ -983,7 +985,7 @@ export default class CliqzAttrack {
       || data.blocked_blocklist > 0).map(pair => pair[0]);
 
     // const firstPartyCompany = domainInfo.domainOwners[getGeneralDomain(tabData.hostname)];
-    const urlInfo = URLInfo.get(page.url);
+    const urlInfo = parse(page.url);
     result.hostname = urlInfo.hostname;
     result.path = urlInfo.path;
 

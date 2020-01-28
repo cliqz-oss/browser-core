@@ -7,7 +7,7 @@
  */
 
 import telemetry from '../core/services/telemetry';
-import { nextTick } from '../core/decorators';
+import pacemaker from '../core/services/pacemaker';
 
 import logger from './logger';
 import LatencyMetrics from './latency-metrics';
@@ -194,7 +194,7 @@ export default class Pipeline {
           // the response either. Because of these constraints, we can safely
           // run these steps asynchronously to not block the processing of
           // requests.
-          nextTick(() => fn(webRequestContext));
+          pacemaker.nextIdle(fn, webRequestContext);
           break;
         case 'blocking':
           // A `blocking` step is used to alter the life-cycle of a request:
@@ -231,6 +231,18 @@ export default class Pipeline {
         // that we ignored the break
         logger.error(this.name, webRequestContext.url, 'ignoring attempted break of unbreakable pipeline at', name);
       }
+    }
+  }
+
+  safeExecute(context, response, canAlterRequest) {
+    try {
+      this.execute(
+        context,
+        response,
+        canAlterRequest,
+      );
+    } catch (ex) {
+      logger.error('while running pipeline', context, ex);
     }
   }
 }

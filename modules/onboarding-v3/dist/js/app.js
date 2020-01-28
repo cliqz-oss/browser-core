@@ -23,19 +23,23 @@ function localizeDocument() {
   });
 }
 
-function telemetrySig(msg) {
+function callAction(module, action, ...args) {
   chrome.runtime.sendMessage({
     target: 'cliqz',
-    module: 'core',
-    action: 'sendTelemetry',
-    args: [{
-      type: 'onboarding',
-      version: '3.0',
-      action: msg.action,
-      view: msg.view,
-      target: msg.target,
-      show_duration: tlmTimer
-    }]
+    module,
+    action,
+    args,
+  });
+}
+
+function telemetrySig(msg) {
+  callAction('core', 'sendTelemetry', {
+    type: 'onboarding',
+    version: '3.0',
+    action: msg.action,
+    view: msg.view,
+    target: msg.target,
+    show_duration: tlmTimer
   });
 }
 
@@ -67,19 +71,11 @@ function show() {
     resumed: 'false'
   });
 
-  chrome.runtime.sendMessage({
-    target: 'cliqz',
-    module: 'onboarding-v3',
-    action: 'show'
-  });
+  callAction('onboarding-v3', 'show');
 }
 
 function finishOnboarding() {
-  chrome.runtime.sendMessage({
-    target: 'cliqz',
-    module: 'onboarding-v3',
-    action: 'finishOnboarding'
-  });
+  callAction('onboarding-v3', 'finishOnboarding');
 
   telemetrySig({
     action: 'click',
@@ -89,7 +85,7 @@ function finishOnboarding() {
 }
 
 async function openPrivacySection() {
-  chrome.omnibox2.navigateTo('about:preferences#privacy-reports', { target: 'tab' });
+  callAction('onboarding-v3', 'openPrivacyReport');
 
   telemetrySig({
     action: 'click',

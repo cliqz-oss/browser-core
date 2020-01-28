@@ -5,18 +5,10 @@
 const commonMocks = require('./utils/common');
 const eventsMock = require('./utils/events');
 
-let getDetailsFromUrlReal;
-
 export default describeModule('offers-v2/event_handler',
   () => ({
     ...commonMocks,
     ...eventsMock,
-    'core/url': {
-      getDetailsFromUrl: function (url) {
-        // we should extract the name here
-        return getDetailsFromUrlReal(url);
-      }
-    },
     'core/timers': {
       setTimeout: cb => cb(),
     },
@@ -28,9 +20,6 @@ export default describeModule('offers-v2/event_handler',
       beforeEach(function () {
         EventHandler = this.module().default;
         events.clearAll();
-        return this.system.import('core/url').then((mod) => {
-          getDetailsFromUrlReal = mod.getDetailsFromUrl;
-        });
       });
 
       context('basic tests', function () {

@@ -6,8 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import URL from '../../core/fast-url-parser';
-import { urlStripProtocol } from '../../core/content/url';
+import { extractHostname } from '../../core/tlds';
+import { strip } from '../../core/url';
 import BaseResult, { Subresult } from './base';
 import LocalResult, { ShareLocationButton } from './local';
 import { OfferResult } from './offer';
@@ -116,8 +116,7 @@ export default class GenericResult extends BaseResult {
 
   get newsResults() {
     const deepLinks = getDeepResults(this.rawResult, 'news');
-    const hostname = this.url
-      && urlStripProtocol(new URL(this.url).hostname);
+    const hostname = this.url && strip(extractHostname(this.url), { www: true });
     return deepLinks.map(({ url, title, extra = {}, meta = {} } = {}) => new NewsResult(this, {
       ...this.topResultProps,
       url,
@@ -128,7 +127,7 @@ export default class GenericResult extends BaseResult {
       description: extra.description,
       creation_time: extra.creation_timestamp,
       tweet_count: extra.tweet_count,
-      showLogo: hostname && hostname !== urlStripProtocol(new URL(url).hostname),
+      showLogo: hostname && hostname !== strip(extractHostname(url), { www: true }),
       text: this.query,
       isBreakingNews: extra.breaking,
     }));
@@ -143,7 +142,7 @@ export default class GenericResult extends BaseResult {
       meta,
       thumbnail: extra.thumbnail,
       duration: extra.duration,
-      views: Number(extra.views).toLocaleString(),
+      views: extra.views ? Number(extra.views).toLocaleString() : '',
       text: this.query,
     }));
   }

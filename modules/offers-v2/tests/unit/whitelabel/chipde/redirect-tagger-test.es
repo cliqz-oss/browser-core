@@ -22,7 +22,7 @@ export default describeModule('offers-v2/whitelabel/chipde/redirect-tagger',
         });
 
         function getReferrerMap() {
-          return redirectTagger.referrers;
+          return redirectTagger.referrers.toMap();
         }
 
         it('/find final destination', () => {
@@ -38,12 +38,6 @@ export default describeModule('offers-v2/whitelabel/chipde/redirect-tagger',
           doRedirects(chain, redirectTagger.onRequest);
 
           chai.expect(onFinalDomain).to.be.not.called;
-          chai.expect(getReferrerMap()).to.be.empty;
-        });
-
-        it('/cleanup the internal accounting', () => {
-          doRedirects(urls.defaultChain, redirectTagger.onRequest);
-
           chai.expect(getReferrerMap()).to.be.empty;
         });
       });

@@ -17,6 +17,7 @@ import {
   removeWindowObserver,
   forEachWindow,
 } from '../platform/browser';
+import { browser } from '../platform/globals';
 import { newTab } from '../platform/tabs';
 
 import initializeHelpers from './initialize-test-helpers';
@@ -40,9 +41,23 @@ export default {
         this.logChannel.postMessage({ level, msg });
       });
     }
+
     prefs.set('integration-tests.started', true);
     this.window = chrome.extension.getBackgroundPage().window;
     initializeHelpers(this.window);
+
+    // Mix messages from content scripts into the extension output
+    this.mixextlogListener = (ev) => {
+      if (ev.type === 'mixextlog') {
+        const { level, msg } = ev;
+        const prn = this.window.console[level] || this.window.console.log;
+        if (Array.isArray(msg)) { prn(...msg); } else { prn(msg); }
+        if (this.logChannel) {
+          this.logChannel.postMessage({ level, msg });
+        }
+      }
+    };
+    browser.runtime.onMessage.addListener(this.mixextlogListener);
 
     forEachWindow(() => this.startTestsWhenExtensionLoaded());
     this.windowObserver = (w, topic) => {
@@ -54,6 +69,7 @@ export default {
   },
 
   unload() {
+    browser.runtime.onMessage.removeListener(this.mixextlogListener);
     if (this.logChannel) {
       this.logChannel.close();
     }

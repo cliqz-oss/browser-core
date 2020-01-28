@@ -32,13 +32,15 @@ const getDistTree = require('./modules/dist-tree');
 
 const modulesTree = new WatchedDir('modules');
 
+const targets = cliqzConfig.buildTargets || {
+  firefox: 57,
+};
+
 const babelOptions = {
   babelrc: false,
   presets: [
     ['@babel/env', {
-      targets: {
-        firefox: 52
-      },
+      targets,
       modules: false,
       exclude: [
         '@babel/plugin-transform-template-literals',
@@ -262,7 +264,7 @@ const staticTree = new MergeTrees([
   getSassTree(),
 ]);
 
-const styleCheckTestsTree = process.env.CLIQZ_ENVIRONMENT === 'production'
+const styleCheckTestsTree = env.PRODUCTION
   ? new MergeTrees([]) : getLintTestsTree();
 
 const bundlesTree = getBundlesTree(

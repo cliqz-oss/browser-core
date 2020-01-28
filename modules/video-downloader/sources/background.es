@@ -15,8 +15,6 @@ import { chrome } from '../platform/globals';
 import { createUITourTarget, deleteUITourTarget } from '../core/ui-tour';
 
 export default background({
-  requiresServices: ['telemetry'],
-
   init() {
     // The UI's constructor receives Peercomm as the first param.
     // If pairing module is available, we pass it.
@@ -51,9 +49,6 @@ export default background({
     },
     download(data) {
       this.UI.download(data);
-    },
-    telemetry(data) {
-      this.UI.sendTelemetry(data);
     },
     sendToMobile(...args) {
       return this.UI.sendToMobile(...args);

@@ -15,9 +15,12 @@ import { service as pacemaker } from './services/pacemaker';
 import { service as telemetry } from './services/telemetry';
 import { service as session } from './services/session';
 import { service as cliqzConfig } from './services/cliqz-config';
+import { service as hostSettings } from './services/host-settings';
+import { service as storage } from './services/storage';
 
 const services = {
   logos,
+  'host-settings': hostSettings,
   telemetry,
   // IP driven configuration
   'cliqz-config': cliqzConfig,
@@ -25,6 +28,7 @@ const services = {
   'search-services': isSearchServiceReady,
   domainInfo,
   pacemaker,
+  storage,
 };
 
 if (CONFIG.environment !== 'production') {

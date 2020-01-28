@@ -11,8 +11,12 @@ const Funnel = require('broccoli-funnel');
 const MergeTrees = require('broccoli-merge-trees');
 const broccoliSource = require('broccoli-source');
 const writeFile = require('broccoli-file-creator');
+const BroccoliImagemin = require('broccoli-imagemin');
+const imageminOptipng = require('imagemin-optipng');
+const imageminSvgo = require('imagemin-svgo');
 
 const cliqzConfig = require('../config');
+const cliqzEnv = require('../cliqz-env');
 const util = require('../util');
 
 const subprojects = require(path.resolve(__dirname, '../../configs/common/subprojects/bundles'));
@@ -26,10 +30,17 @@ const FILES_WITH_PLACEHOLDERS = {
 };
 
 module.exports = function getDistTree(modulesTree) {
+  const minify = !cliqzEnv.DEVELOPMENT;
+  const exclude = ['**/dist/locale/**/*']; // remove translations;
+
+  if (!cliqzEnv.DEBUG_PAGES) {
+    exclude.push('**/dist/debug/**/*'); // remove debug pages
+  }
+
   const modulesTrees = [
     new Funnel(modulesTree, {
       include: cliqzConfig.modules.map(name => `${name}/dist/**/*`),
-      exclude: ['**/messages.json'], // remove translations
+      exclude,
       getDestinationPath(_path) {
         return _path.replace('/dist', '');
       },
@@ -61,7 +72,7 @@ module.exports = function getDistTree(modulesTree) {
           include: subproject.include || ['**/*'],
           destDir: subproject.dest,
           getDestinationPath(filename) {
-            return filename.replace('.development', '').replace('.production.min', '').replace('.profiling.min', '');
+            return filename.replace('.development', '').replace('.production.min', '');
           },
         })
     )
@@ -76,10 +87,32 @@ module.exports = function getDistTree(modulesTree) {
     return all.concat(fileNames);
   }, []);
 
+  const imageminFilter = minify ? {
+    include: ['**/*.svg', '**/*.png']
+  } : {
+    exclude: ['**/*'],
+  };
+
+  const distImageMin = new BroccoliImagemin(
+    new Funnel(distTree, imageminFilter), {
+      plugins: [
+        imageminOptipng({
+          optimizationLevel: 5,
+        }),
+        imageminSvgo({
+          plugins: [
+            { convertStyleToAttrs: false },
+          ],
+        }),
+      ],
+    }
+  );
+
   const distWithConfig = util.injectConfig(distTree, config, 'cliqz.json', files);
 
   return new MergeTrees([
     distTree,
+    distImageMin,
     distWithConfig,
   ], { overwrite: true });
 };

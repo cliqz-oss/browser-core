@@ -83,7 +83,7 @@ export default class Card extends React.Component {
         )}
       >
         {i18n('show_more')}&nbsp;
-        <span className={_css('small-triangle')}>&#9660;</span>
+        <div className={_css('small-triangle')} />
       </Tag>
     );
     /* eslint-enable jsx-a11y/no-noninteractive-element-interactions */
@@ -92,10 +92,13 @@ export default class Card extends React.Component {
   renderStyledConditions(conditions, shouldShowMore) {
     /* eslint-disable react/no-array-index-key */
     return (
-      <ul className={_css('bullets', shouldShowMore ? 'pointer' : '')}>
-        {conditions.map((text, i) => <li key={i} className={_css('bullet')}>{text}</li>)}
-        {shouldShowMore && this.renderShowMore(props => <li {...props} />)}
-      </ul>
+      <React.Fragment>
+        <span className={_css('condition-title')}>{i18n('conditions')}:</span>
+        <ul className={_css('bullets', shouldShowMore ? 'pointer' : '')}>
+          {conditions.map((text, i) => <li key={i} className={_css('bullet')}>{text}</li>)}
+          {shouldShowMore && this.renderShowMore(props => <li {...props} />)}
+        </ul>
+      </React.Fragment>
     );
     /* eslint-enable react/no-array-index-key */
   }
@@ -140,7 +143,7 @@ export default class Card extends React.Component {
         >
           {templateData.headline}
         </div>
-        <div style={{ height: '11px' }} />
+        <div style={{ height: '9px' }} />
         <div className={_css('description')}> {this.renderConditions()} </div>
       </div>
     );
@@ -151,7 +154,7 @@ export default class Card extends React.Component {
     return (
       <div className={_css('screen-main')}>
         {this.renderImage()}
-        <div style={{ height: '2px' }} />
+        <div style={{ height: '8px' }} />
         {this.renderText()}
       </div>
     );
@@ -163,14 +166,10 @@ export default class Card extends React.Component {
       isCodeHidden,
       products,
       voucher = {},
-      abtestInfo: {
-        popupsCopyCode
-      } = {},
     } = this.props;
     return (
       <React.Fragment>
         <Promo
-          abtestInfo={{ popupsCopyCode }}
           products={products}
           isCodeHidden={isCodeHidden}
           onCopyCode={onChangeCodeStatus}

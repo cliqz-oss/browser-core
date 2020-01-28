@@ -10,24 +10,13 @@
 /* global describeModule */
 /* global sinon */
 
-const moment = require('moment');
-const mockDexie = require('../../../core/unit/utils/dexie');
+const mocks = require('../mocks');
 
 let sendSignal = () => {};
 
-const CURRENT_DATE = '2017-01-01';
-const DATE_FORMAT = 'YYYY-MM-DD';
-function getCurrentDate() {
-  return moment(CURRENT_DATE, DATE_FORMAT);
-}
-
 export default describeModule('anolysis/internals/signals-queue',
   () => ({
-    ...mockDexie,
-    'core/console': {
-      isLoggingEnabled() { return false; },
-      default: {},
-    },
+    ...mocks,
     'core/services/pacemaker': {
       default: {
         register() {},
@@ -45,11 +34,6 @@ export default describeModule('anolysis/internals/signals-queue',
         error() {},
       },
     },
-    'anolysis/internals/synchronized-date': {
-      default() {
-        return getCurrentDate();
-      },
-    },
     'anolysis/internals/backend-communication': {
       default: class Backend {
         sendSignal(signal) {
@@ -63,38 +47,43 @@ export default describeModule('anolysis/internals/signals-queue',
       let queue;
       let storage;
 
-      beforeEach(function () {
-        return this.system.import('anolysis/internals/storage/dexie')
-          .then((module) => {
-            const Storage = module.default;
-            storage = new Storage();
-            return storage.init();
-          })
-          .then(() => {
-            const SignalQueue = this.module().default;
+      const makeSignal = signal => ({
+        meta: {
+          date: '2017-01-01',
+        },
+        ...signal,
+      });
 
-            const config = new Map();
-            config.set('signalQueue.batchSize', 5);
-            config.set('signalQueue.sendInterval', 15000);
-            config.set('signalQueue.maxAttempts', 5);
-            queue = new SignalQueue(config);
-            return queue.init(storage.signals);
-          });
+      beforeEach(async function () {
+        const Storage = (await this.system.import('anolysis/internals/storage/memory')).default;
+        storage = new Storage();
+        await storage.init();
+
+        const SignalQueue = this.module().default;
+        queue = new SignalQueue({
+          queue: {
+            batchSize: 5,
+            sendInterval: 15000,
+            maxAttempts: 5,
+          }
+        });
+
+        await queue.init(storage.signals);
       });
 
       afterEach(() => storage.destroy());
 
       it('pushes new messages in the queue', () =>
-        queue.push({ signal: 1 })
-          .then(() => queue.push({ signal: 2 }))
+        queue.push(makeSignal({ signal: 1 }))
+          .then(() => queue.push(makeSignal({ signal: 2 })))
           .then(() => storage.signals.getAll())
           .then(signals => chai.expect(signals).to.have.length(2)));
 
       it('process batch of size 1', () => {
         sendSignal = sinon.spy(() => Promise.resolve({ ok: true }));
 
-        return queue.push({ signal: 1 })
-          .then(() => queue.push({ signal: 2 }))
+        return queue.push(makeSignal({ signal: 1 }))
+          .then(() => queue.push(makeSignal({ signal: 2 })))
           .then(() => { queue.initialized = true; })
           .then(() => queue.processNextBatch(1))
           .then(() => chai.expect(sendSignal).to.have.been.calledOnce)
@@ -105,8 +94,8 @@ export default describeModule('anolysis/internals/signals-queue',
       it('process batch of size 2', () => {
         sendSignal = sinon.spy(() => Promise.resolve({ ok: true }));
 
-        return queue.push({ signal: 1 })
-          .then(() => queue.push({ signal: 2 }))
+        return queue.push(makeSignal({ signal: 1 }))
+          .then(() => queue.push(makeSignal({ signal: 2 })))
           .then(() => { queue.initialized = true; })
           .then(() => queue.processNextBatch(2))
           .then(() => chai.expect(sendSignal).to.have.been.calledTwice)
@@ -117,8 +106,8 @@ export default describeModule('anolysis/internals/signals-queue',
       it('does not delete signal when sendSignal fails', () => {
         sendSignal = sinon.spy(() => Promise.reject());
 
-        return queue.push({ signal: 1 })
-          .then(() => queue.push({ signal: 2 }))
+        return queue.push(makeSignal({ signal: 1 }))
+          .then(() => queue.push(makeSignal({ signal: 2 })))
           .then(() => { queue.initialized = true; })
           .then(() => chai.expect(queue.processNextBatch(2)).to.be.rejected)
           .then(() => chai.expect(sendSignal).to.have.been.calledOnce)
@@ -130,13 +119,13 @@ export default describeModule('anolysis/internals/signals-queue',
         const sentSignals = [];
         storage.signals.push = sinon.spy(() => Promise.reject(new Error('Could not persist signal')));
         sendSignal = sinon.spy((signal) => {
-          sentSignals.push(signal);
+          sentSignals.push(makeSignal(signal));
           return Promise.resolve();
         });
 
         queue.initialized = true;
-        return queue.push({ behavior: 1, meta: { date: 'now' } })
-          .then(() => queue.push({ behavior: 2, meta: { date: 'a bit after now' } }))
+        return queue.push(makeSignal({ behavior: 1, meta: { date: 'now' } }))
+          .then(() => queue.push(makeSignal({ behavior: 2, meta: { date: 'a bit after now' } })))
           .then(() => queue.processNextBatch(2))
           .then(() => storage.signals.getAll())
           .then(signals => chai.expect(signals).to.have.length(0))

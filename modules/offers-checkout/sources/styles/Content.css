@@ -1,0 +1,42 @@
+.content__header {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 20px;
+}
+
+.content__content {
+  margin: 0 20px 0 20px;
+  overflow: auto;
+  min-height: 226px;
+  max-height: 315px;
+  position: relative;
+}
+
+.content__logo {
+  height: 28px;
+  margin-top: 10px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.content__close {
+  background: url('../images/close.svg') no-repeat left;
+  background-size: contain;
+  width: 12px;
+  height: 12px;
+  margin: 15px 19px 0 0;
+  cursor: pointer;
+}
+
+.content__promo-wrapper {
+  padding-right: 3px;
+}
+
+.content__benefit {
+  font-size: 33px;
+  font-weight: 330;
+}
+
+.content__headline {
+  font-size: 14px;
+}

@@ -42,6 +42,23 @@ export default class Visit extends React.Component {
       : host
   )
 
+  visitClickHandler = (event) => {
+    const {
+      visit: {
+        url,
+        keyword
+      },
+      handleVisitKeywordClick,
+    } = this.props;
+
+    if (!keyword) {
+      event.preventDefault();
+      return;
+    }
+
+    handleVisitKeywordClick(event, keyword, url);
+  }
+
   render() {
     const {
       visit: {
@@ -53,7 +70,6 @@ export default class Visit extends React.Component {
         url,
         keyword,
       },
-      handleVisitKeywordClick,
       query,
     } = this.props;
     const backgroundColor = `#${this.props.visit.logo.backgroundColor}`;
@@ -65,7 +81,7 @@ export default class Visit extends React.Component {
         </div>
         <button className="delete-visit-btn" onClick={this.handleClick} type="button" />
 
-        <a className="visit" href={url}>
+        <a className="visit" href={url} onClick={this.visitClickHandler}>
           <div className="logo" style={{ backgroundColor, color, backgroundImage }}>
             <span className={this.getTextClass()}>{text}</span>
           </div>
@@ -73,7 +89,7 @@ export default class Visit extends React.Component {
             {
               keyword
               && (
-                <button type="button" className="keyword" onClick={(event) => { handleVisitKeywordClick(event, keyword, url); }}>
+                <button type="button" className="keyword">
                   <img className="keyword-image" src="./images/glass-dark.svg" alt="Search Icon" />
                   {keyword}
                 </button>

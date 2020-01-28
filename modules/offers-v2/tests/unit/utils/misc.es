@@ -1,6 +1,5 @@
 const jsep = require('jsep');
 const pako = require('pako');
-const urlImports = require('../../../core/unit/utils/url-parser');
 
 module.exports = {
   'platform/crypto': { },
@@ -62,5 +61,4 @@ module.exports = {
       },
     },
   },
-  ...urlImports,
 };

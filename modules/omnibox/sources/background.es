@@ -9,7 +9,6 @@
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
 import { getMessage } from '../core/i18n';
-import telemetry from '../core/services/telemetry';
 import { browser } from '../platform/globals';
 import { getResourceUrl } from '../core/platform';
 import { hasOpenedTabWithUrl } from '../core/tabs';
@@ -74,10 +73,6 @@ export default background({
 
   init() {
     browser.omnibox2.override({ placeholder: getMessage('freshtab_urlbar_placeholder') });
-    this.onTelemetryPush = (signal) => {
-      telemetry.push(signal.data);
-    };
-    browser.omnibox2.onTelemetryPush.addListener(this.onTelemetryPush);
 
     this.onContextMenuShown = this._onContextMenuShown.bind(this);
     this.onContextMenuItemClicked = this._onContextMenuItemClicked.bind(this);
@@ -91,7 +86,6 @@ export default background({
     browser.contextMenus.onShown.removeListener(this.onContextMenuShown);
     browser.contextMenus.onHidden.removeListener(this.onContextMenuHidden);
     browser.contextMenus.onClicked.removeListener(this.onContextMenuItemClicked);
-    browser.omnibox2.onTelemetryPush.removeListener(this.onTelemetryPush);
     browser.omnibox2.restore();
   }
 });

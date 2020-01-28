@@ -2,6 +2,9 @@
     "myoffrz_affiliate_link": {
       "message": "affiliatelink"
     },
+    "myoffrz_conditions": {
+      "message": "Konditionen"
+    },
     "myoffrz_copy_and_go": {
       "message": "copy & go"
     },
@@ -67,6 +70,23 @@
     },
     "myoffrz_offer_removed": {
         "message": "Angebot entfernt"
+    },
+    "myoffrz_onboarding_cancel": {
+        "message": "Nein, danke"
+    },
+    "myoffrz_onboarding_cta": {
+        "message": "So funktioniert's"
+    },
+    "myoffrz_onboarding_description": {
+        "message": "Sie fragen sich, wie $BRAND$ funktioniert?",
+        "placeholders": {
+            "brand": {
+                "content": "$1"
+            }
+        }
+    },
+    "myoffrz_onboarding_title": {
+        "message": "Willkommen"
     },
     "myoffrz_optin_description": {
         "message": "Möchten Sie jetzt Angebote und Rabatte von vertrauenswürdigen Ghostery-Partnern empfangen?"

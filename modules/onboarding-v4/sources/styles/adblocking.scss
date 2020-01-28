@@ -8,35 +8,122 @@
 
 @import 'variables.scss';
 
-@keyframes showAd {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+@function getSize($v, $factor) {
+    @return $factor * $v * 1px;
 }
 
-.step.adblocking {
-    background-color: #fff;
+@keyframes adblockingLayoutAnimation {
+    0% {
+      background-size: getSize(148, 1.5) getSize(439, 1.5),
+          0 0,
+          getSize(121, 0.75) getSize(97, 0.75),
+          getSize(188, 1.15) getSize(112, 1.15),
+          getSize(380, 0.25) getSize(303, 0.25),
+          getSize(148, 1.5) getSize(513, 1.5),
+          0 0;
+    }
+    20% {
+      background-size: getSize(148, 1.5) getSize(439, 1.5),
+          getSize(265, 1.25) getSize(201, 1.25),
+          getSize(121, 0.75) getSize(97, 0.75),
+          getSize(188, 1.15) getSize(112, 1.15),
+          0 0,
+          getSize(148, 1.5) getSize(513, 1.5),
+          0 0;
+    }
+    50% {
+      background-size: getSize(148, 1.5) getSize(439, 1.5),
+          getSize(265, 1.25) getSize(201, 1.25),
+          getSize(121, 1.85) getSize(97, 1.85),
+          getSize(188, 1.15) getSize(112, 1.15),
+          getSize(380, 1.5) getSize(303, 1.5),
+          0 0,
+          getSize(134, 1.5) getSize(91, 1.5);
+    }
+    100% {
+      background-size: 0 0,
+          0 0,
+          getSize(121, 0.75) getSize(97, 0.75),
+          0 0,
+          getSize(380, 1.25) getSize(303, 1.25),
+          getSize(148, 1.5) getSize(513, 1.5),
+          0 0;
+    }
+}
 
-    .info {
-        .headline .toggled {
-            visibility: hidden;
-        }
+.adblocking {
+    &-ctrl-content {
+        background: url('../images/adblocking_icon_off.png') left center no-repeat;
+        background-size: auto 85%;
     }
 
-    &.show {
-        .background .ad {
+    &-ctrl-switch {
+        margin-top: 1px;
+    }
+
+    &-headline {
+        position: relative;
+
+        &:before {
+            content: "";
             position: absolute;
-            border-radius: 40px;
-            box-shadow: 2px 2px 15px -5px $cliqz-dark-grey;
-            opacity: 0;
-
-            &.static {
-                opacity: 1;
-            }
-        }
-
-        .background.not-animated .ad {
-            animation: none !important;
-            opacity: 0;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -158px;
+            background-image: url('../images/adblocking_off.png');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: 100% auto;
+            width: 316px;
+            height: 200px;
         }
     }
+}
+
+.adblocking-toggled {
+    .adblocking-ctrl {
+        &-status {
+            color: $slider-bg-on;
+        }
+
+        &-content {
+            background-image: url('../images/adblocking_icon_on.png');
+            color: #000;
+        }
+    }
+
+    .adblocking-headline {
+        color: $cliqz-blue;
+
+        &:before {
+            background-image: url('../images/adblocking_on.png');
+        }
+    }
+}
+
+.adblocking-layout, .adblocking-layout-toggled {
+    background-image: url('../images/adblocking_img_after.svg'),
+        url('../images/adblocking_img_after.svg'),
+        url('../images/adblocking_img_after.svg'),
+        url('../images/adblocking_img_after.svg'),
+        url('../images/adblocking_img_after.svg'),
+        url('../images/adblocking_img_after.svg'),
+        url('../images/adblocking_img_after.svg');
+    background-position: 95% 44%, 75% 89%, 83% 27%, 70% 3%, 24% 10%, 15% 55%, 5% 15%;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+
+    animation: none;
+}
+
+.adblocking-layout {
+    background-image: url('../images/adblocking_shopping_cart_v_rect.svg'),
+        url('../images/adblocking_sound_custom.svg'),
+        url('../images/adblocking_sound_rect.svg'),
+        url('../images/adblocking_play_rect.svg'),
+        url('../images/adblocking_rect.svg'),
+        url('../images/adblocking_v_rect.svg'),
+        url('../images/adblocking_shopping_cart_rect.svg');
+    background-position: 99% 25%, 80% 99%, 85% 25%, 70% 3%, 24% 10%, 11% 75%, 1% 10%;
+    animation: adblockingLayoutAnimation 1.25s ease-out;
+    animation-iteration-count: infinite;
 }

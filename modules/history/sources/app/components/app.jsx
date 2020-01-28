@@ -52,17 +52,13 @@ export default class App extends React.Component {
 
   async componentDidMount() {
     this.urls = await cliqz.history.getConstUrls();
-    const query = getParamFromUrl(document.location.hash, 'query');
-    const { history } = await fetch({ query });
+    window.addEventListener('hashchange', this.handleHashChange);
 
-    this.setupHistoryKeywords(history);
+    this.handleHashChange();
+  }
 
-    this.setState({
-      hasFinishedFetch: true,
-      hasReachedLastEntry: history.length < LIMIT,
-      history,
-      query,
-    });
+  componentWillUnmount() {
+    window.removeEventListener('hashchange', this.handleHashChange);
   }
 
   setupHistoryKeywords(history) {
@@ -84,6 +80,20 @@ export default class App extends React.Component {
       this.setState({
         history,
       });
+    });
+  }
+
+  handleHashChange = async () => {
+    const query = getParamFromUrl(document.location.hash, 'query');
+    const { history } = await fetch({ query });
+
+    this.setupHistoryKeywords(history);
+
+    this.setState({
+      hasFinishedFetch: true,
+      hasReachedLastEntry: history.length < LIMIT,
+      history,
+      query,
     });
   }
 

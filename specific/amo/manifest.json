@@ -11,7 +11,8 @@
   },
   "applications": {
     "gecko": {
-      "id": "cliqz@cliqz.com"
+      "id": "cliqz@cliqz.com",
+      "strict_min_version": "57"
     }
   },
   "browser_action": {
@@ -21,7 +22,7 @@
       "128": "assets/button128.png"
     },
     "default_title": "__MSG_offers_hub_title__",
-    "default_popup": "modules/offers-cc/index.html?popup"
+    "default_popup": "modules/offers-cc/index.html?popup#{{PRODUCT_PREFIX}}"
   },
   "permissions": [
     "<all_urls>",
@@ -49,6 +50,16 @@
   },
   "chrome_url_overrides": {
     "newtab": "modules/freshtab/home.html"
+  },
+  "chrome_settings_overrides": {
+    "search_provider": {
+      "name": "Cliqz",
+      "search_url": "https://beta.cliqz.com/search?q={searchTerms}#channel=amo",
+      "is_default": true,
+      "encoding": "UTF-8",
+      "keyword": "cl",
+      "favicon_url": "https://beta.cliqz.com/static/images/favicon.ico"
+    }
   },
   "content_scripts": [
     {

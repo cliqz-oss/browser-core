@@ -78,6 +78,7 @@ export class MultiPatternIndex extends PatternIndex {
    * @method match
    * @param {PatternMatchRequest} request
    * @returns {Map<string, MultiIndexMatchDetails[]>}
+   *   Keys are categories IDs
    */
   match(request) {
     return new Set(this.matchWithPatterns(request).keys());

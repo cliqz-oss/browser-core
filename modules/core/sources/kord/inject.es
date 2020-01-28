@@ -103,3 +103,23 @@ export default {
 export function setGlobal(cliqzApp) {
   app = cliqzApp;
 }
+
+
+/**
+ * To be used together with core/kord/inject
+ * Calling an action of disabled or missing module
+ * results in promise rejects. This helper function
+ * generates a promise error callback that will
+ * resolve to fixed value in those cases.
+ *
+ * Example:
+ *
+ *   inject.module('freshtab').action('getConfig')
+ *     .catch(actionFallback({}));
+ */
+export const actionFallback = fallbackValue => (error) => {
+  if (error instanceof ModuleDisabledError || error instanceof ModuleMissingError) {
+    return fallbackValue;
+  }
+  throw error;
+};

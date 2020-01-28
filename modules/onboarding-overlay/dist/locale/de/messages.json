@@ -3,7 +3,7 @@
         "message": "CHIP Sparalarm funktioniert unter Einhaltung höchster Datenschutz Standards (ohne User-Profiling oder Nutzung von PII Daten). Für Sparalarm sind Sie als Nutzer immer anonym."
     },
     "onboarding_chip_description_more": {
-        "message": "Die Sparalarm-Technologie arbeitet ausschließlich lokal auf dem Rechner des Nutzers. Sie wertet dort unter anderem aus, welche Websites der Anwender besucht oder wonach er im Internet gesucht hat. Dies bildet die Grundlage zur Ermittlung einer möglichen Kaufabsicht.<br /> <br />CHIP Sparalarm sendet keinerlei Informationen an einen Server, anhand derer einzelne Nutzer persönlich identifizierbar sind, sondern lediglich anonyme, rein statistische Daten. Welche genau, können Sie hier einsehen: <a href='https://sparalarm.chip.de/datenschutzerklaerung/'>https://sparalarm.chip.de/datenschutzerklaerung/</a>"
+        "message": "Die Sparalarm-Technologie arbeitet ausschließlich lokal auf dem Rechner des Nutzers. Sie wertet dort unter anderem aus, welche Websites der Anwender besucht oder wonach er im Internet gesucht hat. Dies bildet die Grundlage zur Ermittlung einer möglichen Kaufabsicht.<div></div>CHIP Sparalarm sendet keinerlei Informationen an einen Server, anhand derer einzelne Nutzer persönlich identifizierbar sind, sondern lediglich anonyme, rein statistische Daten. Welche genau, können Sie hier einsehen: <a href='https://sparalarm.chip.de/datenschutzerklaerung/'>https://sparalarm.chip.de/datenschutzerklaerung/</a>"
     },
     "onboarding_chip_human_web": {
         "message": "Human Web zulassen"
@@ -12,7 +12,7 @@
         "message": "Mehr anzeigen "
     },
     "onboarding_chip_ok": {
-        "message": "OK"
+        "message": "Weiter"
     },
     "onboarding_chip_settings_header": {
         "message": "Sie können diese Einstellungen jederzeit im Add-on ändern."
@@ -58,11 +58,40 @@
     },
 
 
+    "onboarding_ghosterytab_description": {
+        "message": "Dieses Add-on bietet dir nützliche Zusatzfeatures, wann immer du einen neuen Browser-Tab öffnest: Schnellzugriff auf deine Lieblings-Websites, Nachrichten, wunderschöne Hintergründe und eine anonyme Schnellsuchmaschine."
+    },
+    "onboarding_ghosterytab_description_more": {
+        "message": "Ghostery Tab sendet keinerlei Informationen an einen Server, anhand derer einzelne Nutzer persönlich identifizierbar sind, sondern lediglich anonyme, rein statistische Daten. Welche genau, kannst du hier einsehen: <a href='https://www.ghostery.com/about-ghostery/browser-extension-privacy-policy'>https://www.ghostery.com/about-ghostery/browser-extension-privacy-policy</a>."
+    },
+    "onboarding_ghosterytab_human_web": {
+        "message": "An Human Web teilnehmen"
+    },
+    "onboarding_ghosterytab_more": {
+        "message": "Mehr anzeigen "
+    },
+    "onboarding_ghosterytab_ok": {
+        "message": "Los geht’s"
+    },
+    "onboarding_ghosterytab_settings_header": {
+        "message": "Du kannst diese Einstellungen jederzeit im Add-on ändern."
+    },
+    "onboarding_ghosterytab_subtitle": {
+        "message": "Vielen Dank, dass Du Ghostery Tab für Firefox<br />heruntergeladen hast!"
+    },
+    "onboarding_ghosterytab_telemetry": {
+        "message": "Anonyme Nutzungsdaten senden"
+    },
+    "onboarding_ghosterytab_title": {
+        "message": "Ghostery Tab ist installiert!"
+    },
+
+
     "onboarding_myoffrz_description": {
         "message": "MyOffrz funktioniert unter Einhaltung höchster Datenschutz Standards (ohne User-Profiling oder Nutzung von PII Daten). Für MyOffrz bist du als Nutzer immer anonym."
     },
     "onboarding_myoffrz_description_more": {
-        "message": "Die MyOffrz-Technologie arbeitet ausschließlich lokal auf dem Rechner des Nutzers. Sie wertet dort unter anderem aus, welche Websites der Anwender besucht oder wonach er im Internet gesucht hat. Dies bildet die Grundlage zur Ermittlung einer möglichen Kaufabsicht.<br /><br />MyOffrz sendet keinerlei Informationen an einen Server, anhand derer einzelne Nutzer persönlich identifizierbar sind, sondern lediglich anonyme, rein statistische Daten. Welche genau, kannst du hier einsehen:  <a href='https://myoffrz.com/datenschutzerklaerung/ '>https://myoffrz.com/datenschutzerklaerung/ </a>."
+        "message": "Die MyOffrz-Technologie arbeitet ausschließlich lokal auf dem Rechner des Nutzers. Sie wertet dort unter anderem aus, welche Websites der Anwender besucht oder wonach er im Internet gesucht hat. Dies bildet die Grundlage zur Ermittlung einer möglichen Kaufabsicht.<div></div>MyOffrz sendet keinerlei Informationen an einen Server, anhand derer einzelne Nutzer persönlich identifizierbar sind, sondern lediglich anonyme, rein statistische Daten. Welche genau, kannst du hier einsehen:  <a href='https://myoffrz.com/datenschutzerklaerung/ '>https://myoffrz.com/datenschutzerklaerung/ </a>."
     },
     "onboarding_myoffrz_human_web": {
         "message": "Human Web zulassen"

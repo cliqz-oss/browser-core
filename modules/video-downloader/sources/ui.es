@@ -6,20 +6,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import telemetry from '../core/services/telemetry';
 import prefs from '../core/prefs';
-import { cleanUrlProtocol, stripTrailingSlash } from '../core/url';
+import { strip } from '../core/url';
 import { isVideoURL, getVideoInfo } from './video-downloader';
 import CliqzEvents from '../core/events';
 import console from '../core/console';
 import { getMessage } from '../core/i18n';
 import { chrome } from '../platform/globals';
 import { showUITour, hideUITour } from '../core/ui-tour';
-import uiTourSignal from './utils/ui-tour-telemetry';
 import { getResourceUrl } from '../core/platform';
 
-const TELEMETRY_VERSION = 2;
-const TELEMETRY_TYPE = 'video_downloader';
 const UI_TOUR_PREF = 'videoDownloaderUITourDismissed';
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
@@ -30,7 +26,6 @@ export default class UI {
     this.actions = {
       checkForVideoLink: this.checkForVideoLink.bind(this),
       sendToMobile: this.sendToMobile.bind(this),
-      sendTelemetry: this.sendTelemetry.bind(this),
       download: this.download.bind(this),
       hideButton: this.hideButton.bind(this),
       openConnectPage: this.openConnectPage.bind(this),
@@ -43,17 +38,6 @@ export default class UI {
     CliqzEvents.sub('core.location_change', this.actions.checkForVideoLink);
     CliqzEvents.sub('core.tab_state_change', this.actions.checkForVideoLink);
     CliqzEvents.sub('pairing.onPairingDone', this.onPaired);
-
-    if (chrome && chrome.pageAction) {
-      chrome.pageAction.onClicked.addListener(() => {
-        telemetry.push({
-          type: TELEMETRY_TYPE,
-          version: TELEMETRY_VERSION,
-          target: 'icon',
-          action: 'click',
-        });
-      });
-    }
   }
 
   unload() {
@@ -63,12 +47,6 @@ export default class UI {
   }
 
   onPaired() {
-    telemetry.push({
-      type: TELEMETRY_TYPE,
-      version: TELEMETRY_VERSION,
-      action: 'connect',
-    });
-
     /* TODO
     this.sendMessageToPopup({
       action: 'pushData',
@@ -80,13 +58,6 @@ export default class UI {
   }
 
   openConnectPage() {
-    telemetry.push({
-      type: TELEMETRY_TYPE,
-      version: TELEMETRY_VERSION,
-      action: 'click',
-      target: 'connect_settings',
-    });
-
     this.openPage('about:preferences#connect');
   }
 
@@ -112,46 +83,20 @@ export default class UI {
     }, 1000);
   }
 
-  sendToMobile({ url, format, title, type }) {
+  sendToMobile({ format }) {
     prefs.set('videoDownloaderOptions', JSON.stringify({
       platform: 'mobile',
       quality: format
     }));
-
-    telemetry.push({
-      type: TELEMETRY_TYPE,
-      version: TELEMETRY_VERSION,
-      view: 'mobile',
-      action: 'click',
-      target: 'download',
-      format: format.includes('audio') ? 'audio' : format,
-    });
-
-    this.PeerComm.getObserver('YTDOWNLOADER').sendVideo({ url, format: type, title })
-      .then(() => {
-        telemetry.push({
-          type: 'connect',
-          version: TELEMETRY_VERSION,
-          action: 'send_video',
-          is_success: true,
-        });
-      })
-      .catch(() => {
-        telemetry.push({
-          type: 'connect',
-          version: TELEMETRY_VERSION,
-          action: 'send_video',
-          is_success: false,
-        });
-      });
   }
 
   cleanUrl(url) {
-    try {
-      return stripTrailingSlash(cleanUrlProtocol(url, true));
-    } catch (e) {
-      return url;
-    }
+    return strip(url, {
+      protocol: true,
+      www: true,
+      mobile: true,
+      trailingSlash: true,
+    });
   }
 
   checkForVideoLink(url, _, tabId) {
@@ -193,45 +138,15 @@ export default class UI {
         return result;
       }
 
-      telemetry.push({
-        type: TELEMETRY_TYPE,
-        version: TELEMETRY_VERSION,
-        action: 'popup_open',
-        is_downloadable: false,
-      });
-
       return { unSupportedFormat: true };
     } catch (e) {
       console.error('Error getting video links', e);
-      telemetry.push({
-        type: TELEMETRY_TYPE,
-        version: TELEMETRY_VERSION,
-        action: 'popup_open',
-        is_downloadable: false,
-      });
 
       return {
         unSupportedFormat: true,
         isLiveVideo: e && e.message === 'live_video'
       };
     }
-  }
-
-
-  sendTelemetry(data) {
-    const signal = {
-      type: TELEMETRY_TYPE,
-      version: TELEMETRY_VERSION,
-      target: data.target,
-      action: data.action
-    };
-    if (data.format) {
-      signal.format = data.format;
-    }
-    if (data.size) {
-      signal.size = data.size;
-    }
-    telemetry.push(signal);
   }
 
   isUITourDismissed(prefName) {
@@ -280,13 +195,10 @@ export default class UI {
 
     const promise = showUITour(settings, ctaButton, skipButton);
 
-    uiTourSignal({ action: 'show' });
-
     promise.then((button) => {
       switch (button) {
         case 'CTA': {
           this.markUITourDismissed(UI_TOUR_PREF);
-          uiTourSignal({ action: 'click', target: 'try_now' });
           setTimeout(() => {
             browser.cliqz.openPageActionPopup();
           }, 1000);
@@ -295,13 +207,11 @@ export default class UI {
 
         case 'skip': {
           this.markUITourDismissed(UI_TOUR_PREF, true);
-          uiTourSignal({ action: 'click', target: 'later' });
           break;
         }
 
         case 'close': {
           this.markUITourDismissed(UI_TOUR_PREF);
-          uiTourSignal({ action: 'click', target: 'dismiss' });
           break;
         }
 
@@ -312,30 +222,13 @@ export default class UI {
     });
   }
 
-  download({ url, filename, size, format, origin }) {
-    telemetry.push({
-      type: TELEMETRY_TYPE,
-      version: TELEMETRY_VERSION,
-      view: 'desktop',
-      target: 'download',
-      action: 'click',
-      format: format.includes('audio') ? 'audio' : format,
-    });
-
+  download({ url, filename, format, origin }) {
     prefs.set('videoDownloaderOptions', JSON.stringify({
       platform: 'desktop',
       quality: format
     }));
 
     const onStartedDownload = () => {
-      telemetry.push({
-        type: TELEMETRY_TYPE,
-        version: TELEMETRY_VERSION,
-        action: 'download',
-        size,
-        is_success: true
-      });
-
       if (origin && browser.cliqzHistory) {
         browser.cliqzHistory.history.fillFromVisit(url, origin);
       }
@@ -344,14 +237,6 @@ export default class UI {
     };
 
     const onFailed = (error) => {
-      telemetry.push({
-        type: TELEMETRY_TYPE,
-        version: TELEMETRY_VERSION,
-        action: 'download',
-        size,
-        is_success: false
-      });
-
       console.error('Error downloading', error);
     };
 

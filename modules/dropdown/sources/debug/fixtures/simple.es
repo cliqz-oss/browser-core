@@ -126,7 +126,7 @@ export default {
               de: 0.89
             },
             og: {
-              image: 'https://imgr.cliqz.com/YPzQSXj6N8yvKqzrFk2gFdqmNv4t2IcMF0_awDSM98I/fill/0/200/no/1/aHR0cDovL2ZpbGVzLmNkbi5zcGlsY2xvdWQuY29tL2ZhY2Vib29rLzE1MDQwODIyODdfZmFjZWJvb2stc2hhcmUuanBn.jpg',
+              image: 'http://locahost:3000/static/images/1504082287_facebook-share.jpg',
               site_name: 'jetztspielen.de'
             }
           },
@@ -615,7 +615,7 @@ export default {
         href: 'https://www.google.com/search?client=firefox-b-d&q=athen',
         friendlyUrl: 'google.com/search?client=firefox-b-d&q=athen',
         kind: [
-          'custom-search'
+          'default-search'
         ],
         provider: 'instant',
         suggestion: 'athen',
@@ -658,7 +658,7 @@ export default {
             searchEngineName: 'Google'
           },
           kind: [
-            'custom-search'
+            'default-search'
           ],
           suggestion: 'athen'
         }

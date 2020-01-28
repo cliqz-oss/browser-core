@@ -4,7 +4,7 @@ body, html {
   overflow-y: hidden;
   overflow-x: hidden;
   height: 100%;
-  background-color: #f2f2f2;
+  background-color: #fff;
 }
 
 #cliqz-offers-cc {
@@ -13,14 +13,6 @@ body, html {
 }
 
 :root {
-  --freundin-primary-color: #ed1b23;
-  --freundin-secondary-color: #da3434;
-  --freundin-primary-hover-color: #da3434;
-
-  --incent-primary-color: #5c8fa6;
-  --incent-secondary-color: #5c8fa6;
-  --incent-primary-hover-color: #487386;
-
   --chip-primary-color: #eb443f;
   --chip-secondary-color: #eb443f;
   --chip-primary-hover-color: #c93636;
@@ -34,12 +26,23 @@ body, html {
   --ghostery-primary-hover-color: #5B005C;
 }
 
+body.chip {
+  background-color: var(--chip-primary-color, #eb443f);
+}
+body.cliqz, body.amo {
+  background-color: #00AEF0;
+}
+body.myoffrz {
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
+
 @import "Tooltip";
 @import "Main";
 @import "Header";
 @import "Menu";
 @import "WhyDoIsee";
 @import "OptIn";
+@import "Onboarding";
 @import "Empty";
 @import "Feedback";
 @import "Content";

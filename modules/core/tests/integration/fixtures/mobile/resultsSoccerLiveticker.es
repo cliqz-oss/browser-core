@@ -248,7 +248,7 @@ export default [
           }
         ],
         og: {
-          image: 'https://imgr.cliqz.com/VeEE8Aac2Pd5jaQgBl1V-_U7QMTzS9h6c1IjcPMpHKQ/fill/0/200/no/1/aHR0cHM6Ly93d3cubGl2ZXRpY2tlci5jb20vcmVzL19zcy9pbWFnZS9tZXRhL2xpdmV0aWNrZXJfY29tLmpwZw.jpg'
+          image: 'http://localhost:3000/static/images/liveticker_com.jpg'
         },
         spielTag: 'Spieltag 5',
         title: '1. Bundesliga Spieltag - Spielplan - Ergebnisse',

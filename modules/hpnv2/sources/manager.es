@@ -587,7 +587,6 @@ export default class Manager {
       logger.info('Clock time is out of sync. Loading of today\'s key might fail:', today);
     }
     const pk = this.getPublicKey(today);
-
     if (!pk) {
       throw new NoCredentialsError();
     }
@@ -621,6 +620,7 @@ export default class Manager {
             && (this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.ghostery.net'
                 || this.endpoints.ENDPOINT_HPNV2_DIRECT === 'https://collector-hpn.cliqz.com')) {
           logger.debug('The browser does not support ECDH, but as we are not sending through a proxy, TLS encryption is sufficient.');
+          this.ecdhPubKey = { unsupportedByBrowser: true };
         } else {
           logger.error('ECDH is not supported by the browser. Cannot send unencrypted data through a 3rd proxy proxy.', e);
           throw e;
@@ -806,7 +806,7 @@ export default class Manager {
 
     await this.loadKeys(noverify);
 
-    const publicKey = Manager.clearText ? undefined : this.ecdhPubKey;
+    const serverEcdhPubKey = Manager.clearText ? undefined : this.ecdhPubKey;
 
     const throttler = this.throttler;
     try {
@@ -819,7 +819,7 @@ export default class Manager {
       }
 
       // Do not queue noverify messages, these are ok to do in parallel
-      const options = { msg, config, publicKey, proxyBucket, absoluteTimeout };
+      const options = { msg, config, serverEcdhPubKey, proxyBucket, absoluteTimeout };
       if (noverify) {
         return await this._sendNoVerify(options);
       }
@@ -885,18 +885,18 @@ export default class Manager {
     return Manager.compressAndPad(Manager.encodeMessage(MSG_SIGNED, data));
   }
 
-  async _sendNoVerify({ msg, config, publicKey, proxyBucket, absoluteTimeout }) {
+  async _sendNoVerify({ msg, config, serverEcdhPubKey, proxyBucket, absoluteTimeout }) {
     const { instant = false } = config;
 
     // Hack: this uses the first '{' as the message code.
     this.log('Sending noverify msg', msg);
     return this.endpoints.send(
       Manager.compressAndPad(toUTF8(JSON.stringify(msg))),
-      { instant, publicKey, proxyBucket, absoluteTimeout }
+      { instant, serverEcdhPubKey, proxyBucket, absoluteTimeout }
     );
   }
 
-  async _send({ msg: _msg, config, publicKey, proxyBucket }, skipQuotaCheck = false) {
+  async _send({ msg: _msg, config, serverEcdhPubKey, proxyBucket }, skipQuotaCheck = false) {
     const msg = _msg;
     const { action } = msg;
 
@@ -946,7 +946,7 @@ export default class Manager {
     this.log('Sending signed msg', msg);
     const result = await this.endpoints.send(
       Manager.encodeSignedMessage(utf8Msg, signedMsg.sig, signedMsg.cnt),
-      { instant, publicKey, proxyBucket }
+      { instant, serverEcdhPubKey, proxyBucket }
     );
     this.unsentSignedMessages.delete(msg);
 

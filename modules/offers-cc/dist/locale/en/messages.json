@@ -2,6 +2,9 @@
     "myoffrz_affiliate_link": {
         "message": "affiliate link"
     },
+    "myoffrz_conditions": {
+      "message": "Conditions"
+    },
     "myoffrz_copy_and_go": {
         "message": "copy & go"
     },
@@ -67,6 +70,23 @@
     },
     "myoffrz_offer_removed": {
         "message": "This offer was removed."
+    },
+    "myoffrz_onboarding_cancel": {
+        "message": "No, thanks"
+    },
+    "myoffrz_onboarding_cta": {
+        "message": "How it works"
+    },
+    "myoffrz_onboarding_description": {
+        "message": "Are you wondering how $BRAND$ works?",
+        "placeholders": {
+            "brand": {
+                "content": "$1"
+            }
+        }
+    },
+    "myoffrz_onboarding_title": {
+        "message": "Welcome"
     },
     "myoffrz_optin_description": {
         "message": "Would you like to receive offers and discounts from trusted Ghostery partners?"

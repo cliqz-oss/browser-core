@@ -49,6 +49,17 @@ function buildUrls(engineWrapper) {
   return urls;
 }
 
+function isDefaultSearchEngine(engineWrapper, defaultEngine) {
+  // For Cliqz Browser >= 1.31.x
+  if (defaultEngine.defaultSearchEngine) {
+    return engineWrapper.identifier === defaultEngine.defaultSearchEngine
+      || engineWrapper.name === (defaultEngine.defaultSearchEngineData
+        && defaultEngine.defaultSearchEngineData.name);
+  }
+
+  return engineWrapper.name === defaultEngine.name;
+}
+
 const searchServiceGlobalPromise = new Promise((resolve) => {
   const isPromised = searchService.init(resolve);
 
@@ -58,14 +69,14 @@ const searchServiceGlobalPromise = new Promise((resolve) => {
 
 export async function getSearchEngines() {
   return searchServiceGlobalPromise.then(async () => {
-    let defaultEngine = searchService.getDefaultEngineInfo();
-    const visibleEngines = searchService.getVisibleEngines();
+    let defaultEngine = await searchService.getDefaultEngineInfo();
+    const visibleEngines = await searchService.getVisibleEngines();
 
     if (visibleEngines.length > 0) {
       return visibleEngines.map((engineWrapper) => {
         const engine = {
           alias: engineWrapper.alias,
-          default: engineWrapper.name === defaultEngine.name,
+          default: isDefaultSearchEngine(engineWrapper, defaultEngine),
           description: engineWrapper.description,
           encoding: 'UTF-8',
           icon: engineWrapper.iconURI && engineWrapper.iconURI.spec,
@@ -84,7 +95,7 @@ export async function getSearchEngines() {
       engines.map((engineWrapper) => {
         const engine = {
           alias: (engineWrapper._metaData && engineWrapper._metaData.alias) || null,
-          default: engineWrapper.name === defaultEngine.name,
+          default: isDefaultSearchEngine(engineWrapper, defaultEngine),
           description: engineWrapper.description,
           encoding: 'UTF-8',
           icon: engineWrapper.iconURI && engineWrapper.iconURI.spec,

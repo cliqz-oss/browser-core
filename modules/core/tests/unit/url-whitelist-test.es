@@ -9,8 +9,6 @@
 /* global chai, describeModule */
 /* eslint no-param-reassign: off */
 
-const urlImports = require('./utils/url-parser');
-
 class MockPersistantObject {
   load() {
     return Promise.resolve({});
@@ -37,7 +35,6 @@ export default describeModule('core/url-whitelist',
       default: {},
       isBetaVersion: () => false,
     },
-    ...urlImports,
   }), function () {
     let urlWhitelist;
 

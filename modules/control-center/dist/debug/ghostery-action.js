@@ -94,9 +94,7 @@ DATA.push({
       userEnabled: true,
       locationEnabled: true
     },
-    'popup-notification': null,
     'browser-panel': null,
-    'message-center': null,
     anolysis: null,
     'anolysis-cc': null,
     abtests: null,

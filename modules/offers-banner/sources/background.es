@@ -5,6 +5,7 @@ import { getActiveTab } from '../core/browser';
 import { isGhostery } from '../core/platform';
 import prefs from '../core/prefs';
 import { findTabs } from '../core/tabs';
+import telemetry from '../core/services/telemetry';
 import { dispatcher as transportDispatcher } from './transport/index';
 import { transform, transformMany } from './transformation/index';
 import { getOfferNotificationType, products, chooseProduct } from './utils';
@@ -12,8 +13,15 @@ import { setIconBadge, resetIconBadge } from './icon-badge';
 import Popup from './popup';
 import SearchReporter from './search/reporter';
 import logger from './logger';
+import metrics from './telemetry/metrics';
 
-const REAL_ESTATE_IDS = ['browser-panel', 'offers-cc', 'offers-reminder', 'ghostery'];
+const REAL_ESTATE_IDS = [
+  'browser-panel',
+  'offers-cc',
+  'offers-reminder',
+  'offers-checkout',
+  'ghostery',
+];
 const ALLOWED_PREFS = ['telemetry', 'humanWebOptOut'];
 const RED_DOT_TYPE = 'dot';
 const GHOSTERY_RED_DOT_TYPE = 'star';
@@ -25,6 +33,7 @@ export default background({
   requiresServices: ['logos', 'cliqz-config', 'telemetry'],
 
   init() {
+    telemetry.register(metrics);
     REAL_ESTATE_IDS.forEach(realEstateID =>
       this.offersV2
         .action('registerRealEstate', { realEstateID })
@@ -38,12 +47,13 @@ export default background({
       getOffers: this.actions.getOffers.bind(this),
     });
     this.popup.init();
-    chrome.browserAction.enable();
+    if (!isGhostery) { chrome.browserAction.enable(); }
     this.searchReporter = new SearchReporter(this.offersV2);
     this._renderBannerIf = this._renderBannerIf.bind(this);
   },
 
   unload() {
+    telemetry.unregister(metrics);
     if (!isGhostery) { chrome.browserAction.disable(); }
     REAL_ESTATE_IDS.forEach(realEstateID =>
       this.offersV2
@@ -98,13 +108,6 @@ export default background({
         setIconBadge(chooseProduct(products()), { tabId, count });
       }
     },
-    'popup-notification:open-and-close-pinned-URL': function onMsg({ url, matchPatterns = [] }) {
-      // module popup-notification (in the future) will be part of banners system
-      const data = { url, matchPatterns };
-      const msg = { action: 'openAndClosePinnedURL', data };
-      const [type, offerId, autoTrigger] = ['offers-cc', null, false];
-      transportDispatcher(type, offerId, msg, autoTrigger);
-    },
 
     // dropdown
     'ui:click-on-url': function onSearchResultClick(results) {
@@ -131,7 +134,7 @@ export default background({
 
   _renderBannerIf(banner, data) {
     const { display_rule: { url } = {} } = data;
-    const exactMatch = banner === 'offers-reminder';
+    const exactMatch = ['offers-reminder', 'offers-checkout'].includes(banner);
     const [ok, payload] = transform(banner, data);
     if (ok) { this._renderBanner({ ...payload, autoTrigger: true }, { url, exactMatch }); }
   },

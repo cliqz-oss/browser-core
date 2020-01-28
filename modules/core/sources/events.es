@@ -120,26 +120,6 @@ const CliqzEvents = {
     CliqzEvents.cache[id] = [];
   },
 
-  /**
-   * Adds a listener to eventTarget for events of type eventType, and republishes them
-   *  through CliqzEvents with id cliqzEventName.
-   */
-  proxyEvent(cliqzEventName, eventTarget, eventType, propagate = false, transform) {
-    const publisher = CliqzEvents.pub.bind(CliqzEvents, cliqzEventName);
-
-    function handler(...args) {
-      const _args = transform ? transform.call(null, ...args) : args;
-      publisher.call(null, ..._args);
-    }
-
-    eventTarget.addEventListener(eventType, handler, propagate);
-    return {
-      unsubscribe() {
-        eventTarget.removeEventListener(eventType, handler);
-      }
-    };
-  },
-
   nextId: function nextId() {
     nextId.id = nextId.id || 0;
     nextId.id += 1;

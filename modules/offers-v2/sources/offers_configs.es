@@ -16,9 +16,6 @@ const OffersConfigs = {
 
   LOG_LEVEL: 'debug',
 
-  // by default is not dev mode
-  IS_DEV_MODE: true,
-
   // ///////////////////////////////////////////////////////////////////////////
   // trigger backend endpoint
   get BACKEND_URL() {
@@ -77,7 +74,10 @@ const OffersConfigs = {
   OFFERS_OVERRIDE_TIMEOUT: -1,
 
   get MAX_NUM_OFFERS_PER_DAY() {
-    return prefs.get(constToPrefName('MAX_NUM_OFFERS_PER_DAY'), 5);
+    return prefs.get(
+      constToPrefName('MAX_NUM_OFFERS_PER_DAY'),
+      config.settings.MAX_NUM_OFFERS_PER_DAY || 5
+    );
   },
 };
 

@@ -17,7 +17,7 @@ export default {
         searchEngineName: 'Google'
       },
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'best songs in 2018',
@@ -41,7 +41,7 @@ export default {
       href: 'https://www.google.com/search?q=best songs in 2018&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=best songs in 2018&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'best songs in 2018',
@@ -68,7 +68,7 @@ export default {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'best songs in 2018'
       }
@@ -77,7 +77,7 @@ export default {
       url: 'https://www.esquire.com/entertainment/music/g15948963/best-songs-2018',
       href: 'https://www.esquire.com/entertainment/music/g15948963/best-songs-2018',
       friendlyUrl: 'esquire.com/entertainment/music/g15948963/best-songs-2018',
-      title: '55 Best Songs of 2018 So Far - Biggest New Music Hits of the Year',
+      title: '> Title - 55 Best Songs of 2018 So Far - Biggest New Music Hits of the Year',
       description: "If you want to know the best new songs of 2018 before the year-end lists (or before all your friends are listening to them), then you''ve come to the right place. We''ll be updating this all year, so keep checking back.",
       kind: [
         'm'
@@ -119,7 +119,7 @@ export default {
             'image:height': '600',
             'image:width': '1200',
             site_name: 'Esquire',
-            title: 'The Best Songs of 2018 Offered An Escape From a Challenging Year',
+            title: '> Title - The Best Songs of 2018 Offered An Escape From a Challenging Year',
             type: 'article',
             url: 'https://www.esquire.com/entertainment/music/g15948963/best-songs-2018/'
           }
@@ -133,7 +133,7 @@ export default {
       url: 'https://www.billboard.com/articles/news/list/8459289/best-songs-of-2018-top-50',
       href: 'https://www.billboard.com/articles/news/list/8459289/best-songs-of-2018-top-50',
       friendlyUrl: 'billboard.com/articles/news/list/8459289/best-songs-of-2018-top-50',
-      title: 'The 50 Best Songs of 2018 (So Far): Staff List | Billboard',
+      title: '> Title - The 50 Best Songs of 2018 (So Far): Staff List | Billboard',
       description: 'Our 50 favorite songs of 2018 so far: to Drake and beyond.',
       kind: [
         'm'
@@ -192,7 +192,7 @@ export default {
       url: 'https://www.elle.com/culture/music/g19720747/best-songs-of-2018',
       href: 'https://www.elle.com/culture/music/g19720747/best-songs-of-2018',
       friendlyUrl: 'elle.com/culture/music/g19720747/best-songs-of-2018',
-      title: '26 Best Songs of 2018 So Far - Top New Music to Listen to in 2018',
+      title: '> Title - 26 Best Songs of 2018 So Far - Top New Music to Listen to in 2018',
       description: "Ariana''s love anthems. Lady Gaga and Bradley Cooper making surprisingly sweet music together. Cardi B dominating the charts. If you can say one good thing about 2018, it''s that the songs were fire. Here are the 26 best of the year so far.﻿",
       kind: [
         'm'
@@ -235,7 +235,7 @@ export default {
             'image:height': '600',
             'image:width': '1200',
             site_name: 'ELLE',
-            title: 'The 26 Best Songs of 2018',
+            title: '> Title - The 26 Best Songs of 2018',
             type: 'article',
             url: 'https://www.elle.com/culture/music/g19720747/best-songs-of-2018/'
           }
@@ -263,12 +263,12 @@ export default {
             'image:height': '600',
             'image:width': '1200',
             site_name: 'Esquire',
-            title: 'The Best Songs of 2018 Offered An Escape From a Challenging Year',
+            title: '> Title - The Best Songs of 2018 Offered An Escape From a Challenging Year',
             type: 'article',
             url: 'https://www.esquire.com/entertainment/music/g15948963/best-songs-2018/'
           }
         },
-        title: '55 Best Songs of 2018 So Far - Biggest New Music Hits of the Year'
+        title: '> Title - 55 Best Songs of 2018 So Far - Biggest New Music Hits of the Year'
       },
       c_url: 'https://www.esquire.com/entertainment/music/g15948963/best-songs-2018',
       type: 'bm'
@@ -297,7 +297,7 @@ export default {
             url: 'https://www.billboard.com/articles/news/list/8459289/best-songs-of-2018-top-50'
           }
         },
-        title: 'The 50 Best Songs of 2018 (So Far): Staff List | Billboard'
+        title: '> Title - The 50 Best Songs of 2018 (So Far): Staff List | Billboard'
       },
       c_url: 'https://www.billboard.com/articles/news/list/8459289/best-songs-of-2018-top-50',
       type: 'bm'
@@ -319,12 +319,12 @@ export default {
             'image:height': '600',
             'image:width': '1200',
             site_name: 'ELLE',
-            title: 'The 26 Best Songs of 2018',
+            title: '> Title - The 26 Best Songs of 2018',
             type: 'article',
             url: 'https://www.elle.com/culture/music/g19720747/best-songs-of-2018/'
           }
         },
-        title: '26 Best Songs of 2018 So Far - Top New Music to Listen to in 2018'
+        title: '> Title - 26 Best Songs of 2018 So Far - Top New Music to Listen to in 2018'
       },
       c_url: 'https://www.elle.com/culture/music/g19720747/best-songs-of-2018',
       type: 'bm'
@@ -344,7 +344,7 @@ export default {
             description: 'Add these to your playlist now.',
             image: 'https://imgr.cliqz.com/r88k6PhrkM7PXP1D8vtO7rxjYl6V_k7LeShiJTlUzmY/fill/0/200/no/1/aHR0cHM6Ly9hc3NldHMzLnRocmlsbGlzdC5jb20vdjEvaW1hZ2UvMjgwMzI1My9zaXplL3RtZy1mYWNlYm9va19zb2NpYWwuanBn.jpg',
             site_name: 'Thrillist',
-            title: 'The Best Songs of 2018',
+            title: '> Title - The Best Songs of 2018',
             type: 'article',
             url: 'https://www.thrillist.com/entertainment/nation/best-songs-of-2018'
           }
@@ -369,12 +369,12 @@ export default {
           og: {
             description: 'Featuring big hits from Calvin Harris & Dua Lipa, Drake, Ariana Grande and Anne-Marie.',
             image: 'https://imgr.cliqz.com/vZ12_zc1G2_nNZlvGlBRVPfzh7fiee35EpSJdvzR0nI/fill/0/200/no/1/aHR0cHM6Ly93d3cub2ZmaWNpYWxjaGFydHMuY29tL21lZGlhLzY1NDY2NC9jYWx2aW4taGFycmlzLWR1YS1saXBhLW9uZS1raXNzLW51bWJlci0xLTExMDAuanBnP3dpZHRoPTc5NiZtb2RlPXN0cmV0Y2g.png',
-            title: 'The Official Top 40 biggest songs of 2018 so far',
+            title: '> Title - The Official Top 40 biggest songs of 2018 so far',
             type: 'article',
             url: 'https://www.officialcharts.com/chart-news/the-official-top-40-biggest-songs-of-2018-so-far__22432/'
           }
         },
-        title: 'The Official Top 40 biggest songs of 2018 so far'
+        title: '> Title - The Official Top 40 biggest songs of 2018 so far'
       },
       c_url: 'https://www.officialcharts.com/chart-news/the-official-top-40-biggest-songs-of-2018-so-far__22432',
       type: 'bm'

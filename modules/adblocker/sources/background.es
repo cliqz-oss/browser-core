@@ -18,6 +18,8 @@ import config, {
   ADB_USER_LANG,
 } from './config';
 import { isUrl } from '../core/url';
+import telemetry from '../core/services/telemetry';
+import metrics from './telemetry/metrics';
 
 function isSupportedProtocol(url) {
   return (
@@ -31,7 +33,7 @@ function isSupportedProtocol(url) {
 export default background({
   humanWeb: inject.module('human-web'),
   webRequestPipeline: inject.module('webrequest-pipeline'),
-  requiresServices: ['domainInfo', 'pacemaker'],
+  requiresServices: ['domainInfo', 'pacemaker', 'telemetry'],
 
   // Global instance of the adblocker
   adblocker: null,
@@ -61,6 +63,7 @@ export default background({
   },
 
   async init() {
+    telemetry.register(metrics);
     await this.shallowInit();
   },
 
@@ -72,6 +75,7 @@ export default background({
   },
 
   unload() {
+    telemetry.unregister(metrics);
     this.shallowUnload();
   },
 
@@ -183,7 +187,7 @@ export default background({
       } else if (data.state === 'off_domain') {
         logger.log('Turn adblocker OFF: domain');
         config.enabled = true;
-        this.adblocker.whitelist.changeState(data.url, 'generalDomain', 'add');
+        this.adblocker.whitelist.changeState(data.url, 'hostname', 'add');
         this.logActionHW(data.url, 'hostname', 'add');
       }
     },

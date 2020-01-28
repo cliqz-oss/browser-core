@@ -7,7 +7,7 @@
  */
 
 import templates from './templates';
-import { URLInfo } from '../core/url-info';
+import { parse } from '../core/url';
 
 const getEventTarget = (ev) => {
   let targetElement = ev.originalTarget || ev.target;
@@ -24,7 +24,7 @@ export default class Dropdown {
     this.rootElement = element;
     this.window = window;
     this.actions = actions;
-    this.currentQuery = null;
+    this.currentQueryId = 0;
   }
 
   init() {
@@ -48,8 +48,7 @@ export default class Dropdown {
     } else {
       this.selectedIndex += 1;
     }
-    this.scrollToResult(this.selectedResult);
-
+    this.scrollToCurrentResult();
     return this.updateSelection();
   }
 
@@ -59,8 +58,7 @@ export default class Dropdown {
     } else {
       this.selectedIndex -= 1;
     }
-    this.scrollToResult(this.selectedResult);
-
+    this.scrollToCurrentResult();
     return this.updateSelection();
   }
 
@@ -70,31 +68,39 @@ export default class Dropdown {
     );
   }
 
-  setResultClass(result, className) {
+  setResultElementClass(el, className) {
     this.clearResultClass(className);
-    const el = this.getResultElement(result);
-    if (el) {
-      el.classList.add(className);
-    }
+    el.classList.add(className);
   }
 
-  getResultElement(result) {
-    if (!result) {
-      return null;
-    }
-    return [...this.rootElement.querySelectorAll('a')].find(a => a.dataset.url === result.url) || null;
+  getResultElementByIndex(index) {
+    const result = this.results.get(index);
+
+    const resultNodes = [...this.rootElement.querySelectorAll('.result')]
+      .filter(a => a.dataset.url === result.url);
+
+    let n = -1;
+    this.results.selectableResults.find((r) => {
+      if (r.url === result.url) {
+        n += 1;
+      }
+      return r === result;
+    });
+
+    return resultNodes[n];
   }
 
-  selectResult(result) {
-    this.setResultClass(result, 'selected');
+  selectCurrentResult() {
+    const el = this.getResultElementByIndex(this.selectedIndex);
+    this.setResultElementClass(el, 'selected');
   }
 
-  highlightResult(result) {
-    this.setResultClass(result, 'hovered');
+  highlightResult(el) {
+    this.setResultElementClass(el, 'hovered');
   }
 
-  scrollToResult(result) {
-    const el = this.getResultElement(result);
+  scrollToCurrentResult() {
+    const el = this.getResultElementByIndex(this.selectedIndex);
     if (el) {
       const wHeight = this.window.innerHeight;
       const dHeight = this.rootElement.scrollHeight;
@@ -114,21 +120,19 @@ export default class Dropdown {
   }
 
   updateSelection() {
-    this.selectResult(this.selectedResult);
+    this.selectCurrentResult();
     this.actions.reportHighlight(this.selectedResult.serialize());
     return this.selectedResult;
   }
 
   clear() {
     this.selectedIndex = 0;
-    this.currentQuery = null;
   }
 
-  getSelectedResultIndex(newResults, preventAutocomplete) {
+  getSelectedResultIndex(newResults, queryId) {
     if (this.selectedIndex > 0
-      && !preventAutocomplete
+      && this.currentQueryId === queryId
       && this.results && newResults
-      && this.currentQuery === newResults.query
       && this.selectedResult
     ) {
       const keepResult = newResults.findSelectable(this.selectedResult.url);
@@ -144,11 +148,11 @@ export default class Dropdown {
     urlbarAttributes,
     extensionId,
     channelId,
-    preventAutocomplete,
+    queryId,
     isRerendering,
   } = {}) {
-    this.selectedIndex = this.getSelectedResultIndex(results, preventAutocomplete);
-    this.currentQuery = results.query;
+    this.selectedIndex = this.getSelectedResultIndex(results, queryId);
+    this.currentQueryId = queryId;
     this.results = results;
 
     if (extensionId) {
@@ -184,7 +188,7 @@ export default class Dropdown {
     });
 
     if (!isRerendering) {
-      this.selectResult(this.selectedResult);
+      this.selectCurrentResult();
     }
 
     const historyResults = this.rootElement.querySelectorAll('.history');
@@ -224,8 +228,8 @@ export default class Dropdown {
       && ev.button === 1
       && resultElement.hasAttribute('href')
       // Firefox won't open "about:" page from webextension page
-      && URLInfo.get(href)
-      && URLInfo.get(href).protocol !== 'about';
+      && parse(href)
+      && parse(href).scheme !== 'about';
 
     const elementName = targetElement.getAttribute('data-extra');
     result.click(href, ev, { elementName, handledByBrowser });
@@ -257,7 +261,7 @@ export default class Dropdown {
     }
 
     this.lastHoveredResult = result;
-    this.highlightResult(result);
+    this.highlightResult(resultElement);
     this.actions.reportHover(result.serialize());
   };
 }

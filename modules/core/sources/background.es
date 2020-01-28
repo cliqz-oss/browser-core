@@ -28,16 +28,41 @@ import { getResourceUrl } from './platform';
 import { isUrl, fixURL } from '../core/url';
 import { getEngineByQuery } from '../core/search-engines';
 
+// Telemetry schemas
+import TelemetryOptMetric from './telemetry/metrics/telemetry';
+import hourlyPingMetric from './telemetry/metrics/hourly-ping';
+import modulesStartupMetric from './telemetry/metrics/modules-startup';
+import performanceMetric from './telemetry/metrics/performance';
+import resourceLoadersMetric from './telemetry/metrics/resource-loaders';
+import pingMetrics from './telemetry/metrics/ping';
+import performanceAnalysis from './telemetry/analyses/performance';
+
 /**
  * @module core
  * @namespace core
  * @class Background
  */
 export default background({
-  requiresServices: ['pacemaker', 'telemetry', 'domainInfo'],
+  requiresServices: [
+    'pacemaker',
+    'host-settings',
+    'telemetry',
+    'domainInfo',
+  ],
   providesServices,
+  telemetrySchemas: [
+    hourlyPingMetric,
+    modulesStartupMetric,
+    performanceMetric,
+    resourceLoadersMetric,
+    ...pingMetrics,
+    performanceAnalysis,
+    ...TelemetryOptMetric,
+  ],
 
   init(settings) {
+    telemetry.register(this.telemetrySchemas);
+
     enableRequestSanitizer();
 
     this.settings = settings;
@@ -53,9 +78,11 @@ export default background({
 
     resourceManager.init();
     logger.init();
+    language.init();
   },
 
   unload() {
+    telemetry.unregister(this.telemetrySchemas);
     disableRequestSanitizer();
 
     this.bm.unload();
@@ -63,16 +90,17 @@ export default background({
     this.appStateInjecter.unload();
     resourceManager.unload();
     logger.unload();
+    language.unload();
   },
 
-  getWindowStatusFromModules() {
+  getWindowStatusFromModules(win) {
     let currentTab;
     return Object.keys(this.app.modules).map(async (module) => {
-      const backgroundModule = this.app.modules[module].backgroundModule;
+      const backgroundModule = this.app.modules[module].background;
       let status = null;
       if (backgroundModule && backgroundModule.currentWindowStatus) {
         if (!currentTab) {
-          currentTab = await getCurrentTab();
+          currentTab = await getCurrentTab(win.id);
         }
         status = await backgroundModule.currentWindowStatus(currentTab);
       } else if (backgroundModule && backgroundModule.status) {
@@ -140,6 +168,10 @@ export default background({
         });
     },
 
+    /**
+     * WARNING: this action shall not be removed because it is needed by some
+     * external extensions to send telemetry (using inter extension messaging).
+     */
     sendTelemetry(signal, instant, schema) {
       return telemetry.push(signal, schema, instant);
     },

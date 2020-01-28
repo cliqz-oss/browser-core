@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* globals ChromeUtils, DefaultWeakMap */
+/* globals ChromeUtils, DefaultWeakMap , AppConstants */
 const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
 const { ExtensionParent } = ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
 const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
@@ -29,11 +29,29 @@ const {
 
 const makeWidgetId = id => id.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
 
+const clickModifiersFromEvent = (event) => {
+  const map = {
+    shiftKey: 'Shift',
+    altKey: 'Alt',
+    metaKey: 'Command',
+    ctrlKey: 'Ctrl',
+  };
+  const modifiers = Object.keys(map)
+    .filter(key => event[key])
+    .map(key => map[key]);
+
+  if (event.ctrlKey && AppConstants.platform === 'macosx') {
+    modifiers.push('MacCtrl');
+  }
+
+  return modifiers;
+};
+
 /**
  * Manages tab-specific and window-specific context data, and dispatches
  * tab select events across all windows.
  *
- * Copypasted from https://github.com/mozilla/gecko-dev/blob/master/browser/components/extensions/parent/ext-browser.js#L136
+ * Copypasted from https://github.com/mozilla/gecko-dev/blob/master/browser/components/extensions/parent/ext-browser.js
  * ESlint disabled for easier tracking changes
  */
 /* eslint-disable */
@@ -102,7 +120,9 @@ const TabContext = class extends EventEmitter {
     let gBrowser = browser.ownerGlobal.gBrowser;
     let tab = gBrowser.getTabForBrowser(browser);
     // fromBrowse will be false in case of e.g. a hash change or history.pushState
-    let fromBrowse = !(flags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT);
+    let fromBrowse = !(
+      flags & Ci.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT
+    );
     this.emit("location-change", tab, fromBrowse);
   }
 
@@ -141,14 +161,24 @@ const TabContext = class extends EventEmitter {
 
 // global functions required to `ext-browserAction.js` execute correctly
 global.makeWidgetId = makeWidgetId;
+global.clickModifiersFromEvent = clickModifiersFromEvent;
 global.EventManager = EventManager;
 global.windowTracker = windowTracker;
 global.tabTracker = tabTracker;
 global.TabContext = TabContext;
+global.browserActionMap = new Set();
 
 // Now execute `ext-browserAction.js` in the current scope
 // in order to get access to original BrowserAction constructor
-Services.scriptloader.loadSubScript('chrome://browser/content/parent/ext-browserAction.js', global, 'UTF-8');
+//
+// this particular ext-browserAction.js is the raw version from Firefox 71
+// https://hg.mozilla.org/releases/mozilla-release/raw-file/3cc34f31408f497dd5f050232321d5a7e2986362/browser/components/extensions/parent/ext-browserAction.js
+
+Services.scriptloader.loadSubScript(
+  ExtensionParent.WebExtensionPolicy.getByID('cliqz@cliqz.com').extension.baseURI
+    .resolve('/modules/webextension-specific/experimental-apis/browser-action/ext-browserAction.js'),
+  global, 'UTF-8'
+);
 
 const BrowserAction = global.browserAction;
 delete global.browserAction;
@@ -161,12 +191,28 @@ global.browserAction2 = class extends BrowserAction {
     });
   }
 
+  /**
+   * Experimental APIs cannot handle manifest keys, so we have to manually perform all the
+   * initialization work which originaly happens on reading manifest entry.
+   *
+   * This method is a minimally modified version of `BrowserAction.onManifestEntry` from
+   * https://github.com/mozilla/gecko-dev/blob/master/browser/components/extensions/parent/ext-browserAction.js
+   * Changes made:
+   *  - All IDs (widgetId, viewId, cache ids, etc) are changed so they don't interfere
+   *    with original `browserAction`.
+   *  - `this._ready()` is called at the end of the method.
+   *
+   * Original code style is kept to track changes in it easier.
+   *
+   * @param {object} options same options as for "browser_action" manifest key
+   */
+  /* eslint-disable */
   async create(options) {
-    const { extension } = this;
+    let { extension } = this;
 
     this.iconData = new DefaultWeakMap(icons => this.getIconData(icons));
 
-    const widgetId = makeWidgetId(extension.id);
+    let widgetId = makeWidgetId(extension.id);
     this.id = `${widgetId}-browser-action2`;
     this.viewId = `PanelUI-webext-${widgetId}-browser-action-view2`;
     this.widget = null;
@@ -180,45 +226,56 @@ global.browserAction2 = class extends BrowserAction {
     this.defaults = {
       enabled: true,
       title: options.default_title || extension.name,
-      badgeText: '',
+      badgeText: "",
       badgeBackgroundColor: [0xd9, 0, 0, 255],
       badgeDefaultColor: [255, 255, 255, 255],
       badgeTextColor: null,
-      popup: (options.default_popup && extension.baseURI.resolve(options.default_popup)) || '',
-      area: browserAreas[options.default_area || 'navbar'],
+      popup: options.default_popup || "",
+      area: browserAreas[options.default_area || "navbar"],
     };
     this.globals = Object.create(this.defaults);
 
     this.browserStyle = options.browser_style;
 
+    browserActionMap.set(extension, this);
+
     this.defaults.icon = await StartupCache.get(
-      extension, ['browserAction2', 'default_icon'],
-      () => IconDetails.normalize({
-        path: options.default_icon,
-        iconType: 'browserAction2',
-        themeIcons: options.theme_icons,
-      }, extension)
+      extension,
+      ["browserAction2", "default_icon"],
+      () =>
+        IconDetails.normalize(
+          {
+            path: options.default_icon,
+            iconType: "browserAction2",
+            themeIcons: options.theme_icons,
+          },
+          extension
+        )
     );
 
     this.iconData.set(
       this.defaults.icon,
       await StartupCache.get(
-        extension, ['browserAction2', 'default_icon_data'],
+        extension,
+        ["browserAction2", "default_icon_data"],
         () => this.getIconData(this.defaults.icon)
       )
     );
 
-    this.tabContext = new TabContext((target) => {
-      const window = target.ownerGlobal;
+    this.tabContext = new TabContext(target => {
+      let window = target.ownerGlobal;
       if (target === window) {
         return this.globals;
       }
       return this.tabContext.get(window);
     });
 
-    this.tabContext.on('location-change', this.handleLocationChange.bind(this));
+    // eslint-disable-next-line mozilla/balanced-listeners
+    this.tabContext.on("location-change", this.handleLocationChange.bind(this));
 
     this.build();
+    /* eslint-enable */
+
     this._ready();
   }
 
@@ -240,7 +297,14 @@ global.browserAction2 = class extends BrowserAction {
     const originalAPI = super.getAPI(context);
     return {
       browserAction2: Object.assign(this.wrapOriginalAPI(originalAPI.browserAction), {
-        create: options => this.create(options),
+        create: (options) => {
+          this.create({
+            ...options,
+            default_popup: (
+              options.default_popup && context.extension.baseURI.resolve(options.default_popup)
+            ) || '',
+          });
+        },
       })
     };
   }

@@ -105,7 +105,7 @@
         "message": "Si vous souhaitez masquer votre addresse IP lorsque vous effectuez des recherches, vous pouvez relayer vos requêtes au travers d'un réseau de serveurs proxy."
     },
     "control_center_info_hpn_title": {
-        "message": "Search via proxy"
+        "message": "Rechercher au travers du serveur proxy"
     },
     "control_center_info_https": {
         "message": "Cette fonctionnalité est fournie par le service open-source HTTPS Everywhere. Elle permet d'augmenter le niveau de sécurité en forcant les connexions à être chiffrées grâce à HTTPS."
@@ -165,7 +165,7 @@
         "message": "Politique de confidentialité"
     },
     "control_center_proxy": {
-        "message": "Search via proxy"
+        "message": "Rechercher au travers du serveur proxy"
     },
     "control_center_quicksearch": {
         "message": "Safe Ghost-Search"

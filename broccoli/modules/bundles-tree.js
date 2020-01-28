@@ -10,8 +10,8 @@ const path = require('path');
 const Funnel = require('broccoli-funnel');
 const replace = require('broccoli-string-replace');
 
-const cliqzEnv = require('../cliqz-env');
 const cliqzConfig = require('../config');
+const cliqzEnv = require('../cliqz-env');
 const helpers = require('./helpers');
 const SystemBuilder = require('./broccoli-webpack');
 
@@ -123,9 +123,9 @@ function getBundlesTree(modulesTree) {
   const builderConfig = {
     externals: cliqzConfigBundler.externals || [],
     globalDeps: cliqzConfigBundler.globalDeps || {},
-    sourceMaps: !cliqzEnv.PRODUCTION,
+    sourceMaps: cliqzEnv.SOURCE_MAPS,
     lowResSourceMaps: false,
-    sourceMapContents: true,
+    sourceMapContents: cliqzEnv.SOURCE_MAPS,
     // required in case source module format is not esmb
     globalName: 'CliqzGlobal',
     rollup: true,
@@ -143,6 +143,10 @@ function getBundlesTree(modulesTree) {
   );
 
   let bundleSourceMapPathsCopy = bundleSourceMapPaths.concat();
+
+  if (!cliqzEnv.SOURCE_MAPS) {
+    return output;
+  }
 
   // Replace source map references with served from localhost:4300,
   // using the `bundleSourceMapPaths` we have contructed above

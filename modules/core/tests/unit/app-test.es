@@ -16,17 +16,19 @@ const tests = () => {
       App = this.module().default;
     });
 
-    it('sets a pref', function () {
+    it('sets a pref', async function () {
       const setPref = sinon.spy();
       const app = new App();
+      app.isRunning = true;
 
       app.modules.test = {
-        isDisabled: true,
+        isDisabled: false,
+        disable: () => {},
       };
 
       this.deps('core/prefs').default.set = setPref;
 
-      app.disableModule('test');
+      await app.disableModule('test');
 
       chai.expect(setPref).to.be.calledWith('modules.test.enabled', false);
     });

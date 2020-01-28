@@ -23,7 +23,6 @@ import trimResults from '../streams/trim-results';
 import waitForAllProviders from '../streams/wait-for-all-providers';
 import eliminateRepeatedResults from '../streams/eliminate-repeated-results';
 
-// TODO: move to 'operators/streams'?
 export default config => pipe(
   // off by default (see search/config)
   waitForAllProviders(config),

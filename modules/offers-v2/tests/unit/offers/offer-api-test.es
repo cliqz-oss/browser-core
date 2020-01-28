@@ -156,6 +156,18 @@ export default describeModule('offers-v2/offers/offers-api',
             chai.expect(sigVal).to.be.equal(1);
           });
 
+          it('offer_data is overridden in published signal with pushOffer "offerData" option, but not in stored offer', () => {
+            const originalOfferData = cloneValidOffer();
+            const altOfferData = cloneValidOffer();
+            originalOfferData.ui_info.notif_type = 'popup';
+            altOfferData.ui_info.notif_type = 'dot';
+            const originalOffer = new Offer(originalOfferData);
+            op.pushOffer(originalOffer, { offerData: altOfferData });
+            const msg = events.msgs[CH][0];
+            chai.expect(msg.data.offer_data.ui_info.notif_type).to.equal('dot');
+            chai.expect(db.getOfferObject(VALID_OFFER_OBJ.offer_id).ui_info.notif_type).to.equal('popup');
+          });
+
           context('offers are empty', function () {
             it('getStoredOffers should return []', function () {
               const r = op.getStoredOffers({});

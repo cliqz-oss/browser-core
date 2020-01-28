@@ -9,8 +9,6 @@
 /* global chai */
 /* global describeModule */
 /* eslint camelcase: off */
-const urlImports = require('../../core/unit/utils/url-parser');
-
 const expect = chai.expect;
 
 /**
@@ -75,7 +73,6 @@ export default describeModule('human-web/network',
         error() {},
       }
     },
-    ...urlImports,
   }),
   () => {
     describe('parseHostname', function () {

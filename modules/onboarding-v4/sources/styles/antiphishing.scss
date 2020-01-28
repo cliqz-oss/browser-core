@@ -6,59 +6,136 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-.step.antiphishing {
-    background-color: white;
+@import 'variables.scss';
 
-    .antiphishing-background {
-        height: inherit;
-        background:
-            url('../images/hook1.gif') 5% 0px/auto 50% no-repeat,
-            url('../images/hook2.gif') 16% 0px/auto 90% no-repeat,
-            url('../images/hook3.gif') 77% 0px/auto 85% no-repeat,
-            url('../images/hook4.gif') 90% 0px/auto 45% no-repeat;
-        opacity: 1;
-        transition: opacity 600ms linear;
+@mixin bg-animation {
+    background-image: url('../images/antiphishing_password.svg'),
+        url('../images/antiphishing_rod_query.svg'),
+        url('../images/antiphishing_summer_bali.svg'),
+        url('../images/antiphishing_sunshine98.svg'),
+        url('../images/antiphishing_welcome2home.svg'),
+        url('../images/antiphishing_12344411.svg'),
+        url('../images/antiphishing_rod_no_query.svg'),
+        url('../images/antiphishing_rod_right.svg'),
+        url('../images/antiphishing_rod_right.svg');
+}
 
-        &.toggled {
-            opacity: 0;
-        }
+@keyframes antiphishingLayoutAnimation {
+    0% {
+        @include bg-animation;
+        background-position: 1% 98%, 8% 105%, 25% 92%, 89% 73%, 97% 56%, 99% 92%, 91% 110%, 79% 102%, 4% 112%;
     }
-
-    .antiphishing-footer-before, .antiphishing-footer-after {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: inherit;
-        background-color: white;
-        transition: opacity 700ms;
+    25% {
+        @include bg-animation;
+        background-position: 1% 98%, 8% 105%, 25% 92%, 89% 73%, 97% 56%, 99% 92%, 91% 390%, 79% 102%, 4% 112%;
     }
-
-    .antiphishing-footer-before {
-        background: url('../images/password-visible.svg') bottom/100% no-repeat;
-        opacity: 1;
-
-        &.toggled {
-            opacity: 0;
-        }
+    75% {
+        @include bg-animation;
+        background-position: 1% 98%, 8% 355%, 25% 92%, 89% 73%, 97% 56%, 99% 92%, 91% 110%, 79% 102%, 4% 112%;
     }
+    100% {
+        background-image: url('../images/antiphishing_password.svg'),
+            url('../images/antiphishing_rod_no_query.svg'),
+            url('../images/antiphishing_summer_bali.svg'),
+            url('../images/antiphishing_sunshine98.svg'),
+            url('../images/antiphishing_welcome2home.svg'),
+            url('../images/antiphishing_12344411.svg'),
+            url('../images/antiphishing_rod_no_query.svg'),
+            url('../images/antiphishing_rod_right.svg'),
+            url('../images/antiphishing_rod_right.svg');
+        background-position: 1% 98%, 8% 105%, 25% 92%, 89% 73%, 97% 56%, 99% 92%, 91% 110%, 79% 102%, 4% 112%;
+    }
+}
 
-    .antiphishing-footer-after {
-        background: url('../images/password-invisible.svg') bottom/100% no-repeat;
+@keyframes antiphishingLayoutBeforeAnimation {
+    0%, 75% {
         opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
 
-        &.toggled {
-            opacity: 1;
+.antiphishing {
+    &-ctrl-content {
+        background: url('../images/antiphishing_icon_off.png') left center no-repeat;
+        background-size: auto 85%;
+    }
+
+    &-headline {
+        position: relative;
+
+        &:before {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -158px;
+            background-image: url('../images/antiphishing_off.png');
+            background-position: 0 center;
+            background-repeat: no-repeat;
+            background-size: 100% auto;
+            width: 316px;
+            height: 200px;
+        }
+    }
+}
+
+.antiphishing-toggled {
+    .antiphishing-ctrl {
+        &-status {
+            color: $slider-bg-on;
+        }
+
+        &-content {
+            background-image: url('../images/antiphishing_icon_on.png');
+            color: #000;
         }
     }
 
-    .info {
-        .headline {
-            line-height: 1.2;
-        }
+    .antiphishing-headline {
+        color: $cliqz-blue;
 
-        .switch {
-            margin-top: 30px;
+        &:before {
+            background-image: url('../images/antiphishing_on.png');
+            background-position: 1px center;
         }
+    }
+}
+
+.antiphishing-layout, .antiphishing-layout-toggled {
+    background-image: url('../images/antiphishing_password_after.svg'),
+        url('../images/antiphishing_v_qwerty_after.svg'),
+        url('../images/antiphishing_summer_bali_after.svg'),
+        url('../images/antiphishing_sunshine98_after.svg'),
+        url('../images/antiphishing_welcome2home_after.svg'),
+        url('../images/antiphishing_12344411_after.svg');
+    background-position: 1% 98%, 7% 74%, 25% 92%, 89% 73%, 97% 56%, 99% 92%;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+    animation: none;
+
+    &:before {
+        animation: none;
+    }
+}
+
+.antiphishing-layout {
+    @include bg-animation;
+    background-position: 1% 98%, 8% 105%, 25% 92%, 89% 73%, 97% 56%, 99% 92%, 91% 110%, 79% 102%, 4% 112%;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+    animation: antiphishingLayoutAnimation 7s ease-in-out;
+    animation-iteration-count: infinite;
+
+    &:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: url('../images/antiphishing_v_qwerty.svg') 8% 105% no-repeat;
+
+        animation: antiphishingLayoutBeforeAnimation 7s ease-in-out;
+        animation-iteration-count: infinite;
     }
 }

@@ -8,17 +8,12 @@
 
 /* global chai, describeModule */
 
-const urlImports = require('../../../core/unit/utils/url-parser');
 
 export default describeModule('dropdown/results/generic',
   function () {
     return {
       'core/events': {},
-      'core/url': {
-        urlStripProtocol() { return 'STRIPPED_URL'; }
-      },
       '../../core/console': {},
-      ...urlImports,
       'platform/globals': {
         chrome: {},
       },

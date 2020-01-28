@@ -19,6 +19,7 @@ h1, h2 {
 h1 {
   font-size: 30px;
   color: #20292A;
+  margin: 5px;
 }
 
 h2 {
@@ -38,8 +39,10 @@ h2 {
   background-position: top center;
   background-size: contain;
   height: 100px;
-  width: 100%;
+  width: 100px;
   top: -51px;
+  left: 50%;
+  margin-left: -50px;
 }
 
 .content {
@@ -64,7 +67,11 @@ h2 {
 }
 
 .more {
-  margin-top: 10px;
+  margin-top: 5px;
+}
+
+.more div {
+  height: 5px;
 }
 
 .description {
@@ -126,5 +133,16 @@ body.cliqz .button {
 }
 
 body.cliqz .logo {
-  background-image: url(/assets/icon128.png);
+  border-radius: 50px 50px 0 0;
+  background-color: rgb(247, 250, 255);
+}
+
+body.ghosterytab .more.hide,
+body.cliqz .more.hide {
+  display: block;
+}
+
+body.ghosterytab .show-more,
+body.cliqz .show-more {
+  display: none;
 }

@@ -21,7 +21,9 @@ chrome.browserAction.onClicked.addListener(() => {
         chrome.tabs.sendMessage(tab.id, {
           module: 'overlay',
           action: 'toggle-quicksearch',
-          trigger: 'ByMouse',
+          args: [{
+            trigger: 'ByMouse',
+          }],
         });
       } else {
         chrome.tabs.create({});

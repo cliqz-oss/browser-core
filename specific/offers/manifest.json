@@ -19,7 +19,7 @@
       "128": "assets/{{PRODUCT_PREFIX}}-icon128.png"
     },
     "default_title": "{{PRODUCT_TITLE}}",
-    "default_popup": "modules/offers-cc/index.html?popup"
+    "default_popup": "modules/offers-cc/index.html?popup#{{PRODUCT_PREFIX}}"
   },
   "permissions": [
     "<all_urls>",
@@ -66,6 +66,7 @@
     "modules/browser-panel/index.html",
     "modules/offers-cc/index.html",
     "modules/offers-reminder/index.html",
-    "modules/popup-notification/images/*"
+    "modules/offers-checkout/index.html",
+    "modules/onboarding-overlay/index.html"
   ]
 }

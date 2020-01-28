@@ -33,12 +33,18 @@ module.exports = {
     HW_CHANNEL: 'ghostery',
     antitrackingPlaceholder: 'ghostery',
     antitrackingHeader: 'Ghostery-AntiTracking',
+    telemetry: {
+      demographics: {
+        brand: 'cliqz',
+        name: 'privacy',
+      },
+    },
   },
   default_prefs: {
     'modules.webextension-specific.enabled': true,
     'cliqz-adb': 1,
     'cliqz-adb-strict': true,
-    attrackBloomFilter: false,
+    attrackBloomFilter: true,
     attrackTelemetryMode: 0,
     attrackDefaultAction: 'placeholder',
     sendAntiTrackingHeader: false,
@@ -65,5 +71,6 @@ module.exports = {
     'telemetry',
     'cookie-monster',
     'autoconsent',
+    'dat',
   ],
 };

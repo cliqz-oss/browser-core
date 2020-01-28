@@ -7,7 +7,6 @@
  */
 
 import Defer from '../../core/helpers/defer';
-import telemetry from '../../core/services/telemetry';
 import getGeo from '../../core/geolocation';
 import config from '../../core/config';
 import prefs from '../../core/prefs';
@@ -90,29 +89,11 @@ export default async function service() {
       if (!['yes', 'showOnce'].includes(locationPref)) {
         return Promise.reject(new Error("No permission to get user's location"));
       }
-      const telemetryEvent = {
-        type: 'performance',
-        action: 'api_request',
-        target: 'geolocation',
-        is_success: undefined,
-      };
       return Promise.race([geolocationProvider(), cancelUpdate.promise])
-        .then((position) => {
-          telemetryEvent.is_success = true;
-          telemetry.push(telemetryEvent);
-          return {
-            latitude: roundLocation(position.latitude),
-            longitude: roundLocation(position.longitude),
-          };
-        })
-        .catch((error) => {
-          if (error.canceled) {
-            telemetryEvent.is_canceled = true;
-          }
-          telemetryEvent.is_success = false;
-          telemetry.push(telemetryEvent);
-          return Promise.reject(error);
-        });
+        .then(position => ({
+          latitude: roundLocation(position.latitude),
+          longitude: roundLocation(position.longitude),
+        }));
     },
 
     async updateGeoLocation() {

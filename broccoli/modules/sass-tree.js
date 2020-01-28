@@ -12,13 +12,17 @@ const Funnel = require('broccoli-funnel');
 const MergeTrees = require('broccoli-merge-trees');
 const sass = require('sass');
 const compileSass = require('broccoli-sass-source-maps')(sass);
+const CSSO = require('broccoli-csso');
 
 const cliqzConfig = require('../config');
+const cliqzEnv = require('../cliqz-env');
 
 const CDN_BASEURL = cliqzConfig.settings.CDN_BASEURL;
 
 module.exports = function getSassTree() {
   const sassTrees = [];
+  const minify = !cliqzEnv.DEVELOPMENT;
+
   cliqzConfig.modules.filter((name) => {
     const modulePath = `modules/${name}`;
 
@@ -44,7 +48,9 @@ module.exports = function getSassTree() {
         file,
         file.replace(/\.(sass|scss)+$/, '.css'),
         {
-          sourceMap: cliqzConfig.sourceMaps,
+          sourceMap: cliqzEnv.SOURCE_MAPS,
+          outputStyle: minify ? 'compressed' : 'expanded',
+          sourceComments: !minify,
           functions: {
             'cdnUrl($path)': _path => new sass.types.String(`url(${CDN_BASEURL}/${_path.getValue()})`),
           },
@@ -55,5 +61,15 @@ module.exports = function getSassTree() {
     });
   });
 
-  return new MergeTrees(sassTrees);
+  const sassTree = new MergeTrees(sassTrees);
+
+  if (!minify) {
+    return sassTree;
+  }
+
+  return new CSSO(sassTree, {
+    restructure: false, // Disable structure optimisations
+    comments: 'first-exclamation', // save first comment starting with /*!
+    forceMediaMerge: true, // merge @media rules with the same media query
+  });
 };

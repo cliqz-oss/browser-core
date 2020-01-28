@@ -17,9 +17,21 @@ import { PROVIDER_INSTANT } from '../consts';
 import normalize from '../operators/normalize';
 
 function getKind(query) {
+  const source = 'default-search';
+
   const engine = getEngineByQuery(query);
-  const kind = engine ? 'custom-search' : 'default-search';
-  return [kind];
+  if (!engine && !engine.name) {
+    return [source];
+  }
+
+  const name = engine.name.toLowerCase().replace(/ /g, '-');
+
+  // To implement `kind` conventions: the source ('default-search') is followed
+  // by a stringified object having a key 'class' that contains (in this context)
+  // the search engine's name; they are separated by '|'. For example:
+  //    'default-search|{"class":"google"}'
+  // Doing this allows us to reuse existing telemetry pipelines.
+  return [`${source}|${JSON.stringify({ class: name })}`];
 }
 
 export default class InstantProvider extends BaseProvider {

@@ -675,24 +675,33 @@ class OfferDB {
       const cont = this.offersIndexMap.get(offerID);
       // we add it if we have the offer object only
       if (cont.offer_obj && (includeRemoved === true || !cont.removed)) {
+        const offerActions = cont.offer_actions || {};
         const offerInfo = {
           offer_id: cont.offer_obj.offer_id,
           offer: cont.offer_obj,
           last_update: cont.l_u_ts,
           created: cont.c_ts,
           removed: cont.removed,
-          offer_actions: { ...cont.offer_actions },
+          offer_actions: offerActions,
         };
-        if (cont.offer_actions && cont.offer_actions.offer_ca_action) {
-          offerInfo.click = cont.offer_actions.offer_ca_action.l_u_ts || 0;
-        } else {
-          offerInfo.click = 0;
-        }
-        if (cont.offer_actions && cont.offer_actions.offer_shown) {
-          offerInfo.view = cont.offer_actions.offer_shown.l_u_ts || 0;
-        } else {
-          offerInfo.view = 0;
-        }
+        //
+        // The attributes `click`, `view` and `last_update` are used
+        // in several places:
+        //
+        // - in user interface,
+        //   to sort offers before displaying them to an user
+        // - in coupon notification,
+        //   to ignore offers that lack of interaction for long time
+        //
+        // The meaning of `click` is "essential interaction". It is such
+        // an action that the advertisers agree it is fair to attribute
+        // the user to us.
+        //
+        const click = (offerActions.offer_ca_action || {}).l_u_ts || 0;
+        const codeCopied = (offerActions.code_copied || {}).l_u_ts || 0;
+        offerInfo.click = Math.max(click, codeCopied);
+        offerInfo.view = (offerActions.offer_shown || {}).l_u_ts || 0;
+
         offers.push(offerInfo);
       }
     });

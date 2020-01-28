@@ -120,9 +120,6 @@ export default describeModule('offers-v2/categories/category-fetcher',
     'core/timers': {
       setTimeout: cb => cb(),
     },
-    'offers-v2/categories/initial-categories': {
-      default: () => [],
-    }
   }),
   () => {
     describe('#category-fetcher', function () {
@@ -146,6 +143,11 @@ export default describeModule('offers-v2/categories/category-fetcher',
           handlerMock = new CategoryHandlerMock();
           fetcher = new CategoryFetcher(beMock, handlerMock, db);
         });
+
+        async function fullInitFetcher() {
+          await fetcher.init();
+          await fetcher.postInit();
+        }
 
         function waitForBECalled() {
           return waitFor(beMock.isCalled.bind(beMock));
@@ -185,14 +187,10 @@ export default describeModule('offers-v2/categories/category-fetcher',
         // /////////////////////////////////////////////////////////////////////
         // /////////////////////////////////////////////////////////////////////
 
-        it('/element exists', function () {
-          chai.expect(fetcher).to.exist;
-        });
-
         it('/endpoint is properly called', function () {
           chai.expect(beMock.getLastCallEndpoint()).to.not.exist;
           chai.expect(beMock.getLastCallParams()).to.not.exist;
-          fetcher.init();
+          fullInitFetcher();
           return waitForBECalled().then(() => {
             chai.expect(beMock.getLastCallEndpoint()).to.exist;
             chai.expect(beMock.getLastCallParams()).to.exist;
@@ -201,7 +199,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
         it('/categories are properly added when returned', function () {
           beMock.setMockResult(DEFAULT_CAT_RESP);
-          fetcher.init();
+          fullInitFetcher();
           return waitForCategoriesAdded(5).then(() => {
             chai.expect(beMock.getLastCallEndpoint()).to.exist;
             chai.expect(beMock.getLastCallParams()).to.exist;
@@ -211,7 +209,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
         it('/check revision is sent with the latest data from be', function () {
           beMock.setMockResult(DEFAULT_CAT_RESP);
-          fetcher.init();
+          fullInitFetcher();
           return waitForBECalled().then(() => {
             chai.expect(beMock.getLastCallEndpoint()).to.exist;
             chai.expect(beMock.getLastCallParams()).to.exist;
@@ -226,7 +224,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
         it('/check if no categories are returned nothing happens', function () {
           beMock.setMockResult([]);
-          fetcher.init();
+          fullInitFetcher();
           return waitForBECalled().then(() => {
             chai.expect(beMock.getLastCallEndpoint()).to.exist;
             chai.expect(beMock.getLastCallParams()).to.exist;
@@ -237,7 +235,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
         it('/check user_group filtering works for undefined', function () {
           beMock.setMockResult(DEFAULT_CAT_RESP);
-          fetcher.init();
+          fullInitFetcher();
           const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(
             DEFAULT_CAT_RESP.categories
           );
@@ -255,7 +253,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
 
         it('/check user_group filtering works for not undefined', function () {
           beMock.setMockResult(DEFAULT_CAT_RESP);
-          fetcher.init();
+          fullInitFetcher();
           const catWithUndefinedUserGroup = getCatNamesWithUndefinedUserGroup(
             DEFAULT_CAT_RESP.categories
           );

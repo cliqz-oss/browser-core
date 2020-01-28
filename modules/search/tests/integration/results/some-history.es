@@ -15,7 +15,7 @@ const finalWithoutHistoryView = {
       href: 'https://www.google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'headphones',
@@ -42,7 +42,7 @@ const finalWithoutHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'headphones'
       }
@@ -51,7 +51,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       href: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       friendlyUrl: 'currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
-      title: 'Headphones & Earphones - Deals on Headphones | Currys',
+      title: '> Title - Headphones & Earphones - Deals on Headphones | Currys',
       kind: [
         'H',
         'm'
@@ -89,7 +89,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
       href: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
       friendlyUrl: 'bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
-      title: 'All Headphones - Best Buy',
+      title: '> Title - All Headphones - Best Buy',
       description: 'Best Buy has low prices on a variety of headphones from Beats by Dre, Bose, Skullcandy & Sony. Free shipping on select items or pick up in store today.',
       kind: [
         'm'
@@ -135,7 +135,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
       href: 'https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
       friendlyUrl: 'amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
-      title: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More',
+      title: '> Title - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More',
       description: 'Online shopping for Electronics from a great selection of Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & more at everyday low prices.',
       kind: [
         'm'
@@ -173,7 +173,7 @@ const finalWithoutHistoryView = {
           },
           og: {
             description: 'Online shopping for Electronics from a great selection of Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & more at everyday low prices.',
-            title: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
+            title: '> Title - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
           }
         },
         kind: [
@@ -185,7 +185,7 @@ const finalWithoutHistoryView = {
       url: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
       href: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
       friendlyUrl: 'argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
-      title: 'Headphones & Earphones | Argos',
+      title: '> Title - Headphones & Earphones | Argos',
       description: 'Headphones & earphones at Argos. Gear for all needs including wireless, in-ear & on-ear. Get it today. Same day delivery £3.95, or fast store collection.',
       kind: [
         'm'
@@ -237,7 +237,7 @@ const finalWithHistoryView = {
       href: 'https://www.google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       friendlyUrl: 'google.com/search?q=headphones&ie=utf-8&oe=utf-8&client=firefox-b',
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'headphones',
@@ -264,7 +264,7 @@ const finalWithHistoryView = {
           searchEngineName: 'Google'
         },
         kind: [
-          'custom-search'
+          'default-search'
         ],
         suggestion: 'headphones'
       }
@@ -273,7 +273,7 @@ const finalWithHistoryView = {
       url: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       href: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       friendlyUrl: 'currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
-      title: 'Headphones & Earphones - Deals on Headphones | Currys',
+      title: '> Title - Headphones & Earphones - Deals on Headphones | Currys',
       kind: [
         'H',
         'm'
@@ -345,7 +345,7 @@ const finalWithHistoryView = {
       url: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
       href: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
       friendlyUrl: 'bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
-      title: 'All Headphones - Best Buy',
+      title: '> Title - All Headphones - Best Buy',
       description: 'Best Buy has low prices on a variety of headphones from Beats by Dre, Bose, Skullcandy & Sony. Free shipping on select items or pick up in store today.',
       kind: [
         'm'
@@ -391,7 +391,7 @@ const finalWithHistoryView = {
       url: 'https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
       href: 'https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
       friendlyUrl: 'amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
-      title: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More',
+      title: '> Title - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More',
       description: 'Online shopping for Electronics from a great selection of Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & more at everyday low prices.',
       kind: [
         'm'
@@ -429,7 +429,7 @@ const finalWithHistoryView = {
           },
           og: {
             description: 'Online shopping for Electronics from a great selection of Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & more at everyday low prices.',
-            title: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
+            title: '> Title - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
           }
         },
         kind: [
@@ -441,7 +441,7 @@ const finalWithHistoryView = {
       url: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
       href: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
       friendlyUrl: 'argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
-      title: 'Headphones & Earphones | Argos',
+      title: '> Title - Headphones & Earphones | Argos',
       description: 'Headphones & earphones at Argos. Gear for all needs including wireless, in-ear & on-ear. Get it today. Same day delivery £3.95, or fast store collection.',
       kind: [
         'm'
@@ -496,7 +496,7 @@ const results = {
         searchEngineName: 'Google'
       },
       kind: [
-        'custom-search'
+        'default-search'
       ],
       provider: 'instant',
       suggestion: 'headphones',
@@ -528,7 +528,7 @@ const results = {
             en: 0.99
           }
         },
-        title: 'All Headphones - Best Buy'
+        title: '> Title - All Headphones - Best Buy'
       },
       c_url: 'https://www.bestbuy.com/site/headphones/all-headphones/pcmcat144700050004.c?id=pcmcat144700050004',
       type: 'bm'
@@ -547,10 +547,10 @@ const results = {
           },
           og: {
             description: 'Online shopping for Electronics from a great selection of Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & more at everyday low prices.',
-            title: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
+            title: '> Title - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
           }
         },
-        title: 'Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
+        title: '> Title - Amazon.com: Headphones: Electronics: Earbud Headphones, Over-Ear Headphones, On-Ear Headphones & More'
       },
       c_url: 'https://www.amazon.com/Headphones-Accessories-Supplies/b?ie=UTF8&node=172541',
       type: 'bm'
@@ -566,7 +566,7 @@ const results = {
             en: 0.99
           }
         },
-        title: 'Headphones & Earphones - Deals on Headphones | Currys'
+        title: '> Title - Headphones & Earphones - Deals on Headphones | Currys'
       },
       c_url: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       type: 'bm'
@@ -584,7 +584,7 @@ const results = {
             en: 0.99
           }
         },
-        title: 'Headphones & Earphones | Argos'
+        title: '> Title - Headphones & Earphones | Argos'
       },
       c_url: 'https://www.argos.co.uk/browse/technology/ipod-mp3-and-headphones/headphones-and-earphones/c:30128',
       type: 'bm'
@@ -600,7 +600,7 @@ const results = {
             fr: 0.52
           }
         },
-        title: 'Best Buy International: Select your Country - Best Buy'
+        title: '> Title - Best Buy International: Select your Country - Best Buy'
       },
       c_url: 'https://www.bestbuy.com/site/audio/headphones/abcat0204000.c?id=abcat0204000',
       type: 'bm'
@@ -611,7 +611,7 @@ const results = {
       style: 'favicon',
       value: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
       image: 'page-icon:https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html',
-      comment: 'Headphones & Earphones - Deals on Headphones | Currys',
+      comment: '> Comment - Headphones & Earphones - Deals on Headphones | Currys',
       label: 'https://www.currys.co.uk/gbuk/audio-and-headphones/headphones-291-c.html'
     }
   ],

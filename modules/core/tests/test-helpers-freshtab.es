@@ -441,6 +441,8 @@ export class Subject {
   }
 }
 
+export const allNewsLanguages = ['de', 'de-tr-en', 'fr', 'intl', 'us', 'gb', 'es', 'it'];
+
 export const defaultConfig = Object.freeze({
   module: 'freshtab',
   action: 'getConfig',
@@ -457,6 +459,11 @@ export const defaultConfig = Object.freeze({
       },
       news: {
         visible: false,
+        availableEditions: allNewsLanguages.map(lang => ({
+          code: lang,
+          name: lang,
+          isSelected: false,
+        })),
         preferedCountry: 'de'
       },
       background: {
@@ -538,8 +545,6 @@ export function getActiveConfig() {
   activeConfig.response.componentsState.stats.visible = true;
   return activeConfig;
 }
-
-export const allNewsLanguages = ['de', 'de-tr-en', 'fr', 'intl', 'us', 'gb', 'es', 'it'];
 
 function checkCommon({
   defaultState,

@@ -19,19 +19,18 @@ export default class History extends BaseProvider {
     super('history');
   }
 
-  search(query, config, { allowEmptyQuery = false }) {
+  search(query, config, { allowEmptyQuery = false, isPrivate = false }) {
     if (!query && !allowEmptyQuery) {
       return this.getEmptySearch(config);
     }
 
-    const historyPromise = new Promise(resolve => historySearch(query, resolve));
+    const historyPromise = new Promise(resolve => historySearch(query, resolve, isPrivate));
     return this.getResultsFromPromise(
       // TODO: deduplicate is again called in enriched, try to simplify;
       //       at the moment, both is needed: here because history returns
       //       duplicates (like http://cliqz.com and https://cliqz.com) and
       //       in enrich to remove rich data/history duplicates
       // filter out results without main link (clean above removes links)
-      // TODO - optimize `clean`, `normalize` and transitive core/url functions.
       //
       // NOTE: here it is safe to use 'unsafe' operators since results have not
       // been shared with outside yet (see docstring of 'unsafeClean' function

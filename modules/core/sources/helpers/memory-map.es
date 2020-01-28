@@ -35,12 +35,20 @@ export default class MemoryPersistentMap {
     this.db.set(key, value);
   }
 
+  async bulkSetFromMap(map) {
+    map.forEach((value, key) => this.db.set(key, value));
+  }
+
   async has(key) {
     return this.db.has(key);
   }
 
   async delete(key) {
     this.db.delete(key);
+  }
+
+  async bulkDelete(keys) {
+    keys.forEach(key => this.db.delete(key));
   }
 
   async clear() {

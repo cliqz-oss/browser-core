@@ -1,5 +1,5 @@
 .card__wrapper {
-  padding: 2px 15px 0px;
+  padding: 2px 12px 0px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0px -1px 1px 1px rgba(0, 0, 0, 0.1);
@@ -28,7 +28,13 @@
   hyphens: auto;
   font-size: 12.5px;
   cursor: default;
-  color: #aba1a1;
+  color: #b4b4b4;
+}
+
+.card__condition-title {
+  font-weight: 500;
+  display: inline-block;
+  padding-bottom: 3px;
 }
 
 .card__conditions {
@@ -59,22 +65,27 @@
 }
 
 .card__bullet {
-  color: #aba1a1;
+  color: #b4b4b4;
+  padding-bottom: 2px;
 }
 .card__bullet:before {
   content: "\2022";
   position: absolute;
   color: #B3B3B3;
-  font-weight: 200;
+  font-weight: 500;
   display: inline-block;
   margin-left: -12px;
 }
 
 .card__small-triangle {
-  font-size: 9px;
+  display: inline-block;
+  background: url('../images/triangle.svg') no-repeat center;
+  width: 10px;
+  height: 8px;
 }
 
 .card__show-more {
   cursor: pointer;
-  color: #aba1a1;
+  color: #b4b4b4;
+  padding-bottom: 2px;
 }

@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-export default [
+export const results = [
   {
     url: 'https://www.youtube.com/watch?v=07YebMv391g',
     score: 0,
@@ -25,13 +25,13 @@ export default [
       extra: {
         alternatives: [],
         image: {
-          src: 'https://i.ytimg.com/vi/07YebMv391g/default.jpg'
+          src: 'http://localhost:3000/static/images/default.jpg'
         },
         language: {},
         m_url: 'https://m.youtube.com/watch?v=07YebMv391g',
         rich_data: {
           duration: 235,
-          thumbnail: 'https://imgr.cliqz.com/s_qoYUGjmydAGfVa7hKES_9t2t30KZhlVmFPcN11vz8/fill/0/200/no/1/aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS8wN1llYk12MzkxZy9tcWRlZmF1bHQuanBn.jpg',
+          thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
           views: '1895311',
           expected_views: '1,895,311'
         }
@@ -47,6 +47,142 @@ export default [
       name: 'YoutubeVideo'
     },
     template: 'single-video',
+    test_name: 'single-video-normal',
+    trigger_method: 'url'
+  },
+];
+
+export const resultsNullViews = [
+  {
+    url: 'https://www.youtube.com/watch?v=07YebMv391g',
+    score: 0,
+    snippet: {
+      deepResults: [
+        {
+          links: [],
+          type: 'videos'
+        },
+        {
+          links: [],
+          type: 'buttons'
+        }
+      ],
+      description: 'Zeige deine Videos deinen Freunden, Familienmitgliedern und der ganzen Welt.',
+      extra: {
+        alternatives: [],
+        image: {
+          src: 'http://localhost:3000/static/images/default.jpg'
+        },
+        language: {},
+        m_url: 'https://m.youtube.com/watch?v=07YebMv391g',
+        rich_data: {
+          duration: 235,
+          thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
+          views: null
+        }
+      },
+      friendlyUrl: 'youtube.com/watch',
+      title: 'Dieses Video zeigt, dass Melania Donald Trump hasst!'
+    },
+    c_url: 'https://www.youtube.com/watch?v=07YebMv391g',
+    type: 'rh',
+    subType: {
+      class: 'EntityVideo',
+      id: '6410147109143353900',
+      name: 'YoutubeVideo'
+    },
+    template: 'single-video',
+    test_name: 'single-video-null-views',
+    trigger_method: 'url'
+  },
+];
+
+export const resultsZeroViews = [
+  {
+    url: 'https://www.youtube.com/watch?v=07YebMv391g',
+    score: 0,
+    snippet: {
+      deepResults: [
+        {
+          links: [],
+          type: 'videos'
+        },
+        {
+          links: [],
+          type: 'buttons'
+        }
+      ],
+      description: 'Zeige deine Videos deinen Freunden, Familienmitgliedern und der ganzen Welt.',
+      extra: {
+        alternatives: [],
+        image: {
+          src: 'http://localhost:3000/static/images/default.jpg'
+        },
+        language: {},
+        m_url: 'https://m.youtube.com/watch?v=07YebMv391g',
+        rich_data: {
+          duration: 235,
+          thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
+          views: 0
+        }
+      },
+      friendlyUrl: 'youtube.com/watch',
+      title: 'Dieses Video zeigt, dass Melania Donald Trump hasst!'
+    },
+    c_url: 'https://www.youtube.com/watch?v=07YebMv391g',
+    type: 'rh',
+    subType: {
+      class: 'EntityVideo',
+      id: '6410147109143353900',
+      name: 'YoutubeVideo'
+    },
+    template: 'single-video',
+    test_name: 'single-video-zero-views',
+    trigger_method: 'url'
+  },
+];
+
+export const resultsUndefinedViews = [
+  {
+    url: 'https://www.youtube.com/watch?v=07YebMv391g',
+    score: 0,
+    snippet: {
+      deepResults: [
+        {
+          links: [],
+          type: 'videos'
+        },
+        {
+          links: [],
+          type: 'buttons'
+        }
+      ],
+      description: 'Zeige deine Videos deinen Freunden, Familienmitgliedern und der ganzen Welt.',
+      extra: {
+        alternatives: [],
+        image: {
+          src: 'http://localhost:3000/static/images/default.jpg'
+        },
+        language: {},
+        m_url: 'https://m.youtube.com/watch?v=07YebMv391g',
+        rich_data: {
+          duration: 235,
+          thumbnail: 'http://localhost:3000/static/images/mqdefault.jpg',
+          views: null
+        }
+      },
+      friendlyUrl: 'youtube.com/watch',
+      title: 'Dieses Video zeigt, dass Melania Donald Trump hasst!'
+    },
+    c_url: 'https://www.youtube.com/watch?v=07YebMv391g',
+    type: 'rh',
+    subType: {
+      class: 'EntityVideo',
+      id: '6410147109143353900',
+      name: 'YoutubeVideo'
+    },
+    template: 'single-video',
+    test_name: 'single-video-undefined-views',
     trigger_method: 'url'
   },
 ];

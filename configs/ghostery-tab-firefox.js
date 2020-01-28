@@ -13,7 +13,8 @@ const id = '{0ea88bc4-03bd-4baa-8153-acc861589c1c}';
 const CUSTOM_MANIFEST_ENTRY = `
   ,"applications": {
     "gecko": {
-      "id": "${id}"
+      "id": "${id}",
+      "strict_min_version": "57"
     }
   }
 `;
@@ -26,5 +27,21 @@ module.exports = Object.assign({}, configBase, {
   settings: Object.assign({}, configBase.settings, {
     id,
     channel: 'GT02',
+    SHOW_ONBOARDING_OVERLAY: true,
+    telemetry: {
+      demographics: {
+        ...configBase.settings.telemetry.demographics,
+        platform: 'firefox',
+      },
+    },
   }),
+  modules: configBase.modules.concat([
+    'onboarding-overlay',
+  ]),
+  bundles: configBase.bundles.concat([
+    'onboarding-overlay/app.bundle.js',
+  ]),
+  buildTargets: {
+    firefox: 57,
+  },
 });

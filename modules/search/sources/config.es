@@ -9,6 +9,7 @@
 import config from '../core/config';
 import deepFreeze from '../core/helpers/deep-freeze';
 import prefs from '../core/prefs';
+
 import { PREVENT_AUTOCOMPLETE_KEYS } from './consts';
 
 // do not emit instant or Cliqz results until history has emitted,
@@ -144,12 +145,6 @@ export default function ({ isPrivateMode }, settings = {}) {
           return prefs.get('tabSearchEnabled', false);
         },
       },
-      history: {
-        ...DEFAULT_CONFIG.providers.history,
-        get isHistoryLookupEnabled() {
-          return prefs.get('historyLookupEnabled', false);
-        },
-      },
       historyView: {
         ...DEFAULT_CONFIG.providers.historyView,
         get isEnabled() {
@@ -191,6 +186,9 @@ export default function ({ isPrivateMode }, settings = {}) {
       addCompletion: {
         get isEnabled() {
           return prefs.get('browser.urlbar.autoFill', true, '');
+        },
+        get useTitle() {
+          return prefs.get('modules.search.operators.addCompletion.useTitle');
         },
         providerBlacklist: ['instant', 'querySuggestions', 'historyView'],
       },

@@ -28,6 +28,12 @@ module.exports = {
     browserAction: 'quicksearch',
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     FRESHTAB_TITLE: 'Cliqz Tab',
+    telemetry: {
+      demographics: {
+        brand: 'cliqz',
+        name: 'tab',
+      },
+    },
   }),
   default_prefs: {
     'modules.human-web.enabled': false,
@@ -43,6 +49,7 @@ module.exports = {
     'dropdown',
     'abtests-legacy',
     'freshtab',
+    'news',
     'offers-v2',
     'human-web',
     'hpnv2',
@@ -52,7 +59,6 @@ module.exports = {
     'anolysis-cc',
     'overlay',
     'control-center',
-    'message-center',
   ],
   bundles: [
     'hpnv2/worker.wasm.bundle.js',

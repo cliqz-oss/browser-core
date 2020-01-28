@@ -46,7 +46,7 @@ class CacheEntry {
  */
 export default class IntentOffersHandler {
   constructor(backendConnector, intentHandler) {
-    this.intentOffers = buildCachedMap(INTENT_OFFERS_CACHE_ID, !prefs.get('offersDevFlag', false));
+    this.intentOffers = buildCachedMap(INTENT_OFFERS_CACHE_ID);
     this.intentOffers.init();
     this.backendConnector = backendConnector;
     this.intentHandler = intentHandler;

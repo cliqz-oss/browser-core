@@ -7,52 +7,40 @@
  */
 
 import background from '../core/base/background';
-import language from '../core/language';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
-import config from '../core/config';
-import Storage from '../core/storage';
 import pacemaker from '../core/services/pacemaker';
 
 export default background({
-  requiresServices: ['session', 'pacemaker'],
+  requiresServices: ['session', 'pacemaker', 'host-settings'],
+  telemetry: inject.service('telemetry', ['push']),
+  core: inject.module('core'),
 
-  init(settings = {}) {
+  init(settings = {}, _browser, { services }) {
     this.settings = settings;
-
-    language.init();
-
-    this.report = pacemaker.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
-
-    this.supportInfo = pacemaker.setTimeout(() => {
-      if (config.settings.channel === 40) {
-        this.browserDetection();
-      }
-    }, 30 * 1000);
+    this.hostSettings = services['host-settings'];
+    this.reportStartup = pacemaker.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
+    this.reportVersion = pacemaker.register(this.reportVersion.bind(this), {
+      timeout: 1000 * 60 * 60,
+      startImmediately: true,
+    });
   },
 
   unload() {
-    pacemaker.clearTimeout(this.report);
-    this.report = null;
+    pacemaker.clearTimeout(this.reportStartup);
+    this.reportStartup = null;
 
-    pacemaker.clearTimeout(this.supportInfo);
-    this.supportInfo = null;
+    pacemaker.clearTimeout(this.reportVersion);
+    this.reportVersion = null;
+  },
 
-    language.unload();
+  async reportVersion() {
+    return this.telemetry.push({}, 'core.metric.ping.hourly');
   },
 
   async reportStartupTime() {
-    const core = inject.module('core');
-    const status = await core.action('status');
-
-    const telemetry = inject.service('telemetry', ['push']);
-
-    telemetry.push({
-      type: 'startup',
-      modules: status.modules,
-    });
-
-    await telemetry.push(
+    const status = await this.core.action('status');
+    await this.telemetry.push(
       Object.keys(status.modules).map((module) => {
         const moduleStatus = status.modules[module];
         return {
@@ -65,9 +53,8 @@ export default background({
       'metrics.performance.app.startup',
     );
 
-    const resourceLoaderReport = await core.action('reportResourceLoaders');
-
-    telemetry.push(
+    const resourceLoaderReport = await this.core.action('reportResourceLoaders');
+    this.telemetry.push(
       Object.keys(resourceLoaderReport).map(name => ({
         name,
         size: resourceLoaderReport[name].size,
@@ -76,19 +63,11 @@ export default background({
     );
   },
 
-  browserDetection() {
-    const sites = ['https://www.ghostery.com', 'https://ghostery.com'];
-    sites.forEach((url) => {
-      const ls = new Storage(url);
-      if (ls) ls.setItem('cliqz', true);
-    });
-  },
-
   actions: {
-    getSupportInfo() {
+    async getSupportInfo() {
       const version = this.settings.version;
-      const host = prefs.get('distribution.id', '', '');
-      const hostVersion = prefs.get('distribution.version', '', '');
+      const host = await this.hostSettings.get('distribution.id', '');
+      const hostVersion = await this.hostSettings.get('distribution.version', '');
       const info = {
         version,
         host,

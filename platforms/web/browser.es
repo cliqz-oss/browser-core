@@ -12,8 +12,6 @@ export function forEachWindow(cb) {
   cb(window);
 }
 
-export function enableChangeEvents() {}
-
 export function addWindowObserver() {
 }
 
