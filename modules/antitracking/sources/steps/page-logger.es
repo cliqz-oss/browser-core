@@ -142,6 +142,10 @@ export default class PageLogger {
     const hasSetCookie = setCookie && setCookie.length > 5;
     if (hasSetCookie) {
       state.incrementStat('set_cookie_set');
+      // log samesite=none: explicit cross site cookies
+      if (setCookie.toLowerCase().indexOf('samesite=none') !== -1) {
+        state.incrementStat('set_cookie_samesite_none');
+      }
     }
     state.hasSetCookie = hasSetCookie;
 
