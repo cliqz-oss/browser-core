@@ -6,11 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { getPref, setPref, hasPref } from './prefs';
+import { getPref, hasPref } from './prefs';
 import config from '../core/config';
 import { browser } from './globals';
 
-const DEFAULT_DIST_VAL = 'web0003';
 const DISTRIBUTION_PREF = 'offers.distribution.channel.ID';
 
 export function getUserAgent() {
@@ -18,14 +17,7 @@ export function getUserAgent() {
 }
 
 export async function getDistribution() {
-  let distribution = getPref('distribution', '');
-  if (browser.demographics && !distribution
-    && config.settings.channel === '40'
-    && navigator.userAgent.indexOf('Mac OS') > -1) {
-    distribution = await browser.demographics.getMacDistribution() || DEFAULT_DIST_VAL;
-    setPref('distribution', distribution);
-  }
-  return distribution;
+  return getPref('full_distribution', '');
 }
 
 export function getChannel() {

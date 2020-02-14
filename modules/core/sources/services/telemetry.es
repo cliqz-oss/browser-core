@@ -235,7 +235,7 @@ export async function service(app) {
      * Register one or several new telemetry schemas (metric or analysis for aggregation).
      */
     register(newSchemas) {
-      for (const schema of Array.isArray(newSchemas) === false ? [newSchemas] : newSchemas) {
+      for (const schema of newSchemas) {
         schemas.set(schema.name, schema);
         if (enabled) {
           for (const provider of providers) {
@@ -246,7 +246,20 @@ export async function service(app) {
         }
       }
     },
+
+    unregister(newSchemas) {
+      for (const schema of newSchemas) {
+        schemas.delete(schema.name);
+        if (enabled) {
+          for (const provider of providers) {
+            if (provider.unregister !== undefined) {
+              provider.unregister(schema);
+            }
+          }
+        }
+      }
+    },
   };
 }
 
-export default inject.service('telemetry', ['push', 'isEnabled', 'register']);
+export default inject.service('telemetry', ['push', 'isEnabled', 'register', 'unregister']);

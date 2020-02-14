@@ -35,22 +35,6 @@
   margin-left: 2px;
 }
 
-.header__freundin-logo {
-  background: url('../images/freundin-icon-logo.svg') no-repeat right;
-  background-size: cover;
-  width: 93px;
-  height: 23px;
-  margin-left: 2px;
-}
-
-.header__incent-logo {
-  background: url('../images/incent-icon-logo.svg') no-repeat right;
-  background-size: cover;
-  width: 86px;
-  height: 20px;
-  margin-left: 2px;
-}
-
 .header__myoffrz-logo {
   background: url('../images/myoffrz-icon-logo.svg') no-repeat right;
   width: 128px;

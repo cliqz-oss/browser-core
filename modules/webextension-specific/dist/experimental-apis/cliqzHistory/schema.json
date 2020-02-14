@@ -116,6 +116,12 @@
         {
           "name": "query",
           "type": "string"
+        },
+        {
+          "name": "isPrivate",
+          "type": "boolean",
+          "optional": true,
+          "default": false
         }
       ]
     },

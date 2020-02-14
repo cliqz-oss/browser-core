@@ -10,10 +10,11 @@ export default [{
   name: 'metrics.dat.performance',
   description: 'Emitted by the Dat protocol extension to measure performance and functionality of the dat protocol.',
   sendToBackend: {
-    version: 1,
+    version: 2,
     demographics: [
-      'platform',
       'product',
+      'browser',
+      'extension',
     ]
   },
   schema: {
@@ -33,6 +34,9 @@ export default [{
       finalVersion: { type: 'number', minimum: 0 },
       initialPeers: { type: 'number', minimum: 0 },
       finalPeers: { type: 'number', minimum: 0 },
+      announceEnabled: { type: 'boolean' },
+      uploadEnabled: { type: 'boolean' },
+      wrtcEnabled: { type: 'boolean' },
     },
   },
 }];

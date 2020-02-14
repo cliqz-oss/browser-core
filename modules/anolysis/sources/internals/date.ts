@@ -45,6 +45,18 @@ export default class SafeDate {
     return this.date.format('YYYY-MM-DD');
   }
 
+  public toDayString(): string {
+    return this.toString();
+  }
+
+  public toWeekString(): string {
+    return this.date.format('YYYY-WW');
+  }
+
+  public toMonthString(): string {
+    return this.date.format('YYYY-M');
+  }
+
   public isSameDay(date: SafeDate): boolean {
     return this.date.isSame(date.date, 'day');
   }

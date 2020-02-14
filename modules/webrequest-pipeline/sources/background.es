@@ -94,6 +94,10 @@ class BlockingResponse {
 export default background({
   initialized: false,
   requiresServices: ['telemetry', 'pacemaker'],
+  telemetrySchemas: [
+    performanceMetrics,
+    performanceAnalysis,
+  ],
 
   enabled() { return true; },
 
@@ -109,10 +113,7 @@ export default background({
       return;
     }
 
-    telemetry.register([
-      performanceMetrics,
-      performanceAnalysis,
-    ]);
+    telemetry.register(this.telemetrySchemas);
 
     this.pipelines = new Map();
     this.pageStore = new PageStore();
@@ -125,6 +126,8 @@ export default background({
     if (!this.initialized) {
       return;
     }
+
+    telemetry.unregister(this.telemetrySchemas);
 
     if (this.cnameUncloaker !== null) {
       this.cnameUncloaker.unload();

@@ -188,6 +188,12 @@ export default class Settings extends React.Component {
                         isChecked={componentsState.stats.visible}
                         toggleComponent={() => this.props.toggleComponent('stats')}
                       />
+                      <Button
+                        className="link"
+                        disabled={!componentsState.stats.visible}
+                        label={t('app_settings_statistics_reset')}
+                        onClick={() => this.props.resetStatistics()}
+                      />
                     </div>
                   )
                 }
@@ -258,6 +264,7 @@ Settings.propTypes = {
   isStatsSupported: PropTypes.bool,
   onBackgroundImageChanged: PropTypes.func,
   onNewsSelectionChanged: PropTypes.func,
+  resetStatistics: PropTypes.func,
   restoreHistorySpeedDials: PropTypes.func,
   shouldShowSearchSwitch: PropTypes.bool,
   toggle: PropTypes.func,

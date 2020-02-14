@@ -81,7 +81,7 @@ function topHistory({
   `, ['url', 'title'], exclude);
 }
 
-export function unifiedSearch(query) {
+export function unifiedSearch(query, isPrivate) {
   if (!searchProvider) {
     searchProvider = Components
       .classes['@mozilla.org/autocomplete/search;1?name=unifiedcomplete']
@@ -89,7 +89,11 @@ export function unifiedSearch(query) {
   }
 
   return new Promise((resolve) => {
-    searchProvider.startSearch(query, 'enable-actions prohibit-autofill', null, {
+    const params = isPrivate
+      ? 'disable-private-actions private-window'
+      : 'enable-actions';
+
+    searchProvider.startSearch(query, params, null, {
       onSearchResult(ctx, result) {
         if (result.searchResult === result.RESULT_NOMATCH_ONGOING
             || result.searchResult === result.RESULT_SUCCESS_ONGOING) {
@@ -125,7 +129,7 @@ export function unifiedSearch(query) {
           ready: true
         });
       }
-    });
+    }, true);
   });
 }
 

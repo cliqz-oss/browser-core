@@ -34,6 +34,14 @@ module.exports = {
     // (leave empty if you do not want to send messages)
     HUMAN_WEB_LITE_COLLECTOR: 'https://collector-stub.test.cliqz.com',
     HW_CHANNEL: 'ios',
+
+    telemetry: {
+      demographics: {
+        brand: 'cliqz',
+        name: 'browser',
+        platform: 'ios',
+      },
+    },
   }),
   default_prefs: {
   },
@@ -46,6 +54,7 @@ module.exports = {
     'geolocation',
     'news',
     'insights',
+    'autoconsent',
   ],
   bundles: [
   ],

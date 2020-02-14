@@ -51,6 +51,16 @@
   "chrome_url_overrides": {
     "newtab": "modules/freshtab/home.html"
   },
+  "chrome_settings_overrides": {
+    "search_provider": {
+      "name": "Cliqz",
+      "search_url": "https://beta.cliqz.com/search?q={searchTerms}#channel=amo",
+      "is_default": true,
+      "encoding": "UTF-8",
+      "keyword": "cl",
+      "favicon_url": "https://beta.cliqz.com/static/images/favicon.ico"
+    }
+  },
   "content_scripts": [
     {
       "matches": [

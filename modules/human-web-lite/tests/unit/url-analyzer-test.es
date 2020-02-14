@@ -87,7 +87,6 @@ export default describeModule('human-web-lite/url-analyzer',
           fc.pre(text.length > 0 && text === text.trim());
           const encodedText = encodeURIComponent(text);
           const url = `https://www.google.com/search?q=${encodedText}`;
-          console.log(text);
 
           const { query } = uut.parseSearchLinks(url);
           return query === text;

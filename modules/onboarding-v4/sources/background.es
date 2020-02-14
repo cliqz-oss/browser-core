@@ -18,6 +18,7 @@ import {
   showUITour,
   hideUITour,
 } from '../core/ui-tour';
+import telemetry from '../core/services/telemetry';
 
 import metrics from './telemetry/metrics';
 
@@ -37,7 +38,7 @@ export default background({
     @method init
     @param settings
   */
-  init(_settings, _browser, { services: { telemetry } }) {
+  init() {
     telemetry.register(metrics);
 
     const styleUrl = getResourceUrl('onboarding-v4/styles/popup.css');
@@ -46,6 +47,7 @@ export default background({
   },
 
   unload() {
+    telemetry.unregister(metrics);
     deleteUITourTarget('onboarding-v4');
   },
 

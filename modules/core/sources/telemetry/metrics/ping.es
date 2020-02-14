@@ -11,13 +11,15 @@ export default [
     name: 'core.metric.ping.daily',
     description: 'Measure daily active users and day-to-day retention',
     sendToBackend: {
-      version: 1,
+      version: 2,
       demographics: [
         'campaign',
         'country',
         'install_date',
-        'platform',
         'product',
+        'extension',
+        'browser',
+        'os',
       ],
       ephemerid: {
         kind: 'relative',
@@ -29,30 +31,53 @@ export default [
     generate: () => [{ }],
     schema: { },
   },
-  // TODO: send only once per month
   {
-    name: 'core.metric.ping.monthly',
-    description: 'Measure monthly active users and month-to-month retention',
+    name: 'core.metric.ping.weekly',
+    description: 'Measure weekly active users and week-to-week retention',
     sendToBackend: {
-      version: 1,
+      version: 2,
       demographics: [
         'campaign',
         'country',
         'install_date',
-        'platform',
         'product',
+        'extension',
+        'browser',
+        'os',
       ],
-      // TODO: switch to 'relative' as soon as this signal is sent
-      //       only once per month (and not daily); for now, keep
-      //       absolute to be able to calculate monthly active
-      //       users (based on ephemerid, not individual signals)
       ephemerid: {
-        kind: 'absolute',
-        unit: 'month',
-        n: 1,
+        kind: 'relative',
+        unit: 'day',
+        n: 31, // one month from install
       },
     },
     offsets: [0],
+    rate: 'week',
+    generate: () => [{ }],
+    schema: { },
+  },
+  {
+    name: 'core.metric.ping.monthly',
+    description: 'Measure monthly active users and month-to-month retention',
+    sendToBackend: {
+      version: 2,
+      demographics: [
+        'campaign',
+        'country',
+        'install_date',
+        'product',
+        'extension',
+        'browser',
+        'os',
+      ],
+      ephemerid: {
+        kind: 'relative',
+        unit: 'day',
+        n: 6 * 31, // six months from install
+      },
+    },
+    offsets: [0],
+    rate: 'month',
     generate: () => [{ }],
     schema: { },
   },

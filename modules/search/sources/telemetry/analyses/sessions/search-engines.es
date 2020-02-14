@@ -20,8 +20,8 @@ export default {
   sendToBackend: {
     version: 1,
     demographics: [
-      'platform',
       'product',
+      'extension',
     ],
   },
   generate: ({ records }) => {

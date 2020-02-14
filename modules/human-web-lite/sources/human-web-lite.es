@@ -9,20 +9,32 @@
 import Sanitizer from './sanitizer';
 import UrlAnalyzer from './url-analyzer';
 import MessageSender from './message-sender';
+import DuplicateDetector from './duplicate-detector';
 import SearchExtractor from './search-extractor';
 import JobScheduler from './job-scheduler';
+import PersistedHashes from './persisted-hashes';
 import logger from './logger';
 
 export default class HumanWebLite {
-  constructor(config) {
+  constructor({ config, storage }) {
     // Defines whether Human Web is fully initialized and has permission
     // to collect data.
     this.isActive = false;
 
     this.sanitizer = new Sanitizer(config);
     this.urlAnalyzer = new UrlAnalyzer();
-    this.messageSender = new MessageSender(config);
-    this.searchExtractor = new SearchExtractor(this.sanitizer, config);
+    this.persistedHashes = new PersistedHashes({
+      storage,
+      storageKey: 'deduplication_hashes',
+    });
+    this.duplicateDetector = new DuplicateDetector(this.persistedHashes);
+
+    this.messageSender = new MessageSender(config, this.duplicateDetector);
+    this.searchExtractor = new SearchExtractor({
+      config,
+      sanitizer: this.sanitizer,
+      persistedHashes: this.persistedHashes,
+    });
     this.jobScheduler = new JobScheduler(this.messageSender, this.searchExtractor);
   }
 
@@ -35,6 +47,12 @@ export default class HumanWebLite {
 
   unload() {
     this.isActive = false;
+    this.duplicateDetector.unload();
+
+    // Attempt to finish all pending changes, though it would not
+    // be critical if we loose them. Important operations should
+    // already trigger a write operation.
+    this.persistedHashes.flush();
   }
 
   /**

@@ -7,10 +7,16 @@
  */
 
 import { truncatedHash } from '../core/helpers/md5';
+import logger from './logger';
+import random from '../core/crypto/random';
+
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
 
 const KEY_COMPUTATION = {
   query(msg) {
-    // TODO: dummy implementation
     return truncatedHash(`query:${msg.ts}:${msg.payload.q}`);
   },
 };
@@ -24,18 +30,18 @@ const KEY_COMPUTATION = {
  * The existance of false positives is acceptable (messages being dropped
  * even though they have not been sent). However, it should not have
  * a noticeable impact on the number of collected messages (on the server).
- *
- * TODO: This is a stub implementation, which keeps all state
- * in memory. It should be replaced by a proper implementation
- * with persistance. Ideally, something that does not allow
- * retrieve the history of the queries (e.g., hashing, bloom filters).
- *
- * TODO: in this stub implementation, nothing gets cleaned up.
- * A proper implementation should clean up daily.
  */
 export default class DuplicateDetector {
-  constructor() {
-    this.sentKeys = new Set();
+  constructor(persistedHashes) {
+    this.persistedHashes = persistedHashes;
+    this.unloaded = false;
+  }
+
+  unload() {
+    if (!this.unloaded) {
+      this.unloaded = true;
+      this.persistedHashes.flush();
+    }
   }
 
   /**
@@ -46,6 +52,13 @@ export default class DuplicateDetector {
    * cannot retry, as all later attempts will be rejected as duplicates.
    */
   async trySend(message) {
+    if (this.unloaded) {
+      return {
+        ok: false,
+        rejectReason: 'Module is unloading'
+      };
+    }
+
     let key;
     try {
       key = this._computeKey(message);
@@ -56,18 +69,22 @@ export default class DuplicateDetector {
       };
     }
 
-    if (this.sentKeys.has(key)) {
+    const expireAt = this._chooseExpiration(message);
+    const wasAdded = await this.persistedHashes.add(key, expireAt);
+    if (!wasAdded) {
       return {
         ok: false,
         rejectReason: `Key has been already seen (key: ${key})`,
       };
     }
-
-    this.sentKeys.add(key);
     return {
       ok: true,
       rollback: async () => {
-        this.sentKeys.delete(key);
+        try {
+          await this.persistedHashes.delete(key);
+        } catch (e) {
+          logger.warn('Failed to rollback. Message cannot be resent.', e);
+        }
       },
     };
   }
@@ -77,5 +94,14 @@ export default class DuplicateDetector {
       throw new Error(`Unknown message type: ${message.action}`);
     }
     return (KEY_COMPUTATION[message.action] || notFound)(message);
+  }
+
+  _chooseExpiration() {
+    // conservative approach: remove entries after one or two days
+    // (faster expiration should not make a functional difference,
+    // as messages include the timestamp in their hashes).
+    // Adding noise is done to make it harder to guess at what
+    // time the hash was added.
+    return Date.now() + Math.ceil((1.0 + random()) * DAY);
   }
 }

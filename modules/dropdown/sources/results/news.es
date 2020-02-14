@@ -9,6 +9,8 @@
 import { Subresult } from './base';
 import { NEWS_RESULT, BREAKING_NEWS_RESULT } from '../result-types';
 
+const brokenNewsThumbnails = new Set();
+
 export default class NewsResult extends Subresult {
   get type() {
     if (this.isBreakingNews) {
@@ -27,20 +29,20 @@ export default class NewsResult extends Subresult {
   }
 
   removeInvalidThumbnail(image) {
-    if (image.height === 0) {
-      image.parentNode.removeChild(image);
+    if (image.height === 0 || image.naturalHeight === 0) {
+      brokenNewsThumbnails.add(image.src);
     }
   }
 
   didRender($dropdown) {
-    const images = $dropdown.querySelectorAll('.news-story [data-extra="image"]');
+    const images = $dropdown.querySelectorAll('.thumbnail [data-extra="image"][alt=" "]');
     if (images.length > 0) {
       images.forEach(image => this.removeInvalidThumbnail(image));
     }
   }
 
   get logoDetails() {
-    if (this.thumbnail === '') {
+    if (this.thumbnail === '' || brokenNewsThumbnails.has(this.thumbnail)) {
       return super.logo;
     }
 

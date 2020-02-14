@@ -15,7 +15,6 @@ import { platformName } from '../core/platform';
 import config from '../core/config';
 import { httpPost } from '../core/http';
 import prefs from '../core/prefs';
-import getDemographics from '../core/demographics';
 import inject from '../core/kord/inject';
 
 import AnolysisDexieStorage from './internals/storage/dexie';
@@ -57,7 +56,7 @@ const isMobileConnection = async (browser) => {
   return ['wimax', '2g', '3g', '4g'].includes(connectionInfo.type);
 };
 
-export default async function (browser) {
+export default async function (browser, demographics) {
   return {
     // Session ID of the users to generate ephemerid.
     session: (inject.service('session', ['getSession'])).getSession(),
@@ -114,7 +113,7 @@ export default async function (browser) {
         beta: isBetaVersion(),
 
         // Demographics of the users.
-        demographics: await getDemographics(),
+        demographics,
       },
     },
   };

@@ -29,11 +29,12 @@ import { isUrl, fixURL } from '../core/url';
 import { getEngineByQuery } from '../core/search-engines';
 
 // Telemetry schemas
+import TelemetryOptMetric from './telemetry/metrics/telemetry';
+import hourlyPingMetric from './telemetry/metrics/hourly-ping';
 import modulesStartupMetric from './telemetry/metrics/modules-startup';
 import performanceMetric from './telemetry/metrics/performance';
 import resourceLoadersMetric from './telemetry/metrics/resource-loaders';
 import pingMetrics from './telemetry/metrics/ping';
-import versionsMetrics from './telemetry/metrics/versions';
 import performanceAnalysis from './telemetry/analyses/performance';
 
 /**
@@ -49,16 +50,18 @@ export default background({
     'domainInfo',
   ],
   providesServices,
+  telemetrySchemas: [
+    hourlyPingMetric,
+    modulesStartupMetric,
+    performanceMetric,
+    resourceLoadersMetric,
+    ...pingMetrics,
+    performanceAnalysis,
+    ...TelemetryOptMetric,
+  ],
 
   init(settings) {
-    telemetry.register([
-      modulesStartupMetric,
-      performanceMetric,
-      resourceLoadersMetric,
-      ...versionsMetrics,
-      ...pingMetrics,
-      performanceAnalysis,
-    ]);
+    telemetry.register(this.telemetrySchemas);
 
     enableRequestSanitizer();
 
@@ -75,9 +78,11 @@ export default background({
 
     resourceManager.init();
     logger.init();
+    language.init();
   },
 
   unload() {
+    telemetry.unregister(this.telemetrySchemas);
     disableRequestSanitizer();
 
     this.bm.unload();
@@ -85,16 +90,17 @@ export default background({
     this.appStateInjecter.unload();
     resourceManager.unload();
     logger.unload();
+    language.unload();
   },
 
-  getWindowStatusFromModules() {
+  getWindowStatusFromModules(win) {
     let currentTab;
     return Object.keys(this.app.modules).map(async (module) => {
       const backgroundModule = this.app.modules[module].background;
       let status = null;
       if (backgroundModule && backgroundModule.currentWindowStatus) {
         if (!currentTab) {
-          currentTab = await getCurrentTab();
+          currentTab = await getCurrentTab(win.id);
         }
         status = await backgroundModule.currentWindowStatus(currentTab);
       } else if (backgroundModule && backgroundModule.status) {

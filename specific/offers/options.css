@@ -142,24 +142,3 @@ body.chip .privacy-policy-default {
 body.chip .privacy-policy-chip {
   display: initial;
 }
-
-body.freundin {
-  background: #f7f7f7;
-}
-
-body.freundin .form-message {
-  background: #f7f7f7;
-  color: #cd071e;
-}
-
-body.freundin .logo {
-  content: url(./images/freundin-logo.svg);
-}
-
-body.freundin .form-title {
-  color: #cd071e;
-}
-
-body.freundin .form-button {
-  background: #cd071e;
-}

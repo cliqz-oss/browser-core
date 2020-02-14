@@ -22,6 +22,13 @@ module.exports = {
       en: 'https://cliqz.com/home/offboarding',
     },
     SHOW_ONBOARDING_OVERLAY: true,
+    telemetry: {
+      demographics: {
+        brand: 'cliqz',
+        name: 'tab',
+        platform: 'firefox',
+      },
+    },
   }),
   default_prefs: {
     'freshtab.search.mode': 'search',
@@ -29,6 +36,7 @@ module.exports = {
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,
     'modules.offers-reminder.enabled': false,
+    'modules.offers-checkout.enabled': false,
   },
   modules: [
     'core',
@@ -47,8 +55,8 @@ module.exports = {
     'offers-banner',
     'offers-cc',
     'offers-reminder',
+    'offers-checkout',
     'offers-v2',
-    'popup-notification',
     'browser-panel',
     'control-center',
     'anolysis',
@@ -69,6 +77,7 @@ module.exports = {
     'offers-cc/offers-cc.bundle.js',
     'offers-cc/offers-cc-after.bundle.js',
     'offers-reminder/offers-reminder.bundle.js',
+    'offers-checkout/offers-checkout.bundle.js',
     'offers-banner/app.bundle.js',
     'human-web/page.bundle.js',
     'human-web/rusha.bundle.js',

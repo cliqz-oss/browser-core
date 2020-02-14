@@ -19,6 +19,7 @@ function AsideRight({
   onBackgroundImageChanged,
   onDeveloperModulesOpen,
   onNewsSelectionChanged,
+  resetStatistics,
   restoreHistorySpeedDials,
   shouldShowSearchSwitch,
   config = {},
@@ -44,6 +45,7 @@ function AsideRight({
           isStatsSupported={config.isStatsSupported}
           onBackgroundImageChanged={onBackgroundImageChanged}
           onNewsSelectionChanged={onNewsSelectionChanged}
+          resetStatistics={resetStatistics}
           restoreHistorySpeedDials={restoreHistorySpeedDials}
           shouldShowSearchSwitch={shouldShowSearchSwitch}
           toggle={toggleSettings}
@@ -85,6 +87,7 @@ AsideRight.propTypes = {
   onBackgroundImageChanged: PropTypes.func,
   onDeveloperModulesOpen: PropTypes.func,
   onNewsSelectionChanged: PropTypes.func,
+  resetStatistics: PropTypes.func,
   restoreHistorySpeedDials: PropTypes.func,
   shouldShowSearchSwitch: PropTypes.bool,
   toggleBackground: PropTypes.func,

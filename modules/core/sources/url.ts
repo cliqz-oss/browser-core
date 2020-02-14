@@ -7,8 +7,7 @@
  */
 
 import { toASCII } from 'punycode';
-import { URL, getPunycodeEncoded } from '@cliqz/url-parser';
-
+import { ImmutableURL, URL, getPunycodeEncoded } from '@cliqz/url-parser';
 import Cache from './helpers/string-cache';
 
 /**
@@ -363,15 +362,7 @@ export function isIpAddress(host: string): boolean {
   return isIpv4Address(host) || isIpv6Address(host);
 }
 
-const urlCache: Cache<URL> = new Cache(100);
-
-function safeParse(url: string): URL | null {
-  try {
-    return new URL(url);
-  } catch (ex) {
-    return null;
-  }
-}
+const urlCache: Cache<ImmutableURL> = new Cache(100);
 
 /**
  * This is an abstraction over URL with caching and basic error handling built in. The main
@@ -393,12 +384,12 @@ export function parse(url: string): URL | null {
   }
 
   // If it's the first time we see `url`, try to parse it.
-  const parsed = safeParse(url);
-  if (parsed === null) {
+  try {
+    const parsed = new ImmutableURL(url);
+    return urlCache.set(url, parsed);
+  } catch (e) {
     return null;
   }
-
-  return urlCache.set(url, parsed);
 }
 
 export function fixURL(url: string): string | null {
@@ -545,7 +536,12 @@ export function getUrlVariations(url: string, { protocol = true, www = true } = 
   // NOTE: here we should not use URLInfo (cached) because the resulting `u`
   // will be mutated. This means that other users of URLInfo asking for the same
   // URL object might get different values.
-  let u: URL | null = safeParse(url);
+  let u: URL | null = null;
+  try {
+    u = new URL(url);
+  } catch (e) {
+    u = null;
+  }
   if (u === null) {
     return [url];
   }

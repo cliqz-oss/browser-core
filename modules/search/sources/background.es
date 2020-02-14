@@ -108,21 +108,23 @@ export default background({
     'setSearchSession',
   ]),
 
+  telemetrySchemas: [
+    historyVisitMetric,
+    latencyMetric,
+    sessionMetric,
+    newsAnalysis,
+    interactionAnalysis,
+    smartCliqzAnalysis,
+    searchEnginesAnalysis,
+    historyVisitAnalysis,
+  ],
+
   /**
     @method init
     @param settings
   */
   init(settings, browser) {
-    telemetry.register([
-      historyVisitMetric,
-      latencyMetric,
-      sessionMetric,
-      newsAnalysis,
-      interactionAnalysis,
-      smartCliqzAnalysis,
-      searchEnginesAnalysis,
-      historyVisitAnalysis,
-    ]);
+    telemetry.register(this.telemetrySchemas);
 
     this.settings = settings;
     this.searchSessions = new Map();
@@ -164,6 +166,8 @@ export default background({
   },
 
   unload() {
+    telemetry.unregister(this.telemetrySchemas);
+
     if (performanceTelemetryEnabled) {
       performance.unload();
     }

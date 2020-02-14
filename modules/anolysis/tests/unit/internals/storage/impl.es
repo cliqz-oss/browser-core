@@ -6,7 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global chai */
+/* eslint-disable no-await-in-loop */
+/* globals chai, sinon */
 
 export default function sortBy(signals, by = v => v) {
   return signals.sort((s1, s2) => {
@@ -69,7 +70,12 @@ module.exports = ({
           called = true;
         };
 
-        await storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', fn);
+        await storage.aggregated.runTaskAtMostOnce(
+          SafeDate.fromBackend('2017-01-01'),
+          'foo',
+          fn,
+        );
+
         chai.expect(called).to.be.true;
       });
 
@@ -80,7 +86,7 @@ module.exports = ({
         };
 
         await storage.aggregated.runTaskAtMostOnce(
-          '2017-01-01',
+          SafeDate.fromBackend('2017-01-01'),
           'foo',
           () => {},
         );
@@ -88,7 +94,12 @@ module.exports = ({
         // Force reload to check `init()`
         await reloadStorage();
 
-        await storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', fn);
+        await storage.aggregated.runTaskAtMostOnce(
+          SafeDate.fromBackend('2017-01-01'),
+          'foo',
+          fn,
+        );
+
         chai.expect(called).to.be.false;
       });
 
@@ -99,7 +110,7 @@ module.exports = ({
         };
 
         await storage.aggregated.runTaskAtMostOnce(
-          '2017-01-01',
+          SafeDate.fromBackend('2017-01-01'),
           'foo',
           () => {},
         );
@@ -107,8 +118,95 @@ module.exports = ({
         // Force reload to check `init()`
         await reloadStorage();
 
-        await storage.aggregated.runTaskAtMostOnce('2017-01-01', 'bar', fn);
+        await storage.aggregated.runTaskAtMostOnce(
+          SafeDate.fromBackend('2017-01-01'),
+          'bar',
+          fn,
+        );
+
         chai.expect(called).to.be.true;
+      });
+
+      it('calls the function at most once per week', async () => {
+        const fn = sinon.spy();
+
+        // January 2020
+        // Mo Tu We Th Fr Sa Su
+        // 6  7  8  9  10 11 12
+        await storage.aggregated.runTaskAtMostOnce(
+          SafeDate.fromBackend('2020-01-06'),
+          'foo',
+          fn,
+          'week',
+        );
+        chai.expect(fn).to.have.been.calledOnce;
+
+        // When called for other dates of the same week, does not increment count.
+        for (const date of [
+          '2020-01-07',
+          '2020-01-08',
+          '2020-01-09',
+          '2020-01-10',
+          '2020-01-11',
+          '2020-01-12',
+        ]) {
+          await storage.aggregated.runTaskAtMostOnce(
+            SafeDate.fromBackend(date),
+            'foo',
+            fn,
+            'week',
+          );
+          await reloadStorage();
+          chai.expect(fn).to.have.been.calledOnce;
+        }
+
+        // Call `fn` again on next week.
+        await storage.aggregated.runTaskAtMostOnce(
+          SafeDate.fromBackend('2020-01-13'),
+          'foo',
+          fn,
+          'week',
+        );
+        chai.expect(fn).to.have.been.calledTwice;
+      });
+
+
+      it('calls the function at most once per month', async () => {
+        const fn = sinon.spy();
+
+        await storage.aggregated.runTaskAtMostOnce(
+          SafeDate.fromBackend('2020-01-01'),
+          'foo',
+          fn,
+          'month',
+        );
+        chai.expect(fn).to.have.been.calledOnce;
+
+        // When called for other dates of the same month, does not increment count.
+        for (const date of [
+          '2020-01-07',
+          '2020-01-14',
+          '2020-01-30',
+          '2020-01-31',
+        ]) {
+          await storage.aggregated.runTaskAtMostOnce(
+            SafeDate.fromBackend(date),
+            'foo',
+            fn,
+            'month',
+          );
+          await reloadStorage();
+          chai.expect(fn).to.have.been.calledOnce;
+        }
+
+        // Call `fn` again on next month.
+        await storage.aggregated.runTaskAtMostOnce(
+          SafeDate.fromBackend('2020-02-01'),
+          'foo',
+          fn,
+          'month',
+        );
+        chai.expect(fn).to.have.been.calledTwice;
       });
     });
 
@@ -118,11 +216,11 @@ module.exports = ({
 
       it('return aggregated dates', async () => {
         await Promise.all([
-          storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', () => {}),
-          storage.aggregated.runTaskAtMostOnce('2017-01-01', 'baz', () => {}),
-          storage.aggregated.runTaskAtMostOnce('2017-01-02', 'foo', () => {}),
-          storage.aggregated.runTaskAtMostOnce('2017-01-03', 'foo', () => {}),
-          storage.aggregated.runTaskAtMostOnce('2017-01-03', 'bar', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-01'), 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-01'), 'baz', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-02'), 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-03'), 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-03'), 'bar', () => {}),
         ]);
 
         // Force reload to check `init()`
@@ -140,11 +238,11 @@ module.exports = ({
 
       it('deletes entries older entries', async () => {
         await Promise.all([
-          storage.aggregated.runTaskAtMostOnce('2017-01-01', 'foo', () => {}),
-          storage.aggregated.runTaskAtMostOnce('2017-01-01', 'bar', () => {}),
-          storage.aggregated.runTaskAtMostOnce('2017-01-02', 'foo', () => {}),
-          storage.aggregated.runTaskAtMostOnce('2017-01-03', 'foo', () => {}),
-          storage.aggregated.runTaskAtMostOnce('2017-01-01', 'baz', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-01'), 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-01'), 'bar', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-02'), 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-03'), 'foo', () => {}),
+          storage.aggregated.runTaskAtMostOnce(SafeDate.fromBackend('2017-01-01'), 'baz', () => {}),
         ]);
 
         // Force reload to check `init()`

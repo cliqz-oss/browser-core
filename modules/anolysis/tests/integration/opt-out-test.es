@@ -55,7 +55,7 @@ export default function () {
           // Prevent interference from other modules' sendTelemetry calls
           pushTelemetry = app.services.telemetry.api.push;
           app.services.telemetry.api.push = () => {};
-          app.services.telemetry.api.register(metric);
+          app.services.telemetry.api.register([metric]);
 
           // Reset prefs to default
           await clearTelemetryPrefs();
@@ -78,6 +78,7 @@ export default function () {
         afterEach(async () => {
           // reset mock
           app.services.telemetry.api.push = pushTelemetry;
+          app.services.telemetry.api.unregister([metric]);
         });
 
         if (telemetryExpected) {

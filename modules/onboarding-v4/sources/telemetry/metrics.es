@@ -1,15 +1,15 @@
+const DEMOGRAPHICS = [
+  'product',
+  'extension',
+  'os',
+];
+
 export default [
   {
     name: 'metrics.onboarding-v4.click',
     sendToBackend: {
       version: 1,
-      demographics: [
-        'campaign',
-        'country',
-        'install_date',
-        'platform',
-        'product',
-      ],
+      demographics: DEMOGRAPHICS,
     },
     schema: {
       required: ['target', 'view'],
@@ -39,13 +39,7 @@ export default [
     name: 'metrics.onboarding-v4.show',
     sendToBackend: {
       version: 1,
-      demographics: [
-        'campaign',
-        'country',
-        'install_date',
-        'platform',
-        'product',
-      ],
+      demographics: DEMOGRAPHICS,
     },
     schema: {
       required: ['view'],
@@ -58,13 +52,7 @@ export default [
     name: 'metrics.onboarding-v4.hide',
     sendToBackend: {
       version: 1,
-      demographics: [
-        'campaign',
-        'country',
-        'install_date',
-        'platform',
-        'product',
-      ],
+      demographics: DEMOGRAPHICS,
     },
     schema: {
       required: ['view'],

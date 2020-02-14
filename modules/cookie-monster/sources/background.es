@@ -50,12 +50,13 @@ export default background({
 
   requiresServices: ['telemetry'],
   antitracking: inject.module('antitracking'),
+  telemetrySchemas: [
+    ...metrics,
+    ...analyses,
+  ],
 
   init() {
-    inject.service('telemetry', ['register']).register([
-      ...metrics,
-      ...analyses,
-    ]);
+    inject.service('telemetry', ['register']).register(this.telemetrySchemas);
 
     this.cookieMonster = new CookieMonster(this.isTrackerDomain.bind(this), {
       expireSession: prefs.get('cookie-monster.expireSession', false),
@@ -137,6 +138,7 @@ export default background({
   },
 
   unload() {
+    inject.service('telemetry', ['unregister']).unregister(this.telemetrySchemas);
     cookies.onChanged.removeListener(this.onCookieChanged);
     clearTimeout(this.initialRun);
     this.trackerCookiesStream.unsubscribe();

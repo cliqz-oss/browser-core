@@ -66,7 +66,7 @@
     "modules/browser-panel/index.html",
     "modules/offers-cc/index.html",
     "modules/offers-reminder/index.html",
-    "modules/popup-notification/images/*",
+    "modules/offers-checkout/index.html",
     "modules/onboarding-overlay/index.html"
   ]
 }

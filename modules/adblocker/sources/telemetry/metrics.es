@@ -15,10 +15,9 @@ export default [
     sendToBackend: {
       version: 1,
       demographics: [
-        'campaign',
         'country',
+        'extension',
         'install_date',
-        'platform',
         'product',
       ],
     },

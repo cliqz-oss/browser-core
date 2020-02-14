@@ -16,12 +16,11 @@ export default background({
   telemetry: inject.service('telemetry', ['register']),
 
   init() {
-    this.telemetry.register([
-      ...metrics,
-    ]);
+    this.telemetry.register(metrics);
   },
 
   unload() {
+    this.telemetry.unregister(metrics);
   },
 
   events: {},

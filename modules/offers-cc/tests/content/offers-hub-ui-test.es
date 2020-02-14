@@ -141,15 +141,9 @@ describe('Offers Hub UI tests', function () {
     });
 
     context('renders welcome message', function () {
-      it('renders gift icon', function () {
-        expect(subject.query('.empty__stars')).to.exist;
-        expect(subject.getComputedStyle('.empty__stars').background)
-          .to.contain('hello-stars.svg');
-      });
-
       it('renders title', function () {
         expect(subject.query('.empty__title')).to.exist;
-        expect(subject.query('.empty__title')).to.have.text('myoffrz_welcome_title');
+        expect(subject.query('.empty__title')).to.contain.text('myoffrz_welcome_title');
       });
 
       it('renders text', function () {

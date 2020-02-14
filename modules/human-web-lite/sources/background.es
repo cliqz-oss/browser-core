@@ -20,12 +20,17 @@ export default background({
   // Global instance
   humanWebLite: null,
 
+  requiresServices: [
+    'storage',
+  ],
+
   /**
     @method init
     @param settings
   */
-  async init(config) {
-    this.humanWebLite = new HumanWebLite(config);
+  async init(config, browser, { services: { storage } }) {
+    this.humanWebLite = new HumanWebLite({ config, storage });
+
     logger.debug('Initializing HumanWebLite...');
     await this.humanWebLite.init();
   },

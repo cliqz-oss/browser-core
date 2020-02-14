@@ -89,6 +89,9 @@
     "freshtab_app_settings_search_label": {
         "message": "Barre de recherche"
     },
+    "freshtab_app_settings_statistics_reset": {
+        "message": "Remettre à zéro"
+    },
     "freshtab_app_speed_dial_add": {
         "message": "Ajouter"
     },

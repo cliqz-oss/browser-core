@@ -28,6 +28,12 @@ module.exports = Object.assign({}, configBase, {
     id,
     channel: 'GT02',
     SHOW_ONBOARDING_OVERLAY: true,
+    telemetry: {
+      demographics: {
+        ...configBase.settings.telemetry.demographics,
+        platform: 'firefox',
+      },
+    },
   }),
   modules: configBase.modules.concat([
     'onboarding-overlay',

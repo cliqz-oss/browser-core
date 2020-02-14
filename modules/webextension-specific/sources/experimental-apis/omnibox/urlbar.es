@@ -90,6 +90,9 @@ export default class URLBar extends EventEmitter {
 
     // Make sure "megabar" is disabled
     this._megabar = this.urlbar.megabar;
+    if (this._megabar) {
+      this.urlbar.removeAttribute('breakout');
+    }
     this.urlbar.megabar = false;
 
     this._qbController = qbController;
@@ -201,6 +204,9 @@ export default class URLBar extends EventEmitter {
       this._reregisterQuantumBarProviders(this._qbProviders);
       this.urlbar.controller = this._qbController;
       this.urlbar.megabar = this._megabar;
+      if (this._megabar) {
+        this.urlbar.setAttribute('breakout', 'true');
+      }
     }
 
     // Restore legacy autocomplete

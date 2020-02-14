@@ -37,8 +37,7 @@ import formatTime from './utils';
 import metrics from './telemetry/metrics';
 import newsPaginationAnalysis from './telemetry/analyses/news/pagination';
 import newsSnippetsAnalysis from './telemetry/analyses/news/snippets';
-import genericClicksAnalysis from './telemetry/analyses/generic/clicks';
-import genericShowsAnalysis from './telemetry/analyses/generic/shows';
+import genericInteractionsAnalysis from './telemetry/analyses/generic/interactions';
 
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const DEVELOPER_FLAG_PREF = 'developer';
@@ -108,18 +107,18 @@ export default background({
     'telemetry',
     'host-settings',
   ],
+  telemetrySchemas: [
+    ...metrics,
+    newsPaginationAnalysis,
+    newsSnippetsAnalysis,
+    genericInteractionsAnalysis,
+  ],
 
   /**
   * @method init
   */
   init(settings) {
-    telemetry.register([
-      ...metrics,
-      newsPaginationAnalysis,
-      newsSnippetsAnalysis,
-      genericClicksAnalysis,
-      genericShowsAnalysis,
-    ]);
+    telemetry.register(this.telemetrySchemas);
 
     this.settings = settings;
     this.messages = {};
@@ -138,6 +137,7 @@ export default background({
   * @method unload
   */
   unload() {
+    telemetry.unregister(this.telemetrySchemas);
     HistoryService.onVisitRemoved.removeListener(this.onVisitRemoved);
     SpeedDials.onChanged.removeListener(this.onSpeedDialsChanged);
     if (browser.cliqz) {
@@ -317,6 +317,12 @@ export default background({
   },
 
   actions: {
+    resetStatistics() {
+      if (this.insights.isPresent()) {
+        this.insights.action('clearData');
+      }
+    },
+
     markTooltipAsSkipped() {
       const tooltip = this.tooltip;
       if (!tooltip) {

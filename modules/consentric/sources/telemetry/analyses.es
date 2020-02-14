@@ -78,11 +78,8 @@ export default CONSENT_TYPES.map(type => ({
   sendToBackend: {
     version: 1,
     demographics: [
-      'campaign',
-      'country',
-      'install_date',
-      'platform',
       'product',
+      'extension',
     ],
   },
   generate: ({ records }) => generateForType(type, { records }),

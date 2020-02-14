@@ -34,4 +34,12 @@ const hasResults = ({ results = [] } = {}) => results.length > 0;
 const hasResponded = response =>
   hasResults(response) || isDone(response);
 
-export { isDone, hasResults, hasResponded };
+/**
+ * Removes all results from a response.
+ *
+ * @param {Object} response The response to remove results from.
+ * @return {Object} The response with empty results.
+ */
+const clearResults = response => ({ ...response, results: [] });
+
+export { isDone, hasResults, hasResponded, clearResults };

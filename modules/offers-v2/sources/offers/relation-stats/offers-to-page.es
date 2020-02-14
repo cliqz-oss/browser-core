@@ -1,11 +1,10 @@
 import LRU from '../../../core/LRU';
-import { matchHostname, matchUrl } from './offers-to-page-utils';
 import Offer from '../offer';
-import { LANDING_MONITOR_TYPE } from '../../common/constant';
+import { LANDING_MONITOR_TYPE, PAGE_IMPRESSION_MONITOR_TYPE } from '../../common/constant';
+import { matchHostname, matchUrl } from '../../common/pattern-utils';
 
 const MAX_PAGES = 128;
 const CACHE_TIME_MINUTES = 45;
-const PAGE_IMPRESSION_MONITOR_TYPE = 'page_imp';
 const RELEVANT_TIME_HOURS = 24;
 
 export default class OffersToPage {
@@ -47,7 +46,6 @@ export default class OffersToPage {
     return (Date.now() - timestamp) < cacheTime;
   }
 
-
   _commonCatMatchesPredicate(offer, catMatches, urlData) {
     const model = new Offer(offer);
     const blacklist = model.hasBlacklistPatterns()
@@ -56,13 +54,9 @@ export default class OffersToPage {
   }
 
   _clientsPredicate(offer, url) {
-    const landingMonitor = (offer.monitorData || [])
-      .find(m => m.signalID === LANDING_MONITOR_TYPE) || {};
-    if (matchUrl(landingMonitor.patterns, url)) { return false; }
-
-    const pageImpressionMonitor = (offer.monitorData || [])
-      .find(m => m.signalID === PAGE_IMPRESSION_MONITOR_TYPE) || {};
-    return matchHostname(pageImpressionMonitor.patterns, url);
+    const _offer = new Offer(offer);
+    return !matchUrl(_offer.getMonitorPatterns(LANDING_MONITOR_TYPE), url)
+      && matchHostname(_offer.getMonitorPatterns(PAGE_IMPRESSION_MONITOR_TYPE), url);
   }
 
   _tooltipPredicate(offerContainer, relevantTime = RELEVANT_TIME_HOURS * 60 * 60 * 1000) {

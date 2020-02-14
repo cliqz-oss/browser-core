@@ -128,6 +128,9 @@ const ActionID = {
   AID_COUPON_AUTOFILL_SUCCESS_USE: 'coupon_autofill_field_success_use',
   AID_COUPON_AUTOFILL_ERROR_USE: 'coupon_autofill_field_error_use',
   AID_COUPON_AUTOFILL_APPLICATION_NOT_FOUND: 'coupon_autofill_field_application_not_found',
+  AID_COUPON_AUTOFILL_NOT_FOUND_WHY_OPTION1: 'coupon_autofill_field_not_found_why_option1',
+  AID_COUPON_AUTOFILL_NOT_FOUND_WHY_OPTION2: 'coupon_autofill_field_not_found_why_option2',
+  AID_COUPON_AUTOFILL_NOT_FOUND_WHY_OPTION3: 'coupon_autofill_field_not_found_why_option3',
 
   // Processor
 

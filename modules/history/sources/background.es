@@ -209,7 +209,10 @@ export default background({
         domain,
         query,
       }).then(({ places, from, to }) => {
-        const dtoP = createHistoryDTO({ places });
+        const extRootUrl = chrome.extension.getURL('/');
+        const refinedPlaces = places.filter(place =>
+          place && place.url.startsWith(extRootUrl) === false);
+        const dtoP = createHistoryDTO({ places: refinedPlaces });
 
         return dtoP.then(dto => (
           { frameStartsAt: from,

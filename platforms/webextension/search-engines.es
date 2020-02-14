@@ -8,13 +8,15 @@
 
 import Defer from '../core/helpers/defer';
 import { browser } from './globals';
-import { Resource } from '../core/resource-loader';
+import { fetch } from '../core/http';
 import { parse } from '../core/url';
 import console from '../core/console';
 import config from '../core/config';
 import prefs from '../core/prefs';
+import { isAMO, getResourceUrl } from '../core/platform';
 
-const ORIGINAL_SEARCH_ENGINE_NAME = config.settings.DEFAULT_SEARCH_ENGINE || 'Google';
+const ORIGINAL_SEARCH_ENGINE_NAME = config.settings.DEFAULT_SEARCH_ENGINE
+  || (isAMO ? 'Cliqz' : 'Google');
 
 const browserCliqzExists = typeof browser !== 'undefined'
   && Object(browser) === browser
@@ -120,11 +122,8 @@ function loadSearchEnginesFromResources() {
     locale = 'en';
   }
 
-  const resource = new Resource(['webextension-specific', 'search-engines', `${locale}.json`], {
-    dataType: 'json',
-  });
-
-  return resource.load()
+  return fetch(getResourceUrl(`webextension-specific/search-engines/${locale}.json`))
+    .then(r => r.json())
     .catch(e => console.warn('Could not load search engines.', e));
 }
 

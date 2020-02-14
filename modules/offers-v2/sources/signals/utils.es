@@ -61,12 +61,6 @@ const constructSignal = (signalID, signalType, signalData, gid, timestamp) => {
       type: signalType,
       sent_ts: timestamp,
       data: tmp,
-
-      // with-image | with-no-image
-      abtest_popups_tmpl: prefs.get('offers-popup.image', 'with-image'),
-
-      // current | one-step | two-step
-      abtest_popups_copy_code: prefs.get('offers-popup.copy-code', 'current'),
     },
   };
 };

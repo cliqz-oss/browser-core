@@ -16,11 +16,9 @@ loading performs depending on platforms or products.
   sendToBackend: {
     version: 1,
     demographics: [
-      'campaign',
-      'country',
-      'install_date',
-      'platform',
       'product',
+      'browser',
+      'extension',
     ],
   },
   schema: {

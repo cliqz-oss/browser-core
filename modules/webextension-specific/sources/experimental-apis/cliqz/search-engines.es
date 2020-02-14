@@ -52,7 +52,9 @@ function buildUrls(engineWrapper) {
 function isDefaultSearchEngine(engineWrapper, defaultEngine) {
   // For Cliqz Browser >= 1.31.x
   if (defaultEngine.defaultSearchEngine) {
-    return engineWrapper.identifier === defaultEngine.defaultSearchEngine;
+    return engineWrapper.identifier === defaultEngine.defaultSearchEngine
+      || engineWrapper.name === (defaultEngine.defaultSearchEngineData
+        && defaultEngine.defaultSearchEngineData.name);
   }
 
   return engineWrapper.name === defaultEngine.name;

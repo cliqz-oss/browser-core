@@ -23,6 +23,13 @@ module.exports = {
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     RESULTS_PROVIDER_ORDER: ['calculator', 'history', 'cliqz', 'querySuggestions', 'instant'],
     CLEAR_RESULTS_AT_SESSION_START: false,
+    telemetry: {
+      demographics: {
+        brand: 'ghostery',
+        name: 'browser',
+        platform: 'ios',
+      },
+    },
   }),
   default_prefs: {
     'modules.pairing.enabled': false,

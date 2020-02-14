@@ -25,8 +25,7 @@ export default describeModule('offers-v2/content/coupon/shared-code',
         it('/support selectors', function () {
           const elem = getElementByConfigFieldName(
             jsdom.window.document,
-            { field: 'input[name^=wsacAndGiftCardInput]' },
-            'field'
+            'input[name^=wsacAndGiftCardInput]'
           );
 
           chai.expect(elem).is.not.null;

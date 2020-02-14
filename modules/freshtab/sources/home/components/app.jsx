@@ -246,6 +246,20 @@ class App extends React.Component {
     classList.add(`theme-${bg}`);
   }
 
+  resetStatistics() {
+    this.freshtab.resetStatistics();
+
+    this.setState((prevState) => {
+      const { data = [] } = prevState.stats;
+      const nextData = data.map(item => Object.assign(item, {
+        val: item.val.replace(/\d+/g, '0')
+      }));
+
+      return {
+        data: nextData
+      };
+    });
+  }
 
   async restoreHistorySpeedDials() {
     settingsRestoreTopSitesSignal();
@@ -608,6 +622,7 @@ class App extends React.Component {
               onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
               onDeveloperModulesOpen={this.onDeveloperModulesOpen}
               onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
+              resetStatistics={() => this.resetStatistics()}
               restoreHistorySpeedDials={() => this.restoreHistorySpeedDials()}
               shouldShowSearchSwitch={!this.shouldShowTopUrlBar}
               config={freshtabConfig}

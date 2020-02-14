@@ -35,6 +35,12 @@ module.exports = {
       de: 'https://www.surveymonkey.de/r/StartTabDE',
     },
     INSIGHTS_INTERNAL: true,
+    telemetry: {
+      demographics: {
+        brand: 'ghostery',
+        name: 'tab',
+      },
+    },
   }),
   default_prefs: {
     'modules.human-web.enabled': true,

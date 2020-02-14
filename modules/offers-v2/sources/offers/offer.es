@@ -12,6 +12,8 @@ import { buildSimplePatternIndex } from '../common/pattern-utils';
 // /////////////////////////////////////////////////////////////////////////////
 //                            Helper methods
 
+export const NOTIF_TYPE_DOT = 'dot';
+
 /**
  * the expected geo data is a object: { country -> { city -> [postal1, ...] }};
  * @returns a map with the same information
@@ -309,6 +311,28 @@ export default class Offer {
 
   hasDynamicContent() {
     return this._hasDynamicContent;
+  }
+
+  /**
+   * @return {Boolean} `true` when this offer is set to trigger on the advertiser's url
+   */
+  shouldTriggerOnAdvertiser() {
+    return Boolean(this.offerObj.trigger_on_advertiser);
+  }
+
+  /**
+   * @param {string} notifType
+   * @return {BackendOffer} a new BackendOffer object based on the underlying one
+   * with its `ui_info.notif_type` property set to the given `notifType`.
+   */
+  getDataObjectWithNotifType(notifType) {
+    return {
+      ...this.offerObj,
+      ui_info: {
+        ...this.offerObj.ui_info,
+        notif_type: notifType
+      }
+    };
   }
 
   /**

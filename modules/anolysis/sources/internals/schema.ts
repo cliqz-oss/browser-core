@@ -13,11 +13,6 @@ import { Behavior } from './signal';
 import { Demographics, DemographicTrait } from './demographics';
 
 export type JsonSchema = object;
-// export interface EphemerId {
-//   kind: 'absolute' | 'relative';
-//   unit: 'day' | 'week' | 'month';
-//   n: number;
-// }
 
 /**
  * In cases where client-side aggregation is not feasible, an ephemeral ID
@@ -52,7 +47,7 @@ export type EphemerId = {
   n: number;
 } | {
   // 'relative' ephemerids are aligned with the install date, for example
-  // they change 40 days after installation; unit needs to be 'day'
+  // they change 40 days after installation; unit needs to be 'day'.
   kind: 'relative';
   unit: 'day';
   n: number;
@@ -93,6 +88,18 @@ export interface Schema {
   // higher than `0` correspond to past days: offset=1 means day before today,
   // offset=2 means two days ago, etc.
   offsets?: number[];
+
+  // When a schema specifies a `generate(...)` function, it is given access to
+  // an object of type `Records`, containing all metrics available for
+  // aggregation. Optionally, the schema can specify a list of metrics which
+  // this aggregation depends on.
+  metrics?: string[];
+
+  // When a schema specifies a `generate(...)` function, it will automatically
+  // be triggered once per day (by default). It is possible to specify
+  // different "rates" to call this function less often than once per day
+  // (e.g.: once per week or once per month).
+  rate?: 'day' | 'week' | 'month';
 
   // JSON Schema which instances of this schema need to comply with.
   schema: JsonSchema;
@@ -144,8 +151,29 @@ export function assertIsValidSchema(schema: Schema): void {
     throw new Error(`schema ${schema.name} is missing a 'schema' value`);
   }
 
+  // Make sure that if a list of metrics is specified, it is an array of strings.
+  if (schema.metrics !== undefined) {
+    if (!Array.isArray(schema.metrics)) {
+      throw new Error(`schema ${schema.name} specified 'metrics' which is not an array: ${typeof schema.metrics}`);
+    }
+
+    for (const metric of schema.metrics) {
+      if (typeof metric !== 'string') {
+        throw new Error(`schema ${schema.name} specified a metric which is not a string: ${metric}, ${typeof metric}`);
+      }
+    }
+  }
+
   // Validate 'sendToBackend' attribute
   if (schema.sendToBackend) {
+    if (typeof schema.sendToBackend !== 'object') {
+      throw new Error(`schema ${
+        schema.name
+      } should have 'sendToBackend' property of type 'object', found: ${
+        typeof schema.sendToBackend
+      }`);
+    }
+
     // Make sure 'version' is specified for sendToBackend schemas
     if (schema.sendToBackend.version === undefined) {
       throw new Error(`schema ${schema.name} is missing a 'sendToBackend.version' value`);

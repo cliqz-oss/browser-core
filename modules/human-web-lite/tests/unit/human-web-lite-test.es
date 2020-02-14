@@ -25,13 +25,18 @@ export default describeModule('human-web-lite/human-web-lite',
       let HumanWeb;
       let uut;
 
-      beforeEach(function () {
+      beforeEach(async function () {
         HumanWeb = this.module().default;
-        uut = new HumanWeb({
+        const config = {
           HUMAN_WEB_LITE_COLLECTOR: 'https://example.test/',
           ALLOWED_COUNTRY_CODES: ['us', 'de'],
           HW_CHANNEL: 'test',
-        });
+        };
+        const storage = {
+          get: () => undefined, // assume nothing was stored yet
+          flush: () => {},
+        };
+        uut = new HumanWeb({ config, storage });
       });
 
       afterEach(function () {

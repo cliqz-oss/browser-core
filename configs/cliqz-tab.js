@@ -28,6 +28,12 @@ module.exports = {
     browserAction: 'quicksearch',
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     FRESHTAB_TITLE: 'Cliqz Tab',
+    telemetry: {
+      demographics: {
+        brand: 'cliqz',
+        name: 'tab',
+      },
+    },
   }),
   default_prefs: {
     'modules.human-web.enabled': false,

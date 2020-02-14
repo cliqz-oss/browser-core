@@ -48,7 +48,7 @@ const DEBUG_DEXIE_MIGRATION = false;
 // If the offers are toggled on/off, the real estate modules should
 // be activated or deactivated.
 function touchManagedRealEstateModules(isEnabled) {
-  const managedRealEstateModules = ['offers-banner', 'popup-notification', 'myoffrz-helper'];
+  const managedRealEstateModules = ['offers-banner', 'myoffrz-helper'];
   managedRealEstateModules.forEach(moduleName =>
     prefs.set(`modules.${moduleName}.enabled`, isEnabled));
 }
@@ -59,7 +59,6 @@ function touchManagedRealEstateModules(isEnabled) {
 export default background({
   // to be able to read the config prefs
   requiresServices: ['cliqz-config', 'telemetry', 'pacemaker'],
-  popupNotification: inject.module('popup-notification'),
   core: inject.module('core'),
   helper: inject.module('myoffrz-helper'),
   hpnv2: inject.module('hpnv2'),
@@ -221,7 +220,6 @@ export default background({
     this.couponHandler = new CouponHandler({
       offersHandler: this.offersHandler,
       core: this.core,
-      popupNotification: this.popupNotification,
       offersDB: this.offersDB,
     });
 
@@ -459,7 +457,7 @@ export default background({
   _publishOfferReminderPushEventIfNeeded(url = '', detectOfferReminder = {}) {
     const { active = false, offerID: offerId, description = '' } = detectOfferReminder;
     const domain = extractHostname(url); // by design
-    if (active && domain) { this.shopReminder.add(domain, offerId); }
+    if (active && domain) { this.shopReminder.add(domain, offerId, description); }
     const [ok, notification] = this.shopReminder.notification(domain);
     if (!ok) { return; }
     if (notification.state === 'new') {
@@ -470,12 +468,11 @@ export default background({
       offerId: notification.offerId,
       domain,
       notification,
-      description,
       url,
     });
   },
 
-  _publishOfferReminderPushEvent({ offerId, domain, notification, description, url: currentUrl }) {
+  _publishOfferReminderPushEvent({ offerId, domain, notification, url: currentUrl }) {
     const offer = this.offersHandler.getOfferObject(offerId);
     const meta = this.offersDB.getOfferMeta(offerId);
     if (!offer || meta.removed) { return; }
@@ -484,7 +481,7 @@ export default background({
     const isCodeHidden = this.offersDB.getOfferAttribute(offerId, 'isCodeHidden') || false;
     const { call_to_action: { url: ctaurl = '' } = {} } = templateData;
     const voucher = {
-      description,
+      description: notification.description,
       benefit: templateData.benefit,
       code: templateData.code,
       logo: templateData.logo_dataurl,
@@ -559,16 +556,15 @@ export default background({
       if (tab.pinned && !tab.active) { return; }
       if (tab.url) { this._notifyClientsIfNeeded(tab.url); }
     },
-    'popup-notification:pop': function onPopupPop(msg) {
-      return this.couponHandler && this.couponHandler.onPopupPop(msg);
-    },
-    'popup-notification:log': function onPopupLog(msg) {
-      return this.couponHandler && this.couponHandler.onPopupLog(msg);
-    },
     'offers-reminder-recv-ch': function onOffersReminderReceive(msg) {
       const { origin, data: { action = '', domain = '' } = {} } = msg;
       if (origin !== 'offers-reminder') { return; }
       this.shopReminder.receive(domain, action);
+    },
+    'offers-checkout-recv-ch': function onOffersCheckoutReceive(msg) {
+      const { origin, data = {}, type } = msg;
+      if (origin !== 'offers-checkout') { return; }
+      this.couponHandler.dispatcher(type, data);
     },
     'ui:click-on-reward-box-icon': function onClickRewardBoxIcon() {
       this.offersHandler.markOffersAsRead();

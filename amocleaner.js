@@ -84,6 +84,7 @@ cleanFolders('./', ['.github', 'bin', 'tests', 'benchmarks', 'guides'], false);
 cleanFolders('modules', fs.readdirSync('modules').filter(module => !amoModules.includes(module)), false);
 cleanFolders('modules', ['tests'], true);
 cleanFolders('modules', ['debug'], true);
+cleanFolders('modules', ['experimental-apis'], true);
 cleanFolders('specific', fs.readdirSync('specific').filter(specific => config.specific != specific), false);
 cleanFolders('platforms', ['node', 'react-native', 'web'], false);
 cleanFolders('configs', ['ci', 'experiments'], false);

@@ -10,7 +10,7 @@ import random from '../helpers/random';
 import prefs from '../prefs';
 import getSynchronizedDate, { isSynchronizedDateAvailable } from '../synchronized-time';
 import { dateToDaysSinceEpoch } from '../helpers/date';
-import { getChannel } from '../demographics';
+import { getChannel } from '../../platform/demographics';
 import inject from '../kord/inject';
 
 const getSession = () => prefs.get('session');

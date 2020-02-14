@@ -7,7 +7,6 @@
  */
 
 import logger from './logger';
-import DuplicateDetector from './duplicate-detector';
 import { fetch } from '../core/http';
 
 /**
@@ -20,9 +19,9 @@ import { fetch } from '../core/http';
  * but it is a project on its own to port it.
  */
 export default class MessageSender {
-  constructor(config) {
+  constructor(config, duplicateDetector) {
     this.endpoint = config.HUMAN_WEB_LITE_COLLECTOR;
-    this.duplicateDetector = new DuplicateDetector();
+    this.duplicateDetector = duplicateDetector;
   }
 
   async send(message) {

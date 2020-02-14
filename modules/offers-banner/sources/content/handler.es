@@ -39,7 +39,6 @@ export default class Handler {
       onmessage: this.onmessage,
       onaction: this.onaction,
       window: this.window,
-      onremove: this.removeBanner,
       config: this.config,
       payload: this.payload,
     });
@@ -78,7 +77,16 @@ export default class Handler {
       },
       'offers-reminder': {
         hideBanner: this.removeBanner,
-      }
+      },
+      'offers-checkout': {
+        hideBanner: ({ timeout = 0 }) => {
+          if (timeout) {
+            setTimeout(this.removeBanner, timeout);
+          } else {
+            this.removeBanner();
+          }
+        },
+      },
     };
     const noop = () => {};
     if (!mapper[this.config.type]) { return; }

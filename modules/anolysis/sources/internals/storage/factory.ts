@@ -92,15 +92,48 @@ class Aggregated implements aggregated.Storage {
     date: SafeDate,
     name: string,
     fn: () => Promise<void>,
+    granularity: aggregated.Granularity = 'day'
   ) {
-    const key = Aggregated.key(date, name);
+    const newKey = Aggregated.key(date, name);
 
-    // We only need to run `fn(...)` if no key already exists for `name`.
-    if (this.aggregatedKeys.has(key) === false) {
-      this.aggregatedKeys.add(key);
-      await fn();
-      await this.asyncStorage.set(key, '');
+    // If we already aggregated on `date`, skip.
+    if (this.aggregatedKeys.has(newKey)) {
+      return;
     }
+
+    // Identify latest date where `name` was aggregated.
+    let latestDate: SafeDate | undefined;
+    for (const key of this.aggregatedKeys) {
+      if (key.endsWith(`_${name}`)) {
+        const keyDate = Aggregated.dateFromKey(key);
+        if (latestDate === undefined || latestDate.isBeforeDay(keyDate)) {
+          latestDate = keyDate;
+        }
+      }
+    }
+
+    if (latestDate !== undefined) {
+      // If last aggregation took place in same week, skip.
+      if (
+        granularity === 'week' &&
+        latestDate.toWeekString() === date.toWeekString()
+      ) {
+        return;
+      }
+
+      // If last aggregation took place in same month, skip.
+      if (
+        granularity === 'month' &&
+        latestDate.toMonthString() === date.toMonthString()
+      ) {
+        return;
+      }
+    }
+
+    // Run aggregation and keep track of `date`.
+    await fn();
+    this.aggregatedKeys.add(newKey);
+    await this.asyncStorage.set(newKey, '');
   }
 
   async deleteOlderThan(date: SafeDate) {

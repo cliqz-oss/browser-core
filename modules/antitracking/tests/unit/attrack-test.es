@@ -211,6 +211,7 @@ export default describeModule('antitracking/attrack',
       default: {
         isEnabled: () => false,
         register: () => {},
+        unregister: () => {},
       }
     },
   }), function () {

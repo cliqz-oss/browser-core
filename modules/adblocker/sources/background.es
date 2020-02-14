@@ -75,6 +75,7 @@ export default background({
   },
 
   unload() {
+    telemetry.unregister(metrics);
     this.shallowUnload();
   },
 

@@ -22,6 +22,13 @@ module.exports = Object.assign({}, ghosteryBase, {
   publish: `webstore upload --client-id=$UPLOAD_API_KEY --client-secret=$UPLOAD_API_SECRET --source ghostery_start_tab_nightly_-$VERSION.zip --extension-id ${id} && webstore publish --client-id=$UPLOAD_API_KEY --client-secret=$UPLOAD_API_SECRET --extension-id ${id}`,
   settings: Object.assign({}, ghosteryBase.settings, {
     channel: 'GT12',
+    telemetry: {
+      // Product information (telemetry)
+      demographics: {
+        ...ghosteryBase.settings.telemetry.demographics,
+        platform: 'chrome',
+      },
+    },
   }),
   buildTargets: {
     chrome: 55,

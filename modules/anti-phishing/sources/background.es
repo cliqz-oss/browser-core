@@ -67,6 +67,7 @@ export default background({
   },
 
   unload() {
+    telemetry.unregister(metrics);
     CliqzAntiPhishing.unload();
   },
 

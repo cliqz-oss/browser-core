@@ -102,6 +102,9 @@ const prefsFromTalos = {
   // Allow legacy adddons
   'extensions.legacy.enabled': true,
 
+  // Allow extensions experiments
+  'extensions.experiments.enabled': true,
+
   // Disable system add-on updates
   'extensions.systemAddon.update.enabled': false,
 };

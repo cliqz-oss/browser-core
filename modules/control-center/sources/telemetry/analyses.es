@@ -22,11 +22,9 @@ export default [{
   sendToBackend: {
     version: 1,
     demographics: [
-      'campaign',
-      'country',
-      'install_date',
-      'platform',
       'product',
+      'extension',
+      'os',
     ],
   },
   generate: ({ records }) => {

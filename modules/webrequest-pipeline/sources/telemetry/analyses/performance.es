@@ -42,8 +42,10 @@ export default {
       'campaign',
       'country',
       'install_date',
-      'platform',
       'product',
+      'extension',
+      'browser',
+      'os',
     ],
   },
   generate: ({ records }) => {

@@ -9,6 +9,7 @@
 import background from '../core/base/background';
 import Manager from './manager';
 import config from '../core/config';
+import { parse } from '../core/url';
 import { overRideCliqzResults, unload } from './http-handler-patch';
 import prefs from '../core/prefs';
 import logger from './logger';
@@ -113,7 +114,7 @@ export default background({
      *   assume that the user has moved on and is no longer interested in the results.
      */
     async search(url, { ttl = 15000 } = {}) {
-      const { pathname, search, searchParams } = new URL(url);
+      const { pathname, search, searchParams } = parse(url);
       return this.actions.send({
         action: 'search',
         method: 'GET',

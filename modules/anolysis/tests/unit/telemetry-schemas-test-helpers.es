@@ -111,10 +111,12 @@ async function generateAnalysisResults({
       // If this is an array, it means we got a list of metrics' names. Then
       // we randomly generate signals from their schemas.
       metrics.forEach((metricSchema) => {
-        metricsToPush.push(...generateSamples(
-          availableDefinitions.get(metricSchema).schema,
-          10, // number of random metrics to generate
-        ).map(s => ({ s, metric: metricSchema })));
+        if (availableDefinitions.has(metricSchema)) {
+          metricsToPush.push(...generateSamples(
+            availableDefinitions.get(metricSchema).schema,
+            10, // number of random metrics to generate
+          ).map(s => ({ s, metric: metricSchema })));
+        }
       });
     } else {
       // Otherwise we expect an object which keys are names of metrics, and
@@ -200,7 +202,7 @@ async function fakeHttpPost(url, payload) {
 
 function runTestsWithStorage(getStorage, {
   name,
-  metrics,
+  metrics = [],
   schemas,
   tests,
 }) {
@@ -251,6 +253,9 @@ function runTestsWithStorage(getStorage, {
         }
       }));
 
+      const analysisSchema = anolysis.availableDefinitions.get(name);
+      metrics.push(...(analysisSchema.metrics || []));
+
       anolysis.availableDefinitions = onlyKeepAnalysisWithName(
         anolysis.availableDefinitions,
         name,
@@ -268,8 +273,8 @@ function runTestsWithStorage(getStorage, {
       anolysis.unload();
     });
 
-    if (metrics) {
-      it('random metrics', async () => {
+    it('random metrics', async () => {
+      if (metrics && metrics.length !== 0) {
         const definition = availableDefinitions.get(name);
         if (definition.sendToBackend) {
           chai.expect(definition.sendToBackend.version).to.be.a('number');
@@ -281,8 +286,8 @@ function runTestsWithStorage(getStorage, {
           metrics,
           currentDate: anolysis.currentDate,
         })).to.not.throw;
-      });
-    }
+      }
+    });
 
     if (tests) {
       tests(customMetrics => generateAnalysisResults({

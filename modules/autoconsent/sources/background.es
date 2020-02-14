@@ -116,15 +116,17 @@ class TabConsent {
 export default background({
   requiresServices: ['telemetry', 'pacemaker'],
   core: inject.module('core'),
+  telemetrySchemas: [
+    ...metrics,
+    ...analyses,
+  ],
+
   /**
     @method init
     @param settings
   */
   init() {
-    inject.service('telemetry', ['register']).register([
-      ...metrics,
-      ...analyses,
-    ]);
+    inject.service('telemetry', ['register']).register(this.telemetrySchemas);
 
     this.logger = Logger.get('autoconsent', { level: 'log' });
     this.autoconsent = new AutoConsent((tabId, msg, { frameId }) =>
@@ -243,6 +245,7 @@ export default background({
   },
 
   unload() {
+    inject.service('telemetry', ['unregister']).unregister(this.telemetrySchemas);
     if (this.onTabRemoved || this.onTabUpdated) {
       tabs.onUpdated.removeListener(this.onTabUpdated);
       tabs.onRemoved.removeListener(this.onTabRemoved);

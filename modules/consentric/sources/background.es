@@ -15,15 +15,17 @@ import analyses from './telemetry/analyses';
 export default background({
   requiresServices: ['telemetry'],
   telemetry: inject.service('telemetry', ['register']),
+  telemetrySchemas: [
+    ...metrics,
+    ...analyses,
+  ],
 
   init() {
-    this.telemetry.register([
-      ...metrics,
-      ...analyses,
-    ]);
+    this.telemetry.register(this.telemetrySchemas);
   },
 
   unload() {
+    this.telemetry.unregister(this.telemetrySchemas);
   },
 
   events: {},

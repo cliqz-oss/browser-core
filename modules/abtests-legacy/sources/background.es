@@ -28,6 +28,7 @@ export default background({
   },
 
   unload() {
+    telemetry.unregister(metrics);
     ABTests.stop();
   },
 

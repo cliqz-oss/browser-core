@@ -89,6 +89,9 @@
     "freshtab_app_settings_search_label": {
         "message": "Suchleiste"
     },
+    "freshtab_app_settings_statistics_reset": {
+        "message": "Alle zurücksetzen"
+    },
     "freshtab_app_speed_dial_add": {
         "message": "Hinzufügen"
     },
@@ -252,12 +255,12 @@
         "message": "Blockiere Werbung, stoppe Tracker und beschleunige Websites."
     },
     "time_saved_hours": {
-        "message": "Std"
+        "message": "h"
     },
     "time_saved_minutes": {
-        "message": "Min"
+        "message": "min"
     },
     "time_saved_seconds": {
-        "message": "S"
+        "message": "s"
     }
 }

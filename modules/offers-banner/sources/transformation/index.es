@@ -1,6 +1,7 @@
 import * as rewardBox from './reward-box';
 import * as browserPanel from './browser-panel';
 import * as reminder from './reminder';
+import * as checkout from './checkout';
 import logger from '../logger';
 
 /*
@@ -13,10 +14,11 @@ import logger from '../logger';
 
 export function transform(type, data) {
   const mapper = {
+    ghostery: rewardBox.transform,
     'offers-cc': rewardBox.transform,
     'browser-panel': browserPanel.transform,
     'offers-reminder': reminder.transform,
-    ghostery: rewardBox.transform,
+    'offers-checkout': checkout.transform,
   };
   if (!mapper[type]) { logger.warn('receive wrong type of real estate: ', type); }
   const noop = () => {};

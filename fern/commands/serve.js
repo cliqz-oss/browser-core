@@ -72,6 +72,7 @@ module.exports = (program) => {
         'javascript.options.strict': false,
         'security.sandbox.content.level': 2,
         'extensions.legacy.enabled': true,
+        'extensions.experiments.enabled': true,
         'dom.webcomponents.enabled': true,
         'dom.webcomponents.shadowdom.enabled': true,
         'lightweightThemes.selectedThemeID': 'firefox-compact-light@mozilla.org',
