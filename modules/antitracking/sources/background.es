@@ -42,6 +42,11 @@ export default background({
   controlCenter: inject.module('control-center'),
 
   requiresServices: ['cliqz-config', 'domainInfo', 'pacemaker', 'telemetry'],
+  telemetrySchemas: [
+    ...popupActionsMetrics,
+    ...tokensMetrics,
+    ...tokensAnalyses,
+  ],
 
   attrack: null,
 
@@ -50,11 +55,7 @@ export default background({
   * @param settings
   */
   init(settings) {
-    telemetryService.register([
-      ...popupActionsMetrics,
-      ...tokensMetrics,
-      ...tokensAnalyses,
-    ]);
+    telemetryService.register(this.telemetrySchemas);
 
     // Create new attrack class
     this.settings = settings;
@@ -98,6 +99,8 @@ export default background({
   * @method unload
   */
   unload() {
+    telemetryService.unregister(this.telemetrySchemas);
+
     if (this.attrack !== null) {
       this.attrack.unload();
       this.attrack = null;

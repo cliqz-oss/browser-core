@@ -418,15 +418,6 @@ const CliqzABTests = {
         prefs.set('cookie-monster.nonTracker', true);
         prefs.set('attrack.cookieMode', 'trackers');
         break;
-      case '1124_A':
-        prefs.set('offers-popup.type', 'card');
-        break;
-      case '1124_B':
-        prefs.set('offers-popup.type', 'lodgev1');
-        break;
-      case '1124_C':
-        prefs.set('offers-popup.type', 'lodgev2');
-        break;
       case '1125_B':
         // changes browser cookie setting to enable Firefox blocking cookies and storage for
         // tracker domains in third-party contexts. We do not join the test if user already has a
@@ -435,21 +426,6 @@ const CliqzABTests = {
           return false;
         }
         prefs.set('network.cookie.cookieBehavior', 4, '');
-        break;
-      case '1127_A':
-        prefs.set('offers-popup.image', 'with-image');
-        break;
-      case '1127_B':
-        prefs.set('offers-popup.image', 'with-no-image');
-        break;
-      case '1128_A':
-        prefs.set('offers-popup.copy-code', 'current');
-        break;
-      case '1128_B':
-        prefs.set('offers-popup.copy-code', 'one-step');
-        break;
-      case '1128_C':
-        prefs.set('offers-popup.copy-code', 'two-step');
         break;
       case '1129_A':
         prefs.set('cookie-monster.trackerLocalStorage', false);
@@ -773,23 +749,9 @@ const CliqzABTests = {
         prefs.clear('cookie-monster.nonTracker');
         prefs.clear('attrack.cookieMode');
         break;
-      case '1124_A':
-      case '1124_B':
-      case '1124_C':
-        prefs.clear('offers-popup.type');
-        break;
       case '1125_A':
       case '1125_B':
         prefs.set('network.cookie.cookieBehavior', 4, '');
-        break;
-      case '1127_A':
-      case '1127_B':
-        prefs.clear('offers-popup.image');
-        break;
-      case '1128_A':
-      case '1128_B':
-      case '1128_C':
-        prefs.clear('offers-popup.copy-code');
         break;
       case '1129_A':
       case '1129_B':

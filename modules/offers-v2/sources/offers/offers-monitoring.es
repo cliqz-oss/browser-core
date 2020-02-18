@@ -113,6 +113,9 @@ const getSignalNameForCoupon = (offerCouponCodes, couponUsed) => {
     'coupon_autofill_field_success_use',
     'coupon_autofill_field_error_use',
     'coupon_autofill_field_application_not_found',
+    'coupon_autofill_field_not_found_why_option1',
+    'coupon_autofill_field_not_found_why_option2',
+    'coupon_autofill_field_not_found_why_option3',
   ];
   if (autofillWhiteList.includes(couponUsed)) {
     return couponUsed;

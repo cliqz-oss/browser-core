@@ -1,22 +1,27 @@
-import { isCliqzBrowser, isAMO } from '../../core/platform';
+import events from '../../core/events';
 import config from '../../core/config';
-import { getGeneralDomain } from '../../core/tlds';
+import { extractHostname } from '../../core/tlds';
 import Offer from '../offers/offer';
 import UrlData from '../common/url_data';
 import logger from '../common/offers_v2_logger';
 import { LANDING_MONITOR_TYPE } from '../common/constant';
 import CouponSignal from './coupon-signal';
+import CheckoutReminder from './checkout-reminder';
 
-const POPUPS_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const CHECKOUT_JOURNEYS = Object.freeze([
+  'close',
+  'copy',
+  'apply',
+]);
 
 export default class CouponHandler {
-  constructor({ offersHandler, core, popupNotification, offersDB }) {
+  constructor({ offersHandler, core, offersDB }) {
     this.offersHandler = offersHandler;
     this.core = core;
-    this.popupNotification = popupNotification;
     this._lastPopupNotificationMs = 0;
     const couponSignal = new CouponSignal(offersDB);
     this._encodeCouponAction = couponSignal.encodeCouponAction.bind(couponSignal);
+    this.checkoutReminder = new CheckoutReminder();
   }
 
   // ------------------------------------------------------
@@ -42,20 +47,6 @@ export default class CouponHandler {
     }
   }
 
-  _publishPopupPushEvent({ url, templateData = {}, offerInfo = {}, products = {}, attrs = {} }) {
-    const msg = {
-      target: 'offers-v2',
-      data: {
-        back: offerInfo,
-        config: { ...offerInfo, ...templateData, products, attrs },
-        preShow: 'try-to-find-coupon',
-        onApply: 'insert-coupon-form',
-        url,
-      }
-    };
-    this.popupNotification.action('push', msg);
-  }
-
   _publishDetectCouponActions(url, offerInfo) {
     this.core.action('callContentAction', 'offers-v2', 'detect-coupon-actions', { url }, {
       url,
@@ -63,24 +54,15 @@ export default class CouponHandler {
     });
   }
 
-  // Throttle popup notifications in addition to setup from backend
-  _touchIfToPopupNotification(monitorCheck) {
-    const { activate = false, offerInfo = {} } = monitorCheck;
-    if (activate && offerInfo.autoFillField) {
-      const ts = Date.now();
-      if (ts - this._lastPopupNotificationMs > POPUPS_INTERVAL) {
-        this._lastPopupNotificationMs = ts;
-        return true;
-      }
-    }
-    return false;
-  }
-
   // ------------------------------------------------------
   // Coupon activity detection
   // couponMsg is { type, couponValue, offerInfo }
   _onCouponActivity(couponMsg) {
     this.offersHandler.onCouponActivity(couponMsg, this._encodeCouponAction);
+  }
+
+  couponFormUsed(args) {
+    return this._onCouponActivity(args);
   }
 
   // ------------------------------------------------------
@@ -93,97 +75,110 @@ export default class CouponHandler {
    *
    * @param {CouponInfo+} monitorCheck -- from `OffersMonitorHandler::shouldActivateOfferForUrl`
    *   augmented with `url` and `module`
-   * @return {boolean} true if popup-notification is shown, false otherwise
+   * @return {boolean} true if offers-checkout is shown, false otherwise
    */
   onDomReady(monitorCheck) {
-    const { url, offerID, offerInfo } = monitorCheck;
+    const { url, offerID: offerId, offerInfo } = monitorCheck;
+    if (offerInfo) { this._publishDetectCouponActions(url, offerInfo); }
 
-    //
-    // Always detect coupon actions
-    //
-    if (offerInfo) {
-      this._publishDetectCouponActions(url, offerInfo);
-    }
-
-    //
-    // If we can show popup notification, show it
-    //
-    if (!this._touchIfToPopupNotification(monitorCheck)) {
-      return false;
-    }
-    const offer = this.offersHandler.getOfferObject(offerID);
+    const domain = extractHostname(url);
+    const [ok, view, validOfferId] = this._popupNotification(offerId, domain, monitorCheck);
+    if (!ok) { return false; }
+    const offer = this.offersHandler.getOfferObject(validOfferId);
 
     if (!offer) { return false; }
 
     const { ui_info: { template_data: templateData = {} } = {} } = offer;
     if (Object.keys(templateData).length === 0) {
-      logger.log('offer for popup-notification with empty template_data: ', offer);
+      logger.log('offer for offers-checkout with empty template_data: ', offer);
       return false;
     }
     this._publishPopupPushEvent({
-      products: {
-        ghostery: config.settings.channel === 'CH80',
-        chip: config.settings.OFFERS_BRAND === 'chip',
-        freundin: config.settings.OFFERS_BRAND === 'freundin',
-        incent: config.settings.OFFERS_BRAND === 'incent',
-        cliqz: isCliqzBrowser,
-        amo: isAMO,
-      },
-      key: getGeneralDomain(url),
-      url,
+      view,
+      offerId: validOfferId,
+      domain,
+      offer,
+      back: offerInfo,
       templateData,
-      offerInfo,
-      attrs: {
-        landing: new Offer(offer).getMonitorPatterns(LANDING_MONITOR_TYPE)
-      }
+      currentUrl: url,
     });
-
     return true;
   }
 
-  onPopupPop(msg) {
-    const { target, data: { ok, url, back, type } = {} } = msg;
-    if (target !== 'offers-v2') { return; }
-    const m = {
-      cancel: 'coupon_autofill_field_cancel_action',
-      x: 'coupon_autofill_field_x_action',
-      outside: 'coupon_autofill_field_outside_action',
+  _publishPopupPushEvent({
+    back = {},
+    currentUrl,
+    domain,
+    offer,
+    offerId,
+    templateData,
+    view,
+  }) {
+    const { call_to_action: { url: ctaurl = '' } = {} } = templateData;
+    const voucher = {
+      benefit: templateData.benefit,
+      code: templateData.code,
+      conditions: templateData.conditions || '',
+      ctaurl,
+      headline: templateData.headline,
+      landing: new Offer(offer).getMonitorPatterns(LANDING_MONITOR_TYPE),
+      logo: templateData.logo_dataurl,
+      logoClass: templateData.logo_class,
+      offerId,
     };
-    const couponValue = ok
-      ? 'coupon_autofill_field_apply_action'
-      : m[type] || 'coupon_autofill_field_unknown';
-    this._couponFormUsed({
-      url,
-      offerInfo: back,
-      couponValue,
-    });
-    if (couponValue === 'coupon_autofill_field_apply_action') {
-      this._onCouponActivity({ type: couponValue, url, offerInfo: back });
-    }
+    const { rule_info: { url = [] } = {} } = offer;
+    const newUrl = url && url.length !== 0 ? url : currentUrl;
+    const newBack = { ...back, url: currentUrl };
+    const data = {
+      back: newBack,
+      display_rule: { url: newUrl },
+      domain,
+      view,
+      voucher,
+    };
+    const payload = { dest: ['offers-checkout'], type: 'push-offer', data };
+    events.pub('offers-send-ch', payload);
   }
 
-  onPopupLog(msg) {
-    const { target, data: { url, back, type, ok } = {} } = msg;
-    if (target !== 'offers-v2') { return; }
-    const m = {
-      'pre-show': ['coupon_autofill_field_failed', false],
-      'copy-code': ['coupon_autofill_field_copy_code', true],
-      show: ['coupon_autofill_field_show', true],
-    };
-    const [couponValue, expectedResult] = m[type] || ['coupon_autofill_field_unknown', true];
-    if (expectedResult === ok) {
-      this._couponFormUsed({
-        url,
-        offerInfo: back,
-        couponValue,
-      });
-    }
-    if (type === 'pre-show') {
-      this._onCouponActivity({ type: 'popnot_pre_show', url, couponValue: ok, offerInfo: back });
-    }
+  _popupNotification(offerId, domain, monitorCheck) {
+    const { activate = false, offerInfo = {} } = monitorCheck;
+    const activeIntent = activate && offerInfo.autoFillField;
+    const paths = config.settings.OFFERS_BRAND !== 'chip'
+      ? CHECKOUT_JOURNEYS
+      : undefined; // using default value
+    if (activeIntent) { this.checkoutReminder.add({ domain, offerId, paths }); }
+    return this.checkoutReminder.notification(domain, activeIntent);
   }
 
-  couponFormUsed(args) {
-    return this._onCouponActivity(args);
+  dispatcher(type, data) {
+    const typeMapper = {
+      log: this._log.bind(this),
+      actions: this._receive.bind(this),
+    };
+    const noop = () => {};
+    (typeMapper[type] || noop)(data);
+  }
+
+  _receive({ domain, action } = {}) {
+    this.checkoutReminder.receive(domain, action);
+  }
+
+  _log({ back, action } = {}) {
+    this._couponFormUsed({ url: back.url, offerInfo: back, couponValue: action });
+    this._couponActivityActions(action, back.url, back);
+  }
+
+  _couponActivityActions(action, url, back) {
+    const data = { type: 'popnot_pre_show', url, offerInfo: back };
+    const mapper = {
+      coupon_autofill_field_apply_action: () =>
+        this._onCouponActivity({ ...data, type: action }),
+      coupon_autofill_field_show: () =>
+        this._onCouponActivity({ ...data, couponValue: true }),
+      coupon_autofill_field_failed: () =>
+        this._onCouponActivity({ ...data, couponValue: false }),
+    };
+    const noop = () => {};
+    (mapper[action] || noop)();
   }
 }

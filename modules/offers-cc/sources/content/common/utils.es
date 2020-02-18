@@ -73,7 +73,7 @@ export function resize({ type = 'card', products = {}, autoTrigger = false } = {
 
 /** **************************************************************** */
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'incent', 'cliqz', 'amo', 'ghostery'];
+const ALLOWED_PRODUCTS = ['chip', 'cliqz', 'amo', 'ghostery'];
 
 export function chooseProduct(products = {}) {
   return ALLOWED_PRODUCTS.find(product => products[product]) || 'myoffrz';

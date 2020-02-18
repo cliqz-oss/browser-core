@@ -37,11 +37,11 @@ import formatTime from './utils';
 import metrics from './telemetry/metrics';
 import newsPaginationAnalysis from './telemetry/analyses/news/pagination';
 import newsSnippetsAnalysis from './telemetry/analyses/news/snippets';
-import genericClicksAnalysis from './telemetry/analyses/generic/clicks';
-import genericShowsAnalysis from './telemetry/analyses/generic/shows';
+import genericInteractionsAnalysis from './telemetry/analyses/generic/interactions';
 
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const DEVELOPER_FLAG_PREF = 'developer';
+const FRESHTAB_AUTOFOCUS_PREF = 'freshtab.search.autofocus';
 const DISMISSED_ALERTS = 'dismissedAlerts';
 
 const COMPONENT_STATE_VISIBLE = {
@@ -53,10 +53,15 @@ const COMPONENT_STATE_INVISIBLE = {
 };
 
 const NEW_TAB_URL = isChromium ? 'chrome://newtab/' : getResourceUrl(config.settings.NEW_TAB_URL);
+const NEW_TAB_REDIRECTED_URL = `${getResourceUrl(config.settings.NEW_TAB_URL)}#ntp`;
 const HISTORY_URL = getResourceUrl(config.settings.HISTORY_URL);
 
-const historyWhitelist = [
+const freshtabUrls = [
   NEW_TAB_URL,
+  NEW_TAB_REDIRECTED_URL,
+];
+const historyWhitelist = [
+  ...freshtabUrls,
   HISTORY_URL
 ];
 
@@ -83,6 +88,27 @@ const createBlueThemeManager = (hostPrefs) => {
   };
 };
 
+const expectedRedirectOrigin = browser.runtime.getURL('');
+const expectedRedirectOriginUrl = browser.runtime.getURL('modules/freshtab/home.html');
+
+function onFreshtabRedirect(details) {
+  const {
+    originUrl,
+    initiator,
+  } = details;
+
+  if (
+    (('originUrl' in details) && originUrl !== expectedRedirectOriginUrl)
+    || (('initiator' in details) && !expectedRedirectOrigin.startsWith(initiator))
+    || !prefs.get(FRESHTAB_AUTOFOCUS_PREF, false)
+  ) {
+    return {};
+  }
+  return {
+    redirectUrl: NEW_TAB_REDIRECTED_URL
+  };
+}
+
 /**
  * @module freshtab
  * @namespace freshtab
@@ -108,18 +134,18 @@ export default background({
     'telemetry',
     'host-settings',
   ],
+  telemetrySchemas: [
+    ...metrics,
+    newsPaginationAnalysis,
+    newsSnippetsAnalysis,
+    genericInteractionsAnalysis,
+  ],
 
   /**
   * @method init
   */
   init(settings) {
-    telemetry.register([
-      ...metrics,
-      newsPaginationAnalysis,
-      newsSnippetsAnalysis,
-      genericClicksAnalysis,
-      genericShowsAnalysis,
-    ]);
+    telemetry.register(this.telemetrySchemas);
 
     this.settings = settings;
     this.messages = {};
@@ -133,11 +159,18 @@ export default background({
     if (browser.cliqz) {
       browser.cliqz.onPrefChange.addListener(this.onThemeChanged, 'extensions.', 'activeThemeID');
     }
+
+    browser.webRequest.onBeforeRequest.addListener(
+      onFreshtabRedirect,
+      { urls: [config.settings.FRESHTAB_REDIRECT], types: ['main_frame'] },
+      ['blocking']
+    );
   },
   /**
   * @method unload
   */
   unload() {
+    telemetry.unregister(this.telemetrySchemas);
     HistoryService.onVisitRemoved.removeListener(this.onVisitRemoved);
     SpeedDials.onChanged.removeListener(this.onSpeedDialsChanged);
     if (browser.cliqz) {
@@ -147,6 +180,7 @@ export default background({
 
   status() {
     return {
+      autofocus: prefs.get(FRESHTAB_AUTOFOCUS_PREF, false),
       visible: true,
       enabled: true,
     };
@@ -154,13 +188,18 @@ export default background({
 
   async _onThemeChanged() {
     const theme = await this.browserTheme();
-    this.core.action(
-      'callContentAction',
-      'freshtab',
-      'updateBrowserTheme',
-      { url: NEW_TAB_URL },
-      theme,
-    );
+    this._callFreshtabAction('updateBrowserTheme', theme);
+  },
+
+  _callFreshtabAction(action, ...args) {
+    freshtabUrls.forEach(url =>
+      this.core.action(
+        'callContentAction',
+        'freshtab',
+        action,
+        { url },
+        ...args,
+      ));
   },
 
   _onVisitRemoved(removed) {
@@ -302,14 +341,7 @@ export default background({
 
   async _onSpeedDialsChanged() {
     const dials = await SpeedDials.get();
-    this.core.action(
-      'callContentAction',
-      'freshtab',
-      'updateSpeedDials',
-      { url: NEW_TAB_URL },
-      dials,
-      SpeedDials.hasHidden
-    );
+    this._callFreshtabAction('updateSpeedDials', dials, SpeedDials.hasHidden);
   },
 
   hasCustomDialups() {
@@ -317,6 +349,12 @@ export default background({
   },
 
   actions: {
+    resetStatistics() {
+      if (this.insights.isPresent()) {
+        this.insights.action('clearData');
+      }
+    },
+
     markTooltipAsSkipped() {
       const tooltip = this.tooltip;
       if (!tooltip) {

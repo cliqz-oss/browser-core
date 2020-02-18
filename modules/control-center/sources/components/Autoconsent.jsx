@@ -107,11 +107,11 @@ export default class Autoconsent extends React.Component {
             </div>
           </div>
           <div className="settings-section-row">
-            <div data-start-navigation className="counter" id="autoconsent-counter">
+            <div className="counter" id="autoconsent-counter">
               <img id="shield" className="arr" src="./images/autoconsent.svg" alt="shiled-cliqz" />
             </div>
             <div className="row-text">
-              <p className="description">
+              <p>
                 {status === 'active' && localize('control_center_autoconsent')}
                 {status === 'inactive' && localize('control_center_autoconsent_inactive')}
                 {status === 'critical' && localize('control_center_autoconsent_off')}

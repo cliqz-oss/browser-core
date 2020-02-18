@@ -13,6 +13,7 @@ import { revertHistorySubLinkToMainLink } from '../links/utils';
 // Find the index of the first history link after limit
 // Because we don't want to remove other type of links (buttons, simple_links, etc.)
 // So we keep everything before the unneeded history
+// Note: requires `enricher` to put other types of links before history
 const findIndexToSlice = (links, nHistories) => {
   if (links.filter(link => ['history', 'main'].includes(link.meta.type)).length <= nHistories) {
     // If we have enough slots for all history links

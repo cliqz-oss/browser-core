@@ -116,7 +116,7 @@ export default class UrlbarWithResults extends Urlbar {
         this.dropdown.createIframeWrapper(this.iframe);
         resolve();
       };
-      this.iframe.src = '../dropdown/dropdown.html';
+      this.iframe.src = chrome.extension.getURL('modules/dropdown/dropdown.html');
     });
   }
 

@@ -28,16 +28,39 @@ class Aggregated implements aggregated.Storage {
     date: SafeDate,
     name: string,
     fn: () => Promise<void>,
+    granularity: aggregated.Granularity = 'day'
   ) {
     const formatted = date.toString();
-    const value = await this.db
-      .where('[date+name]')
-      .equals([formatted, name])
-      .toArray();
+    const dates = (
+      await this.db
+        .where('name')
+        .equals(name)
+        .sortBy('date')
+    ).map(({ date }) => date);
 
-    // We found an entry for `[date, name]`, so we do not call `fn` again.
-    if (value.length !== 0) {
-      return;
+    if (dates.length !== 0) {
+      // If we already aggregated this `name` today, skip.
+      if (dates.includes(formatted)) {
+        return;
+      }
+
+      const latestDate = SafeDate.fromBackend(dates[dates.length - 1]);
+
+      // If last aggregation took place in same week, skip.
+      if (
+        granularity === 'week' &&
+        latestDate.toWeekString() === date.toWeekString()
+      ) {
+        return;
+      }
+
+      // If last aggregation took place in same month, skip.
+      if (
+        granularity === 'month' &&
+        latestDate.toMonthString() === date.toMonthString()
+      ) {
+        return;
+      }
     }
 
     // Call aggregation
@@ -186,6 +209,9 @@ export default class Storage implements storage.Storage {
     this.db.version(2).stores({
       gid: null,
       retention: null,
+    });
+    this.db.version(3).stores({
+      aggregated: '[date+name],date,name',
     });
 
     await this.db.open();

@@ -1,0 +1,31 @@
+.success__container {
+  background-color: var(--chip-primary-color, #eb443f);
+  width: 225px;
+  height: 295px;
+  border-radius: 20px;
+}
+
+.success__big-logo {
+  background: url('../images/chip-big-logo-smile.svg') no-repeat left;
+  background-size: contain;
+  width: 70px;
+  height: 69px;
+  margin: 94px auto 0;
+}
+
+.success__text {
+  text-align: center;
+  padding-top: 11px;
+  color: #fdfdfd;
+}
+
+.success__close {
+  background: url('../images/close.svg') no-repeat left;
+  background-size: contain;
+  width: 16px;
+  height: 16px;
+  margin: 15px 18px 0px 0px;
+  cursor: pointer;
+  filter: brightness(0) invert(1);
+  float: right;
+}

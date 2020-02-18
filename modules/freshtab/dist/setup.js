@@ -14,4 +14,11 @@
   if (theme) {
     document.body.classList.add(['theme-', theme].join(''));
   }
+
+  if (chrome.extension.getBackgroundPage && !location.hash.startsWith('#ntp')) {
+    const CLIQZ = chrome.extension.getBackgroundPage().CLIQZ;
+    if (CLIQZ.app.prefs.get('freshtab.search.autofocus', false)) {
+      location.replace(CLIQZ.app.config.settings.FRESHTAB_REDIRECT);
+    }
+  }
 }());

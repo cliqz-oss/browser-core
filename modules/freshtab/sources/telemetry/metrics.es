@@ -6,11 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { mkFreshtabSchema } from './schemas';
+import cartesian from '../../core/helpers/cartesian';
 
-// From: https://stackoverflow.com/a/43053803
-const f = (a, b) => [].concat(...a.map(d => b.map(e => [].concat(d, e))));
-const cartesian = (a, b, ...c) => (b ? cartesian(f(a, b), ...c) : a);
+import { mkFreshtabSchema } from './schemas';
 
 export const NEWS_EDITIONS = [
   'de',
@@ -316,6 +314,21 @@ export default [
     type: 'offrz',
     view: 'box',
   })),
+
+  // Notification
+  // =============
+  mkFreshtabSchema({
+    type: 'home',
+    action: 'click',
+    view: 'notification',
+    target: 'undo_delete_favorite',
+  }),
+  mkFreshtabSchema({
+    type: 'home',
+    action: 'click',
+    view: 'notification',
+    target: 'undo_delete_topsite',
+  }),
 
   // News
   // ====

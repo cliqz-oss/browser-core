@@ -1,0 +1,63 @@
+.promo__wrapper {
+  border-radius: 10px;
+  border: 2px solid #00AEF0;
+  background-color: #00AEF0;
+}
+.promo__wrapper.promo__chip-wrapper {
+  border: 2px solid var(--chip-primary-color, #eb443f);
+  background-color: var(--chip-primary-color, #eb443f);
+}
+.promo__wrapper.promo__myoffrz-wrapper {
+  border: 2px solid var(--myoffrz-primary-color, #f67057);
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
+.promo__wrapper.promo__ghostery-wrapper {
+  border: 2px solid var(--ghostery-primary-color, #5B005C);
+  background-color: var(--ghostery-primary-color, #5B005C);
+}
+
+.promo__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.promo__input {
+  border-bottom-left-radius: 8px;
+  border-top-left-radius: 8px;
+  border: none;
+  width: 100%;
+  color: #00AEF0;
+  background-color: white;
+  height: 30px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.promo__input.promo__chip-input {
+  color: var(--chip-primary-color, #eb443f);
+}
+.promo__input.promo__myoffrz-input {
+  color: var(--myoffrz-primary-color, #f67057);
+}
+.promo__input.promo__ghostery-input {
+  color: var(--ghostery-primary-color, #5B005C);
+}
+
+.promo__copy-code {
+  text-transform: uppercase;
+  font-size: 14px;
+  color: white;
+  display: inline-block;
+  cursor: pointer;
+  text-align: center;
+  min-width: 50%;
+  white-space: nowrap;
+  overflow: hidden;
+  font-weight: 500;
+}

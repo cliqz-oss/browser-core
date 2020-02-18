@@ -10,7 +10,6 @@ export function setIconBadge(product, { tabId, count } = {}) {
     amo: 'rgb(255, 80, 55)',
     cliqz: 'rgb(255, 80, 55)',
     chip: 'rgb(20,20,20)',
-    freundin: 'rgb(20,20,20)',
   };
   const badgeText = count === undefined || count === 1
     ? getMessage('myoffrz_badge_text_new')

@@ -2,7 +2,6 @@ import { chrome } from '../platform/globals';
 import { getTab } from '../platform/tabs';
 import adblocker from '../platform/lib/adblocker';
 import { getActiveTab } from '../core/browser';
-import logos from '../core/services/logos';
 import { isCliqzBrowser, isAMO, isGhostery } from '../core/platform';
 import config from '../core/config';
 
@@ -27,12 +26,9 @@ const BLACK_LIST = [
 
 export function getTitleColor(templateData = {}) {
   const {
-    styles: { headline_color: headlineColor } = {},
-    call_to_action: { url } = {},
+    styles: { headline_color: headlineColor } = {}
   } = templateData;
-  if (headlineColor) { return headlineColor; }
-  const logoDetails = logos.getLogoDetails(url) || { brandTxtColor: '2d2d2d' };
-  return `#${logoDetails.brandTxtColor}`;
+  return headlineColor || '#2d2d2d';
 }
 
 function canRenderOnUrl(url, title) {
@@ -78,13 +74,11 @@ export function products() {
     amo: isAMO,
     ghostery: isGhostery,
     chip: brand === 'chip',
-    freundin: brand === 'freundin',
-    incent: brand === 'incent',
     myoffrz: brand === 'myoffrz',
   };
 }
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo', 'ghostery'];
+const ALLOWED_PRODUCTS = ['chip', 'cliqz', 'amo', 'ghostery'];
 export function chooseProduct(options = {}) {
   return ALLOWED_PRODUCTS.find(product => options[product]) || 'myoffrz';
 }

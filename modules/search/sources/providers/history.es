@@ -19,12 +19,12 @@ export default class History extends BaseProvider {
     super('history');
   }
 
-  search(query, config, { allowEmptyQuery = false }) {
+  search(query, config, { allowEmptyQuery = false, isPrivate = false }) {
     if (!query && !allowEmptyQuery) {
       return this.getEmptySearch(config);
     }
 
-    const historyPromise = new Promise(resolve => historySearch(query, resolve));
+    const historyPromise = new Promise(resolve => historySearch(query, resolve, isPrivate));
     return this.getResultsFromPromise(
       // TODO: deduplicate is again called in enriched, try to simplify;
       //       at the moment, both is needed: here because history returns

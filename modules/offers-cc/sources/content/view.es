@@ -11,15 +11,8 @@ export default function draw(data) {
     autoTrigger = false,
   } = data;
 
-  const newData = {
-    ...data,
-    abtestInfo: {
-      popupsCopyCode: 'one-step', // one-step | two-step
-    },
-  };
-
   ReactDOM.render(
-    React.createElement(showTooltip ? Tooltip : Main, { data: newData }, null),
+    React.createElement(showTooltip ? Tooltip : Main, { data }, null),
     document.getElementById('cliqz-offers-cc'),
     () => resize({ type: showTooltip ? 'tooltip' : 'card', products, autoTrigger })
   );

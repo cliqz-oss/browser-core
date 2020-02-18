@@ -30,6 +30,10 @@ class Urlbar extends React.Component {
   componentDidMount() {
     this.textInput.addEventListener('focus', urlBarFocusSignal);
     this.textInput.addEventListener('blur', urlBarBlurSignal);
+
+    const autofocusInput = document.querySelector('#autofocus-input');
+    this.textInput.value = autofocusInput.value;
+    this.textInput.focus();
   }
 
   componentWillReceiveProps(nextProps) {

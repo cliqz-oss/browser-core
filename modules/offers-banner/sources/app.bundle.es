@@ -7,6 +7,7 @@ import telemetry from '../core/services/telemetry';
 import config from '../core/config';
 import prefs from '../core/prefs';
 import Defer from '../core/helpers/defer';
+import inject from '../core/kord/inject';
 import { ONBOARDING_URL, ONBOARDING_URL_DEBUG, OFFBOARDING_URL } from './common/constant';
 import { guessDistributionChannel } from './attribution';
 
@@ -48,6 +49,7 @@ const appCreated = new Defer();
       // for older users
       telemetry.push({
         type: 'environment.offers',
+        version: inject.app.version,
         channel: prefs.get('offers.distribution.channel',
           prefs.get('offers.distribution.referrer_url', '')),
         subchannel: prefs.get('offers.distribution.channel.sub',

@@ -36,9 +36,6 @@ if (env.BRANCH_NAME.startsWith('v3.')) {
     matrix['lumen-ios'] = [
         'config': 'lumen-ios.js',
     ]
-    matrix['cliqz-ios'] = [
-        'config': 'cliqz-ios.js',
-    ]
     matrix['user-agent-ios'] = [
         'config': 'user-agent-ios.js',
     ]
@@ -104,18 +101,6 @@ if (env.BRANCH_NAME.startsWith('v14.')) {
     ]
 }
 
-if (env.BRANCH_NAME.startsWith('v15.')) {
-    matrix['offers-freundin-firefox'] = [
-        'config': 'releases/offers-freundin-firefox.js',
-    ]
-}
-
-if (env.BRANCH_NAME.startsWith('v16.')) {
-    matrix['offers-incent-firefox'] = [
-        'config': 'releases/offers-incent-firefox.js',
-    ]
-}
-
 if (isIntegrationBranch) {
     matrix['browser'] = [
         'config': 'browser.js',
@@ -143,10 +128,6 @@ if (isIntegrationBranch) {
     // ]
     matrix['offers-nightly'] = [
         'config': 'offers.js',
-    ]
-
-    matrix['cliqz-ios'] = [
-        'config': 'cliqz-ios.js',
     ]
 
     matrix['user-agent-ios'] = [
@@ -417,7 +398,7 @@ try{
                 }
             }
         }
-    } 
+    }
 }
 catch (all) {
     echo 'FAILURE !!!'

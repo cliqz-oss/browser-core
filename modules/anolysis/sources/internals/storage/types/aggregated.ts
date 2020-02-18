@@ -18,11 +18,21 @@ export interface Entry {
 }
 
 /**
+ * Allow to specify how often a given analysis can be invoked.
+ */
+export type Granularity = 'day' | 'week' | 'month';
+
+/**
  * This storage is used to keep track of when each analysis was invoked. In
  * particular, it allows to only run each aggregation at most once per day.
  */
 export interface Storage {
-  runTaskAtMostOnce: (date: SafeDate, name: string, fn: () => Promise<void>) => Promise<void>;
+  runTaskAtMostOnce: (
+    date: SafeDate,
+    name: string,
+    fn: () => Promise<void>,
+    granularity: Granularity,
+  ) => Promise<void>;
   deleteOlderThan: (date: SafeDate) => Promise<void>;
 
   // NOTE: this is only used for unit testing purposes.

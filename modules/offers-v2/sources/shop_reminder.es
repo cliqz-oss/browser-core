@@ -19,6 +19,8 @@ class Model {
 
   offerId = '';
 
+  description = '';
+
   constructor(other = {}) { // copy-constructor
     Object.keys(other).forEach((key) => {
       if (other[key] !== undefined) { this[key] = other[key]; }
@@ -49,8 +51,8 @@ export default class ShopReminder {
     this.store = null;
   }
 
-  add(domain, offerId) {
-    this._save(domain, new Model({ offerId }));
+  add(domain, offerId, description) {
+    this._save(domain, new Model({ offerId, description }));
   }
 
   receive(domain, action) {

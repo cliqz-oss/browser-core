@@ -30,7 +30,7 @@ export function resize() {
 
 /** **************************************************************** */
 
-const ALLOWED_PRODUCTS = ['chip', 'freundin', 'cliqz', 'amo', 'ghostery'];
+const ALLOWED_PRODUCTS = ['chip', 'cliqz', 'amo', 'ghostery'];
 export function chooseProduct(products = {}) {
   return ALLOWED_PRODUCTS.find(product => products[product]) || 'myoffrz';
 }

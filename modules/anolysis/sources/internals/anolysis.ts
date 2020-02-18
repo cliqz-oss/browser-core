@@ -156,6 +156,11 @@ export default class Anolysis {
     }
   }
 
+  public unregister(schema: Schema) {
+    logger.debug('unregister new schema', schema);
+    this.availableDefinitions.delete(schema.name);
+  }
+
   public async onNewDay(date: SafeDate): Promise<void> {
     if (this.currentDate.isSameDay(date) === false) {
       logger.log(
@@ -254,7 +259,7 @@ export default class Anolysis {
     // not need any behavior information (see comment above)
     // 2. Or we are interested in behavior/metrics from the past (offset > 0).
     for (const [name, schema] of this.availableDefinitions.entries()) {
-      const { generate } = schema;
+      const { generate, rate = 'day' } = schema;
 
       // Check that `schema` should run for the current day offset. For offset
       // 0, we usually only run tasks which will emit metrics or "instant"
@@ -281,6 +286,7 @@ export default class Anolysis {
                 ),
               );
             },
+            rate,
           );
         } catch (ex) {
           logger.log('Could not generate signals for analysis:', name, ex);

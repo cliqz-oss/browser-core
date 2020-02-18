@@ -80,4 +80,5 @@ export default [
   ccMetric('autoconsent_switch', { states: ['inactive', 'active', 'off_all'] }),
   ccMetric('autoconsent_deny', { states: BOOL_STATES }),
   ccMetric('autoconsent_off_select', { states: ['critical'] }),
+  ccMetric('https_switch', { states: BOOL_STATES }),
 ];

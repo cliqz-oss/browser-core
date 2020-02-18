@@ -17,8 +17,12 @@ import { indicesHistogramToArray } from '../../helpers';
  */
 export default {
   name: 'news-pagination',
-  needsGid: true,
-  version: 1,
+  sendToBackend: {
+    version: 1,
+    demographics: [
+      'product',
+    ],
+  },
   generate: ({ records }) => {
     const paginationSignals = records.get('freshtab.home.click.news_pagination');
 

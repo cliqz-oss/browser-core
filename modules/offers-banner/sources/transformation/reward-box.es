@@ -114,8 +114,6 @@ function popupWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs }) {
       ...commonData(),
       vouchers: [offer],
       showExpandButton: false,
-      popupsImage: prefs.get('offers-popup.image', 'with-image'),
-      popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
     }
   };
   return [true, payload];
@@ -135,8 +133,6 @@ function tooltipWrapper(offerId, {
         ...commonData(),
         vouchers: [popup(uiInfo, { offerId, expirationMs, createdTs, attrs })],
         showExpandButton: false,
-        popupsImage: prefs.get('offers-popup.image', 'with-image'),
-        popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
       },
     },
     offerId,
@@ -199,8 +195,6 @@ export function transformMany({ offers = [] } = {}) {
       vouchers: newOffers,
       noVoucher: newOffers.length === 0,
       showExpandButton: false,
-      popupsImage: prefs.get('offers-popup.image', 'with-image'),
-      popupsCopyCode: prefs.get('offers-popup.copy-code', 'current'),
     }
   };
 }

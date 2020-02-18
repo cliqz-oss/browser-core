@@ -89,6 +89,9 @@
     "freshtab_app_settings_search_label": {
         "message": "Поиск"
     },
+    "freshtab_app_settings_statistics_reset": {
+        "message": "Сбросить всё"
+    },
     "freshtab_app_speed_dial_add": {
         "message": "Add"
     },

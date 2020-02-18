@@ -18,11 +18,12 @@ module.exports = (base, cdn = 'cdn') => ({
   ENDPOINT_ANONPATTERNSURL: `https://${cdn}.${base}/human-web/patterns-anon`,
   ENDPOINT_HPNV2_DIRECT: `https://collector-hpn.${base}`, // hpnv2/sources/endpoints.es
   ENDPOINT_HPNV2_ANONYMOUS: `https://collector-hpn.${base}`, // hpnv2/sources/endpoints.es
-  ENDPOINT_HUMAN_WEB_PATTERNS: `https://${cdn}.${base}/human-web/hw-patterns`,
+  ENDPOINT_HUMAN_WEB_PATTERNS: `https://${cdn}.${base}/human-web/hw-patterns.gz`,
   ENDPOINT_PATTERNSURL: `https://${cdn}.${base}/human-web/patterns`,
   ENDPOINT_SAFE_QUORUM_ENDPOINT: `https://safe-browsing-quorum.privacy.${base}/`,
   ENDPOINT_SAFE_QUORUM_PROVIDER: `https://safe-browsing-quorum.privacy.${base}/config`,
   FEEDBACK: `https://${base}/feedback/`, // core/sources/utils.es
+  FRESHTAB_REDIRECT: `https://${base}/fresh-tab`,
   // not used as URL, but as key to signal to ambassor to fetch news
   HB_NEWS: `hb-news.${base}`, // freshtab/sources/news.es, history/sources/rich-header-proxy.es
   OFFERS_BE_BASE_URL: `https://offers-api.${base}`,

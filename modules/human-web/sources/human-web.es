@@ -32,7 +32,6 @@ import Worker from '../platform/worker';
 import { toUTF8 } from '../core/encoding';
 import pacemaker from '../core/services/pacemaker';
 import SafebrowsingEndpoint from './safebrowsing-endpoint';
-import { isBetaVersion } from '../platform/platform';
 
 /*
 Configuration for Bloomfilter
@@ -113,7 +112,9 @@ const CliqzHumanWeb = {
     },
 
     patternsLoader: (() => {
-      if (isBetaVersion) {
+      // enable the new loader by default
+      // (TODO: once it is out on all channels, remove the obsolete loader code.)
+      if (true) {
         return new HumanWebPatternsLoader(config.settings.ENDPOINT_HUMAN_WEB_PATTERNS, (content) => {
           try {
             const { normal, strict } = JSON.parse(content);

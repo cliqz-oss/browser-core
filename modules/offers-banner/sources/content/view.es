@@ -1,9 +1,16 @@
 import { afterIframeRemoved } from './sites-specific';
 import { createElement } from './utils';
+
 import * as styles from './styles/index';
 
-const WAIT_BEFORE_SHOWING = 50;
 const DEBUG = false;
+const WAIT_BEFORE_SHOW = {
+  'offers-cc': 200,
+  'browser-panel': 200,
+  'offers-reminder': 350,
+  'offers-checkout': 200,
+};
+const WAIT_BEFORE_SHOW_DEFAULT = 50;
 
 export default class View {
   constructor({ onaction, window, config }) {
@@ -25,11 +32,6 @@ export default class View {
   }
 
   makeVisible() {
-    const waitMapper = {
-      'offers-cc': 200,
-      'browser-panel': 200,
-      'offers-reminder': 350,
-    };
     setTimeout(() => {
       const isBrowserPanel = this.config.type === 'browser-panel';
       this.wrapper.style.opacity = 1;
@@ -39,12 +41,12 @@ export default class View {
         this.onaction({ handler: 'offersFirstAppearance', data: {} });
       }
       styles.animate(this.config.type, this.wrapper, this.config.styles);
-    }, waitMapper[this.config.type] || WAIT_BEFORE_SHOWING);
+    }, WAIT_BEFORE_SHOW[this.config.type] || WAIT_BEFORE_SHOW_DEFAULT);
   }
 
-  resize({ width, height }) {
-    this.iframe.style.height = `${height}px`;
-    this.iframe.style.width = `${width}px`;
+  resize({ width, height, suffix = 'px' }) {
+    this.iframe.style.height = `${height}${suffix}`;
+    this.iframe.style.width = `${width}${suffix}`;
   }
 
   changePositionWithAnimation({ deltaRight = 0, duration }) {
@@ -59,11 +61,21 @@ export default class View {
     this.wrapper.style.right = `${right + deltaRight}px`;
   }
 
+  restyle(data = {}) {
+    Object.assign(this.wrapper.style, styles.wrapper(this.config.type, data));
+    Object.assign(this.iframe.style, styles.banner(this.config.type, data));
+    setTimeout(() => {
+      this.wrapper.style.opacity = 1;
+      this.iframe.style.opacity = 1;
+    }, WAIT_BEFORE_SHOW[this.config.type] || WAIT_BEFORE_SHOW_DEFAULT);
+  }
+
   sendToIframe(payload) {
     const mapper = {
       'offers-cc': ['cliqz-offers-cc', 'pushData'],
       'browser-panel': ['cqz-browser-panel-re', 'render_template'],
       'offers-reminder': ['cliqz-offers-reminder', 'pushData'],
+      'offers-checkout': ['cliqz-offers-checkout', 'pushData'],
     };
     const [target, action] = mapper[this.config.type] || ['cliqz-offers-cc', 'pushData'];
     this.iframe.contentWindow.postMessage(JSON.stringify({

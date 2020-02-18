@@ -21,8 +21,12 @@ import { NEWS_EDITIONS } from '../../metrics';
  */
 export default {
   name: 'news-snippets',
-  needsGid: true,
-  version: 1,
+  sendToBackend: {
+    version: 1,
+    demographics: [
+      'product',
+    ],
+  },
   generate: ({ records }) => {
     const histogram = new DefaultMap(() => new Counter());
     [

@@ -89,13 +89,13 @@ export default background({
   geolocation: inject.service('geolocation', ['setLocationPermission']),
 
   requiresServices: ['geolocation', 'telemetry', 'pacemaker'],
-
+  telemetrySchemas: [
+    ...metrics,
+    ...analyses,
+  ],
 
   init(settings) {
-    telemetry.register([
-      ...metrics,
-      ...analyses,
-    ]);
+    telemetry.register(this.telemetrySchemas);
     this.settings = settings;
     this.ICONS = settings.ICONS;
     this.intervals = new IntervalManager();
@@ -108,6 +108,7 @@ export default background({
   },
 
   unload() {
+    telemetry.unregister(this.telemetrySchemas);
     if (this.pageAction) {
       this.pageAction.shutdown();
     }

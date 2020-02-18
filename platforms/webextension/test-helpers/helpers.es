@@ -103,9 +103,6 @@ export function queryHTML(url, ...rest) {
 }
 
 export function queryComputedStyle(url, ...rest) {
-  if (url.startsWith(browser.runtime.getURL(''))) {
-    return chromeQueryComputedStyle(url, ...rest);
-  }
   return contentQueryComputedStyle(url, ...rest);
 }
 

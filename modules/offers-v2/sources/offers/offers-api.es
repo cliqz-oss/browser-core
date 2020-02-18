@@ -72,19 +72,20 @@ export default class OffersAPI {
    *
    * @method pushOffer
    * @param {Offer} offer
-   * @param {object} newDisplayRule
-   *   If the displayRule is different than the one the offer
-   *   currently has
-   * @param {string} origin
-   *   will be the origin who is calling this method.
-   * @param {OfferMatchTraits} matchTraits
+   * @param {PushOfferOptions} opts
+   * an object with the following optional properties:
+   *   * {object?} displayRule
+   *   when defined, overrides the offer's own display rule
+   *   * {string?} originId
+   *   ID of caller, defaults to `ORIGIN_ID`
+   *   * {OfferMatchTraits?} matchTraits
    *   Reason why to push the offer
+   *   * {object?} offerData
+   *   `offer_data` to publish in `push-offer` message
+   *    instead of default from `offer`
    * @returns {boolean} true on success
    */
-  //
-  //
-  pushOffer(offer, newDisplayRule = null, originIDin = null, matchTraits = null) {
-    const originID = originIDin || ORIGIN_ID;
+  pushOffer(offer, opts = {}) {
     if (!offer || !offer.isValid()) {
       logger.warn('pushOffer: invalid offer or missing fields');
       return false;
@@ -95,6 +96,14 @@ export default class OffersAPI {
       logger.warn('Failed to createOrUpdateDB');
       return false;
     }
+
+    const {
+      displayRule = offer.ruleInfo,
+      originID = ORIGIN_ID,
+      matchTraits,
+      offerData = offer.offerObj
+    } = opts;
+
     if (matchTraits && !this.offersDB.addReasonForHaving(offer.uniqueID, matchTraits)) {
       logger.warn('Failed to addReasonForHaving');
       return false;
@@ -133,15 +142,13 @@ export default class OffersAPI {
     }
 
     // broadcast the message
-    const displayRule = newDisplayRule || offer.ruleInfo;
-
     const isCodeHidden = true;
     this.offersDB.addOfferAttribute(offer.uniqueID, 'isCodeHidden', isCodeHidden);
     const offerMeta = this.offersDB.getOfferMeta(offer.uniqueID) || {};
     const msgData = {
       offer_id: offer.uniqueID,
       display_rule: displayRule,
-      offer_data: offer.offerObj,
+      offer_data: offerData,
       createdTs: offerMeta.c_ts,
       attrs: {
         isCodeHidden,
@@ -241,7 +248,7 @@ export default class OffersAPI {
 
   /* eslint-disable camelcase */
   _transformRawOffer({ offer_id, offer, created, last_update }) {
-  /* eslint-enable camelcase */
+    /* eslint-enable camelcase */
     // sync fill `dataurl` fields with an image or fallback
     // async download an image and update `dataurl` fields
     const tpl = offer.ui_info.template_data;
@@ -318,7 +325,7 @@ export default class OffersAPI {
       // already exists
       return false;
     }
-    return this.pushOffer(new Offer(args.data), null, args.origin);
+    return this.pushOffer(new Offer(args.data), { originID: args.origin });
   }
 
   /**

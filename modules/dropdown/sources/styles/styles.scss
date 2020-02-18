@@ -12,15 +12,10 @@ html, body {
     background-color: white;
 }
 
-html {
-    overflow-x: hidden;
-}
-
 body {
     display: table;
     width: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: auto;
 }
 
 $light-gray: #f2f2f2;
@@ -40,7 +35,6 @@ $basic-line-height: (16 / 14) + 0em;
 #cliqz-dropdown {
     font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: normal;
-    width: 100vw;
     position: relative;
 
     @import 'results/sessions';
@@ -68,7 +62,6 @@ $basic-line-height: (16 / 14) + 0em;
 
     font-size: $basic-font-size;
     line-height: $basic-line-height;
-    position: relative;
     color: black;
 
     overflow-y: auto;
@@ -305,11 +298,12 @@ $basic-line-height: (16 / 14) + 0em;
         }
 
         .abstract {
-            float: left;
             margin-left: 10px;
-            width: 90%;
-            overflow: hidden;
+            width: 90vw;
             display: inline-flex;
+            float: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
 
             & > div {
                 float: left;
@@ -383,7 +377,7 @@ $basic-line-height: (16 / 14) + 0em;
                 .duration {
                     position: absolute;
                     bottom: 0;
-                    right: 10px;
+                    right: 0;
                     font-size: 9px;
                     color: #fff;
                     background-color: rgba(0, 0, 0, 0.6);
@@ -944,7 +938,7 @@ $basic-line-height: (16 / 14) + 0em;
             }
 
             & > .abstract {
-                max-width: calc(90% - var(--content-padding-start));
+                max-width: calc(95vw - var(--content-padding-start) - 19px);
             }
         }
     }

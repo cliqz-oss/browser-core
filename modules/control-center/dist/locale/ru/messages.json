@@ -35,6 +35,9 @@
     "control_center_autoconsent_off": {
         "message": "Dialogs will not be hidden"
     },
+    "control_center_autofocus": {
+        "message": "Focus search on fresh tab"
+    },
     "control_center_backend_country": {
         "message": "Результаты поиска для"
     },

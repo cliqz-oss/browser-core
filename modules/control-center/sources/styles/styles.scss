@@ -294,6 +294,7 @@ svg.arrow {
 
             .row-text {
                 max-width: 250px;
+                font-size: 14px;
 
                 .description {
                     cursor: pointer;
@@ -312,8 +313,6 @@ svg.arrow {
         }
 
         .description {
-            font-size: 14px;
-
             &.privacy-desc {
                 margin-left: 10px;
                 margin-top: 5px;
@@ -964,7 +963,7 @@ svg.arrow {
     transition: height linear 0.15s;
     &.open.settings {
         // exact height not auto, so as to allow height transition
-        height: 206px;
+        height: 234px;
     }
     &.open.offrz {
         // exact height not auto, so as to allow height transition
@@ -1122,7 +1121,6 @@ svg.arrow {
 }
 
 .cqz-switch {
-    display: table-cell;
     height: 20px;
     padding-left: 30px;
     margin-bottom: 5px;
@@ -1273,7 +1271,6 @@ svg.arrow {
 }
 
 .cqz-switch-box {
-    float: left;
     margin: -2px 0 -2px -30px;
     position: relative;
     display: inline-block;

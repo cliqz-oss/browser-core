@@ -35,12 +35,18 @@ module.exports = {
     OFFBOARDING_URL: 'https://myoffrz.com/off-boarding/',
     SHOW_ONBOARDING_OVERLAY: true,
     THROTTLE_OFFER_APPEARANCE_MODE: 'PER_DOMAIN',
+    telemetry: {
+      demographics: {
+        brand: 'myoffrz',
+      },
+    },
   }),
   versionPrefix: '11',
   default_prefs: {
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,
     'modules.offers-reminder.enabled': false,
+    'modules.offers-checkout.enabled': false,
     'dynamic-offers.enabled': true,
   },
   modules: [
@@ -56,8 +62,8 @@ module.exports = {
     'offers-banner',
     'offers-cc',
     'offers-reminder',
+    'offers-checkout',
     'offers-v2',
-    'popup-notification',
     'onboarding-overlay',
   ],
   bundles: [
@@ -72,6 +78,7 @@ module.exports = {
     'offers-cc/offers-cc.bundle.js',
     'offers-cc/offers-cc-after.bundle.js',
     'offers-reminder/offers-reminder.bundle.js',
+    'offers-checkout/offers-checkout.bundle.js',
     'onboarding-overlay/app.bundle.js',
   ],
   builderDefault: Object.assign({}, base.builderConfig, {

@@ -29,7 +29,7 @@
 
 .footer__logo {
   cursor: pointer;
-  background: url('../images/freundin-powered-by.svg') no-repeat center;
+  background: url('../images/powered-by.svg') no-repeat center;
   background-size: contain;
   width: 72px;
   height: 21px;
