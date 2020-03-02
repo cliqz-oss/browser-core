@@ -1503,8 +1503,14 @@ const CliqzHumanWeb = {
             if (activeURL.indexOf('about:')!=1) {
 
                 if (CliqzHumanWeb.state['v'][activeURL] == null) {
-
-                    if (CliqzHumanWeb.contentExtractor.isSearchEngineUrl(activeURL)) {
+                    const cliqzQuery = CliqzHumanWeb.contentExtractor.tryExtractCliqzSerpQuery(activeURL);
+                    if (cliqzQuery) {
+                      CliqzHumanWeb.queryCache[activeURL] = {
+                        d: 0,
+                        q: cliqzQuery,
+                        t: 'cl',
+                      };
+                    } else if (CliqzHumanWeb.contentExtractor.isSearchEngineUrl(activeURL)) {
                         pacemaker.setTimeout(function(url, originalURL) {
                           if (!CliqzHumanWeb) {
                             return;

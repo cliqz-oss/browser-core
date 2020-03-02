@@ -602,4 +602,8 @@ export class ContentExtractor {
     }
     this._messageTemplate = {};
   }
+
+  tryExtractCliqzSerpQuery(url) {
+    return url.startsWith('https://beta.cliqz.com/search?') && parse(url).searchParams.get('q');
+  }
 }
