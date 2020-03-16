@@ -185,6 +185,18 @@
     "freshtab_history_button": {
         "message": "History"
     },
+    "freshtab_humanweb_consent_accept_btn": {
+        "message": "Enable search and send data"
+    },
+    "freshtab_humanweb_consent_deny_btn": {
+        "message": "Disable search and do not send data"
+    },
+    "freshtab_humanweb_consent_description": {
+        "message": "Quick search allows you to search anonymously. For this, Cliqz Tab needs to send some anonymous data. But it never sends any data that could be used to identify users. You can see what data is sent in our <a href='https://cliqz.com/privacy-browser' target='_blank'>privacy policy</a>."
+    },
+    "freshtab_humanweb_consent_heading": {
+        "message": "Enable anonymous quick search?"
+    },
     "freshtab_stats_ads_blocked": {
         "message": "Ads Blocked"
     },

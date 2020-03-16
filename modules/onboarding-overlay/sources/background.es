@@ -72,5 +72,8 @@ export default background({
         prefs.set('humanWebOptOut', humanWebOptOut);
       }
     },
+    markConsentBoxShown() {
+      prefs.set('consentDialogShown', true);
+    }
   }
 });

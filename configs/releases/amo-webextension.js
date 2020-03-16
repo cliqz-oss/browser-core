@@ -32,7 +32,7 @@ module.exports = {
   }),
   default_prefs: {
     'freshtab.search.mode': 'search',
-    'freshtab.search.autofocus': true,
+    'freshtab.search.autofocus': false,
     'modules.anolysis.enabled': false,
     'modules.browser-panel.enabled': false,
     'modules.offers-cc.enabled': false,

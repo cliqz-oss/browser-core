@@ -462,6 +462,15 @@ class App extends React.Component {
     cliqz.freshtab.saveMessageDismission({ id: 'tooltip-settings' });
   }
 
+  isHumanWebActive = async (consent) => {
+    // Use this function to get humanweb status
+    // as well as update consent.
+    if (consent) {
+      return cliqz.freshtab.setHumanWeb(consent);
+    }
+    return cliqz.freshtab.isHumanWebEnabled();
+  }
+
   render() {
     const {
       config: freshtabConfig,
@@ -520,6 +529,8 @@ class App extends React.Component {
                         product={freshtabConfig.product}
                         ref={(c) => { this.urlbarElem = c; }}
                         results={this.state.results}
+                        isHumanWebActive={this.isHumanWebActive}
+                        isAMO={freshtabConfig.isAMO}
                         showOverlay={this.showOverlay}
                         toggleComponent={this.toggleComponent}
                         visible={visibleComponents.includes('search')}

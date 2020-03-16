@@ -185,6 +185,18 @@
     "freshtab_history_button": {
         "message": "Historique"
     },
+    "freshtab_humanweb_consent_accept_btn": {
+        "message": "Activer la recherche<br />et transmettre des données"
+    },
+    "freshtab_humanweb_consent_deny_btn": {
+        "message": "Désactiver la recherche<br /et ne pas transmettre de données"
+    },
+    "freshtab_humanweb_consent_description": {
+        "message": "La recherche rapide vous permet d’effectuer des recherches de manière anonyme. Pour cela, Cliqz-Tab est amené à transmettre des données anonymes. Mais il n’envoie jamais de données qui pourraient être utilisées pour identifier ses utilisateurs. Vous pouvez voir quelles données sont envoyées dans notre <a href='https://cliqz.com/privacy-browser' target='_blank'>politique de confidentialité</a>."
+    },
+    "freshtab_humanweb_consent_heading": {
+        "message": "Activer la fonction de recherche rapide anonyme"
+    },
     "freshtab_stats_ads_blocked": {
         "message": "Publicités bloquées"
     },

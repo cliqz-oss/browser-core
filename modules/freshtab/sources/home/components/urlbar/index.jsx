@@ -105,6 +105,18 @@ class Urlbar extends React.Component {
     ev.stopPropagation();
   }
 
+  blur = () => {
+    this.textInput.blur();
+  }
+
+  focus = () => {
+    this.textInput.focus();
+  }
+
+  setDisable = (mode) => {
+    this.textInput.disabled = mode;
+  }
+
   handleDrop = (ev) => {
     const dTypes = ev.dataTransfer.types;
     if (dTypes && dTypes.includes('text/plain')) {

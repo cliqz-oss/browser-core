@@ -9,7 +9,7 @@
 import events from '../core/events';
 import App from '../core/app';
 import config from '../core/config';
-import sleep from '../core/helpers/sleep';
+import { isAMO } from '../core/platform';
 
 const CLIQZ = {};
 
@@ -17,10 +17,7 @@ async function onboarding(details) {
   if (details.reason === 'install' && config.settings.channel !== '99'
     && config.settings.SHOW_ONBOARDING_OVERLAY) {
     await CLIQZ.app.ready();
-    chrome.tabs.create({}, async ({ id }) => {
-      await sleep(2000);
-      events.pub('lifecycle:onboarding', { tabId: id });
-    });
+    chrome.tabs.create({});
   }
 }
 
@@ -29,7 +26,24 @@ CLIQZ.app = new App({
 });
 window.CLIQZ = CLIQZ;
 
-CLIQZ.app.start();
+CLIQZ.app
+  .start()
+  .then(() => {
+    if (isAMO) {
+      const prefs = CLIQZ.app.prefs;
+
+      if (prefs.get('humanWebOptOut') === undefined) {
+        // default state for HumanWeb should be off
+        // for all the users which did not interact with
+        // the consent dialog in the past
+        prefs.set('humanWebOptOut', true);
+      } else {
+        // we do not re-ask for consent for users which
+        // already stated their desire
+        prefs.set('consentDialogShown', true);
+      }
+    }
+  });
 
 window.addEventListener('unload', () => {
   CLIQZ.app.stop();

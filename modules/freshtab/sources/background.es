@@ -20,6 +20,7 @@ import background from '../core/base/background';
 import { queryTabs, reloadTab, getTabsWithUrl } from '../core/tabs';
 import {
   getResourceUrl,
+  isAMO,
   isCliqzBrowser,
   isChromium,
   product,
@@ -671,6 +672,8 @@ export default background({
         isUserOnboarded: this.isUserOnboarded(),
         onboardingVersion: this.onboardingVersion(),
         tooltip: this.tooltip,
+        showConsentDialog: isAMO && !prefs.get('consentDialogShown', false),
+        isAMO,
       };
     },
 
@@ -728,6 +731,15 @@ export default background({
     getComponentsState() {
       return this.getComponentsState();
     },
+
+    isHumanWebEnabled() {
+      return !prefs.get('humanWebOptOut', true);
+    },
+
+    setHumanWeb(consent) {
+      prefs.set('humanWebOptOut', !consent);
+      return consent;
+    }
   },
 
   events: {

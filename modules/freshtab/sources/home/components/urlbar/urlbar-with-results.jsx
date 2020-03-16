@@ -13,6 +13,7 @@ import SearchSettings from './search-settings';
 import cliqz from '../../cliqz';
 import FreshtabDropdownManager from '../../../../dropdown/managers/freshtab';
 import Button from '../partials/button';
+import HumanWebPopup from '../overlayPopup';
 
 export default class UrlbarWithResults extends Urlbar {
   constructor(props) {
@@ -28,6 +29,7 @@ export default class UrlbarWithResults extends Urlbar {
       isSearchSettingsOpen: false,
       iframeHeight: 0,
       isOverlayOpen: false,
+      isHumanWebPopupOpen: false
     };
   }
 
@@ -120,7 +122,30 @@ export default class UrlbarWithResults extends Urlbar {
     });
   }
 
+  humanWebActionHandler = async (consent) => {
+    if (consent) {
+      await this.props.isHumanWebActive(true);
+      this.focus();
+    } else {
+      this.blur();
+    }
+    // in any case enable the inputbox and close the popup
+    this.setDisable(false);
+    this.setState({ isHumanWebPopupOpen: false });
+  }
+
+  handleHumaWebConsent = async () => {
+    const isHumanWebActive = await this.props.isHumanWebActive();
+    // disable the input when popup is open
+    // so as to avoid any tab events
+    if (!isHumanWebActive) this.setDisable(true);
+    this.setState({
+      isHumanWebPopupOpen: !isHumanWebActive
+    });
+  }
+
   handleFocus = async (ev) => {
+    this.handleHumaWebConsent();
     await this.createIframe();
     this.setState({
       focused: true,
@@ -166,9 +191,14 @@ export default class UrlbarWithResults extends Urlbar {
   }
 
   render() {
+    const { isHumanWebPopupOpen } = this.state;
+    const { isAMO } = this.props;
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
       <div>
+        {
+          isAMO && isHumanWebPopupOpen && <HumanWebPopup handleClick={this.humanWebActionHandler} />
+        }
         <Overlay
           isOpen={this.state.isOverlayOpen}
           onClick={this.closeAll}

@@ -48,13 +48,13 @@
         "message": "Du kannst diese Einstellungen jederzeit im Add-on ändern."
     },
     "onboarding_cliqz_subtitle": {
-        "message": "Vielen Dank, dass Du Cliqz Tab für Firefox<br />heruntergeladen hast!"
+        "message": "Vielen Dank, dass Du <br />Cliqz Tab für Firefox nutzt!"
     },
     "onboarding_cliqz_telemetry": {
         "message": "Anonyme Nutzungsdaten senden"
     },
     "onboarding_cliqz_title": {
-        "message": "Cliqz Tab ist installiert!"
+        "message": "Willkommen bei Cliqz Tab!"
     },
 
 
