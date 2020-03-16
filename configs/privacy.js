@@ -27,7 +27,6 @@ module.exports = {
     ...urls,
     channel: 'MA60',
     MSGCHANNEL: 'web-extension',
-    OFFERS_CHANNEL: 'ghostery',
     ATTRACK_TELEMETRY_PROVIDER: 'hpnv2',
     ADBLOCKER_PLATFORM: 'desktop',
     HW_CHANNEL: 'ghostery',

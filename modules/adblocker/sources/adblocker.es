@@ -7,6 +7,7 @@
  */
 
 import AdblockerLib from '../platform/lib/adblocker';
+import { browser } from '../platform/globals';
 
 import { ifModuleEnabled } from '../core/kord/inject';
 import UrlWhitelist from '../core/url-whitelist';
@@ -222,11 +223,14 @@ export default class Adblocker {
       // There is currently only one kind of filters which are supported:
       // ##^script:has-text(...) which allows to remove script tags if a
       // substring or RegExp is found within.
-      this.manager.engine.performHTMLFiltering(makeRequestFromContext(
-        context.url,
-        context.urlParts,
-        context,
-      ));
+      this.manager.engine.performHTMLFiltering(
+        browser,
+        makeRequestFromContext(
+          context.url,
+          context.urlParts,
+          context,
+        ),
+      );
 
       return false;
     }

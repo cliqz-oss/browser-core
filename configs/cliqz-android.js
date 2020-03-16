@@ -42,7 +42,6 @@ module.exports = {
     attrackForceBlock: true,
     'cliqz-adb': 0,
     'cliqz-adb-disk-cache': false,
-    'modules.pairing.enabled': false,
     attrackTelemetryMode: 0,
   },
   modules: [
@@ -52,10 +51,6 @@ module.exports = {
     'webrequest-pipeline',
     'antitracking',
     'adblocker',
-    'p2p',
-    'pairing',
-    'mobile-pairing',
-    'mobile-cards',
     'video-downloader',
     'anolysis',
     'geolocation',
@@ -63,9 +58,6 @@ module.exports = {
   ],
   bundles: [
   ],
-  react_components: {
-    ExtensionApp: './modules/mobile-cards/cliqz-ios/ExtensionApp'
-  },
   resources: {
     bundling: 'assets',
     include: [

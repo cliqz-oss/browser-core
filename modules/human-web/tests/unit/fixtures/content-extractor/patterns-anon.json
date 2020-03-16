@@ -1,9 +1,10 @@
 {
   "urlPatterns": [
-    "\\.google\\..*?[#?&;]((q=[^&]+&tbm=isch)|(tbm=isch&([^&]+&)*q=[^&]+))",
+    "\\.google\\..*?[#?&;]((q=[^&]+&([^&]+&)*tbm=isch)|(tbm=isch&([^&]+&)*q=[^&]+))",
     "\\.google\\..*?[#?&;]q=[^$&]+",
     ".search.yahoo\\..*?[#?&;][pq]=[^$&]+",
     ".linkedin.*?\\/pub\\/dir+",
+    "\\.bing\\.[^/]+\\/images/search[?]q=[^$&]+",
     "\\.bing\\..*?[#?&;]q=[^$&]+",
     "\\.amazon\\.[^/]+\\/(s[?]k=[^$&]+|.*[?&]field-keywords=[^$&]+)"
   ],
@@ -12,13 +13,13 @@
     "1",
     "2",
     "4",
-    "5"
+    "5",
+    "6"
   ],
   "scrape": {
     "0": {
-      "#searchform": {
+      "form[action=\"/search\"] > input:first-child[name=\"q\"]": {
         "q": {
-          "item": "form input[name=\"q\"]",
           "type": "searchQuery",
           "etype": "value",
           "keyName": "q"
@@ -45,30 +46,36 @@
           "keyName": "ctry"
         }
       },
-      "div.rg_bx > div.rg_meta.notranslate": {
+      "body > table:nth-child(7)[style=\"margin-top:10px\"] > tbody > tr > td": {
         "u": {
-          "type": "json",
-          "etype": "textContent",
+          "item": "a",
+          "type": "arr",
+          "etype": "href",
           "keyName": "u",
           "functionsApplied": [
             [
-              "json",
-              "ou",
-              false
+              "splitF",
+              "/url?q=",
+              1
+            ],
+            [
+              "splitF",
+              "&sa=",
+              0
             ]
           ]
         },
         "ru": {
-          "type": "json",
+          "item": "a+font > font[color=\"green\"]",
+          "type": "arr",
           "etype": "textContent",
-          "keyName": "img",
-          "functionsApplied": [
-            [
-              "json",
-              "ru",
-              false
-            ]
-          ]
+          "keyName": "ru"
+        },
+        "t": {
+          "item": "a+font",
+          "type": "arr",
+          "etype": "textContent",
+          "keyName": "t"
         }
       }
     },
@@ -375,7 +382,8 @@
           "etype": "id",
           "keyName": "type",
           "functionsApplied": [
-            ["splitF",
+            [
+              "splitF",
              "lu_",
              1
             ]
@@ -396,14 +404,21 @@
           "keyName": "addr"
         }
       },
-      "#imagebox_bigimages g-img > img": {
+      "#search g-scrolling-carousel img[id^='dimg_']": {
         "u": {
           "type": "arr",
           "etype": "title",
           "keyName": "u"
         }
       },
-      "#rhs_block": {
+      "div.bkWMgd g-section-with-header #iur img[id^='dimg_']": {
+        "u": {
+          "type": "arr",
+          "etype": "title",
+          "keyName": "u"
+        }
+      },
+      "#rhs div.knowledge-panel": {
         "t": {
           "item": "div[data-attrid=\"title\"] > span",
           "type": "arr",
@@ -506,6 +521,78 @@
     },
     "3": {},
     "4": {
+      "div[role=\"main\"] div.imgpt > a": {
+        "t": {
+          "type": "json",
+          "etype": "m",
+          "type": "array",
+          "keyName": "t",
+          "functionsApplied": [
+            [
+              "json",
+              "t",
+              false
+            ]
+          ]
+        },
+        "u": {
+          "type": "json",
+          "etype": "m",
+          "type": "array",
+          "keyName": "ru",
+          "functionsApplied": [
+            [
+              "json",
+              "murl",
+              false
+            ]
+          ]
+        },
+        "ru": {
+          "type": "json",
+          "etype": "m",
+          "type": "array",
+          "keyName": "ru",
+          "functionsApplied": [
+            [
+              "json",
+              "purl",
+              false
+            ]
+          ]
+        }
+      },
+      "#sb_form": {
+        "q": {
+          "item": "#sb_form_q",
+          "type": "searchQuery",
+          "etype": "value",
+          "keyName": "query"
+        }
+      },
+      "qurl": {
+        "qurl": {
+          "type": "standard",
+          "etype": "url",
+          "keyName": "qurl",
+          "functionsApplied": [
+            [
+              "maskU",
+              false,
+              false
+            ]
+          ]
+        }
+      },
+      "ctry": {
+        "ctry": {
+          "type": "standard",
+          "etype": "ctry",
+          "keyName": "ctry"
+        }
+      }
+    },
+    "5": {
       ".b_algo": {
         "t": {
           "item": "h2 [href]",
@@ -557,7 +644,7 @@
         }
       }
     },
-    "5": {
+    "6": {
       "#search-main-wrapper": {
         "q": {
           "item": "form > input[name=\"keywords\"]",
@@ -661,13 +748,13 @@
   },
   "payloads": {
     "0": {
-      "#searchform": {
+      "form[action=\"/search\"] > input:first-child[name=\"q\"]": {
         "type": "query",
         "results": "clustered",
         "action": "img",
         "fields": [
           [
-            "#searchform",
+            "form[action=\"/search\"] > input:first-child[name=\"q\"]",
             "q"
           ],
           [
@@ -675,7 +762,7 @@
             "qurl"
           ],
           [
-            "div.rg_bx > div.rg_meta.notranslate",
+            "body > table:nth-child(7)[style=\"margin-top:10px\"] > tbody > tr > td",
             "r",
             "join"
           ],
@@ -985,29 +1072,6 @@
       "#lu_map": {
         "type": "query",
         "results": "clustered",
-        "action": "item",
-        "fields": [
-          [
-            ".med #search",
-            "q"
-          ],
-          [
-            "#main",
-            "item"
-          ],
-          [
-            "qurl",
-            "qurl"
-          ],
-          [
-            "ctry",
-            "ctry"
-          ]
-        ]
-      },
-      "#lu_map": {
-        "type": "query",
-        "results": "clustered",
         "action": "places2",
         "fields": [
           [
@@ -1044,25 +1108,25 @@
           ]
         ]
       },
-      "#rhs_block": {
+      "#rhs div.knowledge-panel": {
         "type": "query",
         "results": "clustered",
         "action": "place",
         "fields": [
           [
-            "#rhs_block",
+            "#rhs div.knowledge-panel",
             "t"
           ],
           [
-            "#rhs_block",
+            "#rhs div.knowledge-panel",
             "u"
           ],
           [
-            "#rhs_block",
+            "#rhs div.knowledge-panel",
             "addr"
           ],
           [
-            "#rhs_block",
+            "#rhs div.knowledge-panel",
             "loc"
           ],
           [
@@ -1071,7 +1135,7 @@
           ]
         ]
       },
-      "#imagebox_bigimages g-img > img": {
+      "#search g-scrolling-carousel img[id^='dimg_']": {
         "type": "query",
         "results": "clustered",
         "action": "img-p",
@@ -1085,7 +1149,31 @@
             "qurl"
           ],
           [
-            "#imagebox_bigimages g-img > img",
+            "#search g-scrolling-carousel img[id^='dimg_']",
+            "r",
+            "join"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      },
+      "div.bkWMgd g-section-with-header #iur img[id^='dimg_']": {
+        "type": "query",
+        "results": "clustered",
+        "action": "img-p",
+        "fields": [
+          [
+            ".med #search",
+            "q"
+          ],
+          [
+            "qurl",
+            "qurl"
+          ],
+          [
+            "div.bkWMgd g-section-with-header #iur img[id^='dimg_']",
             "r",
             "join"
           ],
@@ -1124,6 +1212,32 @@
     },
     "3": {},
     "4": {
+      "div[role=\"main\"] div.imgpt > a": {
+        "type": "query",
+        "results": "clustered",
+        "action": "img",
+        "fields": [
+          [
+            "div[role=\"main\"] div.imgpt > a",
+            "r",
+            "join"
+          ],
+          [
+            "#sb_form",
+            "q"
+          ],
+          [
+            "qurl",
+            "qurl"
+          ],
+          [
+            "ctry",
+            "ctry"
+          ]
+        ]
+      }
+    },
+    "5": {
       ".b_algo": {
         "type": "query",
         "results": "clustered",
@@ -1149,7 +1263,7 @@
         ]
       }
     },
-    "5": {
+    "6": {
       "li[id^='result_']": {
         "type": "query",
         "results": "clustered",
@@ -1202,9 +1316,12 @@
   },
   "queryTemplate": {
     "0": {
-      "prefix": "search?tbm=isch&q="
+      "prefix": "search?tbm=isch&gbv=1&q="
     },
-    "5": {
+    "4": {
+      "prefix": "images/search?q="
+    },
+    "6": {
       "prefix": "s/?field-keywords="
     }
   },
@@ -1213,7 +1330,8 @@
     "1": "go",
     "2": "ya",
     "3": "lnkd",
-    "4": "bing",
-    "5": "am"
+    "4": "bingi",
+    "5": "bing",
+    "6": "am"
   }
 }

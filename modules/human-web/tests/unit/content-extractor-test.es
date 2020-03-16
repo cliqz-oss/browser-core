@@ -292,6 +292,36 @@ export default describeModule('human-web/content-extractor',
           });
         });
       });
+
+      describe('#tryExtractCliqzSerpQuery', function () {
+        const expectNotFound = (url) => {
+          if (uut.tryExtractCliqzSerpQuery(url)) {
+            chai.assert.fail(`Expected not to find a query on url=${url}`);
+          }
+        };
+
+        it('should find search terms on beta.cliqz.com', function () {
+          expect(uut.tryExtractCliqzSerpQuery(
+            'https://beta.cliqz.com/search?lang=en&country=us&safe_search=on&q=harzer%20k%C3%A4se&news_edition=intl'
+          )).to.equal('harzer käse');
+
+          expect(uut.tryExtractCliqzSerpQuery(
+            'https://beta.cliqz.com/search?q=m%C3%BCnchen&lang=en&country=de#channel=website'
+          )).to.equal('münchen');
+        });
+
+        it('should not find false positives', function () {
+          [
+            'https://beta.cliqz.com/',
+            'https://example.test/?q=test',
+          ].forEach(expectNotFound);
+        });
+
+        it('should ignore broken URLs', function () {
+          expectNotFound('');
+          expectNotFound('no valid URL');
+        });
+      });
     });
 
     describe('parseQueryString', function () {

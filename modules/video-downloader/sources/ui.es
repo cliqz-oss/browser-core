@@ -20,45 +20,22 @@ const UI_TOUR_PREF = 'videoDownloaderUITourDismissed';
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 export default class UI {
-  constructor(PeerComm) {
-    this.PeerComm = PeerComm;
-
+  constructor() {
     this.actions = {
       checkForVideoLink: this.checkForVideoLink.bind(this),
-      sendToMobile: this.sendToMobile.bind(this),
       download: this.download.bind(this),
       hideButton: this.hideButton.bind(this),
-      openConnectPage: this.openConnectPage.bind(this),
     };
-
-    this.onPaired = this.onPaired.bind(this);
   }
 
   init() {
     CliqzEvents.sub('core.location_change', this.actions.checkForVideoLink);
     CliqzEvents.sub('core.tab_state_change', this.actions.checkForVideoLink);
-    CliqzEvents.sub('pairing.onPairingDone', this.onPaired);
   }
 
   unload() {
     CliqzEvents.un_sub('core.tab_state_change', this.actions.checkForVideoLink);
     CliqzEvents.un_sub('core.location_change', this.actions.checkForVideoLink);
-    CliqzEvents.un_sub('pairing.onPairingDone', this.onPaired);
-  }
-
-  onPaired() {
-    /* TODO
-    this.sendMessageToPopup({
-      action: 'pushData',
-      data: {
-        hidePairingIframe: true,
-      },
-    });
-    */
-  }
-
-  openConnectPage() {
-    this.openPage('about:preferences#connect');
   }
 
   openPage(url) {
@@ -81,13 +58,6 @@ export default class UI {
     setTimeout(() => {
       this.showVDUITour();
     }, 1000);
-  }
-
-  sendToMobile({ format }) {
-    prefs.set('videoDownloaderOptions', JSON.stringify({
-      platform: 'mobile',
-      quality: format
-    }));
   }
 
   cleanUrl(url) {
@@ -113,9 +83,6 @@ export default class UI {
     hideUITour();
 
     const url = this.cleanUrl(originalUrl);
-    if (this.PeerComm) {
-      await this.PeerComm.waitInit();
-    }
     try {
       const formats = await getVideoInfo(url);
       if (formats.length > 0) {
@@ -128,14 +95,10 @@ export default class UI {
           format.name.toLowerCase().replace(' ', '_') === options.quality) || formats[0];
         desiredFormat.selected = true;
 
-        const result = {
-          isConnectPreferred: options.platform === 'mobile',
-          pairingAvailable: !!this.PeerComm,
-          isPaired: this.PeerComm && this.PeerComm.isPaired,
+        return {
           formats,
           origin: encodeURI(originalUrl)
         };
-        return result;
       }
 
       return { unSupportedFormat: true };

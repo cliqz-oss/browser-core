@@ -47,7 +47,7 @@ const URLS = [
   // url with known protocol
   'ftp://ftp.mozilla.org/pub/firefox/',
   'file:///etc/passwd',
-  'chrome://cliqz/content/pairing/index.html',
+  'chrome://cliqz/content/adblocker/index.html',
   'moz-extension://f4091876df6a5d39e6690b7395a95399/index.html',
   'about:blank',
   'mailto:Cliqz <info@cliqz.com>',

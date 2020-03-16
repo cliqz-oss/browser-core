@@ -39,7 +39,7 @@ function activateCategory(bg, category) {
     bg.categoryHandler._acquireBuildResources();
   }
   bg.categoryHandler.addCategory(catObj);
-  bg.categoryHandler.build();
+  bg.categoryHandler.build(new Map([[cat.name, cat.patterns]]));
   catObj.hit();
 }
 

@@ -15,7 +15,8 @@ import OffersGeneralStats from './offers-general-stats';
 import OfferStatus from './offers-status';
 import OffersAPI from './offers-api';
 import OfferDBObserver from './offers-db-observer';
-import Offer, { NOTIF_TYPE_DOT } from './offer';
+import Offer, { NOTIF_TYPE_TOOLTIP } from './offer';
+import OfferCollection, { getGroupKey } from './offer-collection';
 import IntentOffersHandler from './intent-offers-handler';
 import OffersMonitorHandler from './offers-monitoring';
 import ActionID from './actions-defs';
@@ -23,7 +24,6 @@ import Blacklist from './blacklist';
 import OffersToPageRelationStats from './relation-stats/offers-to-page';
 import chooseBestOffer from './best-offer';
 import { OfferMatchTraits } from '../categories/category-match';
-import { ImageDownloaderForPush } from './image-downloader';
 import { getDynamicContent } from './dynamic-offer';
 
 import IntentGatherer from './jobs/intent-gather';
@@ -65,6 +65,18 @@ async function executeJobList(jobList, ctx) {
 const shouldWeShowAnyOffer = offersGeneralStats =>
   config.settings.channel === '99'
     || (offersGeneralStats.offersAddedToday() < OffersConfigs.MAX_NUM_OFFERS_PER_DAY);
+
+/**
+ * note: `O(n*m)` complexity, where `n` and `m` are the sizes of both input arrays
+ * @template {E}
+ * @param {Array<E>} uniques
+ * @param {Array<E>} elements
+ * @returns {Array<E>} a concatenation of the given `uniques` array
+ * and the items from the `elements` array not included in the former.
+ */
+const concatExcludingDuplicates = (uniques, elements = []) => uniques.concat(
+  elements.filter(element => !uniques.includes(element))
+);
 
 // /////////////////////////////////////////////////////////////////////////////
 /**
@@ -115,11 +127,9 @@ export default class OffersHandler {
     categoryHandler,
     offersDB,
     chipdeHandler,
-    offersImageDownloader = new ImageDownloaderForPush(),
   }) {
     this.intentHandler = intentHandler;
     this.offersDB = offersDB;
-    this.offersImageDownloader = offersImageDownloader;
     this.offersDBObserver = new OfferDBObserver(this.offersDB);
     this.offersGeneralStats = new OffersGeneralStats(this.offersDB);
     this.offersMonitorHandler = new OffersMonitorHandler(sigHandler, this.offersDB, eventHandler);
@@ -242,6 +252,25 @@ export default class OffersHandler {
     this.offersToPageRelationStats.invalidateCache();
   }
 
+  /**
+   * @typedef {object} RelevanceMarkedGroupedOffer
+   * @prop {OfferData} offer_data
+   * @prop {string} offer_id
+   * @prop {string} group
+   * @prop {string} created_ts
+   * @prop {object} attrs
+   * @prop {string|null} attrs.state
+   * @prop {boolean} attrs.isCodeHidden
+   * @prop {Array<string>} attrs.landing monitor pattern list
+   * @prop {string} last_update_ts
+   * @prop {boolean} relevant
+   */
+  /**
+   * @param {{ filters: {[name: string]: any } }} filters
+   * @param {{ catMatches?: CategoriesMatchTraits, urlData?: UrlData }} [opts={}]
+   * @return {Array<RelevanceMarkedGroupedOffer>}
+   * list of [`RelevanceMarkedGroupedOffer`]{@link RelevanceMarkedGroupedOffer}
+   */
   getStoredOffersWithMarkRelevant(filters, { catMatches, urlData } = {}) {
     if (!this.offersAPI) { return []; }
     const offers = this.offersAPI.getStoredOffers(filters);
@@ -249,7 +278,15 @@ export default class OffersHandler {
     const offersForStats = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
     const stats = this.offersToPageRelationStats.stats(offersForStats, catMatches, urlData);
     const relevant = stats.related.concat(stats.owned);
-    return offers.map(o => ({ ...o, relevant: relevant.includes(o.offer_id) }));
+    return offers.map(({ offer_info: offerInfo, ...rest }) => {
+      const offer = new Offer(offerInfo);
+      return {
+        ...rest,
+        offer_data: offerInfo,
+        relevant: relevant.includes(offer.uniqueID),
+        group: getGroupKey(offer)
+      };
+    });
   }
 
   updateIntentOffers() {
@@ -286,10 +323,12 @@ export default class OffersHandler {
   }
 
   /**
-   * this method will be called whenever an offer is accepted to be sent to the
-   * real estate
+   * push a single offer to its real-estates, or push a collection of offers to the reward-box.
    *
-   * @param {Offer} offer
+   * prerequisite:
+   * offer or offer collection must have been fully triaged for publication beforehand.
+   *
+   * @param {OfferCollection} offerCollection
    * @param {UrlData} urlData
    * @param {CategoriesMatchTraits} catMatches
    * @param {PushOffersToRealEstatesOptions?} opts object with the following optional property:
@@ -297,22 +336,33 @@ export default class OffersHandler {
    *   `offer_data` to publish instead of that from `offer`
    * @return {Promise<Boolean>} resolves to `true` on success
    */
-  _pushOffersToRealEstatesWrapped(offer, urlData, catMatches, { offerData } = {}) {
+  _pushOffersToRealEstatesWrapped(offerCollection, urlData, catMatches, { offerData } = {}) {
     const url = urlData.getRawUrl();
 
+    const bestOffer = offerCollection.getBestOffer();
     const displayRule = {
       type: 'exact_match',
       url: [url],
-      display_time_secs: offer.ruleInfo.display_time_secs,
+      display_time_secs: bestOffer.ruleInfo.display_time_secs,
     };
 
+    const offers = offerCollection.getOffers();
     const matchTraits = new OfferMatchTraits(
       catMatches,
-      offer.categories,
+      offers.map(offer => offer.categories).reduce(concatExcludingDuplicates, []), // O(n^2)
       urlData.getDomain() || ''
     );
 
-    const result = this.offersAPI.pushOffer(offer, { displayRule, matchTraits, offerData });
+    const result = offerCollection.hasMultipleEntries()
+      ? this.offersAPI.pushOfferCollection(
+        offerCollection,
+        REWARD_BOX_REAL_ESTATE_TYPE,
+        { displayRule, matchTraits }
+      )
+      : this.offersAPI.pushOffer(
+        bestOffer,
+        { displayRule, matchTraits, offerData }
+      );
 
     return Promise.resolve(result);
   }
@@ -323,21 +373,30 @@ export default class OffersHandler {
    * i.e. that has bypassed the global blacklist
    * (see soft-filters/shouldTriggerOnAdvertiser).
    *
-   * @param {Offer} offer
+   * @param {OfferCollection} offerCollection
    * @param {UrlData} urlData
    * @param {CategoriesMatchTraits} catMatches
    * @return {Promise<Boolean>} resolves to `true` on success
    */
-  _pushOffersToRealEstates(offer, urlData, catMatches) {
-    const url = urlData.getRawUrl();
-    const offerData = shouldTriggerOnAdvertiser(offer, url)
-      && offer.getDataObjectWithNotifType(NOTIF_TYPE_DOT);
+  _pushOffersToRealEstates(offerCollection, urlData, catMatches) {
+    if (offerCollection.hasMultipleEntries()) {
+      return this._pushOffersToRealEstatesWrapped(offerCollection, urlData, catMatches);
+    }
+    // only push a single offer: handle trigger-on-advertiser
+    const offer = offerCollection.getBestOffer();
+    const offerData = shouldTriggerOnAdvertiser(offer, urlData)
+      ? offer.getDataObjectWithNotifType(offer.getTriggerOnAdvertiserNotifType())
+      : null;
     const opts = offerData ? { offerData } : {};
 
-    return this._pushOffersToRealEstatesWrapped(offer, urlData, catMatches, opts);
+    return this._pushOffersToRealEstatesWrapped(offerCollection, urlData, catMatches, opts);
   }
 
-  async _updateOffers() {
+  /**
+   * @param {UrlData} urlData
+   * @return {Promise<Array<Offer>>} resolves to an up-to-date list of relevant offers
+   */
+  async _updateOffers(urlData) {
     if (this.intentOffersHandler.thereIsNewData()) {
       await this.intentOffersHandler.updateIntentOffers();
     }
@@ -345,7 +404,8 @@ export default class OffersHandler {
     const jobContext = {
       ...this.context,
       offersHandler: this,
-      offerIsFilteredOutCb: this._onOfferIsFilteredOut.bind(this)
+      offerIsFilteredOutCb: this._onOfferIsFilteredOut.bind(this),
+      urlData
     };
 
     return executeJobList(this.jobsPipeline, jobContext);
@@ -361,94 +421,152 @@ export default class OffersHandler {
     return ret;
   }
 
+  /**
+   * wrapper for {@link OffersHandler#_selectAndProcessPushableOffers}.
+   * if any, sends a notification for an unread offer
+   * before calling {@link OffersHandler#_selectAndProcessPushableOffers}.
+   * if the latter did not push any offers and there is an unread offer,
+   * pushes it to a tooltip.
+   * @param {UrlChangeEventPayload}
+   * @return {Promise<Boolean>} resolves to `true` when the most relevant offer was selected,
+   * processed and pushed. `false` otherwise.
+   */
   async _processEventWrapped({ urlData, catMatches }) {
     // notification about unread offers is required in any case
     const unreminderedOfferId = this._notifyAboutUnreadOffers(catMatches, urlData);
-    const wasChosen = await this._chooseBestOfferIfCan(catMatches, urlData);
+    const wasChosen = await this._selectAndProcessPushableOffersIfAny(catMatches, urlData);
     if (!wasChosen && unreminderedOfferId) {
       this._showTooltip(unreminderedOfferId, urlData);
     }
     return wasChosen;
   }
 
-  async _chooseBestOfferIfCan(catMatches, urlData) {
+  /**
+   * select the most relevant pushable offer, and if any, preload images into it,
+   * then push it to its real-estates and update domain-based throttling accordingly.
+   *
+   * @param {CategoriesMatchTraits} catMatches
+   * @param {UrlData} urlData
+   * @return {Promise<Boolean>} resolves to `true` when the most relevant offer was selected,
+   * processed and pushed. `false` otherwise.
+   */
+  async _selectAndProcessPushableOffersIfAny(catMatches, urlData) {
+    const collection = await this._getOfferCollection(catMatches, urlData);
+    if (collection.isEmpty()) {
+      return false;
+    }
+
+    await this._pushOffersToRealEstates(collection, urlData, catMatches);
+
+    this._updateDomainBasedThrottling(collection, urlData);
+
+    return true;
+  }
+
+  /**
+   * if ok to display offers, generate an up-to-date collection of relevant offers
+   * based on the given match traits and url,
+   * then select which of these should be displayed, and signal any not selected.
+   * @param {CategoriesMatchTraits} catMatches
+   * @param {UrlData} urlData
+   * @return {Promise<OfferCollection>} resolves to an `OfferCollection`
+   * of relevant offers if any:
+   * * empty when no offers should be displayed
+   * * a single offer when only the most relevant offer should be displayed
+   * * more than one offer when a collection of offers should be displayed.
+   */
+  async _getOfferCollection(catMatches, urlData) {
     logger.debug('Offers handler processing a new event', urlData.getRawUrl());
 
     if (!shouldWeShowAnyOffer(this.offersGeneralStats)) {
       logger.debug('we should not show any offer now');
-      return false;
+      return new OfferCollection();
     }
-    this.context.urlData = urlData;
 
-    const offers = await this._updateOffers();
-    if (!offers) {
-      return false;
+    const offers = await this._updateOffers(urlData);
+    if (!offers || !offers.length) {
+      return new OfferCollection();
     }
-    let bestOffer = this._chooseBestOffer(offers, catMatches);
+
+    const targetedNotSilentOffers = offers.filter(
+      offer => offer.isTargetedAndNotSilent()
+    );
+    let bestOffer = this._chooseBestOffer(
+      // choose best offer from targeted non-silent offers if any
+      targetedNotSilentOffers.length ? targetedNotSilentOffers : offers,
+      catMatches
+    );
     if (!bestOffer) {
-      return false;
+      return new OfferCollection();
     }
+
+    // get dynamic content for best offer
     if (prefs.get('dynamic-offers.enabled', false)) {
       bestOffer = await getDynamicContent(bestOffer, urlData, catMatches);
     }
-    await this._preloadImages(bestOffer);
-    await this._pushOffersToRealEstates(bestOffer, urlData, catMatches);
-    this.throttlePushRewardsBoxFilter.onTriggerOffer(bestOffer, urlData.getDomain());
-    return true;
+
+    // select pushable offers: collection starting with best offer
+    const rewardBoxOffers = !config.settings.ENABLE_OFFER_COLLECTIONS
+      ? [bestOffer]
+      : offers.filter(
+        offer => offer.destinationRealEstates.includes(REWARD_BOX_REAL_ESTATE_TYPE)
+          && !shouldTriggerOnAdvertiser(offer, urlData)
+      );
+    const shouldPushCollection = config.settings.ENABLE_OFFER_COLLECTIONS
+      && rewardBoxOffers.includes(bestOffer);
+
+    const pushableOffers = shouldPushCollection ? rewardBoxOffers : [bestOffer];
+    const offerCollection = new OfferCollection(pushableOffers, bestOffer);
+
+    // signal excluded offers
+    const isExcludedOffer = offer => !offerCollection.has(offer.uniqueID);
+    offers.filter(isExcludedOffer).forEach(
+      offer => this._onOfferIsFilteredOut(offer, ActionID.AID_OFFER_FILTERED_COMPETE)
+    );
+
+    return offerCollection;
   }
 
-  // sync
+  /**
+   * wrapper for {@link module:best-offer.chooseBestOffer}
+   *
+   * @param {Array<Offer>} offers
+   * @param {CategoriesMatchTraits} catMatches
+   * @return {Offer|false} best offer if any, `false` otherwise
+   */
   _chooseBestOffer(offers, catMatches) {
-    //
-    // Prepare calculations
-    //
-    if (!offers.length) {
-      return false;
-    }
     const getOfferDisplayCount = o => this.offersDB.getPushCount(o.uniqueID);
 
-    //
-    // Make the choice
-    //
     const [bestOffer, score] = chooseBestOffer(offers, catMatches, getOfferDisplayCount);
-    if (!(bestOffer && score)) {
+    const hasBestOffer = bestOffer && score;
+    if (!hasBestOffer) {
       return false;
     }
     logger.debug(`Offer selected with score ${score}:`, bestOffer.uniqueID);
-    //
-    // Notify backend
-    //
-    offers.forEach((offer) => {
-      if (offer !== bestOffer) {
-        this._onOfferIsFilteredOut(offer, ActionID.AID_OFFER_FILTERED_COMPETE);
-      }
-    });
+
     return bestOffer;
   }
 
-  //
-  // Two side effects at once:
-  //
-  // - The callback with `setSmthDataurl` can be called twice.
-  //   It happens if an image is successfully downloaded after timeout.
-  //
-  // - If the offer is already in `OffersDB`, then `offer` is an object
-  //   from the database.
-  //   Therefore, `setSmthDataurl` changes the content of `OffersDB`.
-  //
-  async _preloadImages(offer) {
-    const logo = this.offersImageDownloader.downloadWithinTimeLimit(
-      offer.getLogoUrl(),
-      offer.getLogoDataurl(),
-      dataurl => offer.setLogoDataurl(dataurl),
-    );
-    const picture = this.offersImageDownloader.downloadWithinTimeLimit(
-      offer.getPictureUrl(),
-      offer.getPictureDataurl(),
-      dataurl => offer.setPictureDataurl(dataurl),
-    );
 
-    await Promise.all([logo, picture]);
+  /**
+   * update domain-based throttling
+   * @param {OfferCollection} offerCollection
+   * @param {UrlData} urlData
+   * @return {void}
+   */
+  _updateDomainBasedThrottling(offerCollection, urlData) {
+    if (offerCollection.isEmpty()) {
+      return;
+    }
+    const host = urlData.getDomain();
+    if (offerCollection.hasMultipleEntries()) {
+      // offer collections are pushed to the reward-box: ok to force timer reset for host
+      this.throttlePushRewardsBoxFilter.resetTimer(host);
+      return;
+    }
+    // single offer is best offer
+    const offer = offerCollection.getBestOffer();
+    this.throttlePushRewardsBoxFilter.onTriggerOffer(offer, host);
   }
 
   _offersDBCallback(message) {
@@ -516,12 +634,15 @@ export default class OffersHandler {
     const offer = this.getOfferObject(offerId);
     if (!offer) { return; }
     const { ui_info: uiInfo = {} } = offer;
-    const newuiInfo = { ...uiInfo, notif_type: 'tooltip' };
+    const newuiInfo = { ...uiInfo, notif_type: NOTIF_TYPE_TOOLTIP };
     // pushOffer will not update the notif_type in the OffersDB because
     // this offer is from OffersDB and its `version` is unchanged
     this.offersAPI.pushOffer(
       new Offer({ ...offer, ui_info: newuiInfo }),
-      { displayRule: { url: [urlData.getRawUrl()] } }
+      {
+        displayRule: { url: [urlData.getRawUrl()] },
+        disableCollection: true
+      }
     );
   }
 }

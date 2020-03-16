@@ -19,7 +19,7 @@
       "128": "assets/{{PRODUCT_PREFIX}}-icon128.png"
     },
     "default_title": "{{PRODUCT_TITLE}}",
-    "default_popup": "modules/offers-cc/index.html?popup#{{PRODUCT_PREFIX}}"
+    "default_popup": "modules/offers-templates/control-center.html?popup#{{PRODUCT_PREFIX}}"
   },
   "permissions": [
     "<all_urls>",
@@ -64,9 +64,9 @@
   ],
   "web_accessible_resources": [
     "modules/browser-panel/index.html",
-    "modules/offers-cc/index.html",
-    "modules/offers-reminder/index.html",
-    "modules/offers-checkout/index.html",
+    "modules/offers-templates/reminder.html",
+    "modules/offers-templates/checkout.html",
+    "modules/offers-templates/control-center.html",
     "modules/onboarding-overlay/index.html"
   ]
 }

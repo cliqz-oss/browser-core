@@ -126,7 +126,7 @@
         "message": "Anti-Phishing"
     },
     "control_center_info_share_location": {
-        "message": "Die relevantesten Suchergebnisse werden gezeigt, wenn \"Standort teilen\" auf <strong>\"Immer\"</strong> eingestellt ist. Die Standort-Daten dienen dabei nur der automatischen Verbesserung der Suchergebnisse und werden niemals anderweitig verwendet."
+        "message": "Die relevantesten Suchergebnisse werden gezeigt, wenn \"Standort teilen\" auf \"Immer\" eingestellt ist. Die Standort-Daten dienen dabei nur der automatischen Verbesserung der Suchergebnisse und werden niemals anderweitig verwendet."
     },
     "control_center_info_share_location_link": {
         "message": "Mehr erfahren"

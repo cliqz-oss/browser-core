@@ -6,62 +6,21 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global ChromeUtils,
-   addMessageListener, sendAsyncMessage,  windowTracker */
+/* global ChromeUtils */
 import Defer from '../../../core/helpers/defer';
 import LifeCycle from '../../../core/app/life-cycle';
 import BrowserDropdownManager from '../../../dropdown/managers/browser';
 import { PASSIVE_LISTENER_OPTIONS } from '../../../dropdown/managers/utils';
 import URLBar from './urlbar';
+import ExtensionGlobals from '../shared/extension-globals';
 
+const { ExtensionParent, Services, ExtensionUtils, windowTracker } = ExtensionGlobals;
 const { E10SUtils } = ChromeUtils.import('resource://gre/modules/E10SUtils.jsm');
-const { ExtensionParent } = ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
-const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
-const { ExtensionUtils } = ChromeUtils.import('resource://gre/modules/ExtensionUtils.jsm');
 const { promiseEvent } = ExtensionUtils;
 
 const STYLESHEET_URL = `modules/dropdown/styles/xul.css?${Date.now()}`;
 const DROPDOWN_URL = '/modules/dropdown/dropdown.html';
-
-/**
- * Frame script to be injected into <browser> hosting search results document. It:
- * 1. Forwards incoming `Dropdown:MessageIn` messages from `browser.messageManager`
- *    to the document with `postMessage`.
- * 2. Forwards outgoing messages sent from document with `postMessage` back
- *    through `browser.messageManager` as `Dropdown:MessageOut`.
- *
- * TODO: this tricky scheme probably should be replaced with normal extension messaging.
- */
-const frameScript = () => {
-  const incomingMessages = new Set();
-  let messageId = 1;
-
-  addMessageListener('Dropdown:MessageIn', {
-    receiveMessage({ data }) {
-      messageId += 1;
-      data.messageId = messageId; // eslint-disable-line
-      incomingMessages.add(data.messageId);
-      content.window.postMessage(data, '*'); // eslint-disable-line
-    },
-  });
-
-  // eslint-disable-next-line no-undef
-  addEventListener('message', (ev) => {
-    const message = ev.data;
-    try {
-      if (incomingMessages.delete(message.messageId)) {
-        // ignore own messages
-        return;
-      }
-    } catch (e) {
-      //
-    }
-
-    delete message.messageId;
-
-    sendAsyncMessage('Dropdown:MessageOut', message);
-  }, true, true);
-};
+const FRAME_SCRIPT_URL = '/modules/webextension-specific/experimental-apis/omnibox/frame-script.js';
 
 /**
  * Class implementing Cliqz Search (urlbar + dropdown). When initialized:
@@ -85,11 +44,13 @@ export default class Dropdown extends LifeCycle {
     this._windowId = windowId;
     this._extension = extension;
     this._placeholder = placeholder;
+    this._url = extension.baseURI.resolve(DROPDOWN_URL);
+    this._readyDefer = new Defer();
   }
 
   _init() {
     this._addStylesheet();
-    const ready = this._createToolbarAndBrowser();
+    this._createToolbarAndBrowser();
 
     const urlbar = new URLBar({
       window: this._window,
@@ -117,7 +78,7 @@ export default class Dropdown extends LifeCycle {
 
     // Calculate initial max height value
     this._updateMaxHeight();
-    return ready;
+    return this._readyDefer.promise;
   }
 
   _unload() {
@@ -150,9 +111,27 @@ export default class Dropdown extends LifeCycle {
       .forEach(stylesheet => stylesheet.remove());
   }
 
+  _setupBrowser(browser) {
+    const mm = browser.messageManager;
+    // Here we establish communication channel between browser contents and this API
+    // by injecting framescript bridging `browser.messageManager` and document's `postMessages`.
+    const script = this._extension.baseURI.resolve(FRAME_SCRIPT_URL);
+    mm.addMessageListener('Dropdown:MessageOut', this);
+    mm.addMessageListener('Dropdown:BrowserContentLoaded', this);
+    mm.loadFrameScript(script, false, true);
+
+    // Load search results document into the browser
+    try {
+      const triggeringPrincipal = this._extension.principal
+        || Services.scriptSecurityManager.createNullPrincipal({});
+      browser.loadURI(this._url, { triggeringPrincipal });
+    } catch (e) {
+      browser.loadURI(this._url);
+    }
+  }
+
   _createToolbarAndBrowser() {
     const document = this._window.document;
-    const readyDefer = new Defer();
 
     // Create <browser> element where search results document will be rendered
     // and make all the webextension APIs available in it.
@@ -193,14 +172,7 @@ export default class Dropdown extends LifeCycle {
       readyPromise = promiseEvent(browser, 'load');
     }
 
-    readyPromise.then(() => {
-      // Here we establish communication channel between browser contents and this API
-      // by injecting framescript bridging `browser.messageManager` and document's `postMessages`.
-      const script = `data:text/javascript,(${encodeURI(frameScript)}).call(this)`;
-      browser.messageManager.loadFrameScript(script, true, true);
-      browser.messageManager.addMessageListener('Dropdown:MessageOut', this);
-      readyDefer.resolve();
-    });
+    readyPromise.then(() => this._setupBrowser(browser));
 
     const parentElement = document.getElementById('navigator-toolbox');
     const navToolbar = document.getElementById('nav-bar');
@@ -228,23 +200,12 @@ export default class Dropdown extends LifeCycle {
 
     ExtensionParent.apiManager.emit('extension-browser-inserted', browser);
 
-    // Load search results document into the browser
-    const url = this._extension.baseURI.resolve(DROPDOWN_URL);
-    try {
-      const triggeringPrincipal = this._extension.principal
-        || Services.scriptSecurityManager.createNullPrincipal({});
-      browser.loadURI(url, { triggeringPrincipal });
-    } catch (e) {
-      browser.loadURI(url);
-    }
-
     this._browser = browser;
     this._cliqzToolbar = cliqzToolbar;
-
-    return readyDefer.promise;
   }
 
   _destroyToolbarAndBrowser() {
+    this._browser.messageManager.removeMessageListener('Dropdown:BrowserContentLoaded', this);
     this._browser.messageManager.removeMessageListener('Dropdown:MessageOut', this);
 
     const navToolbar = this._window.document.getElementById('nav-bar');
@@ -281,8 +242,13 @@ export default class Dropdown extends LifeCycle {
     }
   }
 
-  receiveMessage({ data }) {
-    return this.emit('message', data);
+  receiveMessage({ name, data }) {
+    if (name === 'Dropdown:BrowserContentLoaded' && data.url === this._url) {
+      this._readyDefer.resolve();
+    }
+    if (name === 'Dropdown:MessageOut') {
+      this.emit('message', data);
+    }
   }
 
   getCurrentTab() {

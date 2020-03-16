@@ -11,13 +11,18 @@
  *
  */
 import events from '../../core/events';
+import config from '../../core/config';
+import { isGhostery } from '../../core/platform';
 import logger from '../common/offers_v2_logger';
 import { LANDING_MONITOR_TYPE } from '../common/constant';
-import { ImageDownloaderForBatch } from './image-downloader';
 import ActionID from './actions-defs';
 import Offer from './offer';
+import OfferCollection, { isOfferCollection } from './offer-collection';
+
+const REWARD_BOX_REAL_ESTATE_TYPE = isGhostery ? 'ghostery' : 'offers-cc';
 
 const MessageType = {
+  MT_PUSH_COLLECTION: 'push-offer-collection',
   MT_PUSH_OFFER: 'push-offer',
   MT_REMOVE_OFFER: 'remove-offer',
   MT_OFFERS_STATE_CHANGED: 'offers-state-changed'
@@ -25,6 +30,9 @@ const MessageType = {
 
 // For history reasons we will keep the processor name here
 const ORIGIN_ID = 'processor';
+
+// coupon is always hidden by default
+const IS_CODE_HIDDEN = true;
 
 // /////////////////////////////////////////////////////////////////////////////
 export default class OffersAPI {
@@ -53,27 +61,33 @@ export default class OffersAPI {
 
     // signal handler
     this.sigHandler = sigHandler;
-    this.imageDownloader = new ImageDownloaderForBatch();
   }
 
   // /////////////////////////////////////////////////////////////////////////////
   // add / remove offers
 
   /**
-   * This method will push the offer to all the proper real estates.
-   * It takes an Offer (wrapper) object.
+   * Push the given offer to all its real estates.
+   * This is the entry point for every place where we will create an offer.
+   * Everyone who creates an offer should call this method.
    *
    * The main logic is as follow:
    * - Check offer validity
-   * - Add or update offer on the database.
+   * - Add or update (if version differs) offer on the database.
+   * - set campaign signals
    * - distribute to destination real estates.
+   *
+   * When supported by the platform (`ENABLE_OFFER_COLLECTIONS` setting),
+   * the offer is published as an offer collection with a single offer,
+   * unless overridden by the `opts.disableCollection` option.
    *
    * Prerequisite: offer filtering is already done.
    *
+   * @see {@link OffersAPI#_publishPushOfferMessage}
    * @method pushOffer
    * @param {Offer} offer
-   * @param {PushOfferOptions} opts
-   * an object with the following optional properties:
+   * @param {PushOfferOptions?} opts
+   * an optional object with the following optional properties:
    *   * {object?} displayRule
    *   when defined, overrides the offer's own display rule
    *   * {string?} originId
@@ -83,40 +97,241 @@ export default class OffersAPI {
    *   * {object?} offerData
    *   `offer_data` to publish in `push-offer` message
    *    instead of default from `offer`
+   *   * {boolean?} disableCollection
+   *   when `true`, do not publish the given `offer` as a collection,
+   *   regardless of platform `ENABLE_OFFER_COLLECTIONS` setting.
    * @returns {boolean} true on success
    */
-  pushOffer(offer, opts = {}) {
-    if (!offer || !offer.isValid()) {
-      logger.warn('pushOffer: invalid offer or missing fields');
-      return false;
-    }
-
-    const ok = this._createOrUpdateInDB(offer);
+  pushOffer(
+    offer,
+    { displayRule, originID = ORIGIN_ID, matchTraits, offerData, disableCollection = false } = {}
+  ) {
+    const ok = this._updateDbAndSetCampaignSignals(offer, originID, matchTraits);
     if (!ok) {
-      logger.warn('Failed to createOrUpdateDB');
+      logger.warn(`OffersAPI#pushOffer: failed to push offer ${JSON.stringify(offer)}`);
       return false;
     }
 
-    const {
-      displayRule = offer.ruleInfo,
-      originID = ORIGIN_ID,
-      matchTraits,
-      offerData = offer.offerObj
-    } = opts;
+    const offerToPublish = offerData ? new Offer(offerData) : offer;
+    const pushOfferAsCollection = !disableCollection && config.settings.ENABLE_OFFER_COLLECTIONS
+      && offer.destinationRealEstates.includes(REWARD_BOX_REAL_ESTATE_TYPE);
 
-    if (matchTraits && !this.offersDB.addReasonForHaving(offer.uniqueID, matchTraits)) {
-      logger.warn('Failed to addReasonForHaving');
+    if (pushOfferAsCollection) {
+      this._publishPushCollectionMessage(
+        new OfferCollection([offerToPublish]),
+        offer.destinationRealEstates,
+        { displayRule }
+      );
+    } else {
+      this._publishPushOfferMessage(offerToPublish, { displayRule });
+    }
+
+    return true;
+  }
+
+  /**
+   * Push the given offer collection to the given destination real-estates.
+   * Before publication, for all offers in the collection the offers database is updated
+   * and campaign signals are set.
+   * offers with `notif_type: silent` are subsequently excluded
+   * from the published offer collection message.
+   * if the resulting collection is empty, then the message is not published.
+   *
+   * @see {@link OffersAPI#pushOffer}
+   * @see {@link OffersAPI#_publishPushCollectionMessage}
+   * @param {OfferCollection} offerCollection
+   * @param {Array<string>} destRealEstates
+   * @param {PushCollectionOptions?} opts
+   * an optional object with the following optional properties:
+   *   * {object?} displayRule
+   *   when defined, overrides the offer's own display rule
+   *   * {string?} originId
+   *   ID of caller, defaults to `ORIGIN_ID`
+   *   * {OfferMatchTraits?} matchTraits
+   *   Reason why to push the offer collection
+   * @returns {boolean} true on success
+   */
+  pushOfferCollection(
+    offerCollection,
+    destRealEstates,
+    { displayRule, originID = ORIGIN_ID, matchTraits } = {}
+  ) {
+    if (!isOfferCollection(offerCollection) || !offerCollection.hasMultipleEntries()) {
+      logger.warn('OffersAPI#pushCollection: invalid collection');
+      return false;
+    }
+    const offers = offerCollection.getOffers();
+    const ok = offers.every(
+      offer => this._updateDbAndSetCampaignSignals(offer, originID, matchTraits)
+    );
+    if (!ok) {
+      logger.warn('OffersAPI#pushCollection: failed to push offers');
       return false;
     }
 
+    this._publishPushCollectionMessage(offerCollection, destRealEstates, { displayRule });
+
+    return true;
+  }
+
+  /**
+   * Publish a `push-offer` message for the given offer to its real-estates.
+   *
+   * @see {@link OffersAPI#_publishPushCollectionMessage}
+   * @param {Offer} offer
+   * @param {object?} opts
+   * an optional object with the following optional properties:
+   *   * {object?} displayRule
+   *   when defined, overrides the offer's own display rule
+   * @return {void}
+   */
+  _publishPushOfferMessage(offer, { displayRule }) {
+    const msgData = {
+      ...this._withAttributes(offer),
+      display_rule: displayRule || offer.ruleInfo,
+    };
+    this._publishMessage(
+      MessageType.MT_PUSH_OFFER,
+      offer.destinationRealEstates,
+      msgData
+    );
+  }
+
+  /**
+   * @typedef {object} GroupedOffersList
+   * @prop {OfferData} offer_data
+   * @prop {string} offer_id
+   * @prop {string} group
+   * @prop {string} created_ts
+   * @prop {object} attrs
+   * @prop {boolean} attrs.isCodeHidden
+   * @prop {Array<string>} attrs.landing monitor pattern list
+   */
+  /**
+   * Publish a `push-offer-collection` message for the given offer collection
+   * to the given real-estates.
+   * the offers collection is pushed as a [`GroupedOffersList`]{@link GroupedOffersList}.
+   * offers with `notif_type: silent` are excluded from the pushed offer collection.
+   * if the resulting collection is empty, then the message is not published.
+   *
+   * @param {OfferCollection} offerCollection
+   * @param {Array<string>} destRealEstates
+   * @param {object?} opts
+   * an optional object with the following optional properties:
+   *   * {object?} displayRule
+   *   when defined, overrides the offer's own display rule
+   * @return {void}
+   */
+  _publishPushCollectionMessage(offerCollection, destRealEstates, { displayRule }) {
+    if (offerCollection.isEmpty()) {
+      logger.warn('OffersAPI#_publishPushCollectionMessage: collection is empty');
+      return;
+    }
+    const bestOffer = offerCollection.getBestOffer();
+    const offers = [...offerCollection.values()]
+      .filter(({ offer }) => offer.isTargetedAndNotSilent())
+      .map(({ offer, group }) => ({
+        ...this._withAttributes(offer),
+        group
+      }));
+    if (!offers.length) {
+      logger.info(
+        'OffersAPI#_publishPushCollectionMessage:'
+        + 'collection consists only of silent or non-targeted offers, nothing to publish'
+      );
+      return;
+    }
+    if (!bestOffer.isTargetedAndNotSilent()) {
+      logger.warn(
+        'OffersAPI#_publishPushCollectionMessage:'
+        + 'best offer is silent or not targeted in collection including targeted non-silent offers'
+      );
+      return;
+    }
+    const msgData = {
+      display_rule: displayRule || bestOffer.ruleInfo,
+      offers
+    };
+    this._publishMessage(
+      MessageType.MT_PUSH_COLLECTION,
+      destRealEstates || bestOffer.destinationRealEstates,
+      msgData
+    );
+  }
+
+  /**
+   * @typedef {object} WrappedOffer
+   * @prop {OfferData} offer_data
+   * @prop {string} offer_id
+   * @prop {string} created_ts
+   * @prop {object} attrs
+   * @prop {boolean} attrs.isCodeHidden
+   * @prop {Array<string>} attrs.landing monitor pattern list
+   */
+  /**
+   * @param {Offer} offer
+   * @return {WrappedOffer} object
+   */
+  _withAttributes(offer) {
+    const offerID = offer.uniqueID;
+    return {
+      offer_id: offerID,
+      offer_data: offer.offerObj,
+      created_ts: this._getOfferMeta(offerID).c_ts,
+      attrs: {
+        isCodeHidden: IS_CODE_HIDDEN,
+        landing: offer.getMonitorPatterns(LANDING_MONITOR_TYPE),
+      }
+    };
+  }
+
+  /**
+   * @param {string} offerID
+   * @return {object} the offer meta data for the given `offerID`:
+   * * {}
+   */
+  _getOfferMeta(offerID) {
+    return this.offersDB.getOfferMeta(offerID) || {};
+  }
+
+  /**
+   * assert the given offer is valid, upsert the offer and related information
+   * in the offer database, and set campaign signals.
+   * @param {Offer} offer
+   * @param {string} originID ID of caller
+   * @param {OfferMatchTraits?} matchTraits reason for pushing the offer
+   * @return {boolean} true on success
+   */
+  _updateDbAndSetCampaignSignals(offer, originID, matchTraits) {
+    const isValidOffer = offer && offer.isValid();
+    if (!isValidOffer) {
+      logger.warn('OffersAPI#_updateDbAndSetCampaignSignals: invalid offer or missing fields');
+      return false;
+    }
+
+    const ok = this._upsertInDbWithReasonForHaving(offer, matchTraits);
+    if (!ok) {
+      return false;
+    }
+
+    this._setCampaignSignals(offer, originID);
+
+    this.offersDB.addOfferAttribute(offer.uniqueID, 'isCodeHidden', IS_CODE_HIDDEN);
+
+    return true;
+  }
+
+  /**
+   * set campaign signals for the given offer:
+   * triggered, pushed, and dynamic-offer if relevant
+   *
+   * @param {Offer} offer
+   * @param {string} originID ID of caller
+   * @return {void}
+   */
+  _setCampaignSignals(offer, originID) {
     // EX-7208: moving this offer_triggered signal here to ensure that
     // we could save the offer properly
-
-    // this is the entry point for every place where we will create an offer.
-    // Everyone who creates an offer should call this method.
-    // TODO: @salvador this is probably not needed anymore since pushed will
-    // always gonna happen if triggered (filtered is not happening here anymore)
-    //
     this.sigHandler.setCampaignSignal(
       offer.campaignID,
       offer.uniqueID,
@@ -124,7 +339,6 @@ export default class OffersAPI {
       ActionID.AID_OFFER_TRIGGERED
     );
 
-    // process offer pushed
     this.offersDB.incOfferAction(offer.uniqueID, ActionID.AID_OFFER_PUSHED);
     this.sigHandler.setCampaignSignal(
       offer.campaignID,
@@ -140,30 +354,29 @@ export default class OffersAPI {
         ActionID.AID_DYNAMIC_OFFER_PUSHED
       );
     }
-
-    // broadcast the message
-    const isCodeHidden = true;
-    this.offersDB.addOfferAttribute(offer.uniqueID, 'isCodeHidden', isCodeHidden);
-    const offerMeta = this.offersDB.getOfferMeta(offer.uniqueID) || {};
-    const msgData = {
-      offer_id: offer.uniqueID,
-      display_rule: displayRule,
-      offer_data: offerData,
-      createdTs: offerMeta.c_ts,
-      attrs: {
-        isCodeHidden,
-        landing: offer.getMonitorPatterns(LANDING_MONITOR_TYPE),
-      },
-    };
-    const realStatesDest = offer.destinationRealEstates;
-    this._publishMessage(MessageType.MT_PUSH_OFFER, realStatesDest, msgData);
-    return true;
   }
 
-  _createOrUpdateInDB(offer) {
-    return this.offersDB.hasOfferObject(offer.uniqueID)
+  /**
+   * upsert the given offer to the offerDB, together with the reason for pushing it.
+   *
+   * @param {Offer} offer
+   * @param {OfferMatchTraits?} matchTraits reason for pushing the offer
+   * @return {Boolean} `true` when the offer was successfully upserted to the DB,
+   * `false` otherwise
+   */
+  _upsertInDbWithReasonForHaving(offer, matchTraits) {
+    const upserted = this.offersDB.hasOfferObject(offer.uniqueID)
       ? this._updateInDB(offer)
       : this._createInDB(offer);
+    if (!upserted) {
+      return false;
+    }
+    const added = !matchTraits || this.offersDB.addReasonForHaving(offer.uniqueID, matchTraits);
+    if (!added) {
+      logger.warn('OffersAPI#_upsertInDbWithReasonForHaving: Failed to addReasonForHaving');
+      return false;
+    }
+    return true;
   }
 
   _updateInDB(offer) {
@@ -172,7 +385,7 @@ export default class OffersAPI {
     if (offer.version === dbOffer.version) { return true; }
     const ok = this.offersDB.updateOfferObject(offer.uniqueID, offer.offerObj);
     if (!ok) {
-      const msg = `pushOffer: Error updating the offer to the DB: ${offer.uniqueID}`;
+      const msg = `OffersAPI#_updateInDB: Error updating the offer to the DB: ${offer.uniqueID}`;
       logger.error(msg);
     }
     return ok;
@@ -181,7 +394,7 @@ export default class OffersAPI {
   _createInDB(offer) {
     const ok = this.offersDB.addOfferObject(offer.uniqueID, offer.offerObj);
     if (!ok) {
-      const msg = `pushOffer: Error adding the offer to the DB: ${offer.uniqueID}`;
+      const msg = `OffersAPI#_createInDB: Error adding the offer to the DB: ${offer.uniqueID}`;
       logger.error(msg);
     }
     return ok;
@@ -208,18 +421,6 @@ export default class OffersAPI {
    * </pre>
    * @return {[type]}      [description]
    *
-   * Downloading offer images:
-   *
-   * - Offer images should have been downloaded before offer-push.
-   *   An offer without images in OfferDB is an error path.
-   * - Image is already successfully downloaded if `dataurl` field
-   *   is indeed encoded as data url.
-   * - Otherwise, there was an error downloading image, and then
-   *   the field contains FALLBACK_IMAGE (from `image-downloader.es`)
-   * - In transition between extension versions, the field can be empty.
-   *   For the first moment, the image downloader uses `url` as a fallback
-   *   and then starts to download the image.
-   *
    */
   getStoredOffers(args) {
     const rawOffers = this.offersDB.getOffers();
@@ -242,28 +443,12 @@ export default class OffersAPI {
         })
         .map(o => this._transformRawOffer(o));
     }
-    this.imageDownloader.markBatch();
     return result;
   }
 
   /* eslint-disable camelcase */
   _transformRawOffer({ offer_id, offer, created, last_update }) {
     /* eslint-enable camelcase */
-    // sync fill `dataurl` fields with an image or fallback
-    // async download an image and update `dataurl` fields
-    const tpl = offer.ui_info.template_data;
-    if (tpl) { // Quicksearch offers are stored without `template_data`
-      this.imageDownloader.download(
-        tpl.logo_url,
-        tpl.logo_dataurl,
-        (dataurl) => { tpl.logo_dataurl = dataurl; }
-      );
-      this.imageDownloader.download(
-        tpl.picture_url,
-        tpl.picture_dataurl,
-        (dataurl) => { tpl.picture_dataurl = dataurl; }
-      );
-    }
     return {
       offer_info: offer,
       created_ts: created,

@@ -1,0 +1,71 @@
+.group-header__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0px -1px 0px 1px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 2px 9px 0px 14px;
+  background-color: #fff;
+  margin-top: -2px;
+}
+
+.group-header__left-item {
+  padding-top: 5px;
+  cursor: pointer;
+}
+
+.group-header__right-item {
+  display: flex;
+  align-items: center;
+}
+
+.group-header__affiliate-link {
+  text-transform: uppercase;
+  font-size: 8px;
+  color: silver;
+  text-align: right;
+}
+
+.group-header__title {
+  font-weight: 500;
+}
+
+.group-header__description {
+  font-size: 11.5px;
+  color: #B2B2B2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 142px;
+}
+
+.group-header__till-wrapper {
+  padding-right: 4px;
+}
+.group-header__till {
+  font-size: 11px;
+  color: silver;
+}
+.group-header__till-soon {
+  color: #FF3B30;
+}
+.group-header__till-left-some {
+  color: #F7B500;
+}
+.group-header__expired-icon {
+  background: url('../images/expired-grey.svg') no-repeat center;
+  background-size: contain;
+  width: 13px;
+  height: 13px;
+  margin-right: 4px;
+  margin-top: -1px;
+  align-self: baseline;
+}
+.group-header__expired-icon.group-header__till-soon-icon {
+  background: url('../images/expired-red.svg') no-repeat center;
+  background-size: contain;
+}
+.group-header__expired-icon.group-header__till-left-some-icon {
+  background: url('../images/expired-yellow.svg') no-repeat center;
+  background-size: contain;
+}

@@ -1,9 +1,10 @@
 {
   "urlPatterns": [
-    "\\.google\\..*?[#?&;]((q=[^&]+&tbm=isch)|(tbm=isch&([^&]+&)*q=[^&]+))",
+    "\\.google\\..*?[#?&;]((q=[^&]+&([^&]+&)*tbm=isch)|(tbm=isch&([^&]+&)*q=[^&]+))",
     "\\.google\\..*?[#?&;]q=[^$&]+",
     ".search.yahoo\\..*?[#?&;]p=[^$&]+",
     ".linkedin.*?\\/pub\\/dir+",
+    "\\.bing\\.[^/]+\\/images/search[?]q=[^$&]+",
     "\\.bing\\..*?[#?&;]q=[^$&]+",
     "\\.amazon\\.[^/]+\\/(s[?]k=[^$&]+|.*[?&]field-keywords=[^$&]+)",
     "\\.amazon\\..*(/dp/|/gp/product/)"
@@ -13,11 +14,12 @@
     "1",
     "2",
     "4",
-    "5"
+    "5",
+    "6"
   ],
   "scrape": {
     "0": {
-      "#searchform": {
+      "form[role=\"search\"]": {
         "q": {
           "item": "form input[name=\"q\"]",
           "type": "searchQuery",
@@ -35,7 +37,7 @@
           "keyName": "q"
         }
       },
-      "#searchform": {
+      "form[role=\"search\"]": {
         "q": {
           "item": "form input[name=\"q\"]",
           "type": "searchQuery",
@@ -100,6 +102,16 @@
       }
     },
     "5": {
+      "#sb_form": {
+        "q": {
+          "item": "#sb_form_q",
+          "type": "searchQuery",
+          "etype": "value",
+          "keyName": "query"
+        }
+      }
+    },
+    "6": {
       "#search-main-wrapper": {
         "q": {
           "item": "form > input[name=\"keywords\"]",
@@ -117,7 +129,7 @@
         }
       }
     },
-    "6": {
+    "7": {
       "#wayfinding-breadcrumbs_container": {
         "c": {
           "item": "div",
@@ -150,7 +162,7 @@
         "action": "linkedin"
       }
     },
-    "6": {
+    "7": {
       "q": {
         "type": "query",
         "results": "clustered",
@@ -177,8 +189,9 @@
     "1": "go",
     "2": "ya",
     "3": "lnkd",
-    "4": "bing",
-    "5": "am",
-    "6": "amc"
+    "4": "bingi",
+    "5": "bing",
+    "6": "am",
+    "7": "amc"
   }
 }

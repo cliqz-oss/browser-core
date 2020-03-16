@@ -125,8 +125,6 @@ DATA.push({
     history: null,
     'offers-cc': null,
     'video-downloader': null,
-    p2p: null,
-    pairing: null,
     'antitracking-blocker': null,
     search: {
       name: 'search',

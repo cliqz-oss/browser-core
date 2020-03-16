@@ -43,6 +43,8 @@ const ACCORDIAN_STATES = ['expanded', 'collapsed'];
 const BOOL_STATES = ['false', 'true'];
 
 export default [
+  ccMetric('antitracking_watchdog'),
+  ccMetric('adblocker_watchdog'),
   ccMetric('report_url'),
   ccMetric('attrack'),
   ccMetric('attrack_switch', { states: SWITCH_STATES }),

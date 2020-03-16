@@ -60,7 +60,7 @@
         "message": "Import now"
     },
     "import_data_description_1": {
-        "message": "Make youself at home."
+        "message": "Make yourself at home."
     },
     "import_data_description_2": {
         "message": "You can easily import bookmarks, passwords and history"
@@ -72,7 +72,7 @@
         "message": "Try now"
     },
     "popup_explanation": {
-        "message": "Here you can change your privacy and search settings at any time"
+        "message": "Here you can change your privacy and search settings at any time."
     },
     "popup_protection_action_button": {
         "message": "activate"

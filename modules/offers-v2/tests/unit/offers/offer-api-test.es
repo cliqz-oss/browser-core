@@ -1,6 +1,5 @@
 /* global chai */
 /* global describeModule */
-/* global sinon */
 /* eslint no-param-reassign: off */
 
 const commonMocks = require('../utils/common');
@@ -8,7 +7,6 @@ const persistenceMocks = require('../utils/persistence');
 const eventsMock = require('../utils/events');
 const signalsMock = require('../utils/offers/signals');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
-const waitFor = require('../utils/waitfor');
 
 const CH = 'offers-send-ch';
 
@@ -231,6 +229,26 @@ export default describeModule('offers-v2/offers/offers-api',
             });
           });
 
+          // client code currently relies on this functionality
+          // see `_showTooltip` method in `offers-handler`
+          context('push the same offer twice with same version but different notif_type', function () {
+            let o1;
+            let o2;
+            beforeEach(function () {
+              const offer = cloneValidOffer();
+              offer.ui_info.notif_type = 'popup';
+              o1 = bo(offer);
+              o2 = bo({ ...offer, ui_info: { ...offer.ui_info, notif_type: 'tooltip' } });
+              op.pushOffer(o1);
+              op.pushOffer(o2);
+            });
+
+            it('stored offer should be first pushed with unchanged notif_type', function () {
+              const stored = op.getStoredOffers({})[0].offer_info;
+              chai.expect(stored.ui_info.notif_type).to.be.equal('popup');
+            });
+          });
+
           context('offer exists and will be removed', function () {
             let removed;
             beforeEach(function () {
@@ -243,69 +261,6 @@ export default describeModule('offers-v2/offers/offers-api',
               const r = op.getStoredOffers({});
               chai.expect(removed).to.be.equal(true);
               chai.expect(r.length).to.be.equal(0);
-            });
-          });
-
-          context('/download offer images', () => {
-            let offerObj;
-            let templateData;
-
-            const isDownloderFinished = () => !op.imageDownloader.nThreads;
-
-            beforeEach(async function () {
-              db.addOfferObject(VALID_OFFER_OBJ.offer_id, VALID_OFFER_OBJ);
-              offerObj = db.getOfferObject(VALID_OFFER_OBJ.offer_id);
-              templateData = offerObj.ui_info.template_data;
-              templateData.logo_url = 'fake://?body=some data&header.content-type=image/smth';
-              templateData.picture_url = 'fake://?body=another data&header.content-type=image/smth';
-              templateData.logo_dataurl = undefined;
-              templateData.picture_dataurl = undefined;
-            });
-
-            it('/download missed images', async () => {
-              const expectedLogoDataurl = 'data:image/smth;base64,c29tZSBkYXRh';
-              const expectedPictureDataurl = 'data:image/smth;base64,YW5vdGhlciBkYXRh';
-
-              const offers = op.getStoredOffers();
-              await waitFor(isDownloderFinished);
-
-              const offer = new Offer(offers[0].offer_info);
-              await waitFor(() => {
-                chai.expect(offer.getLogoDataurl()).to.eq(expectedLogoDataurl);
-                chai.expect(offer.getPictureDataurl()).to.eq(expectedPictureDataurl);
-              });
-            });
-
-            context('/do not download', () => {
-              let fetch;
-
-              beforeEach(() => {
-                fetch = sinon.spy(op.imageDownloader, 'fetch');
-              });
-
-              it('/do not download already downloaded images', async () => {
-                templateData.logo_dataurl = 'data:image/smth;base64,etc';
-                templateData.picture_dataurl = 'data:image/smth;base64,etc';
-
-                op.getStoredOffers();
-                await waitFor(isDownloderFinished);
-
-                chai.expect(fetch).to.have.not.been.called;
-              });
-
-              it('/do not download images often', async () => {
-                op.getStoredOffers();
-                await waitFor(isDownloderFinished);
-
-                templateData.logo_dataurl = undefined;
-                templateData.picture_dataurl = undefined;
-                fetch.resetHistory();
-
-                op.getStoredOffers();
-                await waitFor(isDownloderFinished);
-
-                chai.expect(fetch).to.have.not.been.called;
-              });
             });
           });
         });

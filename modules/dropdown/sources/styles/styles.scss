@@ -926,6 +926,12 @@ $basic-line-height: (16 / 14) + 0em;
     }
 }
 
+.modifier {
+    .switchtab {
+        background-image: none!important;
+    }
+}
+
 //===========================
 //===== DYNAMIC PADDING =====
 //===========================

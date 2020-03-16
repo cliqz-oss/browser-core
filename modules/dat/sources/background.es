@@ -13,7 +13,7 @@ import metrics from './telemetry/metrics/performance';
 
 export default background({
   requiresServices: ['telemetry'],
-  telemetry: inject.service('telemetry', ['register']),
+  telemetry: inject.service('telemetry', ['register', 'unregister']),
 
   init() {
     this.telemetry.register(metrics);

@@ -23,12 +23,13 @@ function commonData() {
 }
 
 function popup(uiInfo, {
-  createdTs,
-  offerId,
-  lastUpdateTs,
-  expirationMs,
-  relevant,
   attrs: { state: offerState = 'new', isCodeHidden, landing },
+  createdTs,
+  expirationMs,
+  group,
+  lastUpdateTs,
+  offerId,
+  relevant,
 }) {
   const { template_data: templateData = {}, template_name: templateName = {} } = uiInfo;
   const { logo_class: logoClass = 'normal' } = templateData;
@@ -43,17 +44,18 @@ function popup(uiInfo, {
 
   return {
     created: createdTs,
-    last_update: lastUpdateTs,
-    relevant,
-    state: offerState,
-    template_name: templateName,
-    template_data: templateData,
-    offer_id: offerId,
-    logoClass,
-    validity,
-    notif_type: uiInfo.notif_type || 'tooltip',
+    group,
     isCodeHidden,
     landing,
+    last_update: lastUpdateTs,
+    logoClass,
+    notif_type: uiInfo.notif_type || 'tooltip',
+    offer_id: offerId,
+    relevant,
+    state: offerState,
+    template_data: templateData,
+    template_name: templateName,
+    validity,
   };
 }
 
@@ -147,7 +149,7 @@ function tooltipWrapper(offerId, {
 
 export function transform(data = {}) {
   const {
-    createdTs,
+    created_ts: createdTs,
     offer_data: { ui_info: uiInfo, expirationMs } = {},
     offer_id: offerId,
     attrs,
@@ -159,42 +161,46 @@ export function transform(data = {}) {
     : tooltipWrapper(offerId, { uiInfo, expirationMs, createdTs, attrs });
 }
 
-export function transformMany({ offers = [] } = {}) {
+export function transformMany({ offers = [] } = {}, {
+  shouldSort = false
+} = {}) {
   const newOffers = offers.map((elem) => {
     const {
-      last_update_ts: lastUpdateTs,
-      created_ts: createdTs,
-      relevant,
       attrs,
+      created_ts: createdTs,
+      group,
+      last_update_ts: lastUpdateTs,
+      offer_data: offerData = {},
       offer_id: offerId,
-      offer_info: offerInfo = {}
+      relevant,
     } = elem || {};
-    const { ui_info: uiInfo, expirationMs } = offerInfo;
+    const { ui_info: uiInfo, expirationMs } = offerData;
     if (!offerId || !uiInfo) { return null; }
     return popup(uiInfo, {
-      createdTs,
-      offerId,
-      lastUpdateTs,
-      relevant,
-      expirationMs,
       attrs,
+      createdTs,
+      expirationMs,
+      group,
+      lastUpdateTs,
+      offerId,
+      relevant,
     });
   }).filter(Boolean);
 
-  newOffers.sort((a, b) => (b.relevant - a.relevant || b.last_update - a.last_update));
+  if (shouldSort) {
+    newOffers.sort((a, b) => (b.relevant - a.relevant || b.last_update - a.last_update));
+  }
   const offersConfig = {
     url: getResourceUrl(),
     type: 'offers-cc',
     products: products(),
   };
 
-  return {
+  return [true, {
     config: offersConfig,
     data: {
       ...commonData(),
       vouchers: newOffers,
-      noVoucher: newOffers.length === 0,
-      showExpandButton: false,
     }
-  };
+  }];
 }

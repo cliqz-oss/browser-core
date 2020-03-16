@@ -35,6 +35,8 @@ module.exports = {
     OFFBOARDING_URL: 'https://myoffrz.com/off-boarding/',
     SHOW_ONBOARDING_OVERLAY: true,
     THROTTLE_OFFER_APPEARANCE_MODE: 'PER_DOMAIN',
+    ENABLE_OFFER_COLLECTIONS: true,
+    MAX_GROUPS_IN_OFFER_COLLECTIONS: 3,
     telemetry: {
       demographics: {
         brand: 'myoffrz',
@@ -44,10 +46,8 @@ module.exports = {
   versionPrefix: '11',
   default_prefs: {
     'modules.browser-panel.enabled': false,
-    'modules.offers-cc.enabled': false,
-    'modules.offers-reminder.enabled': false,
-    'modules.offers-checkout.enabled': false,
-    'dynamic-offers.enabled': true,
+    'modules.offers-templates.enabled': false,
+    'dynamic-offers.enabled': false,
   },
   modules: [
     'core',
@@ -60,9 +60,7 @@ module.exports = {
     'hpnv2',
     'myoffrz-helper',
     'offers-banner',
-    'offers-cc',
-    'offers-reminder',
-    'offers-checkout',
+    'offers-templates',
     'offers-v2',
     'onboarding-overlay',
   ],
@@ -75,10 +73,10 @@ module.exports = {
     'human-web/page.bundle.js',
     'human-web/rusha.bundle.js',
     'offers-banner/app.bundle.js',
-    'offers-cc/offers-cc.bundle.js',
-    'offers-cc/offers-cc-after.bundle.js',
-    'offers-reminder/offers-reminder.bundle.js',
-    'offers-checkout/offers-checkout.bundle.js',
+    'offers-templates/offers-reminder.bundle.js',
+    'offers-templates/offers-checkout.bundle.js',
+    'offers-templates/offers-control-center.bundle.js',
+    'offers-templates/offers-control-center-after.bundle.js',
     'onboarding-overlay/app.bundle.js',
   ],
   builderDefault: Object.assign({}, base.builderConfig, {

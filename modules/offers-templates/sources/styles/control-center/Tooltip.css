@@ -1,0 +1,86 @@
+.tooltip__container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  height: 60px;
+}
+.tooltip__container.tooltip__ghostery-container {
+  background-color: var(--ghostery-primary-color, #5B005C);
+}
+.tooltip__container.tooltip__chip-container {
+  background-color: var(--chip-primary-color, #eb443f);
+}
+
+.tooltip__left-item {
+  padding-left: 5px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tooltip__image {
+  background: url(../images/cliqz-tooltip-logo.svg) no-repeat center;
+  background-size: contain;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  padding-left: 10px;
+}
+
+.tooltip__image.tooltip__myoffrz-image {
+  background: url(../images/myoffrz-tooltip-logo.svg) no-repeat center;
+  border-radius: 25%;
+  background-size: contain;
+}
+.tooltip__image.tooltip__chip-image {
+  background: url(../images/Belly75.gif) no-repeat center;
+  background-size: cover;
+  border-radius: 25%;
+}
+.tooltip__image.tooltip__ghostery-image {
+  background: url(../images/ghosty-white-star.svg) no-repeat center;
+  background-size: unset;
+}
+
+.tooltip__right-item {
+  display: flex;
+  width: 22px;
+  height: 21px;
+  border-radius: 50%;
+  cursor: pointer;
+  align-items: center;
+  transition: all linear 0.3s;
+  background-color: #fff;
+  margin-top: -32px;
+  margin-right: 4px;
+}
+
+.tooltip__close {
+  background: url(../images/close-offer.svg) no-repeat center;
+  width: 12.5px;
+  height: 12.5px;
+  border-radius: 50%;
+  background-size: contain;
+  filter: brightness(0.7);
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.tooltip__text {
+  padding-left: 5px;
+  margin-right: -8px;
+  color: #494949;
+  font-size: 14px;
+}
+.tooltip__text.tooltip__ghostery-text,
+.tooltip__text.tooltip__chip-text {
+  color: white;
+}
+
+.tooltip__not-visible {
+  opacity: 0;
+}
+.tooltip__visible {
+  opacity: 1;
+}

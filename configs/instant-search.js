@@ -33,16 +33,11 @@ module.exports = {
     'core',
     'core-cliqz',
     'search',
-    'mobile-cards',
-    'mobile-cards-vertical',
     'geolocation',
     'anolysis-remote',
   ],
   bundles: [
   ],
-  react_components: {
-    ExtensionApp: './modules/mobile-cards/cliqz-ios/ExtensionApp'
-  },
   resources: {
     bundling: 'assets',
     include: [

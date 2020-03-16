@@ -66,7 +66,7 @@ export default class AdblockDetails extends React.Component {
 
   openUrl = ({ name, watchDogUrl }) => {
     if (name === 'First Party') return;
-    this.props.openUrl(watchDogUrl, false);
+    this.props.openUrl(watchDogUrl, false, 'adblocker_watchdog');
   }
 
   render() {

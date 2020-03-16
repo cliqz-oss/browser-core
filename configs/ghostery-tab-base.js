@@ -27,7 +27,6 @@ module.exports = {
     freshTabNews: true,
     freshTabStats: true,
     browserAction: 'quicksearch',
-    OFFERS_CHANNEL: 'ghostery-tab',
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     FRESHTAB_TITLE: 'Ghostery Tab',
     offboardingURLs: {

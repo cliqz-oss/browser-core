@@ -30,7 +30,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
 
         clear() {
           this.categories = {};
-          this.buildCalled = false;
           this.categoriesAdded = [];
         }
 
@@ -40,7 +39,7 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
 
         removeCategory() { }
 
-        build() { this.buildCalled = true; }
+        build() { }
 
         cleanUp() { }
 
@@ -77,14 +76,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
 
       function buildOp(obj) {
         return exprBuilder.createExp(obj);
-      }
-
-      function checkCategories(toUpdate, toCheck) {
-        toUpdate.forEach((c) => {
-          const catName = c.name;
-          const hasCat = toCheck.some(cat => cat.getName() === catName);
-          chai.expect(hasCat, `${catName} not found`).eql(true);
-        });
       }
 
       beforeEach(function () {
@@ -143,73 +134,6 @@ export default describeModule('offers-v2/trigger_machine/ops/category_expr',
           catHandlerMock.categories = { 'cat-x2': true };
           return op.evalExpr(ctx).then((result) => {
             chai.expect(result).eql(true);
-          });
-        });
-      });
-
-      /**
-       * ==================================================
-       * $if_pref add_categories tests
-       * ==================================================
-       */
-      describe('/add_categories', () => {
-        let op;
-        let ctx;
-        beforeEach(function () {
-          ctx = {};
-          catHandlerMock.clear();
-        });
-
-        it('/invalid args call', () => {
-          const o = [
-            '$add_categories', []
-          ];
-          op = buildOp(o);
-          return op.evalExpr(ctx).then((result) => {
-            chai.assert.fail(result, 'error');
-          }).catch((err) => {
-            chai.expect(err).to.exist;
-          });
-        });
-
-        it('/invalid args call 2', () => {
-          const o = [
-            '$add_categories', [{}]
-          ];
-          op = buildOp(o);
-          return op.evalExpr(ctx).then((result) => {
-            chai.assert.fail(result, 'error');
-          }).catch((err) => {
-            chai.expect(err).to.exist;
-          });
-        });
-
-        it('/invalid args call 3', () => {
-          const o = [
-            '$add_categories', [{ xyz: {} }]
-          ];
-          op = buildOp(o);
-          return op.evalExpr(ctx).then((result) => {
-            chai.assert.fail(result, 'error');
-          }).catch((err) => {
-            chai.expect(err).to.exist;
-          });
-        });
-
-        it('/update categories properly', () => {
-          const toUpdate = [
-            { name: 'c1', patterns: [], version: 1, timeRangeSecs: 1, activationData: {} },
-            { name: 'c2', patterns: [], version: 1, timeRangeSecs: 1, activationData: {} },
-            { name: 'c3', patterns: [], version: 1, timeRangeSecs: 1, activationData: {} },
-          ];
-          const o = [
-            '$add_categories', [{ toUpdate }]
-          ];
-          op = buildOp(o);
-          return op.evalExpr(ctx).then((result) => {
-            chai.expect(result).eql(true);
-            chai.expect(catHandlerMock.buildCalled).eql(true);
-            checkCategories(toUpdate, catHandlerMock.categoriesAdded);
           });
         });
       });

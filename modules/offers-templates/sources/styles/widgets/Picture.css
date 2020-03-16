@@ -1,0 +1,23 @@
+.widgets-picture__image {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left;
+  height: 100%;
+}
+
+.widgets-picture__wrapper { }
+
+.widgets-picture__notification {
+  display: inline-block;
+  background: red;
+  width: 15px;
+  height: 15px;
+  text-align: center;
+  border-radius: 8px;
+  float: right;
+  margin-top: -3px;
+  margin-right: -9px;
+  color: white;
+  font-size: 10px;
+  line-height: 15px;
+}

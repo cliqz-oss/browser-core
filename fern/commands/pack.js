@@ -29,7 +29,7 @@ module.exports = (program) => {
 
       getCommit()
         .then((id) => { process.env.GIT_COMMIT = id; }, () => {})
-        .then(() => getExtensionVersion('package'))
+        .then(() => getExtensionVersion('package', CONFIG))
         .then((version) => {
           process.env.PACKAGE_VERSION = version;
           process.env.EXTENSION_VERSION = version;
@@ -58,7 +58,7 @@ module.exports = (program) => {
 
       getCommit()
         .then((id) => { process.env.GIT_COMMIT = id; }, () => {})
-        .then(() => getExtensionVersion('package'))
+        .then(() => getExtensionVersion('package', CONFIG))
         .then((version) => {
           process.env.PACKAGE_VERSION = version;
           process.env.EXTENSION_VERSION = version;
@@ -89,7 +89,7 @@ module.exports = (program) => {
 
       getCommit()
         .then((id) => { process.env.GIT_COMMIT = id; }, () => {})
-        .then(() => getExtensionVersion('package'))
+        .then(() => getExtensionVersion('package', CONFIG))
         .then((version) => {
           process.env.PACKAGE_VERSION = version;
           process.env.EXTENSION_VERSION = version;

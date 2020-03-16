@@ -13,6 +13,12 @@ import { buildSimplePatternIndex } from '../common/pattern-utils';
 //                            Helper methods
 
 export const NOTIF_TYPE_DOT = 'dot';
+export const NOTIF_TYPE_SILENT = 'silent';
+export const NOTIF_TYPE_TOOLTIP = 'tooltip';
+
+const TRIGGER_ON_ADVERTISER_NOTIF_TYPES = [
+  NOTIF_TYPE_DOT, NOTIF_TYPE_TOOLTIP // default first
+];
 
 /**
  * the expected geo data is a object: { country -> { city -> [postal1, ...] }};
@@ -301,12 +307,21 @@ export default class Offer {
     return this.offerObj.categories;
   }
 
+  isSilent() {
+    const { ui_info: uiInfo = {} } = this.offerObj;
+    return uiInfo.notif_type === NOTIF_TYPE_SILENT;
+  }
+
   isTargeted() {
     return Boolean(this.offerObj.targeted);
   }
 
+  isTargetedAndNotSilent() {
+    return this.isTargeted() && !this.isSilent();
+  }
+
   shouldShowDynamicOffer() {
-    return this.offerObj.show_dynamic_offer || true;
+    return this.offerObj.show_dynamic_offer;
   }
 
   hasDynamicContent() {
@@ -318,6 +333,16 @@ export default class Offer {
    */
   shouldTriggerOnAdvertiser() {
     return Boolean(this.offerObj.trigger_on_advertiser);
+  }
+
+  getTriggerOnAdvertiserNotifType() {
+    if (!this.shouldTriggerOnAdvertiser()) {
+      return undefined;
+    }
+    const setting = this.offerObj.trigger_on_advertiser;
+    return TRIGGER_ON_ADVERTISER_NOTIF_TYPES.includes(setting)
+      ? setting
+      : TRIGGER_ON_ADVERTISER_NOTIF_TYPES[0];
   }
 
   /**
@@ -351,27 +376,39 @@ export default class Offer {
     return (reward || 0) <= 0 ? 1.0 : reward;
   }
 
+  hasTemplate() {
+    return Boolean(this.offerObj.ui_info.template_data);
+  }
+
   getLogoUrl() {
-    return this.offerObj.ui_info.template_data.logo_url;
+    return this.hasTemplate() ? this.offerObj.ui_info.template_data.logo_url : null;
   }
 
   getLogoDataurl() {
-    return this.offerObj.ui_info.template_data.logo_dataurl;
+    return this.hasTemplate() ? this.offerObj.ui_info.template_data.logo_dataurl : null;
   }
 
   setLogoDataurl(dataurl) {
+    if (!this.hasTemplate()) {
+      logger.warn(`Cannot set logo dataurl on offer without template: ${this.uniqueID}`);
+      return;
+    }
     this.offerObj.ui_info.template_data.logo_dataurl = dataurl;
   }
 
   getPictureUrl() {
-    return this.offerObj.ui_info.template_data.picture_url;
+    return this.hasTemplate() ? this.offerObj.ui_info.template_data.picture_url : null;
   }
 
   getPictureDataurl() {
-    return this.offerObj.ui_info.template_data.picture_dataurl;
+    return this.hasTemplate() ? this.offerObj.ui_info.template_data.picture_dataurl : null;
   }
 
   setPictureDataurl(dataurl) {
+    if (!this.hasTemplate()) {
+      logger.warn(`Cannot set picture dataurl on offer without template: ${this.uniqueID}`);
+      return;
+    }
     this.offerObj.ui_info.template_data.picture_dataurl = dataurl;
   }
 
@@ -382,6 +419,10 @@ export default class Offer {
   }
 
   setDynamicContent(productPictureUrl, productCtaUrl) {
+    if (!this.hasTemplate()) {
+      logger.warn(`Cannot set dynamic content on offer without template: ${this.uniqueID}`);
+      return;
+    }
     this.offerObj.ui_info.template_data.picture_url = productPictureUrl;
     this.offerObj.ui_info.template_data.picture_dataurl = undefined;
     this.offerObj.ui_info.template_data.call_to_action.url = productCtaUrl;

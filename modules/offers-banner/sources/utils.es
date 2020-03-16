@@ -57,15 +57,6 @@ export function getOfferNotificationType(data = {}) {
   return uiInfo.notif_type;
 }
 
-export function filterValues(obj, predicate) {
-  const newObj = {};
-  Object.keys(obj).forEach((key) => {
-    if (predicate(obj[key])) {
-      newObj[key] = obj[key];
-    }
-  });
-  return newObj;
-}
 
 export function products() {
   const brand = config.settings.OFFERS_BRAND;
@@ -91,8 +82,11 @@ export function matchPatternsByUrl(patterns, url) {
   }, false);
 }
 
-export function getResourceUrl(module = 'offers-cc') {
+export function getResourceUrl({
+  module = 'offers-templates',
+  filename = 'control-center.html',
+  suffix = 'cross-origin',
+} = {}) {
   const prefix = isGhostery ? 'cliqz' : 'modules';
-  const path = 'index.html?cross-origin';
-  return chrome.runtime.getURL(`${prefix}/${module}/${path}`);
+  return chrome.runtime.getURL(`${prefix}/${module}/${filename}?${suffix}`);
 }

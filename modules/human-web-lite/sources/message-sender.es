@@ -7,49 +7,33 @@
  */
 
 import logger from './logger';
-import { fetch } from '../core/http';
 
 /**
  * Responsible for sending Human Web message to the servers.
- * Ideally in a way that is as anomous as possible, although
- * the choices are limited on Mobile.
+ * To improve anonymity, data is sent through a 3rd party
+ * to hide the sender's IP address.
  *
- * Note: We can start with https. There is no fundamental
- * reason why hpnv2 could not be used on Mobile as well,
- * but it is a project on its own to port it.
+ * Note: There is no fundamental reason why hpnv2 could not be used
+ * on Mobile as well, but it is a project on its own to port it.
  */
 export default class MessageSender {
-  constructor(config, duplicateDetector) {
-    this.endpoint = config.HUMAN_WEB_LITE_COLLECTOR;
+  constructor(duplicateDetector, proxiedHttp) {
     this.duplicateDetector = duplicateDetector;
+    this.proxiedHttp = proxiedHttp;
   }
 
   async send(message) {
-    if (!this.endpoint) {
-      logger.info('Skip sending. No endpoint configured:', message);
-      return;
-    }
-
     const { ok, rollback, rejectReason } = await this.duplicateDetector.trySend(message);
     if (!ok) {
       logger.info('Rejected by duplicate detector:', rejectReason, message);
       return;
     }
     try {
-      // TODO: handle timeouts
-      const response = await fetch(this.endpoint, {
+      // Note: assume fire-and-forget message here
+      await this.proxiedHttp.send({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'omit',
-        cache: 'no-store',
-        redirect: 'manual',
-        body: JSON.stringify(message)
+        body: JSON.stringify(message),
       });
-      if (!response.ok) {
-        throw new Error('Failed to sent data:', response.statusText);
-      }
       logger.info('Successfully sent message:', message);
     } catch (e) {
       // rollback to allow future resending attempts

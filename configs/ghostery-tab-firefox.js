@@ -14,7 +14,7 @@ const CUSTOM_MANIFEST_ENTRY = `
   ,"applications": {
     "gecko": {
       "id": "${id}",
-      "strict_min_version": "57"
+      "strict_min_version": "57.0"
     }
   }
 `;

@@ -16,9 +16,7 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
 const KEY_COMPUTATION = {
-  query(msg) {
-    return truncatedHash(`query:${msg.ts}:${msg.payload.q}`);
-  },
+  'hwlite.query': msg => truncatedHash(`query:${msg.ts}:${msg.payload.q}`),
 };
 
 /**

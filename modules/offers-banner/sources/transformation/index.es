@@ -12,6 +12,7 @@ import logger from '../logger';
  *  This library provides wrapper around offers model.
 */
 
+/* common wrapper, for specialization see plz other files */
 export function transform(type, data) {
   const mapper = {
     ghostery: rewardBox.transform,
@@ -25,12 +26,13 @@ export function transform(type, data) {
   return (mapper[type] || noop)(data);
 }
 
-export function transformMany(type, data) {
+/* common wrapper, for specialization see plz other files */
+export function transformMany(type, data, attrs = {}) {
   const mapper = {
     'offers-cc': rewardBox.transformMany,
     ghostery: rewardBox.transformMany,
   };
   if (!mapper[type]) { logger.warn('receive wrong type of real estate: ', type); }
   const noop = () => {};
-  return (mapper[type] || noop)(data);
+  return (mapper[type] || noop)(data, attrs);
 }

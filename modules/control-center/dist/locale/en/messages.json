@@ -126,7 +126,7 @@
         "message": "Anti-Phishing"
     },
     "control_center_info_share_location": {
-        "message": "You will see the most relevant search results by setting \"Share location\" to <strong>\"Always\"</strong>. Location data is used solely to automatically enhance search results."
+        "message": "You will see the most relevant search results by setting \"Share location\" to \"Always\". Location data is used solely to automatically enhance search results."
     },
     "control_center_info_share_location_link": {
         "message": "Learn more"

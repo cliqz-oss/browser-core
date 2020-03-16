@@ -1,0 +1,120 @@
+.card__wrapper {
+  padding: 2px 9px 0px;
+  background-color: #fff;
+  margin-top: -2px;
+}
+
+.card__image {
+  height: 134px;
+  cursor: pointer;
+  display: block;
+  margin: auto;
+}
+
+.card__benefit {
+  font-size: 22px;
+  color: #494949;
+  font-weight: 500;
+  display: inline-block;
+  width: 225px;
+}
+
+.card__headline {
+  font-size: 15px;
+  hyphens: auto;
+  color: #494949;
+  font-weight: 500;
+}
+
+.card__description {
+  hyphens: auto;
+  font-size: 14px;
+  cursor: default;
+  color: #b4b4b4;
+}
+
+.card__condition-title {
+  font-weight: 500;
+  display: inline-block;
+  padding-bottom: 3px;
+  cursor: pointer;
+}
+
+.card__conditions {
+  color: #999;
+  font-size: 13px;
+  line-height: 1.4em;
+}
+
+.card__text {
+  cursor: pointer;
+}
+
+.card__screen-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.card__text.card__cursor-default {
+  cursor: default;
+}
+
+.card__bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  padding-left: 15px;
+}
+
+.card__bullet {
+  color: #b4b4b4;
+  padding-bottom: 2px;
+}
+.card__bullet:before {
+  content: "\2022";
+  position: absolute;
+  color: #B3B3B3;
+  font-weight: 500;
+  display: inline-block;
+  margin-left: -12px;
+}
+
+.card__small-triangle {
+  display: inline-block;
+  background: url('../images/triangle.svg') no-repeat center;
+  width: 10px;
+  height: 8px;
+  margin-bottom: 1px;
+}
+
+.card__small-triangle-rotated {
+  transform: rotate(180deg);
+}
+
+.card__show-more {
+  cursor: pointer;
+  color: #b4b4b4;
+  padding-bottom: 2px;
+}
+
+.card__screen-main {
+  background-color: #fafafa;
+  border-radius: 7px;
+  padding: 6px 7px 4px 8px;
+  border: 1px solid #e9e9e9;
+}
+
+.card__trash {
+  background: url('../images/trash.svg') no-repeat bottom;
+  background-size: contain;
+  cursor: pointer;
+  width: 28px;
+  height: 16px;
+  margin-right: -4px;
+  filter: brightness(119%);
+  float: right;
+}
+.card__trash:hover {
+  filter: brightness(0);
+}

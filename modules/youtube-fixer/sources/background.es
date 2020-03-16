@@ -16,8 +16,17 @@ import prefs from '../core/prefs';
 
 const logger = Logger.get('youtube-fixer', { level: 'log' });
 
+async function isAntitrackingEnabled() {
+  return (
+    prefs.get('module.antitracking.enabled', true)
+    && !(await inject
+      .module('antitracking')
+      .action('isWhitelisted', 'https://www.youtube.com/'))
+  );
+}
+
 function statusListener(details) {
-  if (details.statusCode >= 500) {
+  if (details.statusCode === 500) {
     logger.info(
       'error code from YT, will clean cookies',
       details.url,
@@ -28,13 +37,14 @@ function statusListener(details) {
         {
           statusCode: details.statusCode,
           cookies: ckis.length,
-          antitrackingEnabled: prefs.get('module.antitracking.enabled', true),
+          antitrackingEnabled: await isAntitrackingEnabled(),
           cookieMonsterEnabled: prefs.get(
             'module.cookie-monster.enabled',
             true,
           ),
           cmNonTrackerEnabled: prefs.get('cookie-monster.nonTracker', false),
           cmSessionEnabled: prefs.get('cookie-monster.expireSession', false),
+          affected: prefs.get('youtube-fixer.affected', false),
         },
         'youtube-fixer.metric.cookieError',
       );
@@ -56,6 +66,28 @@ function statusListener(details) {
         return cookies.remove(cookieDelete);
       });
       await Promise.all(deletions);
+      if (!prefs.get('youtube-fixer.affected', false)) {
+        prefs.set('youtube-fixer.affected', true);
+        // take an action to see if it fixes the problem
+        const choice = Math.floor(Math.random() * 4);
+        // disable CM
+        const core = inject.module('core');
+        await core.action('disableModule', 'cookie-monster');
+        if (choice === 1) {
+          logger.info('Disabling cookie-monster expire session policy');
+          prefs.set('cookie-monster.expireSession', false);
+        } else if (choice === 2) {
+          logger.info('Disabling cookie-monster nonTracker policy');
+          prefs.set('cookie-monster.nonTracker', false);
+        }
+        // choice === 0: CM stays disabled
+        if (choice !== 0) {
+          // re-enable CM to load new settings.
+          await core.action('enableModule', 'cookie-monster');
+        } else {
+          logger.info('Disabling cookie-monster');
+        }
+      }
     });
   }
 }

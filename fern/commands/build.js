@@ -40,7 +40,7 @@ module.exports = (program) => {
           : ''
       );
 
-      const { OUTPUT_PATH } = setConfigPath(configPath, options.toSubdir);
+      const { OUTPUT_PATH, CONFIG } = setConfigPath(configPath, options.toSubdir);
 
       // Enabled code linting
       process.env.CLIQZ_ESLINT = (
@@ -52,7 +52,7 @@ module.exports = (program) => {
       assert(OUTPUT_PATH);
 
       console.log('Starting build');
-      const version = await getExtensionVersion(options.version);
+      const version = await getExtensionVersion(options.version, CONFIG);
       process.env.PACKAGE_VERSION = version;
       process.env.EXTENSION_VERSION = version;
 

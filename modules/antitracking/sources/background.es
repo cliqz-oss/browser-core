@@ -38,9 +38,6 @@ function humanwebExistsAndDisabled() {
 * @class Background
 */
 export default background({
-  // Injected in window.es
-  controlCenter: inject.module('control-center'),
-
   requiresServices: ['cliqz-config', 'domainInfo', 'pacemaker', 'telemetry'],
   telemetrySchemas: [
     ...popupActionsMetrics,

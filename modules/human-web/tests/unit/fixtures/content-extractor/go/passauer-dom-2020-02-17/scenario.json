@@ -1,0 +1,29 @@
+{
+  "url": "https://www.google.com/search?q=passauer%20dom",
+
+  "mustContain": [
+    {
+      "type": "humanweb",
+      "action": "img-p",
+      "payload": {
+        "q": "passauer dom",
+        "qurl": "https://www.google.com/search?q=passauer%20dom",
+        "r": {
+          "0": { "u": "https://www.bistum-passau.de/dom-kultur/dom-st-stephan-passau" },
+          "1": { "u": "https://www.bistum-passau.de/dom-kultur/dom-st-stephan-passau" },
+          "2": { "u": "https://de.wikipedia.org/wiki/Dom_St._Stephan_(Passau)" },
+          "3": { "u": "https://www.bistum-passau.de/dom-kultur/dom-st-stephan-passau" },
+          "4": { "u": "https://www.bistum-passau.de/dom-kultur/dom-st-stephan-passau" },
+          "5": { "u": "https://de.wikipedia.org/wiki/Dom_St._Stephan_(Passau)" },
+          "6": { "u": "https://www.bistum-passau.de/dom-kultur/dom-st-stephan-passau" },
+          "7": { "u": "https://de.wikipedia.org/wiki/Orgeln_des_Domes_St._Stephan_(Passau)" },
+          "8": { "u": "https://www.fotocommunity.de/photo/dom-st-stephan-in-passau-ernst123/40984964" },
+          "9": { "u": "https://www.sehenswerter-bayerischer-wald.de/passauer-dom-besichtigung-altar-domorgel.html" },
+          "10": { "u": "http://helmutvoss.de/kirchen_passau_st_stephan.html" },
+          "11": { "u": "https://www.br.de/nachrichten/bayern/groesste-domorgel-der-welt-in-passau-wird-generalsaniert,Rbre0Ru" }
+        },
+        "ctry": "de"
+      }
+    }
+  ]
+}

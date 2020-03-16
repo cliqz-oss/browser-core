@@ -22,13 +22,8 @@ if (chrome.omnibox2) {
   currentContextId = chrome.omnibox2.getContext();
 }
 
-let urlbarAttributes = {};
 let currentQueryId = 0;
 let previousResults;
-
-const styleElement = document.createElement('style');
-let lastNavbarColor = null;
-document.head.appendChild(styleElement);
 
 Handlebars.partials = templates;
 Object.keys(helpers).forEach((helperName) => {
@@ -64,18 +59,6 @@ const dropdown = new Dropdown(container$, window, {
 });
 dropdown.init();
 
-const updateNavbarColor = (color) => {
-  if (!color) {
-    styleElement.textContent = '';
-    return;
-  }
-  if (color === lastNavbarColor) {
-    return;
-  }
-  styleElement.textContent = `.history { background-color: ${color}!important }`;
-  lastNavbarColor = color;
-};
-
 const updateHeight = () => {
   const height = container$.scrollHeight;
   importedActions.setHeight(height);
@@ -103,11 +86,7 @@ function createAssistants(assistantStates) {
 }
 
 const exportedActions = {
-  startSearch(query, searchOptions = {}, options = {}) {
-    if (options.urlbarAttributes) {
-      updateNavbarColor(options.urlbarAttributes.navbarColor);
-      urlbarAttributes = options.urlbarAttributes;
-    }
+  startSearch(query, searchOptions = {}) {
     currentQueryId = searchOptions.queryId;
     searchModule.startSearch(query, searchOptions);
   },
@@ -132,12 +111,9 @@ const exportedActions = {
     return dropdown.previousResult().serialize();
   },
 
-  handleEnter({ newTab }) {
+  handleEnter(ev) {
     const result = dropdown.selectedResult;
-    result.click(result.url, {
-      metaKey: newTab,
-      type: 'keyup',
-    });
+    result.click(result.url, ev);
   },
 
   removeFromHistoryAndBookmarks(url) {
@@ -146,7 +122,11 @@ const exportedActions = {
       bookmarks: true,
       closeTabs: true,
     });
-  }
+  },
+
+  updateUrlbarAttributes(attrs) {
+    dropdown.updateUrlbarAttributes(attrs);
+  },
 };
 
 runtime.onMessage.addListener(({ module, action, args, contextId }) => {
@@ -182,7 +162,6 @@ runtime.onMessage.addListener(({ module, action, args, contextId }) => {
   previousResults = results;
 
   dropdown.renderResults(results, {
-    urlbarAttributes,
     extensionId: assistantStates.settings.id,
     channelId: assistantStates.settings.channel,
     queryId,

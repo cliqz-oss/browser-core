@@ -1,9 +1,9 @@
 {
     "onboarding_chip_description": {
-        "message": "Chip Sparalarm works with the highest standards regarding data protection (without user profiling or collection of any PII). With Sparalarm, you as a user are always anonymous."
+        "message": "We care about your privacy and thus, Sparalarm does not need to know anything about you as a person: you are completely anonymous."
     },
     "onboarding_chip_description_more": {
-        "message": "The technology behind Sparalarm works solely on the user’s device. Among other things, it analyzes which websites the user visits and what the user has searched previously for on the Internet. This provides the basis for determining potential purchase intent.<div></div>Sparalarm doesn’t send any information whatsoever to a server that identifies individual users. Instead, it sends out only anonymous and purely statistical data. More details can be found under: <a href='https://sparalarm.chip.de/datenschutzerklaerung/'>https://sparalarm.chip.de/datenschutzerklaerung/</a>."
+        "message": "This is possible due to the unique technology behind Sparalarm: It works on the user's computer and evaluates visited websites or search queries locally to show offers and discounts at the right moment. The data is never sent to any server.<div></div>To provide you with the best product possible, only anonymous and purely statistical information is sent. Which information, can be looked up here: <a href='https://sparalarm.chip.de/datenschutzerklaerung/'>https://sparalarm.chip.de/datenschutzerklaerung/</a>"
     },
     "onboarding_chip_human_web": {
         "message": "Participate in Human Web"
@@ -85,12 +85,11 @@
         "message": "Ghostery Tab is installed!"
     },
 
-
     "onboarding_myoffrz_description": {
-        "message": "MyOffrz works with the highest standards regarding data protection (without user profiling or collection of any PII). With MyOffrz, you as a user are always anonymous."
+        "message": "We care about your privacy and thus, MyOffrz does not need to know anything about you as a person: you are completely anonymous."
     },
     "onboarding_myoffrz_description_more": {
-        "message": "The technology behind MyOffrz works solely on the user’s device. Among other things, it analyzes which websites the user visits and what the user has searched previously for on the Internet. This provides the basis for determining potential purchase intent.<div></div>MyOffrz doesn’t send any information whatsoever to a server that identifies individual users. Instead, it sends out only anonymous and purely statistical data. More details can be found under:  <a href='https://myoffrz.com/datenschutzerklaerung/ '>https://myoffrz.com/datenschutzerklaerung/ </a>."
+        "message": "This is possible due to the unique technology behind MyOffrz: It works on the user's computer and evaluates visited websites or search queries locally to show offers and discounts at the right moment. The data is never sent to any server.<div></div>To provide you with the best product possible, only anonymous and purely statistical information is sent. Which information, can be looked up here: <a href='https://myoffrz.com/datenschutzerklaerung/'>https://myoffrz.com/datenschutzerklaerung/</a>"
     },
     "onboarding_myoffrz_human_web": {
         "message": "Participate in Human Web"

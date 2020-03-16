@@ -33,7 +33,7 @@ const TopBar = ({
         onClick={showHistoryDeletionPopup}
         type="button"
       >
-        {t('clear-btn-label')}
+        {t('clear_btn_label')}
       </button>
     </div>
   );

@@ -1503,8 +1503,14 @@ const CliqzHumanWeb = {
             if (activeURL.indexOf('about:')!=1) {
 
                 if (CliqzHumanWeb.state['v'][activeURL] == null) {
-
-                    if (CliqzHumanWeb.contentExtractor.isSearchEngineUrl(activeURL)) {
+                    const cliqzQuery = CliqzHumanWeb.contentExtractor.tryExtractCliqzSerpQuery(activeURL);
+                    if (cliqzQuery) {
+                      CliqzHumanWeb.queryCache[activeURL] = {
+                        d: 0,
+                        q: cliqzQuery,
+                        t: 'cl',
+                      };
+                    } else if (CliqzHumanWeb.contentExtractor.isSearchEngineUrl(activeURL)) {
                         pacemaker.setTimeout(function(url, originalURL) {
                           if (!CliqzHumanWeb) {
                             return;
@@ -1572,13 +1578,19 @@ const CliqzHumanWeb = {
                     };
 
                     if (referral) {
+                        // when the user clicks fast enough, the query can be in the queryCache,
+                        // but did not get attached to the page yet
+                        if (CliqzHumanWeb.queryCache[referral] && !CliqzHumanWeb.state['v'][referral]['qr']) {
+                          CliqzHumanWeb.state['v'][referral]['qr'] = CliqzHumanWeb.queryCache[referral];
+                        }
+
                         // if there is a good referral, we must inherit the query if there is one
                         if (CliqzHumanWeb.state['v'][referral] && CliqzHumanWeb.state['v'][referral]['qr']) {
-                            CliqzHumanWeb.state['v'][activeURL]['qr'] = {}
-                            CliqzHumanWeb.state['v'][activeURL]['qr']['q'] = CliqzHumanWeb.state['v'][referral]['qr']['q'];
-                            CliqzHumanWeb.state['v'][activeURL]['qr']['t'] = CliqzHumanWeb.state['v'][referral]['qr']['t'];
-                            CliqzHumanWeb.state['v'][activeURL]['qr']['d'] = CliqzHumanWeb.state['v'][referral]['qr']['d']+1;
-
+                            CliqzHumanWeb.state['v'][activeURL]['qr'] = {
+                              q: CliqzHumanWeb.state['v'][referral]['qr'].q,
+                              t: CliqzHumanWeb.state['v'][referral]['qr'].t,
+                              d: CliqzHumanWeb.state['v'][referral]['qr'].d + 1,
+                            };
                            //If the depth is greater then two, we need to check if the ref. is of same domain.
                             //If not then drop the QR object, else keep it.
                             if(CliqzHumanWeb.state['v'][activeURL]['qr']['d'] > 2){

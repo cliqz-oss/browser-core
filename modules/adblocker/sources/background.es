@@ -6,6 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import { browser } from '../platform/globals';
+
 import background from '../core/base/background';
 import inject from '../core/kord/inject';
 
@@ -233,11 +235,12 @@ export default background({
       }
 
       return new Promise((resolve) => {
-        this.adblocker.manager.engine.onRuntimeMessage(
+        this.adblocker.manager.engine.handleRuntimeMessage(
+          browser,
           { action: 'getCosmeticsFilters', ...payload },
           sender,
           resolve,
-        );
+        ).catch(() => { /* it's ok if this fails */ });
       });
     },
 

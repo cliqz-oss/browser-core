@@ -124,8 +124,18 @@ export default function () {
           if (hasHits) {
             const collectHits = (await testServer.getHits()).get('/collect');
             return (
-              collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.exception')
-              && collectHits.some(({ body }) => body.type === 'metrics.anolysis.health.storage')
+              collectHits.some(({ body }) => (
+                body.type === 'metrics.anolysis.health.exception'
+                && body.behavior.autoPrivateMode !== undefined
+                && body.meta.ephemerid !== undefined
+                && Object.keys(body.meta.demographics).length === 5
+              ))
+              && collectHits.some(({ body }) => (
+                body.type === 'metrics.anolysis.health.storage'
+                && body.behavior.autoPrivateMode !== undefined
+                && body.meta.ephemerid !== undefined
+                && Object.keys(body.meta.demographics).length === 5
+              ))
             );
           }
           return false;

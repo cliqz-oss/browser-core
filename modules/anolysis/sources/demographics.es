@@ -22,6 +22,7 @@ import {
 } from '../core/helpers/date';
 import Logger from '../core/logger';
 import getSynchronizedDate from '../core/synchronized-time';
+import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
 
 const logger = Logger.get('anolysis', {
@@ -238,7 +239,6 @@ function decodeChannel(pkCampaign) {
 function parseFullDistribution(fullDistribution) {
   const KEYWORD_PREFIX = 'keyword=';
   const PKCAMPAIGN_PREFIX = 'pk_campaign=';
-  const BRAND_PREFIX = 'brand=';
 
   let pkCampaign;
   let keyword;
@@ -251,8 +251,6 @@ function parseFullDistribution(fullDistribution) {
       keyword = normalizeKeyword(part.slice(KEYWORD_PREFIX.length));
     } else if (part.startsWith(PKCAMPAIGN_PREFIX)) {
       pkCampaign = part.slice(PKCAMPAIGN_PREFIX.length);
-    } else if (part.startsWith(BRAND_PREFIX)) {
-      pkCampaign = part.slice(BRAND_PREFIX.length);
     }
   }
 
@@ -381,7 +379,7 @@ export default async function getDemographics(appVersion, productDemographics) {
     product: parseProduct(productDemographics),
     extension: parseExtension(appVersion),
     browser: await parseBrowser({
-      distributionVersion: prefs.get('distribution.version'),
+      distributionVersion: await inject.service('host-settings', ['get']).get('distribution.version', ''),
       userAgent: await getUserAgent(),
     }),
     os: normalizeString(parseOS(await getUserAgent())),

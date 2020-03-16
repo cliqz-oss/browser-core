@@ -19,19 +19,19 @@ export default background({
   init(settings = {}, _browser, { services }) {
     this.settings = settings;
     this.hostSettings = services['host-settings'];
-    this.reportStartup = pacemaker.setTimeout(this.reportStartupTime.bind(this), 1000 * 60);
-    this.reportVersion = pacemaker.register(this.reportVersion.bind(this), {
+    this.reportStartupTimeout = pacemaker.setTimeout(() => this.reportStartupTime(), 1000 * 60);
+    this.reportVersionTimeout = pacemaker.register(() => this.reportVersion(), {
       timeout: 1000 * 60 * 60,
       startImmediately: true,
     });
   },
 
   unload() {
-    pacemaker.clearTimeout(this.reportStartup);
-    this.reportStartup = null;
+    pacemaker.clearTimeout(this.reportStartupTimeout);
+    this.reportStartupTimeout = null;
 
-    pacemaker.clearTimeout(this.reportVersion);
-    this.reportVersion = null;
+    pacemaker.clearTimeout(this.reportVersionTimeout);
+    this.reportVersionTimeout = null;
   },
 
   async reportVersion() {

@@ -15,6 +15,10 @@ const CLIQZ = {};
 const DEBUG = config.settings.channel === 'MO02';
 const appCreated = new Defer();
 
+function triggerOnboardingOffers(onInstall) {
+  CLIQZ.app.modules['offers-v2'].action('triggerOnboardingOffers', onInstall);
+}
+
 (async () => {
   await prefs.init();
   if (!prefs.has('offers.distribution.channel')) {
@@ -55,17 +59,13 @@ const appCreated = new Defer();
         subchannel: prefs.get('offers.distribution.channel.sub',
           prefs.get('offers.distribution.advert_id', ''))
       }, undefined, true);
+
+      triggerOnboardingOffers(false);
     });
 
   window.CLIQZ = CLIQZ;
   appCreated.resolve();
 })();
-
-function triggerOnboardingOffers() {
-  const intentName = 'Segment.Onboarding';
-  const durationSec = 60 * 60; // 1 hour
-  CLIQZ.app.modules['offers-v2'].action('triggerOfferByIntent', intentName, durationSec);
-}
 
 async function onboarding(details) {
   if (details.reason === 'install' && config.settings.channel !== '99') {
@@ -82,7 +82,7 @@ async function onboarding(details) {
       action: 'onboarding-show',
     });
 
-    triggerOnboardingOffers();
+    triggerOnboardingOffers(true);
   }
 }
 

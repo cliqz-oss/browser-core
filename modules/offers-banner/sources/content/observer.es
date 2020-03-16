@@ -48,13 +48,13 @@ export default class Observer {
   _onmessage({ data, origin } = {}) {
     if (!data || !this.config.url.startsWith(origin)) { return; }
     const { target, origin: targetOrigin, message = {} } = JSON.parse(data);
-    const mapper = {
-      'offers-cc': 'cliqz-offers-cc',
+    const desirableTarget = {
+      'offers-cc': 'cliqz-offers-templates',
       'browser-panel': 'cqz-browser-panel-re',
-      'offers-reminder': 'cliqz-offers-reminder',
-      'offers-checkout': 'cliqz-offers-checkout',
-    };
-    const desirableTarget = mapper[this.config.type] || 'cliqz-offers-cc';
+      'offers-reminder': 'cliqz-offers-templates',
+      'offers-checkout': 'cliqz-offers-templates',
+    }[this.config.type] || 'cliqz-offers-templates';
+
     if (target !== desirableTarget || targetOrigin !== 'iframe') {
       return;
     }
@@ -140,7 +140,7 @@ export default class Observer {
 
   _getBannerId() {
     const products = this.config.products || {};
-    const prefix = ['freundin', 'chip', 'cliqz'].find(product => products[product]);
+    const prefix = ['chip', 'cliqz', 'amo', 'ghostery'].find(product => products[product]);
     return `${prefix || 'myoffrz'}-offers-banner`;
   }
 

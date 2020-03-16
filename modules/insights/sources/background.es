@@ -130,6 +130,14 @@ export default background({
   unload() {
     this.db.unload();
     this.api.unload();
+
+    if (isInternalTriggering) {
+      inject.module('webrequest-pipeline').action(
+        'removePipelineStep',
+        'onBeforeRequest',
+        'insights.onTabChanged',
+      );
+    }
   },
 
   async getAntitrackingReport(tabId, pageHost) {

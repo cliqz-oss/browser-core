@@ -72,7 +72,7 @@ export default class Anolysis {
     this.isHealthy = true;
   }
 
-  public async init() {
+  public async init(autoPrivateMode: boolean) {
     // Try to initialize storage and run health-check.
     try {
       await this.storage.init();
@@ -85,7 +85,7 @@ export default class Anolysis {
       // unavailable as well.
       try {
         await this.handleTelemetrySignal(
-          { context: 'storage', exception: `${ex}` },
+          { context: 'storage', exception: `${ex}`, autoPrivateMode },
           'metrics.anolysis.health.exception',
           { force: true },
         );

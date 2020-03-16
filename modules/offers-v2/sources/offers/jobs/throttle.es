@@ -50,8 +50,17 @@ export default class Throttle extends OfferJob {
     const { offer_data: { ui_info: uiInfo = {} } = {} } = offer.offerObj;
     const { notif_type: notifType = 'pop-up' } = uiInfo;
     if (![SILENT_OFFER_NOTIF_TYPE, TOOLTIP_OFFER_NOTIF_TYPE].includes(notifType)) {
-      this.lastTsPerDomain.set(domain, Date.now());
+      this.resetTimer(domain);
     }
+  }
+
+  /**
+   * reset the timer for the given domain
+   * @param domain
+   * @return {void}
+   */
+  resetTimer(domain) {
+    this.lastTsPerDomain.set(domain, Date.now());
   }
 
   process(offerList, { offerIsFilteredOutCb = () => {}, urlData: { domain = '' } = {} } = {}) {

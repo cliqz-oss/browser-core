@@ -6,46 +6,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* globals ChromeUtils, DefaultWeakMap , AppConstants */
-const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
-const { ExtensionParent } = ChromeUtils.import('resource://gre/modules/ExtensionParent.jsm');
-const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
-const { EventEmitter } = ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
-const { CustomizableUI } = ChromeUtils.import('resource:///modules/CustomizableUI.jsm', {});
+/* globals XPCOMUtils, DefaultWeakMap , EventEmitter */
+import ExtensionGlobals from '../shared/extension-globals';
 
-const browserAreas = {
-  navbar: CustomizableUI.AREA_NAVBAR,
-  menupanel: CustomizableUI.AREA_FIXED_OVERFLOW_PANEL,
-  tabstrip: CustomizableUI.AREA_TABSTRIP,
-  personaltoolbar: CustomizableUI.AREA_BOOKMARKS,
-};
+XPCOMUtils.defineLazyModuleGetter(global, 'EventEmitter', 'resource://gre/modules/EventEmitter.jsm');
 
-const { EventManager } = ExtensionCommon;
-const { Management: { global: { windowTracker, tabTracker } } } = ChromeUtils.import('resource://gre/modules/Extension.jsm', null);
-const {
-  IconDetails,
-  StartupCache,
-} = ExtensionParent;
+const { ExtensionParent, Services, EventManager, windowTracker, tabTracker } = ExtensionGlobals;
+const { IconDetails, StartupCache } = ExtensionParent;
 
 const makeWidgetId = id => id.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-
-const clickModifiersFromEvent = (event) => {
-  const map = {
-    shiftKey: 'Shift',
-    altKey: 'Alt',
-    metaKey: 'Command',
-    ctrlKey: 'Ctrl',
-  };
-  const modifiers = Object.keys(map)
-    .filter(key => event[key])
-    .map(key => map[key]);
-
-  if (event.ctrlKey && AppConstants.platform === 'macosx') {
-    modifiers.push('MacCtrl');
-  }
-
-  return modifiers;
-};
 
 /**
  * Manages tab-specific and window-specific context data, and dispatches
@@ -161,12 +130,10 @@ const TabContext = class extends EventEmitter {
 
 // global functions required to `ext-browserAction.js` execute correctly
 global.makeWidgetId = makeWidgetId;
-global.clickModifiersFromEvent = clickModifiersFromEvent;
 global.EventManager = EventManager;
 global.windowTracker = windowTracker;
 global.tabTracker = tabTracker;
 global.TabContext = TabContext;
-global.browserActionMap = new Set();
 
 // Now execute `ext-browserAction.js` in the current scope
 // in order to get access to original BrowserAction constructor
@@ -180,6 +147,7 @@ Services.scriptloader.loadSubScript(
   global, 'UTF-8'
 );
 
+const browserAreas = global.browserAreas;
 const BrowserAction = global.browserAction;
 delete global.browserAction;
 

@@ -379,14 +379,16 @@ export class ContentExtractor {
           );
           innerDict[eachKey] = urlArray;
           if (ruleset === 'normal') {
-            logger.debug('Populating query Cache <<<< ', url, ' >>>> ', urlArray[0]);
-            this._CliqzHumanWeb.addStrictQueries(url, urlArray[0]);
-
-            this._CliqzHumanWeb.queryCache[url] = {
-              d: 0,
-              q: urlArray[0],
-              t: idMappings
-            };
+            const query = urlArray[0];
+            if (query) {
+              logger.debug('Populating query Cache <<<< ', url, ' >>>> ', query);
+              this._CliqzHumanWeb.addStrictQueries(url, query);
+              this._CliqzHumanWeb.queryCache[url] = {
+                d: 0,
+                q: query,
+                t: idMappings
+              };
+            }
           }
         } else {
           urlArray = this._getAttribute(
@@ -601,5 +603,9 @@ export class ContentExtractor {
       });
     }
     this._messageTemplate = {};
+  }
+
+  tryExtractCliqzSerpQuery(url) {
+    return url.startsWith('https://beta.cliqz.com/search?') && parse(url).searchParams.get('q');
   }
 }

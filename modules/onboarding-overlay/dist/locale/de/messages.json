@@ -1,9 +1,9 @@
 {
     "onboarding_chip_description": {
-        "message": "CHIP Sparalarm funktioniert unter Einhaltung höchster Datenschutz Standards (ohne User-Profiling oder Nutzung von PII Daten). Für Sparalarm sind Sie als Nutzer immer anonym."
+        "message": "Ihre Privatsphäre ist uns wichtig. Deshalb sind Sie für Sparalarm als Nutzer immer anonym."
     },
     "onboarding_chip_description_more": {
-        "message": "Die Sparalarm-Technologie arbeitet ausschließlich lokal auf dem Rechner des Nutzers. Sie wertet dort unter anderem aus, welche Websites der Anwender besucht oder wonach er im Internet gesucht hat. Dies bildet die Grundlage zur Ermittlung einer möglichen Kaufabsicht.<div></div>CHIP Sparalarm sendet keinerlei Informationen an einen Server, anhand derer einzelne Nutzer persönlich identifizierbar sind, sondern lediglich anonyme, rein statistische Daten. Welche genau, können Sie hier einsehen: <a href='https://sparalarm.chip.de/datenschutzerklaerung/'>https://sparalarm.chip.de/datenschutzerklaerung/</a>"
+        "message": "Das ist die Besonderheit der Sparalarm-Technologie: Sie arbeitet ausschließlich lokal auf dem Rechner. Besuchte Webseites oder Suchanfragen werden lokal ausgwertet, um Ihnen im richtigen Moment die besten Angebote und Rabatte anzeigen zu können. Die Auswertung erfordert keine Verarbeitung der Daten auf einem Server.<div></div>Um Ihnen stets das beste Produkt zu bieten, werden lediglich anonyme, rein statistische Informationen übermittelt. Welche genau, können Sie hier nachlesen: <a href='https://sparalarm.chip.de/datenschutzerklaerung/'>https://sparalarm.chip.de/datenschutzerklaerung/</a>"
     },
     "onboarding_chip_human_web": {
         "message": "Human Web zulassen"
@@ -88,10 +88,10 @@
 
 
     "onboarding_myoffrz_description": {
-        "message": "MyOffrz funktioniert unter Einhaltung höchster Datenschutz Standards (ohne User-Profiling oder Nutzung von PII Daten). Für MyOffrz bist du als Nutzer immer anonym."
+        "message": "Deine Privatsphäre ist uns wichtig. Deshalb bist du für MyOffrz als Nutzer immer anonym."
     },
     "onboarding_myoffrz_description_more": {
-        "message": "Die MyOffrz-Technologie arbeitet ausschließlich lokal auf dem Rechner des Nutzers. Sie wertet dort unter anderem aus, welche Websites der Anwender besucht oder wonach er im Internet gesucht hat. Dies bildet die Grundlage zur Ermittlung einer möglichen Kaufabsicht.<div></div>MyOffrz sendet keinerlei Informationen an einen Server, anhand derer einzelne Nutzer persönlich identifizierbar sind, sondern lediglich anonyme, rein statistische Daten. Welche genau, kannst du hier einsehen:  <a href='https://myoffrz.com/datenschutzerklaerung/ '>https://myoffrz.com/datenschutzerklaerung/ </a>."
+        "message": "Das ist die Besonderheit der MyOffrz-Technologie:  Sie arbeitet ausschließlich lokal auf dem Rechner. Besuchte Webseites oder Suchanfragen werden lokal ausgwertet, um dir im richtigen Moment die besten Angebote und Rabatte anzeigen zu können. Die Auswertung erfordert keine Verarbeitung der Daten auf einem Server.<div></div>Um dir stets das beste Produkt zu bieten, werden lediglich anonyme, rein statistische Informationen übermittelt. Welche genau, kannst du hier nachlesen: <a href='https://myoffrz.com/datenschutzerklaerung/'>https://myoffrz.com/datenschutzerklaerung/</a>"
     },
     "onboarding_myoffrz_human_web": {
         "message": "Human Web zulassen"

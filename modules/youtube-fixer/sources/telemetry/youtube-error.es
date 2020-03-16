@@ -2,7 +2,7 @@
 export default [{
   name: 'youtube-fixer.metric.cookieError',
   sendToBackend: {
-    version: 1,
+    version: 2,
     demographics: [
       'platform',
       'product',
@@ -16,12 +16,13 @@ export default [{
   schema: {
     required: ['statusCode', 'cookies'],
     properties: {
-      statusCode: { type: 'number', min: 500 },
-      cookies: { type: 'number', min: 0 },
+      statusCode: { type: 'integer', min: 500 },
+      cookies: { type: 'integer', min: 0 },
       antitrackingEnabled: { type: 'boolean' },
       cookieMonsterEnabled: { type: 'boolean' },
       cmNonTrackerEnabled: { type: 'boolean' },
       cmSessionEnabled: { type: 'boolean' },
+      affected: { type: 'boolean' }
     }
   }
 }];

@@ -5,10 +5,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
-
-const addonManager = ChromeUtils.import('resource://gre/modules/AddonManager.jsm', {}).AddonManager; // eslint-disable-line no-undef
+/* globals XPCOMUtils */
+const AddonManager = {};
+XPCOMUtils.defineLazyModuleGetter(AddonManager, 'AddonManager', 'resource://gre/modules/AddonManager.jsm');
 
 export async function setTheme(currentThemeId) {
+  const { AddonManager: addonManager } = AddonManager;
   const themes = await addonManager.getAddonsByTypes(['theme']);
 
   if (themes.length === 0) {
@@ -23,6 +25,7 @@ export async function setTheme(currentThemeId) {
 }
 
 export async function getTheme() {
+  const { AddonManager: addonManager } = AddonManager;
   const themes = await addonManager.getAddonsByTypes(['theme']);
   let currentTheme = '';
 

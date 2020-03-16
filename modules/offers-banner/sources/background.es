@@ -5,7 +5,6 @@ import { getActiveTab } from '../core/browser';
 import { isGhostery } from '../core/platform';
 import prefs from '../core/prefs';
 import { findTabs } from '../core/tabs';
-import telemetry from '../core/services/telemetry';
 import { dispatcher as transportDispatcher } from './transport/index';
 import { transform, transformMany } from './transformation/index';
 import { getOfferNotificationType, products, chooseProduct } from './utils';
@@ -13,7 +12,6 @@ import { setIconBadge, resetIconBadge } from './icon-badge';
 import Popup from './popup';
 import SearchReporter from './search/reporter';
 import logger from './logger';
-import metrics from './telemetry/metrics';
 
 const REAL_ESTATE_IDS = [
   'browser-panel',
@@ -30,10 +28,9 @@ const SILENT_TYPE = 'silent';
 export default background({
   core: inject.module('core'),
   offersV2: inject.module('offers-v2'),
-  requiresServices: ['cliqz-config', 'telemetry'],
+  requiresServices: ['cliqz-config'],
 
   init() {
-    telemetry.register(metrics);
     REAL_ESTATE_IDS.forEach(realEstateID =>
       this.offersV2
         .action('registerRealEstate', { realEstateID })
@@ -45,6 +42,8 @@ export default background({
         this._closeBanner();
       },
       getOffers: this.actions.getOffers.bind(this),
+      onGetImageAsDataurl: request =>
+        this.offersV2.action('getImageAsDataurl', request),
     });
     this.popup.init();
     if (!isGhostery) { chrome.browserAction.enable(); }
@@ -53,7 +52,6 @@ export default background({
   },
 
   unload() {
-    telemetry.unregister(metrics);
     if (!isGhostery) { chrome.browserAction.disable(); }
     REAL_ESTATE_IDS.forEach(realEstateID =>
       this.offersV2
@@ -76,7 +74,8 @@ export default background({
       const tab = await getActiveTab().catch(() => undefined);
       const url = tab ? tab.url : undefined;
       const offers = await this.offersV2.action('getStoredOffers', filters, url);
-      return transformMany(banner, { offers });
+      const [ok, payload] = transformMany(banner, { offers }, { shouldSort: true });
+      return ok ? payload : {};
     },
 
     setPref(preferences = {}) {
@@ -99,9 +98,9 @@ export default background({
     'offers-send-ch': function onMessage(msg) {
       if (!msg) { return; }
       const { dest = [], type = '', data } = msg;
-      if (type !== 'push-offer' || !data) { return; }
+      if (!['push-offer-collection', 'push-offer'].includes(type) || !data) { return; }
       const banner = REAL_ESTATE_IDS.find(estate => dest.includes(estate));
-      if (banner) { this._dispatcher(banner, data); }
+      if (banner) { this._dispatcher(type, banner, data); }
     },
     'offers-notification:unread-offers-count': function onMessage({ count, tabId }) {
       if (tabId !== undefined && !isGhostery) {
@@ -122,20 +121,22 @@ export default background({
     // dropdown end
   },
 
-  _dispatcher(banner, data) {
+  _dispatcher(type, banner, data) {
     const notificationType = getOfferNotificationType(data);
     const rendererMapper = {
       [SILENT_TYPE]: () => {},
       [GHOSTERY_RED_DOT_TYPE]: () => {},
       [RED_DOT_TYPE]: () => !isGhostery && setIconBadge(chooseProduct(products())),
     };
-    (rendererMapper[notificationType] || this._renderBannerIf)(banner, data);
+    (rendererMapper[notificationType] || this._renderBannerIf)(type, banner, data);
   },
 
-  _renderBannerIf(banner, data) {
+  _renderBannerIf(type, banner, data) {
     const { display_rule: { url } = {} } = data;
     const exactMatch = ['offers-reminder', 'offers-checkout'].includes(banner);
-    const [ok, payload] = transform(banner, data);
+    const [ok, payload] = type === 'push-offer-collection'
+      ? transformMany(banner, data)
+      : transform(banner, data);
     if (ok) { this._renderBanner({ ...payload, autoTrigger: true }, { url, exactMatch }); }
   },
 

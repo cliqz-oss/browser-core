@@ -1,9 +1,9 @@
 /* global chai */
-/* global sinon */
 /* global describeModule */
 const commonMocks = require('../utils/common');
 const fetchMocks = require('../utils/fetch');
-const waitFor = require('../utils/waitfor');
+const persistenceMocks = require('../utils/persistence');
+const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
 
 const okUrl = 'http://ok';
 const failUrl = 'fake://?status=404';
@@ -13,184 +13,118 @@ fetchMock.mock(okUrl, {
   headers: { 'Content-type': 'image/smth' },
 });
 const encodedImage = 'data:image/smth;base64,c29tZSBkYXRh'; // base64('some data')
-let FALLBACK_IMAGE;
+
+const url1 = 'http://cdn.cliqz.com/img-1';
+const dataurl1 = 'dataurl://for-img-1';
+
+function storeOffer(odb, oid, templateProperties) {
+  const o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+  o.offer_id = oid;
+  Object.assign(o.ui_info.template_data, templateProperties);
+  odb.addOfferObject(oid, o);
+}
 
 export default describeModule('offers-v2/offers/image-downloader',
   () => ({
     ...commonMocks,
     ...fetchMocks,
-    'core/timers': {
-      setTimeout: function () { },
-    },
   }),
   () => {
     describe('/offers image downloader', function () {
-      let ImageDownloaderPush;
-      let ImageDownloaderBatch;
-      const cb = sinon.stub();
+      let imageDownloader;
+      let odb;
 
-      beforeEach(function () {
-        ImageDownloaderPush = this.module().ImageDownloaderForPush;
-        ImageDownloaderBatch = this.module().ImageDownloaderForBatch;
-        FALLBACK_IMAGE = this.module().FALLBACK_IMAGE;
-        cb.reset();
+      beforeEach(async function () {
+        odb = await persistenceMocks.lib.getEmptyOfferDB(this.system, odb);
+        const ImageDownloader = this.module().default;
+        imageDownloader = new ImageDownloader(odb);
       });
 
-      // --
-      // Downloader for `push`
-      //
-      describe('/downloader for push', () => {
-        let downloader;
-        beforeEach(() => {
-          downloader = new ImageDownloaderPush();
-        });
+      it('/find already downloaded image in logos', async () => {
+        storeOffer(odb, 'oid', { logo_url: url1, logo_dataurl: dataurl1 });
 
-        it('/download one image', async () => {
-          await downloader.downloadWithinTimeLimit(okUrl, '', cb);
+        const du = await imageDownloader.processUrl(url1);
 
-          const dataurl = cb.lastCall.lastArg;
-          chai.expect(dataurl).to.eq(encodedImage);
-        });
+        chai.expect(du).to.eql(dataurl1);
+      });
 
-        it('/download if `dataurl` is not a data-url image but a real url', async () => {
-          await downloader.downloadWithinTimeLimit(okUrl, okUrl, cb);
+      it('/find already downloaded image in pictures', async () => {
+        storeOffer(odb, 'oid', { picture_url: url1, picture_dataurl: dataurl1 });
 
-          const dataurl = cb.lastCall.lastArg;
-          chai.expect(dataurl).to.eq(encodedImage);
-        });
+        const du = await imageDownloader.processUrl(url1);
 
-        it('/do not download already downloaded images', async () => {
-          await downloader.downloadWithinTimeLimit(okUrl, encodedImage, cb);
+        chai.expect(du).to.eql(dataurl1);
+      });
 
-          chai.expect(cb).to.have.not.been.called;
-        });
+      it('/download image if not downloaded yet', async () => {
+        storeOffer(odb, 'oid', { logo_url: okUrl, logo_dataurl: '' });
 
-        it('/do not download if no url', async () => {
-          await downloader.downloadWithinTimeLimit('', '', cb);
+        const du = await imageDownloader.processUrl(okUrl);
 
-          chai.expect(cb).to.have.not.been.called;
-        });
+        chai.expect(du).to.eql(encodedImage);
+      });
 
-        it('/exit on timeout, but still download images', async () => {
-          // Stubbed `fetch` waits for timeout, and only then fetches
-          let isAfterTimeout = false;
-          const dl = new ImageDownloaderPush({
-            setTimeout: c => c(),
-            fetch: async (url) => {
-              await waitFor(() => isAfterTimeout);
-              return fetchMock(url);
-            }
-          });
+      it('/avoid downloading if url is unknown', async () => {
+        const du = await imageDownloader.processUrl('some-unknown-url');
 
-          // Timeout before fetch
-          // Callback is called with the original url
-          await dl.downloadWithinTimeLimit(okUrl, '', cb);
+        chai.expect(du).to.be.null;
+      });
 
-          let dataurl = cb.lastCall.lastArg;
-          chai.expect(dataurl).to.eq(okUrl);
+      it('/avoid downloading if no url is given', async () => {
+        const emptyUrl = '';
+        storeOffer(odb, 'oid', { logo_url: emptyUrl, logo_dataurl: emptyUrl });
 
-          // Now comes fetch
-          // Callback is called again, now with a real image
-          cb.reset();
-          isAfterTimeout = true;
+        const du = await imageDownloader.processUrl(emptyUrl);
 
-          await waitFor(() => chai.expect(cb).to.have.been.called);
-          dataurl = cb.lastCall.lastArg;
-          chai.expect(dataurl).to.eq(encodedImage);
-        });
+        chai.expect(du).to.be.null;
+      });
 
-        it('/use real url on download error', async () => {
-          await downloader.downloadWithinTimeLimit(failUrl, '', cb);
+      it('/catch download errors', async () => {
+        storeOffer(odb, 'oid', { picture_url: failUrl });
 
-          const dataurl = cb.lastCall.lastArg;
-          chai.expect(dataurl).to.eq(failUrl);
-        });
+        const du = await imageDownloader.processUrl(failUrl);
 
-        it('/do not callback if dataurl is not changed', async () => {
-          await downloader.downloadWithinTimeLimit(failUrl, failUrl, cb);
+        chai.expect(du).to.be.null;
+      });
 
-          chai.expect(cb).to.have.not.been.called;
+      function extractPictureAndLogo(offerObj) {
+        const tpl = offerObj.ui_info.template_data;
+        const { picture_dataurl: picture, logo_dataurl: logo } = tpl;
+        return { picture, logo };
+      }
+
+      it('/store a downloaded image in all offers that reference it', async () => {
+        storeOffer(odb, 'oid1', { picture_url: url1 });
+        storeOffer(odb, 'oid2', { picture_url: okUrl, logo_url: okUrl });
+        storeOffer(odb, 'oid3', { picture_url: okUrl, logo_url: okUrl });
+        storeOffer(odb, 'oid4', { picture_url: okUrl, logo_url: okUrl });
+
+        await imageDownloader.processUrl(okUrl);
+
+        odb.getOffers().forEach((offer) => {
+          const offerId = offer.offer_id;
+          const { picture, logo } = extractPictureAndLogo(offer.offer);
+          if (offerId === 'oid1') {
+            chai.expect(picture).to.be.undefined;
+            chai.expect(logo).to.be.undefined;
+          } else {
+            chai.expect(picture).to.eq(encodedImage);
+            chai.expect(logo).to.eq(encodedImage);
+          }
         });
       });
 
+      // Disable until fix in core: do not hang on re-creating of `PersistentMap`
+      xit('/stored images are persistent over browser restart', async () => {
+        storeOffer(odb, 'oid', { picture_url: okUrl, logo_url: okUrl });
 
-      // --
-      // Downloader for OfferDB
-      //
-      describe('/downloader for OfferDB', () => {
-        let downloader;
-        beforeEach(() => {
-          downloader = new ImageDownloaderBatch();
-        });
+        await imageDownloader.processUrl(okUrl);
+        await odb.loadPersistentData();
 
-        it('/download an image', async () => {
-          await downloader.download(okUrl, '', cb);
-
-          const dataurl = cb.lastCall.lastArg;
-          chai.expect(dataurl).to.eq(encodedImage);
-        });
-
-        it('/fallback image on failure', async () => {
-          await downloader.download(failUrl, 'not-a-data-url', cb);
-
-          const dataurl = cb.lastCall.args[0];
-          chai.expect(dataurl).to.eq(FALLBACK_IMAGE);
-        });
-
-        it('/first call is setting a fallback url', async () => {
-          await downloader.download(okUrl, okUrl, cb);
-
-          const dataurl = cb.firstCall.args[0];
-          chai.expect(dataurl).to.eq(FALLBACK_IMAGE);
-        });
-
-        it('/first call is setting an original url, for transition between extension versions', async () => {
-          await downloader.download(okUrl, null, cb);
-
-          const dataurl = cb.firstCall.lastArg;
-          chai.expect(dataurl).to.eq(okUrl);
-        });
-
-        it('/do not download if already downloaded', async () => {
-          await downloader.download(okUrl, encodedImage, cb);
-
-          chai.expect(cb).to.have.not.been.called;
-        });
-
-        it('/do not download if no url', async () => {
-          await downloader.download('', '', cb);
-
-          chai.expect(cb).to.have.not.been.called;
-        });
-
-        it('/do not callback if fallback dataurl is not changed', async () => {
-          await downloader.download(failUrl, FALLBACK_IMAGE, cb);
-
-          chai.expect(cb).to.have.not.been.called;
-        });
-
-        it('/do not download too often', async () => {
-          const fetch = sinon.stub();
-          const dl = new ImageDownloaderBatch({ fetch });
-
-          dl.nThreads = 1;
-          dl.markBatch();
-          await dl.download(okUrl, '', cb);
-
-          chai.expect(fetch).to.have.not.been.called;
-        });
-
-        it('/do not mark batches if no active downloads', async () => {
-          const fetch = sinon.stub();
-          const dl = new ImageDownloaderBatch({ fetch });
-
-          dl.markBatch();
-          dl.markBatch();
-          dl.markBatch();
-          await dl.download(okUrl, '', cb);
-
-          chai.expect(fetch).to.have.been.called;
-        });
+        const offer = odb.getOfferObject('oid');
+        const { picture, logo } = extractPictureAndLogo(offer);
+        chai.expect(picture).to.eq(encodedImage);
+        chai.expect(logo).to.eq(encodedImage);
       });
     });
   });

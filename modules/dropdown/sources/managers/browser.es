@@ -16,7 +16,6 @@ import {
   TAB_CHANGE_EVENTS,
   PASSIVE_LISTENER_OPTIONS,
   PREVENTABLE_LISTENER_OPTIONS,
-  stopEvent,
 } from './utils';
 
 export default class BrowserDropdownManager extends BaseDropdownManager {
@@ -55,18 +54,20 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
       this.urlbar.addEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
     PREVENTABLE_EVENTS.forEach(eventName =>
       this.urlbar.addEventListener(eventName, this, PREVENTABLE_LISTENER_OPTIONS));
-    this.urlbar.goButton.addEventListener('click', stopEvent, true);
+    this._urlbar.on('gobutton-click', this._onGoButtonClick);
     const tabContainer = this.window.gBrowser.tabContainer;
     TAB_CHANGE_EVENTS.forEach(eventName =>
       tabContainer.addEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
 
     this._lastQuery.on('click', this._onShortcutClicked);
+    this._urlbar.on('update-attributes', this.updateUrlbarAttributes);
   }
 
   unload() {
+    this._urlbar.off('update-attributes', this.updateUrlbarAttributes);
     this._lastQuery.off('click', this._onShortcutClicked);
     this._dropdown.off('message', this._onMessage);
-    this.urlbar.goButton.removeEventListener('click', stopEvent, true);
+    this._urlbar.off('gobutton-click', this._onGoButtonClick);
 
     PASSIVE_EVENTS.forEach(eventName =>
       this.urlbar.removeEventListener(eventName, this, PASSIVE_LISTENER_OPTIONS));
@@ -103,7 +104,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     });
 
     this.dropdownAction = iframeWrapper.createProxy();
-    this._iframeWrapperDefer.resolve();
+    this._dropdown.isReady().then(this._iframeWrapperDefer.resolve);
   }
 
   _onMessage = (data) => {
@@ -252,6 +253,11 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     return this._dropdown.height;
   }
 
+  _onGoButtonClick = (ev) => {
+    const newTab = ev.altKey || ev.metaKey || ev.ctrlKey;
+    this._handleEnter(newTab);
+  }
+
   onKeydown(event) {
     if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
       this.collapse();
@@ -293,6 +299,9 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
           this._handleEnter(false);
           preventDefault = true;
         }
+        break;
+      case 'keyup':
+        this.onKeyup(event);
         break;
       case 'keypress': {
         if (event.ctrlKey || event.altKey || event.metaKey) {

@@ -190,6 +190,9 @@ export default function ({ isPrivateMode }, settings = {}) {
         get useTitle() {
           return prefs.get('modules.search.operators.addCompletion.useTitle');
         },
+        get maxTitleLength() {
+          return prefs.get('modules.search.operators.addCompletion.maxTitleLength', 32);
+        },
         providerBlacklist: ['instant', 'querySuggestions', 'historyView'],
       },
       offers: {

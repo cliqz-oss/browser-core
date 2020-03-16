@@ -142,10 +142,6 @@ if (isIntegrationBranch) {
         'config': 'ghostery.js',
     ]
 
-    matrix['cliqzs'] = [
-        'config': 'experiments/cliqzs.json',
-    ]
-
     matrix['cliqz-android'] = [
         'config': 'cliqz-android.js',
     ]

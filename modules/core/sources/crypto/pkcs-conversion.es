@@ -23,7 +23,7 @@ function bytesToEncode(len) {
     sum += 3;
   } else if (len < (1 << 24)) {
     sum += 4;
-  } else if (len < (1 << 32)) {
+  } else if (len <= 2147483647) { // < 2**31
     sum += 5;
   } else {
     throw new Error(`value too big ${len}`);
@@ -46,7 +46,7 @@ function pushLength(buffer, len) {
     buffer.pushByte(len >> 16);
     buffer.pushByte((len >> 8) & 0xFF);
     buffer.pushByte(len & 0xFF);
-  } else if (len < (1 << 32)) {
+  } else if (len <= 2147483647) { // < 2**31
     buffer.pushByte(0x84);
     buffer.pushByte(len >> 24);
     buffer.pushByte((len >> 16) & 0xFF);

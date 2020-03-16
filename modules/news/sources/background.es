@@ -51,9 +51,7 @@ const NEWS_EDITIONS = [
   @class Background
  */
 export default background({
-  requiresServices: [
-    'logos',
-  ],
+  requiresServices: ['logos'],
   /**
     @method init
     @param settings
@@ -62,11 +60,9 @@ export default background({
     this.news = new News(browser);
   },
 
-  unload() {
-  },
+  unload() {},
 
-  events: {
-  },
+  events: {},
 
   actions: {
     async getNews() {
@@ -79,6 +75,7 @@ export default background({
           title: r.title_hyphenated || r.title,
           description: r.description,
           displayUrl: getCleanHost(parse(r.url)) || r.title,
+          domain: r.domain,
           logo: logos.getLogoDetails(r.url),
           url: r.url,
           type: r.type,
@@ -104,6 +101,6 @@ export default background({
         name: getMessage(edition.text),
         isSelected: edition.value === currentEdition,
       }));
-    }
+    },
   },
 });

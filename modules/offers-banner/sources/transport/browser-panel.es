@@ -2,21 +2,6 @@ import { send } from './index';
 
 const REAL_ESTATE_ID = 'browser-panel';
 
-export function specificTelemetry(value) {
-  const mapper = {
-    code_copied: 'copy_code',
-    offer_closed: 'remove',
-    more_about_cliqz: 'learn_more',
-    offer_description: 'use',
-    offer_ca_action: 'use',
-    offer_title: 'use',
-    offer_logo: 'use',
-  };
-  const target = mapper[value];
-  if (!target) { return; }
-  const signal = { type: 'offrz', view: 'bar', action: 'click', target };
-  send(signal, 'telemetry');
-}
 
 function caAction(offerId, elementId) {
   const callToActionSignals = new Set([
@@ -58,12 +43,11 @@ function buttonActions(offerId, { element_id: elementId } = {}) {
 }
 
 export function actions(offerId, data = {}) {
-  const { signal_type: signalType, element_id: elementId } = data;
+  const { signal_type: signalType } = data;
   const mapper = {
     button_pressed: buttonActions,
   };
   if (!mapper[signalType]) { return; }
-  specificTelemetry(elementId);
   mapper[signalType](offerId, data);
 }
 

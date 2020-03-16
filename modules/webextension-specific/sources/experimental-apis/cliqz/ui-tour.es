@@ -6,15 +6,19 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global ChromeUtils, windowTracker */
-const { UITour } = ChromeUtils.import('resource:///modules/UITour.jsm');
+/* global XPCOMUtils */
+import ExtensionGlobals from '../shared/extension-globals';
+
+const UI = {};
+const { windowTracker } = ExtensionGlobals;
+XPCOMUtils.defineLazyModuleGetter(UI, 'UITour', 'resource:///modules/UITour.jsm');
 
 // Allow showing/hiding on active window only for now
 // showHighlight is not supported yet as there is a bug related to it
 // UITour.showHighlight(aWindow, target, 'wobble');
 
 export function createUITourTarget(targetId, widgetQuery, widgetName) {
-  UITour.targets.set(targetId,
+  UI.UITour.targets.set(targetId,
     {
       query: widgetQuery, // e.g. '#searchbar',
       widgetName, // e.g. 'search-container',
@@ -23,12 +27,12 @@ export function createUITourTarget(targetId, widgetQuery, widgetName) {
 }
 
 export function deleteUITourTarget(targetId) {
-  UITour.targets.delete(targetId);
+  UI.UITour.targets.delete(targetId);
 }
 
 export function hideUITour() {
   const aWindow = windowTracker.topWindow;
-  UITour.hideInfo(aWindow);
+  UI.UITour.hideInfo(aWindow);
 }
 
 export function showUITour(settings, ctaButton, skipButton) {
@@ -64,7 +68,7 @@ export function showUITour(settings, ctaButton, skipButton) {
 
     const { targetId, title, text, icon } = settings;
 
-    UITour.getTarget(aWindow, targetId).then(target =>
-      UITour.showInfo(aWindow, target, title, text, icon, buttons, options));
+    UI.UITour.getTarget(aWindow, targetId).then(target =>
+      UI.UITour.showInfo(aWindow, target, title, text, icon, buttons, options));
   });
 }

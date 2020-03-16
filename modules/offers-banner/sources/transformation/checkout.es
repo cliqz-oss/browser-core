@@ -4,7 +4,7 @@ import { products, getResourceUrl } from '../utils';
 export function transform(data = {}) {
   const payload = {
     config: {
-      url: getResourceUrl('offers-checkout'),
+      url: getResourceUrl({ filename: 'checkout.html' }),
       type: 'offers-checkout',
       styles: {
         fullscreen: data.view === 'checkout',

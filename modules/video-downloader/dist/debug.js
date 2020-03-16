@@ -7,9 +7,6 @@
  */
 
 const DATA = {
-  pairingAvailable: true,
-  isPaired: false,
-  isConnectPreferred: true,
   formats: [
     {
       size: '87.9 MB',

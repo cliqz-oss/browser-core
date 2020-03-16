@@ -135,6 +135,7 @@ function signalsTests(dest) {
 }
 
 export default function () {
-  signalsTests('browser-panel');
+  // skip for now
+  // signalsTests('browser-panel');
   signalsTests('offers-cc');
 }

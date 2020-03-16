@@ -71,13 +71,13 @@ export default class View {
   }
 
   sendToIframe(payload) {
-    const mapper = {
-      'offers-cc': ['cliqz-offers-cc', 'pushData'],
+    const [target, action] = {
+      'offers-cc': ['cliqz-offers-templates', 'pushData'],
       'browser-panel': ['cqz-browser-panel-re', 'render_template'],
-      'offers-reminder': ['cliqz-offers-reminder', 'pushData'],
-      'offers-checkout': ['cliqz-offers-checkout', 'pushData'],
-    };
-    const [target, action] = mapper[this.config.type] || ['cliqz-offers-cc', 'pushData'];
+      'offers-reminder': ['cliqz-offers-templates', 'pushData'],
+      'offers-checkout': ['cliqz-offers-templates', 'pushData'],
+    }[this.config.type] || ['cliqz-offers-templates', 'pushData'];
+
     this.iframe.contentWindow.postMessage(JSON.stringify({
       target,
       origin: 'window',

@@ -322,7 +322,7 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
 
   if (dest === 'offers-cc') {
     if (isWebExtension) { await app.disableModule('offers-banner'); }
-    await app.disableModule('offers-cc');
+    await app.disableModule('offers-templates');
   }
 
   await clearOffersDB();
@@ -358,7 +358,7 @@ export const mockOffersBackend = async ({ dest, timeout } = {}) => {
     if (isWebExtension) {
       await app.enableModule('offers-banner');
     } else {
-      await app.enableModule('offers-cc');
+      await app.enableModule('offers-templates');
     }
   }
 

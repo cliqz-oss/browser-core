@@ -84,7 +84,7 @@ module.exports = (program) => {
 
       let isRunning = false;
 
-      getExtensionVersion('package').then((version) => {
+      getExtensionVersion('package', CONFIG).then((version) => {
         process.env.PACKAGE_VERSION = version;
         process.env.EXTENSION_VERSION = version;
 

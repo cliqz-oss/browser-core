@@ -16,6 +16,7 @@ import { promiseHttpHandler } from '../core/http';
 import { setDefaultSearchEngine, getSearchEnginesAsync } from '../core/search-engines';
 import ObservableProxy from '../core/helpers/observable-proxy';
 import events from '../core/events';
+import session from '../core/services/session';
 
 // providers
 import Calculator from './providers/calculator';
@@ -44,7 +45,6 @@ import LocationAssistant from './assistants/location';
 import * as offersAssistant from './assistants/offers';
 import settingsAssistant from './assistants/settings';
 import pluckResults from './operators/streams/pluck-results';
-import config from '../core/config';
 import { bindAll } from '../core/helpers/bind-functions';
 import { chrome } from '../platform/globals';
 
@@ -89,7 +89,15 @@ function getProviders() {
   @class Background
  */
 export default background({
-  requiresServices: ['search-services', 'logos', 'cliqz-config', 'geolocation', 'telemetry', 'search-session'],
+  requiresServices: [
+    'search-services',
+    'logos',
+    'cliqz-config',
+    'geolocation',
+    'telemetry',
+    'search-session',
+    'session',
+  ],
   providesServices: {
     'search-session': searchSessionService,
   },
@@ -157,6 +165,16 @@ export default background({
     if (performanceTelemetryEnabled) {
       // some platforms might not have webRequest
       performance.init();
+    }
+
+    // Only for a new user profile
+    if (session.isNewUser()) {
+      // We randomly pick up a number between 1 and 100;
+      // For 5 percent of new users we set Cliqz as a default search engine;
+      const randomPercent = Math.floor(Math.random() * 100 + 1);
+      if (randomPercent <= 5) {
+        setDefaultSearchEngine('Cliqz');
+      }
     }
   },
 
@@ -401,15 +419,7 @@ export default background({
           assistantStates: this.actions.getAssistantStates(),
         };
 
-        if (config.isMobile) {
-          this.core.action(
-            'callContentAction',
-            'mobile-cards',
-            'renderResults',
-            { windowId: tabId },
-            JSON.stringify(response),
-          );
-        } else if (!tabId) {
+        if (!tabId) {
           this.core.action('broadcast', '', {
             module: 'dropdown',
             action: 'renderResults',
