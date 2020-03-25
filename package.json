@@ -1,6 +1,6 @@
 {
   "name": "browser-core",
-  "version": "7.43.6",
+  "version": "7.43.7",
   "description": "Cliqz features, shared across products including Cliqz browsers for Windows, Mac, Android and iOS",
   "license": "MPL-2.0",
   "author": {
@@ -56,7 +56,6 @@
     "tooltipster": "^4.2.6",
     "ua-parser-js": "^0.7.21",
     "webextension-polyfill": "^0.4.0",
-    "whatwg-fetch": "^3.0.0",
     "ytdl-core": "^1.0.6"
   },
   "peerDependencies": {

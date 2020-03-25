@@ -151,6 +151,10 @@ class TestServer {
   async hasHit(path) {
     return (await this.getHitCtr(path)) > 0;
   }
+
+  fetch(...args) {
+    return fetch(this.getBaseUrl(...args));
+  }
 }
 
 export default new TestServer();

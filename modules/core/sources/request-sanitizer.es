@@ -65,6 +65,7 @@ export async function enableRequestSanitizer() {
     urls: ['<all_urls>'],
     tabId: -1,
   };
+
   webRequest.onBeforeSendHeaders.addListener(
     safeFilter,
     networkFilters,
