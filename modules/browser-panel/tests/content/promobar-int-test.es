@@ -5,8 +5,11 @@ import {
   expect,
   waitFor,
 } from '../../core/test-helpers';
-import data from './fixtures/full-long-logo';
+import data, { dataurl } from './fixtures/full-long-logo';
 import config from '../../../core/config';
+
+const OFFERS_TEMPLATES_MODULE = 'cliqz-offers-templates';
+const GET_IMAGE_AS_DATA_URL_ACTION = 'getImageAsDataurl';
 
 describe('Promo bar interactions', function () {
   let subject;
@@ -26,6 +29,11 @@ describe('Promo bar interactions', function () {
     await subject.load({
       buildUrl: path,
       iframeWidth: 1700
+    });
+    subject.respondsWith({
+      module: OFFERS_TEMPLATES_MODULE,
+      action: GET_IMAGE_AS_DATA_URL_ACTION,
+      response: { dataurl }
     });
     await subject.pushData(target, data, 'render_template');
     $promoContainer = subject.query(promoContainerSelector);
@@ -54,16 +62,15 @@ describe('Promo bar interactions', function () {
       let $domItem;
       let expectedUrlCount;
 
-      beforeEach(function () {
+      beforeEach(async function () {
         $domItem = $promoBody.querySelector(selector);
         $domItem.click();
 
         if (element.isClickable === false) {
-          msgCount = 3;
-        } else {
           msgCount = 5;
+        } else {
+          msgCount = 7;
         }
-
         return waitFor(function () {
           return subject.messages.length === msgCount;
         });
@@ -86,10 +93,10 @@ describe('Promo bar interactions', function () {
     let $domItem;
     let expectedUrlCount;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       $domItem = subject.query(selector);
       $domItem.click();
-      msgCount = 3;
+      msgCount = 5;
 
       return waitFor(function () {
         return subject.messages.length === msgCount;
@@ -114,7 +121,7 @@ describe('Promo bar interactions', function () {
       let $element;
       let execCommand;
 
-      beforeEach(function () {
+      beforeEach(async function () {
         execCommand = subject.iframe.contentWindow.document.execCommand;
         subject.iframe.contentWindow.document.execCommand = () => true;
         $element = $promoCodeContainer.querySelector(elementSelector);
@@ -160,10 +167,10 @@ describe('Promo bar interactions', function () {
     const promoCloseBtnSelector = '.close';
     let $promoCloseBtn;
 
-    beforeEach(function () {
+    beforeEach(async function () {
       $promoCloseBtn = $promoContainer.querySelector(promoCloseBtnSelector);
       $promoCloseBtn.click();
-      msgCount = 4;
+      msgCount = 6;
 
       return waitFor(function () {
         return subject.messages.length === msgCount;

@@ -12,6 +12,8 @@
 .group-header__left-item {
   padding-top: 5px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .group-header__right-item {
@@ -68,4 +70,28 @@
 .group-header__expired-icon.group-header__till-left-some-icon {
   background: url('../images/expired-yellow.svg') no-repeat center;
   background-size: contain;
+}
+
+.group-header__notification {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  background-color: #00AEF0;
+  border-radius: 5px;
+  text-align: center;
+  line-height: 20px;
+  margin-right: 6px;
+  display: inline-block;
+  color: white;
+  font-size: 11px;
+}
+
+.group-header__notification.group-header__chip-notification {
+  background-color: var(--chip-primary-color, #eb443f);
+}
+.group-header__notification.group-header__myoffrz-notification {
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
+.group-header__notification.group-header__ghostery-notification {
+  background-color: var(--ghostery-primary-color, #5B005C);
 }

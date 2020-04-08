@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { window } from '../platform/globals';
+import { window, chrome } from '../platform/globals';
 import * as tabs from '../platform/tabs';
 
 import inject, { setGlobal } from '../core/kord/inject';
@@ -24,18 +24,39 @@ setGlobal(app);
 
 const TEST_URL = window.location.href;
 
-
-async function closeAllTabs() {
-  await Promise.all((await tabs.query({}))
-    .filter(({ url }) => url !== TEST_URL)
-    .filter(({ url }) => !url.startsWith('about:')) // don't close about pages as they are commonly used to debug state of the browser
-    .map(({ id, url }) =>
-      // eslint-disable-next-line no-console
-      tabs.closeTab(id).catch(ex => console.error('Could not close tab', id, url, ex))));
-}
-
-
 (function start() {
+  const tabsListener = new Map();
+
+  chrome.tabs.onUpdated.addListener((tabId, _, tab) => {
+    tabsListener.set(tabId, tab.url);
+  });
+
+  chrome.tabs.onCreated.addListener((tab) => {
+    tabsListener.set(tab.id, tab.url);
+  });
+
+  chrome.tabs.onRemoved.addListener((tabId) => {
+    tabsListener.delete(tabId);
+  });
+
+  const closeAllTabs = async () => {
+    const onTabCloseException = () => {};
+
+    const promises = [];
+    for (const [tabId, url] of tabsListener) {
+      // Don't close about pages as they are commonly used to debug state of the browser
+      if (url !== TEST_URL && url.startsWith('about:') === false) {
+        promises.push(tabs.closeTab(tabId).catch(onTabCloseException));
+      }
+    }
+
+    if (promises.length === 0) {
+      return;
+    }
+
+    await Promise.all(promises);
+  };
+
   // Inject all tests
   Object.keys(window.TESTS).forEach((testName) => {
     const testFunction = window.TESTS[testName];
@@ -54,6 +75,10 @@ async function closeAllTabs() {
   };
 
   before(async () => {
+    for (const tab of await tabs.query({})) {
+      tabsListener.set(tab.id, tab.url);
+    }
+
     await closeAllTabs();
     await testServer.reset();
     inject.service('telemetry', ['installProvider']).installProvider(integrationTestsTelemetryProvider);

@@ -29,7 +29,7 @@ const renderDOM = async (rootElement, freshtabConfig) => {
   const rootElement = document.getElementById('root');
   await checkIfChromeReady();
   const freshtabConfig = await cliqz.freshtab.getConfig();
-  const { isUserOnboarded, onboardingVersion } = freshtabConfig;
+  const { isUserOnboarded, onboardingVersion, showConsentDialog } = freshtabConfig;
   if (config.settings.onboardingVersion >= EXPECTED_ONBOARDING_VERSION && !isUserOnboarded) {
     document.title = tt('onboarding_tab_name');
     document.body.className = '';
@@ -38,5 +38,13 @@ const renderDOM = async (rootElement, freshtabConfig) => {
     iframe.id = 'onboarding';
     document.body.appendChild(iframe);
   }
+
+  if (showConsentDialog) {
+    const injector = document.createElement('script');
+    injector.setAttribute('type', 'text/javascript');
+    injector.setAttribute('src', chrome.runtime.getURL('/modules/onboarding-overlay/injector.js'));
+    document.getElementsByTagName('head')[0].appendChild(injector);
+  }
+
   renderDOM(rootElement, freshtabConfig);
 })();

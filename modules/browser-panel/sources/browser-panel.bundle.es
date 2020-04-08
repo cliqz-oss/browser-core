@@ -1,9 +1,10 @@
 /* global $, Handlebars */
 
 import { chrome } from '../platform/content/globals';
-import { sendMessageToWindow } from './content/data';
+import { sendMessageToWindow, getImageAsDataurl } from './content/data';
 import templates from './templates';
 import helpers from './helpers';
+import logger from './logger';
 
 const BRANDS = {
   myoffrz: {
@@ -107,6 +108,46 @@ $(document).ready(() => {
   }
 });
 
+function createImageUpdater(props) {
+  /**
+   * when the `src` attribute of this HTMLImageElement is not defined
+   * attempt to retrieve the image content as `data:` url
+   * from the prop in `props` keyed by its `data-url-prop` attribute if any.
+   * then if successful set its `src` attribute accordingly and display it.
+   *
+   * @this {HTMLImageElement}
+   * @return {Promise<void>} always resolves after all side-effects,
+   * even on failure to retrieve the image content, never rejects
+   */
+  async function updateImageWithDataurl() {
+    const img = $(this);
+    if (img.attr('src')) {
+      return;
+    }
+    const url = props[img.data('url-prop')];
+    if (!url) {
+      return;
+    }
+    const dataurl = await getImageAsDataurl(url);
+    if (!dataurl) {
+      logger.warn('browser-panel: dataurl void for ', url);
+      return;
+    }
+    img.attr('src', dataurl);
+    img.show();
+  }
+
+  return updateImageWithDataurl;
+}
+
+/**
+ * warning: although this function returns immediately,
+ * it initiates an async side-effect that attempts to retrieve and inject the logo image
+ * when defined by the `logo_url` string property of the given `template_data` object.
+ *
+ * @param {{ template_name: string, template_data: object }} data
+ * @return {void}
+ */
 function draw(data) {
   // get the template name to be used and the data of them
   let templateName = data.template_name;
@@ -129,7 +170,8 @@ function draw(data) {
   const panel = document.getElementById('cqz-browser-panel-re');
   panel.innerHTML = templates[templateName](templateData);
 
-  $('img').on('error', function onError() {
+  const img = $('img');
+  img.on('error', function onError() {
     $(this).hide();
   });
 
@@ -147,6 +189,9 @@ function draw(data) {
     handler: 'show',
     data: { height: 115 }, // should be static, see plz offers-banner/sites-specific.js
   });
+
+  const updateImageWithDataurl = createImageUpdater(templateData);
+  img.each(updateImageWithDataurl);
 }
 
 window.draw = draw;

@@ -19,6 +19,7 @@ class Cliqz {
     this.search = createModuleWrapper('search');
     this.controlCenter = createModuleWrapper('control-center');
     this.antiPhishing = createModuleWrapper('anti-phishing');
+    this.news = createModuleWrapper('news');
 
     this.actions = new RemoteActionProvider('freshtab', {
       renderResults: (response) => {

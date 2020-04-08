@@ -606,6 +606,12 @@ export default background({
       }
     },
 
+    sendEnvironmentSignal(message) {
+      if (this.offersAPI) {
+        this.offersAPI.sendEnvironmentSignal(message);
+      }
+    },
+
     /**
      * Registration related methods for different real estates to offers core
      */

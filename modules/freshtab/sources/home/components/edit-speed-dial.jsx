@@ -135,7 +135,7 @@ export default class EditSpeedDial extends React.Component {
         state={this.state}
         submitLabel={t('app_speed_dial_save').toUpperCase()}
         titleLabel={t('app_speed_dial_edit_title_header')}
-        urlClass="url"
+        urlClass={this.state.showError ? 'url errorIconInput' : 'url'}
         urlLabel={t('app_speed_dial_edit_address_header')}
       />
     );

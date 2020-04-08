@@ -10,6 +10,8 @@ all the signals keys
 const ActionID = {
   // New version names:
   //
+  // environment signal sent at extension startup + every hour afterwards
+  AID_OFFERS_ENVIRONMENT: 'environment',
   // when the offer is added to the database for the first time
   AID_OFFER_DB_ADDED: 'offer_added',
   // this signal will be sent whenever the trigger that has an offer to show on its

@@ -1,21 +1,19 @@
 import React from 'react';
 import Picture from '../widgets/Picture';
-import send from '../transport';
-import { css, i18n } from '../utils';
+import { css, i18n, chooseProduct } from '../utils';
 
 const _css = css('group-header__');
 export default function GroupHeader(props) {
-  const { voucher = {} } = props;
+  const { voucher = {}, products, notification } = props;
   const {
     validity: { diff, diffUnit, expired = {} } = {},
     template_data: templateData,
-    offer_id: offerId
   } = voucher;
   const {
     logo_url: logoUrl,
     logo_class: logoClass,
-    call_to_action: { url } = {},
   } = templateData;
+  const product = chooseProduct(products);
 
   /* eslint-disable no-nested-ternary */
   const expiredClass = expired.soon
@@ -31,17 +29,12 @@ export default function GroupHeader(props) {
   /* eslint-disable jsx-a11y/no-static-element-interactions */
   return (
     <div key={voucher.offer_id} className={_css('container')}>
-      <div
-        className={_css('left-item')}
-        onClick={() =>
-          send('openURL', {
-            offerId,
-            url,
-            closePopup: false,
-            isCallToAction: true,
-          })
-        }
-      >
+      <div className={_css('left-item')}>
+        {notification && (
+          <div className={_css('notification', `${product}-notification`)}>
+            {notification}
+          </div>
+        )}
         <Picture
           url={logoUrl}
           dataurl={props.logoDataurl}

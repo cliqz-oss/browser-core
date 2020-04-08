@@ -605,6 +605,20 @@ export default class OffersHandler {
     });
   }
 
+  /**
+   * select and return an offer that the user might have missed,
+   * or when none, publish a notification about the count
+   * of locally-stored relevant untouched offers if any,
+   * i.e. previously triggered, relevant to the given `catMatches` and `urlData`.
+   *
+   * this method retrieves locally stored relevant untouched offers
+   * that have not yet been actioned and have not previously been reminded to the user (tooltip).
+   * If any, it selects and returns the last one.
+   *
+   * @param {CategoriesMatchTraits} catMatches
+   * @param {UrlData} urlData
+   * @return {void|string} offerID of the selected offer
+   */
   _notifyAboutUnreadOffers(catMatches, urlData) {
     const offers = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
     const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, urlData);
@@ -639,10 +653,7 @@ export default class OffersHandler {
     // this offer is from OffersDB and its `version` is unchanged
     this.offersAPI.pushOffer(
       new Offer({ ...offer, ui_info: newuiInfo }),
-      {
-        displayRule: { url: [urlData.getRawUrl()] },
-        disableCollection: true
-      }
+      { displayRule: { url: [urlData.getRawUrl()] } }
     );
   }
 }

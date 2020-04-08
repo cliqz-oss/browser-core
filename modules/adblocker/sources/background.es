@@ -19,7 +19,7 @@ import config, {
   ADB_PREF_STRICT,
   ADB_USER_LANG,
 } from './config';
-import { isUrl } from '../core/url';
+import { isUrl, parse } from '../core/url';
 import telemetry from '../core/services/telemetry';
 import metrics from './telemetry/metrics';
 
@@ -229,7 +229,15 @@ export default background({
       if (
         isSupportedProtocol(tabUrl) === false
         || isSupportedProtocol(url) === false
-        || this.adblocker.isAdblockerEnabledForUrl(tabUrl) === false
+        || this.adblocker.shouldProcessRequest({
+          isBackgroundRequest: () => false,
+          url,
+          urlParts: parse(url),
+          tabUrl,
+          tabUrlParts: parse(tabUrl),
+          frameUrl: tabUrl,
+          frameUrlParts: parse(tabUrl),
+        }, {}) === false
       ) {
         return { active: false };
       }

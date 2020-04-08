@@ -184,6 +184,9 @@ export default class Dropdown {
     const html = templates.results({
       historyResults: results.historyResults,
       genericResults: results.genericResults,
+    }, {
+      allowProtoMethodsByDefault: true,
+      allowProtoPropertiesByDefault: true,
     });
     this.dropdownElement.innerHTML = html;
 

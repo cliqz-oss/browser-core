@@ -121,7 +121,6 @@ DATA.push({
         }
       }
     },
-    'onboarding-v3': null,
     history: null,
     'offers-cc': null,
     'video-downloader': null,

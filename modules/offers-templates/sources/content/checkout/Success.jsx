@@ -11,6 +11,7 @@ export default function () {
         onClick={() => send('hideBanner')}
         className={_css('close')}
       />
+      <div style={{ height: '47px' }} />
       <div className={_css('big-logo')} />
       <div className={_css('text')}>
         {i18n('congratulations')}<br />

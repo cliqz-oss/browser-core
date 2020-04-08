@@ -12,6 +12,7 @@ import Switch from './partials/switch';
 import Button from './partials/button';
 import Radio from './partials/radio';
 import BackgroundImage from './background-image';
+import BackgroundCustomImage from './background-custom-image';
 import AppContext from './app-context';
 import cliqz from '../cliqz';
 import t from '../i18n';
@@ -54,7 +55,7 @@ export default class Settings extends React.Component {
             news: {},
             background: {},
             stats: {},
-          } } }) => (
+          }, isCustomBackgroundSupported } }) => (
             <div>
               <div
                 id="settings-panel"
@@ -136,12 +137,19 @@ export default class Settings extends React.Component {
                                     || !componentsState.background.image
                               }
                               onBackgroundImageChanged={this.onBackgroundImageChanged}
-                              src={`./images/bg-${background.alias}-thumbnail.png`}
+                              src={background.thumbnailSrc
+                                || `./images/bg-${background.alias}-thumbnail.png`
+                              }
                             />
                           </li>
                         ))
                       }
                     </ul>
+                    {isCustomBackgroundSupported && (
+                      <BackgroundCustomImage
+                        onCustomBackgroundImageUploaded={this.props.onCustomBackgroundImageUploaded}
+                      />
+                    )}
                   </div>
                 )
                 }
@@ -263,6 +271,7 @@ Settings.propTypes = {
   isAllPrefsLinkSupported: PropTypes.bool,
   isStatsSupported: PropTypes.bool,
   onBackgroundImageChanged: PropTypes.func,
+  onCustomBackgroundImageUploaded: PropTypes.func,
   onNewsSelectionChanged: PropTypes.func,
   resetStatistics: PropTypes.func,
   restoreHistorySpeedDials: PropTypes.func,

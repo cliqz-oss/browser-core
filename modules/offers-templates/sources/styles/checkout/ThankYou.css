@@ -8,6 +8,15 @@
   max-width: 245px;
 }
 
+.thank-you__emoji {
+  background: url('../images/thank-you-emoji.png') no-repeat left;
+  display: inline-block;
+  background-size: contain;
+  width: 17px;
+  height: 17px;
+  margin-bottom: -2px;
+}
+
 .thank-you__title {
   font-size: 18px;
 }

@@ -13,7 +13,10 @@
   justify-content: flex-end;
 }
 
-.badge__left-item { }
+.badge__left-item {
+  display: flex;
+  align-items: center;
+}
 .badge__middle-item {
   width: 99%;
 }
@@ -31,6 +34,29 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  width: 147px;
+  /* width will be set by client */
 }
 
+.badge__notification {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  background-color: #00AEF0;
+  border-radius: 5px;
+  text-align: center;
+  line-height: 20px;
+  margin-right: 6px;
+  display: inline-block;
+  color: white;
+  font-size: 11px;
+}
+
+.badge__notification.badge__chip-notification {
+  background-color: var(--chip-primary-color, #eb443f);
+}
+.badge__notification.badge__myoffrz-notification {
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
+.badge__notification.badge__ghostery-notification {
+  background-color: var(--ghostery-primary-color, #5B005C);
+}

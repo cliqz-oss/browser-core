@@ -7,7 +7,6 @@
  */
 
 import { encodeWithPadding } from './padding';
-import { fetch, Headers } from '../core/http';
 import { toBase64, toUTF8 } from '../core/encoding';
 import { randomInt } from '../core/crypto/random';
 
@@ -58,12 +57,12 @@ export default class ProxiedHttp {
     encryptionHeader.set(clientPublicKey, 1);
     encryptionHeader.set(iv, 1 + 65);
 
-    const headers = new Headers({
+    const headers = {
       'Content-Type': 'application/octet-stream',
       Version: HPNV2_PROTOCOL_VERSION.toString(),
       Encryption: toBase64(encryptionHeader),
       'Key-Date': serverPublicKeyDate,
-    });
+    };
 
     const response = await fetch(this._chooseRandomProxyUrl(), {
       method: 'POST',

@@ -48,7 +48,7 @@ module.exports = {
     ENDPOINT_HUMAN_WEB_PATTERNS: 'https://cdn.cliqz.com/browser-f/hw-patterns.gz',
     ENDPOINT_PATTERNSURL: 'https://cdn.cliqz.com/browser-f/patterns',
     HW_CHANNEL: 'cliqz',
-    ONBOARDING_URL: 'resource://cliqz/onboarding-v3/index.html',
+    ONBOARDING_URL: 'onboarding-v4/index.html',
     HISTORY_URL: 'history/home.html',
     'modules.history.search-path': '?query=',
     ICONS: {
@@ -71,11 +71,10 @@ module.exports = {
     'modules.cookie-monster.enabled': true,
     'friends.enable.level': 'development',
     'modules.search.operators.addCompletion.useTitle': false,
+    'modules.freshtab.customBackground': false,
   },
   modules: [
     'core',
-    'telemetry',
-    'core-cliqz',
     'dropdown',
     'abtests-legacy',
     'webextension-specific',
@@ -152,7 +151,6 @@ module.exports = {
   builderDefault: Object.assign({}, base.builderConfig, {
     externals: base.builderConfig.externals.concat('@cliqz-oss/dexie'),
     globalDeps: Object.assign({}, base.builderConfig.globalDeps, {
-      qrcodejs: 'QRCode',
       '@cliqz-oss/dexie': 'Dexie'
     }),
   }),

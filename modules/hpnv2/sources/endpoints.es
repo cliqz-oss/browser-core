@@ -135,7 +135,7 @@ function toRelativeTimeout(absoluteTimeout) {
   return { timeoutInMs, isExpired: timeoutInMs <= 0 };
 }
 
-async function myfetch(url, { method = 'GET', body, payloadEncryption = null, timeoutInMs } = {}) {
+async function myfetch(url, { method = 'GET', body, payloadEncryption = null, timeoutInMs, cache = 'no-store' } = {}) {
   // eslint-disable-next-line no-param-reassign
   timeoutInMs = timeoutInMs || (60 * SECOND);
 
@@ -145,7 +145,7 @@ async function myfetch(url, { method = 'GET', body, payloadEncryption = null, ti
     method,
     headers,
     credentials: 'omit',
-    cache: 'no-store',
+    cache,
     redirect: 'manual',
     signal: abortController.signal
   };
@@ -404,8 +404,24 @@ export default class Endpoints {
     return response.json();
   }
 
-  async getConfig() {
-    return (await myfetch(this.ENDPOINT_HPNV2_CONFIG)).json();
+  // By default all fields will be requested, but you can pass
+  // a comma separated list of list of required fields.
+  //
+  // Advantages:
+  // less traffic and better cache behavior (especially
+  // dropping the timestamp fields is important).
+  async getConfig(fields) {
+    let url = this.ENDPOINT_HPNV2_CONFIG;
+    if (fields) {
+      url += `?fields=${fields}`;
+    }
+    return (await myfetch(url, { cache: 'default' })).text();
+  }
+
+  async getServerTimestamp() {
+    const response = await myfetch(`${this.ENDPOINT_HPNV2_CONFIG}?fields=ts`);
+    const { ts } = await response.json();
+    return ts;
   }
 
   unload() {

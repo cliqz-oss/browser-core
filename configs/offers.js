@@ -51,9 +51,7 @@ module.exports = {
   },
   modules: [
     'core',
-    'core-cliqz',
     'abtests-legacy',
-    'telemetry',
     'human-web',
     'webrequest-pipeline',
     'browser-panel',

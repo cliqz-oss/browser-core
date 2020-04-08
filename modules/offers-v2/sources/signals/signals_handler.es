@@ -244,6 +244,17 @@ export default class SignalHandler {
     return this._forceSignalDelivery('campaign', cid);
   }
 
+  async sendEnvironmentSignal(data) {
+    const sigID = 'environment';
+    const signalType = 'environment';
+    const timestamp = await this.trustedClock.getMinutesSinceEpochAsync();
+
+    const payload = JSON.stringify(constructSignal(
+      sigID, signalType, data, this.gid, timestamp
+    ));
+    await this.sendSingle({ payload });
+  }
+
   /**
    * Will record a new action signal (basically normal telemetry that is not associated
    * to a particular offer or campaign id).

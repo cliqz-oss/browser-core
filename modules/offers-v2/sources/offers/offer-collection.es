@@ -24,6 +24,31 @@ function pullUpFront(array, element) {
   return [element].concat(array.filter(isNotElement));
 }
 
+/**
+ * WARNING: this function mutates its `offersByDisplayID` argument.
+ *
+ * @param {Map<string,Offer>} offersByDisplayID offers keyed by displayID
+ * @param {Offer} offer
+ * @returns {Map<string,Offer>} the given `offersByDisplayID` map,
+ * either unchanged, when it already includes an entry
+ * at the `displayID` of the given `offer`,
+ * or else with the given `offer` added at the corresponding `displayID` key.
+ */
+const addOfferWhenNewDisplayID = (offersByDisplayID, offer) =>
+  (offersByDisplayID.has(offer.displayID)
+    ? offersByDisplayID
+    : offersByDisplayID.set(offer.displayID, offer));
+
+/**
+ * @param {Offer[]} offers
+ * @returns {Offer[]} a new array based on the given `offers` array
+ * excluding offers with the same `displayID`
+ * as another sequentially preceding offer.
+ */
+const keepAtMostOneOfferPerDisplayID = offers => [
+  ...offers.reduce(addOfferWhenNewDisplayID, new Map()).values()
+];
+
 const isMaxSize = entries => entries.size >= (
   config.settings.MAX_GROUPS_IN_OFFER_COLLECTIONS || MAX_GROUPS_IN_OFFER_COLLECTIONS
 );
@@ -74,6 +99,14 @@ class OfferCollection {
   }
 
   /**
+   * when instantiated from a given `offers` array,
+   * the resulting `OfferCollection` is limited to offers
+   * starting with the given `bestOffer`
+   * from at most the first `settings.MAX_GROUPS_IN_OFFER_COLLECTIONS` groups,
+   * where the group of an offer is defined by its `page_imp` monitor
+   * or, when not defined, its `campaign_id`.
+   * also, the resulting `OfferCollection` is limited to at most the first offer
+   * per `displayID`.
    * @param {Array<Offer>=[]} offers
    * @param {Offer?} bestOffer default to offers[0]
    */
@@ -84,11 +117,13 @@ class OfferCollection {
      * @type {Map<string, { offer: Offer, group: string }>}
      * map of `offerID` keys to `{ offer, group }` entries starting with that of the `bestOffer`,
      * sequentially ordered by group key, limited to offers of
-     * at most `settings.MAX_GROUPS_IN_OFFER_COLLECTIONS` groups.
+     * at most `settings.MAX_GROUPS_IN_OFFER_COLLECTIONS` groups,
+     * and to at most one offer per `displayID`.
      */
     this.entries = new Map(
       [...createOffersByGroupMap(reorderedOffers)]
-        .flatMap(([group, offers]) => offers.map(toKeyedCollectionEntry(group)))
+        .flatMap(([group, offers]) =>
+          keepAtMostOneOfferPerDisplayID(offers).map(toKeyedCollectionEntry(group)))
     );
   }
 

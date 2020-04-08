@@ -27,7 +27,7 @@ def setGithubCommitStatus(commit, status, message) {
 
 String triggeringCommitHash = github.getCommitHash()
 
-node('docker && !gpu && eu-central-1') {
+node('docker && !gpu && us-east-1') {
 
   def imgName = "cliqz/navigation-extension-benchmark"
   def image

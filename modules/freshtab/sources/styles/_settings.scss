@@ -180,5 +180,16 @@ $settings-panel-width: 270px;
         .background-selection-wrapper {
             padding-top: 0;
         }
+
+        .custom-background {
+            #custom-bg-input {
+                display: none;
+            }
+
+            label.link {
+                background-image: none;
+                padding-left: 0;
+            }
+        }
     }
 }

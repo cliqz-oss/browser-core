@@ -48,9 +48,11 @@ export default class Feedback extends React.Component {
     return (
       <div className={_css('wrapper')}>
         <div className={_css('container')}>
+          {benefit && (
           <div className={_css('card-benefit')}>
             {benefit}
           </div>
+          )}
           <div style={{ height: '3px' }} />
           <div className={_css('card-headline')}>
             {headline}

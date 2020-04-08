@@ -23,6 +23,7 @@ module.exports = (program) => {
     .action((options) => {
       const { CLIEngine } = require('eslint');
       const cli = new CLIEngine({
+        cache: true,
         fix: options.fix,
       });
       const formatter = cli.getFormatter();

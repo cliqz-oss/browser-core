@@ -14,4 +14,25 @@
   if (theme) {
     document.body.classList.add(['theme-', theme].join(''));
   }
+
+  if (chrome.extension
+    && chrome.extension.getBackgroundPage
+    && !location.hash.startsWith('#ntp')
+  ) {
+    const bg = chrome.extension.getBackgroundPage();
+    if (!bg || !bg.CLIQZ || !bg.CLIQZ.app) {
+      return;
+    }
+
+    if (bg.CLIQZ.app.prefs.get('freshtab.search.autofocus', false)
+      && bg.CLIQZ.app.config.settings.channel !== '99'
+    ) {
+      const url = new URL(location.href);
+      url.hash = '#ntp';
+      chrome.tabs.create({ url: url.href });
+      chrome.tabs.getCurrent((tab) => {
+        chrome.tabs.remove(tab.id);
+      });
+    }
+  }
 }());

@@ -1,13 +1,12 @@
 const DEBUG = false;
 
 const fs = require('fs');
-const resolve = require('path').resolve;
+const { resolve, join } = require('path');
 const url = require('url');
 const createServer = require('http').createServer;
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const compression = require('compression');
 const cookieParser = require('cookie-parser');
 
 function log(...args) {
@@ -49,8 +48,7 @@ function normalizePath(path) {
   const app = express();
 
   app.use(bodyParser.json());
-  app.use('/static', express.static(__dirname + '/public'));
-  app.use(compression());
+  app.use('/static', express.static(join(__dirname, 'public')));
   app.use(cookieParser());
 
   // Accept request to mock a particular endpoint dynamically
@@ -59,30 +57,29 @@ function normalizePath(path) {
   let mocks = {};
 
   app.post('/mock', async (request, response) => {
-    log('MOCK', JSON.stringify(request.body));
     const { path, result, headers, directories, status, timeout } = request.body;
 
     let endpoint = path;
     if (directories) {
-      directories.forEach((dir) => {
+      for (const dir of directories) {
         const fullDir = `${__dirname}/../${dir}`;
         log('READ', fullDir, dir);
-        fs.readdir(fullDir, (err, files) => {
-          if (err) {
-            log('ERR', err);
-          }
+        try {
+          const files = fs.readdirSync(fullDir);
           if (!files) {
             log('EMPTY DIR', fullDir);
             return;
           }
-          files.forEach((file) => {
+          for (const file of files) {
             const fullRequestPath = normalizePath(`${path}/${file}`);
             const fullResourcePath = normalizePath(`${fullDir}/${file}`);
             log('FILE', fullRequestPath, fullResourcePath);
             fileIndex[fullRequestPath] = fullResourcePath;
-          });
-        });
-      });
+          }
+        } catch (err) {
+          log('ERR', err);
+        }
+      }
 
       if (!endpoint.endsWith('/')) {
         endpoint += '/';
@@ -165,7 +162,7 @@ function normalizePath(path) {
       if (result === '{Transparent.gif}') {
         log('Serve transparent gif');
         res.header('Content-Type', 'image/gif');
-        res.end(new Buffer([71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 0, 0,
+        res.end(Buffer.from([71, 73, 70, 56, 57, 97, 1, 0, 1, 0, 128, 0, 0,
           0, 0, 0, 255, 255, 255, 33, 249, 4, 1, 0, 0, 0, 0, 44, 0, 0, 0, 0, 1,
           0, 1, 0, 0, 2, 1, 68, 0, 59]), 'binary');
       } else {

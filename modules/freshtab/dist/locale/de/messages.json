@@ -68,6 +68,9 @@
     "freshtab_app_settings_browser_theme_light": {
         "message": "Hell"
     },
+    "freshtab_app_settings_custom_background_link": {
+        "message": "Eigenes Bild"
+    },
     "freshtab_app_settings_favorites_label": {
         "message": "Favoriten"
     },
@@ -184,6 +187,18 @@
     },
     "freshtab_history_button": {
         "message": "Chronik"
+    },
+    "freshtab_humanweb_consent_accept_btn": {
+        "message": "Suche einschalten<br />und Daten senden"
+    },
+    "freshtab_humanweb_consent_deny_btn": {
+        "message": "Suche ausschalten<br />und keine Daten senden"
+    },
+    "freshtab_humanweb_consent_description": {
+        "message": "Die Schnellsuche erlaubt dir anonym zu suchen. Damit das funktioniert, muss Cliqz Tab anonyme Daten senden. Cliqz Tab sendet aber niemals Daten, die zur Identifizierung von Nutzern benutzt werden können. Welche Daten gesendet werden, kannst du in unserer <a href='https://cliqz.com/privacy-browser' target='_blank'>Datenschutzerklärung</a> nachlesen."
+    },
+    "freshtab_humanweb_consent_heading": {
+        "message": "Anonyme Schnellsuche einschalten?"
     },
     "freshtab_stats_ads_blocked": {
         "message": "Blockierte Werbungen"

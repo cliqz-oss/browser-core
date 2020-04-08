@@ -29,22 +29,15 @@ function reset() {
 
 
 async function getHits() {
-  const hits = new Map();
-
   try {
     const response = await fetch('http://127.0.0.1:3000/info', {
       method: 'get'
     });
     const data = await response.text();
-    const parsed = JSON.parse(data);
-    Object.keys(parsed).forEach((key) => {
-      hits.set(key, parsed[key]);
-    });
+    return new Map(Object.entries(JSON.parse(data)));
   } catch (error) {
     throw new Error(`Could not get hits from test server: ${error}`);
   }
-
-  return hits;
 }
 
 
@@ -150,6 +143,10 @@ class TestServer {
 
   async hasHit(path) {
     return (await this.getHitCtr(path)) > 0;
+  }
+
+  fetch(...args) {
+    return fetch(this.getBaseUrl(...args));
   }
 }
 

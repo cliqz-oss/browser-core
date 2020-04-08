@@ -59,6 +59,7 @@ export default class App {
     version = defaultConfig.EXTENSION_VERSION,
     debug,
     browser = browserPolyfill,
+    skipModules = [],
   } = {}) {
     this.settings = createSettings(config.settings, { version });
     this.isFullyLoaded = false;
@@ -87,6 +88,7 @@ export default class App {
     this._startedDefer = new Defer();
 
     config.modules.forEach((moduleName) => {
+      if (skipModules.includes(moduleName)) return;
       const module = new Module(moduleName);
 
       // special handling for core as it is not really a module and it manages app state

@@ -35,7 +35,7 @@ export default function () {
 
     beforeEach(async function () {
       history = win.CLIQZ.TestHelpers.history;
-      sandbox = sinon.sandbox.create();
+      sandbox = sinon.createSandbox();
 
       await blurUrlBar();
       withHistory([{ value: url1 }, { value: url2 }]);

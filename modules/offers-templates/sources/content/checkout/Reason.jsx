@@ -8,14 +8,17 @@ export default class Reason extends React.Component {
     vote: null,
   }
 
-  /* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/accessible-emoji */
+  /* eslint-disable jsx-a11y/no-static-element-interactions */
   render() {
     const { domain, back } = this.props;
     return (
       <div className={_css('content')}>
         <div style={{ height: '10px' }} />
         <div className={_css('header')}>
-          <div className={_css('title')}>{i18n('oops')}&nbsp;💔</div>
+          <div className={_css('title')}>
+            {i18n('oops')}&nbsp;
+            <div className={_css('emoji')} />
+          </div>
           <div
             onClick={() => {
               send('checkoutsAction', { action: 'close', domain });
@@ -97,5 +100,5 @@ function Option(props) {
       </label>
     </div>
   );
-  /* eslint-enable jsx-a11y/no-static-element-interactions, jsx-a11y/accessible-emoji */
+  /* eslint-enable jsx-a11y/no-static-element-interactions */
 }

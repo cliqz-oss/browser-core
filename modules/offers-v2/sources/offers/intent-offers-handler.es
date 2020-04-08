@@ -105,7 +105,11 @@ export default class IntentOffersHandler {
       const keepOffer = o =>
         o && ((o.user_group === undefined) || shouldKeepResource(o.user_group));
 
-      const intentOffers = aIntentOffers.filter(keepOffer);
+      const intentOffers = aIntentOffers
+        .filter(keepOffer)
+        // EX-9624 - temporary hack:
+        // may/should be removed once display_id updated accordingly on portal
+        .map(offerObj => new Offer(offerObj).getDataObjectWithDisplayIDFromPortalID());
 
       this.setIntentOffers(intent, intentOffers);
       return Promise.resolve(true);

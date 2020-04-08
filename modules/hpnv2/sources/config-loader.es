@@ -44,13 +44,15 @@ export default class ConfigLoader {
 
   init() {
     this.lastKnownConfig = null;
-    this._lastKnownConfigWithoutTs = null;
     this.pendingUpdates = 0;
     this.failedAttemptsInARow = 0;
+    this.timeSyncInProgress = false;
+    this.failedTimeSyncAttemptsInARow = 0;
   }
 
   unload() {
     pacemaker.clearTimeout(this.nextConfigUpdate);
+    pacemaker.clearTimeout(this.nextClockSyncUpdate);
     this.nextConfigUpdate = null;
   }
 
@@ -64,26 +66,27 @@ export default class ConfigLoader {
         return;
       }
 
-      // fetch the config from the server
-      const config = await this.endpoints.getConfig();
-
-      try {
-        const serverTs = parseServerTimestamp(config.ts);
-        await this.onServerTimestampRefresh(serverTs);
-
-        const configWithoutTs = JSON.stringify({ ...config, ts: '' });
-        const isNewConfig = configWithoutTs !== this._lastKnownConfigWithoutTs;
-
-        if (isNewConfig) {
-          logger.log('New configuration found');
-          await this.onConfigUpdate(config);
+      // Fetch the config from the server:
+      //
+      // 'trafficHints' are only relevant for clients that have been
+      // running for a while; for the initial load after extension
+      // start, there is no need to include it.
+      let fields = 'minVersion,groupPubKeys,pubKeys,sourceMap';
+      if (this.lastKnownConfig) {
+        fields += ',trafficHints';
+      }
+      const config = await this.endpoints.getConfig(fields);
+      if (config !== this.lastKnownConfig) {
+        const parsedConfig = JSON.parse(config);
+        logger.log('New configuration found');
+        try {
+          await this.onConfigUpdate(parsedConfig);
           this.lastKnownConfig = config;
-          this._lastKnownConfigWithoutTs = configWithoutTs;
+        } catch (e2) {
+          // we can only reach this point because of a logical error
+          logger.error('Internal error: Callbacks must never throw', e2);
+          throw e2;
         }
-      } catch (e2) {
-        // we can only reach this point because of a logical error
-        logger.error('Internal error: Callbacks must never throw', e2);
-        throw e2;
       }
       this.failedAttemptsInARow = 0;
     } catch (e) {
@@ -96,9 +99,38 @@ export default class ConfigLoader {
     }
   }
 
-  synchronizeClocks() {
-    logger.log('Fetching configuration to synchronize clocks');
-    this.fetchConfig();
+  synchronizeClocks({ force = false } = {}) {
+    if (this.timeSyncInProgress && !force) {
+      logger.debug('clock synchronization already in progress');
+      return this.timeSyncInProgress;
+    }
+
+    this.timeSyncInProgress = (async () => {
+      try {
+        logger.debug('Fetching timestamp from server to synchronize clocks...');
+        const ts = await this.endpoints.getServerTimestamp();
+        const serverTs = parseServerTimestamp(ts);
+        await this.onServerTimestampRefresh(serverTs);
+
+        logger.debug('Successfully synchronized clocks');
+        this.failedTimeSyncAttemptsInARow = 0;
+        this.timeSyncInProgress = false;
+        pacemaker.clearTimeout(this.nextClockSyncUpdate);
+        this.nextClockSyncUpdate = null;
+      } catch (e) {
+        this.failedTimeSyncAttemptsInARow += 1;
+        const cooldown = Math.min(5 * 1000 * this.failedTimeSyncAttemptsInARow, 60 * 60 * 1000);
+
+        logger.warn(`Failed to synchronize clock (reason: ${e}). `
+          + `${this.failedTimeSyncAttemptsInARow} failed attempts in a row. `
+          + `Try again in ${cooldown / 1000} seconds...`);
+        pacemaker.clearTimeout(this.nextClockSyncUpdate);
+        this.nextClockSyncUpdate = pacemaker.setTimeout(() => {
+          this.synchronizeClocks({ force: true });
+        }, cooldown);
+      }
+    })();
+    return this.timeSyncInProgress;
   }
 
   scheduleNextConfigUpdate() {
@@ -124,6 +156,19 @@ export default class ConfigLoader {
   }
 
   isHealthy() {
-    return this.lastKnownConfig && this.failedAttemptsInARow === 0;
+    let healthy = true;
+    if (!this.lastKnownConfig) {
+      logger.warn('No config loaded yet');
+      healthy = false;
+    }
+    if (this.failedAttemptsInARow > 0) {
+      logger.warn(`${this.failedAttemptsInARow} failed config load attempts in a row`);
+      healthy = false;
+    }
+    if (this.failedAttemptsInARow > 0) {
+      logger.warn(`${this.failedTimeSyncAttemptsInARow} failed time sync attempts in a row`);
+      healthy = false;
+    }
+    return healthy;
   }
 }

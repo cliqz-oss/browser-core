@@ -116,33 +116,16 @@ export default class Adblocker {
     this.whitelistChecks.push(fn);
   }
 
-  isAdblockerEnabledForUrl(url = '', hostname = null, domain = null) {
-    if (this.isReady() === false) {
-      return false;
-    }
-
-    if (this.whitelist.isWhitelisted(url, hostname, domain)) {
-      return false;
-    }
-
-    if (this.addWhiteListCheck.length === 0) {
-      return true;
-    }
-
-    for (let i = 0; i < this.whitelistChecks.length; i += 1) {
-      if (this.whitelistChecks[i](url) === true) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   /**
    * Given a `context` from webrequest pipeline, check if the request should be
    * processed by the adblocker.
    */
   shouldProcessRequest(context, response) {
+    // Make sure engine is ready before processing requests
+    if (this.isReady() === false) {
+      return false;
+    }
+
     // Ignore background requests
     if (context.isBackgroundRequest()) {
       return false;
@@ -159,17 +142,26 @@ export default class Adblocker {
       return false;
     }
 
-    // Make sure page is not whitelisted
+    // Check Cliqz whitelist (applies on tabUrl)
     if (
       context.tabUrl
       && context.tabUrlParts !== null
-      && this.isAdblockerEnabledForUrl(
+      && this.whitelist.isWhitelisted(
         context.tabUrl,
         context.tabUrlParts.hostname,
         context.tabUrlParts.generalDomain,
-      ) === false
+      )
     ) {
       return false;
+    }
+
+    // Make sure request is not whitelisted (applies on request context)
+    if (this.whitelistChecks.length !== 0) {
+      for (let i = 0; i < this.whitelistChecks.length; i += 1) {
+        if (this.whitelistChecks[i](context) === true) {
+          return false;
+        }
+      }
     }
 
     return true;

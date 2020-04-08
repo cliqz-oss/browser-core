@@ -297,7 +297,14 @@ export class ContentExtractor {
       queryPrefix = 'search?q=';
     }
 
-    return `https://${hostname}/${queryPrefix}${query}`;
+    // Workaround for an encoding issue (source: https://stackoverflow.com/a/24417399/783510).
+    // Reason: we want to preserve the original search term. In other words, searches
+    // for "abc def" and "abc+def" should be distinguishable. That is why we need to
+    // avoid the ambigious '+' character and use explicit white space encoding.
+    //
+    // (Note: backported from "human-web-lite"; for details, see tests in that module)
+    const encodedQuery = encodeURIComponent(query).replace(/%20/g, '+');
+    return `https://${hostname}/${queryPrefix}${encodedQuery}`;
   }
 
   checkAnonSearchURL(url, query) {

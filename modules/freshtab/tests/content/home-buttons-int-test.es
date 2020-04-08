@@ -57,10 +57,11 @@ describe('Freshtab interactions with buttons', function () {
       });
 
       it('hides settings panel', function () {
-        expect(subject.query('#settings-panel')).to.not.exist;
+        return waitFor(() => expect(subject.query('#settings-panel')).to.not.exist);
       });
 
-      it('sends a "settings > close > click" telemetry signal', function () {
+      it('sends a "settings > close > click" telemetry signal', async function () {
+        await waitFor(() => subject.query('#settings-panel') === null);
         checkTelemetry({
           action: 'click',
           subject: () => subject,

@@ -966,7 +966,7 @@ svg.arrow {
     transition: height linear 0.15s;
     &.open.settings {
         // exact height not auto, so as to allow height transition
-        height: 206px;
+        height: 234px;
     }
     &.open.offrz {
         // exact height not auto, so as to allow height transition

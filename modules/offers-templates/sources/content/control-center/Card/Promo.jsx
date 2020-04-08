@@ -7,16 +7,29 @@ export default class Promo extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      isCodeHidden: this.props.isCodeHidden,
       copied: false,
     };
   }
 
+  onClickInput() {
+    const { autoTrigger, voucher = {}, isCodeHidden } = this.props;
+    const { template_data: templateData = {}, landing, offer_id: offerId } = voucher;
+    const { call_to_action: { url } = {} } = templateData;
+    if (autoTrigger || !isCodeHidden) { return; }
+    this.props.onCopyCode();
+    send('openAndClosePinnedURL', { url, matchPatterns: landing || [] });
+    send('sendOfferActionSignal', {
+      signal_type: 'offer-action-signal',
+      element_id: 'code_copied',
+      offer_id: offerId,
+    });
+  }
+
   onClickCopyCode() {
-    const { voucher = {}, onCopyCode } = this.props;
+    const { voucher = {} } = this.props;
     const { template_data: templateData = {}, offer_id: offerId } = voucher;
     const { call_to_action: { url } = {} } = templateData;
-    onCopyCode();
+    this.props.onCopyCode();
 
     // setTimeout -> to provide user a visual effect of coping
     setTimeout(() => send('openURL', {
@@ -26,7 +39,7 @@ export default class Promo extends React.Component {
       isCallToAction: true,
     }), 250);
 
-    this.setState({ isCodeHidden: false, copied: true });
+    this.setState({ copied: true });
     send('sendOfferActionSignal', {
       signal_type: 'offer-action-signal',
       element_id: 'code_copied',
@@ -58,9 +71,10 @@ export default class Promo extends React.Component {
   }
 
   renderCopyCode() {
-    const { products, voucher = {} } = this.props;
-    const { template_data: { code = '' } = {} } = voucher;
-    const { copied, isCodeHidden } = this.state;
+    const { copied } = this.state;
+    const { products, voucher = {}, isCodeHidden } = this.props;
+    const { template_data: templateData = {} } = voucher;
+    const { code = '' } = templateData;
     const prefix = chooseProduct(products);
     const newCode = isCodeHidden ? `${code.substring(0, 3)}...` : code;
     return (
@@ -76,6 +90,7 @@ export default class Promo extends React.Component {
             readOnly
             className={_css('input', `${prefix}-input`)}
             value={newCode}
+            onClick={this.onClickInput.bind(this)}
           />
           <div
             onClick={this.onClickCopyCode.bind(this)}

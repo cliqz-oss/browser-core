@@ -1,0 +1,18 @@
+version: 1
+update_configs:
+  - package_manager: "javascript"
+    directory: "/"
+    update_schedule: "live"
+    ignored_updates:
+      - match:
+          # Systemjs is currently used only to provide mocking in our
+          # unit-testing infrastructure. We are using a fairly old version
+          # which would be pretty tricky to update. Also, the benefits of
+          # updating are not clear at this point since the setup is working
+          # well enough.
+          #
+          # If you feel adventurous, feel free to give this a shot though!
+          #     => tests/runners/unit-node.js
+          #
+          # But you have been warned...
+          dependency_name: "systemjs"

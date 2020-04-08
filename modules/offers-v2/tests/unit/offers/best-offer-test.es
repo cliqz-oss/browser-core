@@ -197,6 +197,7 @@ export default describeModule('offers-v2/offers/best-offer',
         const o = JSON.parse(JSON.stringify(fixture.VALID_OFFER_OBJ));
         o.offer_id = oid;
         o.campaign_id = oid;
+        o.display_id = oid;
         o.categories = cats;
         o.filterRules = undefined;
         if (rsDest) {

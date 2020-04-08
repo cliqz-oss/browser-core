@@ -65,15 +65,10 @@ module.exports = {
     'webrequest-pipeline',
     'adblocker',
     'anolysis',
-    // mobile cards
-    'core-cliqz',
     'abtests-legacy',
     'cliqz-android',
     'webextension-specific',
-    'telemetry',
   ],
   builderDefault: base.builderConfig,
-  babelPlugins: [
-    ['react-native-web', { commonjs: true }]
-  ]
+  babelPlugins: [],
 };

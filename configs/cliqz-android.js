@@ -46,7 +46,6 @@ module.exports = {
   },
   modules: [
     'core',
-    'core-cliqz',
     'search',
     'webrequest-pipeline',
     'antitracking',

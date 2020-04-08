@@ -7,3 +7,6 @@
 .content__size.content__ghostery-size.content__normal-trigger-size {
   max-height: 370px;
 }
+.content__group-header {
+  cursor: pointer;
+}

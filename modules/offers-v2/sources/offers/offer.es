@@ -21,6 +21,15 @@ const TRIGGER_ON_ADVERTISER_NOTIF_TYPES = [
 ];
 
 /**
+ * EX-9624 - temporary hack: may/should be removed once display_id updated accordingly on portal
+ * extract the substring from start until and excluding the first `_` (underscore character),
+ * or the entire string when no underscore.
+ * as of March 2020, this corresponds to the offer id on the portal when applied to the `offer_id`.
+ * however, there is no guarantee that this will still apply in the future.
+ */
+const PORTAL_ID_FROM_OFFER_ID_REGEXP = /^[^_]+/;
+
+/**
  * the expected geo data is a object: { country -> { city -> [postal1, ...] }};
  * @returns a map with the same information
  */
@@ -358,6 +367,39 @@ export default class Offer {
         notif_type: notifType
       }
     };
+  }
+
+  /**
+   * EX-9624 - temporary hack: may/should be removed once display_id updated accordingly on portal
+   *
+   * the `display_id` may only be updated when the following pre-conditions are met:
+   * * the `display_id` string starts with the `offer_id` string
+   * * the `display_id` string may be parsed from the `offer_id` string
+   *   with {@link PORTAL_ID_FROM_OFFER_ID_REGEXP} and results in a new string.
+   *
+   * @returns {BackendOffer} the underlying offer object unchanged
+   * when its `display_id` field may not be change,
+   * otherwise a new offer object based on the underlying object
+   * with its `display_id` and `version` fields updated.
+   * the new version ensures that local storage is updated with new `display_id`.
+   *
+   * @see {@link PORTAL_ID_FROM_OFFER_ID_REGEXP}
+   */
+  getDataObjectWithDisplayIDFromPortalID() {
+    const offerID = this.uniqueID;
+    const displayID = this.displayID;
+    const portalOfferID = displayID?.startsWith(offerID)
+      && PORTAL_ID_FROM_OFFER_ID_REGEXP.exec(offerID)?.[0];
+
+    const shouldUpdateDisplayID = portalOfferID && (portalOfferID !== displayID);
+    if (!shouldUpdateDisplayID) {
+      return this.offerObj;
+    }
+
+    const version = `${this.version}_alt1`;
+    const updatedOfferObject = { ...this.offerObj, display_id: portalOfferID, version };
+
+    return updatedOfferObject;
   }
 
   /**

@@ -8,6 +8,15 @@
   max-width: 245px;
 }
 
+.reason__emoji {
+  background: url('../images/reason-emoji.png') no-repeat left;
+  display: inline-block;
+  background-size: contain;
+  width: 17px;
+  height: 17px;
+  margin-bottom: -2px;
+}
+
 .reason__title {
   font-size: 18px;
 }

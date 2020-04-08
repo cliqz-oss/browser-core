@@ -30,16 +30,16 @@
 
   <div class="flex-item logo">
     <img
-      src="{{logo_dataurl}}"
+      data-url-prop="logo_url"
       data-cqz-of-btn-id="offer_logo"
       data-openUrl="{{ call_to_action.url }}"
      />
   </div>
 
-  {{#if picture_dataurl}}
+  {{#if picture_url}}
   <div class="flex-item picture">
     <img
-      src="{{picture_dataurl}}"
+      data-url-prop="picture_url"
       data-cqz-of-btn-id="offer_picture"
       data-openUrl="{{ call_to_action.url }}"
     />

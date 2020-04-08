@@ -1,5 +1,14 @@
 .onboarding__container { }
 
+.onboarding__emoji {
+  background: url('../images/onboarding-emoji.png') no-repeat left;
+  display: inline-block;
+  background-size: contain;
+  width: 17px;
+  height: 17px;
+  margin-bottom: -2px;
+}
+
 .onboarding__title {
   font-size: 16px;
   text-align: center;

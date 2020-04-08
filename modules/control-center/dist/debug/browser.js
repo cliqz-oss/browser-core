@@ -1079,7 +1079,6 @@ DATA.push({
       "visible": true,
       "active": true
     },
-    "onboarding-v3": null,
     "history": null,
     "offers-cc": null,
     "video-downloader": null,

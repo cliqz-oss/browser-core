@@ -48,13 +48,13 @@
         "message": "Vous pouvez changer ces paramètres à tout moment dans le module complémentaire."
     },
     "onboarding_cliqz_subtitle": {
-        "message": "Merci d’avoir téléchargé<br />Cliqz Tab pour Firefox&nbsp;!"
+        "message": "Merci d'utiliser<br />Cliqz Tab pour Firefox&nbsp;!"
     },
     "onboarding_cliqz_telemetry": {
         "message": "Partager les données d’utilisation"
     },
     "onboarding_cliqz_title": {
-        "message": "Cliqz Tab est installé&nbsp;!"
+        "message": "Bienvenue sur Cliqz Tab!"
     },
 
 

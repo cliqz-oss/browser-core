@@ -140,6 +140,12 @@ class OfferDB {
       return false;
     }
 
+    const displayID = offerData.display_id;
+    if (this.hasOfferWithDisplayID(displayID)) {
+      // this should never happen since DBReplacer will exclude such offers
+      logger.warn(`addOfferObject: The display id: ${displayID} already exists`);
+    }
+
     // create the container and a copy of the offer data object to avoid issues
     const offerDataCpy = JSON.parse(JSON.stringify(offerData));
     container = this._createOfferContainer();
@@ -584,6 +590,18 @@ class OfferDB {
       return null;
     }
     return container[actionID];
+  }
+
+  /**
+   * @param {string} displayID
+   * @return {boolean} true when this OffersDB includes
+   * at least one offer with the given `displayID`.
+   * note that the offer(s) may be marked `removed`,
+   * i.e. {@link #hasOfferRemoved} may return `true`
+   * for these offers.
+   */
+  hasOfferWithDisplayID(displayID) {
+    return this.displayIdIndexMap.has(displayID);
   }
 
   /**

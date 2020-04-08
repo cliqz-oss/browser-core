@@ -8,7 +8,7 @@
 
 import { pipe } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
-import deepEqual from 'deep-equal';
+import deepEqual from 'fast-deep-equal';
 
 /**
  * Shrinks a full normalized result into nested lists of urls

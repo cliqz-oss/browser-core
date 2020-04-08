@@ -22,13 +22,11 @@ export default class Content extends React.Component {
       cards[voucher.offer_id] = {
         isCodeHidden: voucher.isCodeHidden,
         status: 'active',
-        shouldShowBadgeNotification: true,
         logoDataurl: templateData.logo_dataurl,
       };
     });
     const voucher = vouchers[0] || {};
     const activeCard = (!shouldShowOnboarding || autoTrigger) && voucher.offer_id;
-    if (activeCard) { cards[activeCard].shouldShowBadgeNotification = false; }
     this.state = {
       activeCard,
       cards,
@@ -53,17 +51,11 @@ export default class Content extends React.Component {
     this.setState({ cards });
   }
 
-  onClickBadge = (group, offerId) => () => {
-    const { vouchers, onChangeSeenOffers } = this.props;
-    const { cards } = this.state;
-    const activeVouchers = vouchers.filter((voucher) => {
-      const cardStatus = cards[voucher.offer_id].status;
-      return cardStatus === 'active';
-    });
-    const subgroup = activeVouchers.filter(v => v.group === group);
-    subgroup.forEach((v) => { cards[v.offer_id].shouldShowBadgeNotification = false; });
+  onClickActiveGroupHeader = () =>
+    this.setState({ activeCard: undefined }, window.__globals_resize)
 
-    this.setState({ activeCard: offerId, cards }, window.__globals_resize);
+  onClickBadge = (offerId, subgroup) => () => {
+    this.setState({ activeCard: offerId }, window.__globals_resize);
     subgroup.forEach((v) => { // v.length < 4, in average equal two
       send('sendOfferActionSignal', {
         signal_type: 'offer-action-signal',
@@ -72,7 +64,7 @@ export default class Content extends React.Component {
       });
       send('seenOffer', { offer_id: v.offer_id });
     });
-    onChangeSeenOffers(subgroup.map(v => v.offer_id));
+    this.props.onChangeSeenOffers(subgroup.map(v => v.offer_id));
   }
 
   onRemoveCard = offerId => () => {
@@ -88,6 +80,7 @@ export default class Content extends React.Component {
 
   onChangeCodeStatus = offerId => () => {
     const { cards } = this.state;
+    if (cards[offerId].isCodeHidden === false) { return; }
     cards[offerId].isCodeHidden = false;
     this.setState({ cards });
   }
@@ -160,25 +153,24 @@ export default class Content extends React.Component {
     );
   }
 
-  renderBadge = (voucher, subgroupCount) => {
+  renderBadge = (voucher, subgroup) => {
     const { products, autoTrigger } = this.props;
     const { cards } = this.state;
-    const { shouldShowBadgeNotification } = cards[voucher.offer_id] || {};
     const offerId = voucher.offer_id;
-    const shouldShowNotification = shouldShowBadgeNotification && autoTrigger;
     /* eslint-disable  jsx-a11y/no-static-element-interactions */
     return (
       <div
         key={voucher.offer_id}
-        onClick={this.onClickBadge(voucher.group, voucher.offer_id)}
+        onClick={this.onClickBadge(voucher.offer_id, subgroup)}
       >
         <Badge
           logoDataurl={cards[offerId].logoDataurl}
           onLoadLogo={this.onLoadLogo(offerId)}
           key={offerId}
           voucher={voucher}
-          notification={shouldShowNotification && subgroupCount}
+          notification={subgroup.length}
           products={products}
+          autoTrigger={autoTrigger}
         />
       </div>
     );
@@ -212,22 +204,35 @@ export default class Content extends React.Component {
     );
   }
 
-  renderActiveGroup(leader, vouchers) {
+  renderActiveGroup(leader, subgroup) {
     const { cards } = this.state;
+    const { products, autoTrigger, vouchers } = this.props;
+    const shouldShowNotification = autoTrigger
+      && (products.chip || products.myoffrz)
+      && vouchers.filter(v => cards[v.offer_id].status === 'active').length > 1;
     const offerId = leader.offer_id;
+    /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
       <React.Fragment key={offerId}>
-        <GroupHeader
-          logoDataurl={cards[offerId].logoDataurl}
-          onLoadLogo={this.onLoadLogo(offerId)}
-          key={`${leader.offer_id}group-header`}
-          voucher={leader}
-        />
+        <div
+          className={_css('group-header')}
+          onClick={this.onClickActiveGroupHeader}
+        >
+          <GroupHeader
+            logoDataurl={cards[offerId].logoDataurl}
+            onLoadLogo={this.onLoadLogo(offerId)}
+            key={`${leader.offer_id}group-header`}
+            voucher={leader}
+            notification={shouldShowNotification && subgroup.length}
+            products={products}
+          />
+        </div>
         <div key={`${leader.offer_id}_top`} style={{ height: '7px' }} />
-        {vouchers.map(this.renderActiveCard)}
+        {subgroup.map(this.renderActiveCard)}
         <div key={`${leader.offer_id}_bottom`} style={{ height: '7px' }} />
       </React.Fragment>
     );
+    /* eslint-enable jsx-a11y/no-static-element-interactions */
   }
 
   renderGroup = (leader, subgroup) => {
@@ -235,7 +240,7 @@ export default class Content extends React.Component {
     const isActiveGroup = subgroup.map(v => v.offer_id).includes(activeCard);
     return isActiveGroup
       ? this.renderActiveGroup(leader, subgroup)
-      : this.renderBadge(leader, subgroup.length);
+      : this.renderBadge(leader, subgroup);
   }
 
   renderVouchersGrouped = (vouchers) => {

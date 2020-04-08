@@ -6,11 +6,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global CLIQZ */
-const config = CLIQZ.app.config;
+// By default myOffrz button is disabled
+// this is enabled on offrz module
+// init, if required.
+chrome.browserAction.disable();
 
 chrome.browserAction2.create({
   default_icon: 'modules/control-center/images/cc-active.svg',
   default_title: chrome.i18n.getMessage('control_center_icon_tooltip'),
-  default_popup: `${config.baseURL}control-center/index.html`
+  default_popup: 'modules/control-center/index.html'
 });

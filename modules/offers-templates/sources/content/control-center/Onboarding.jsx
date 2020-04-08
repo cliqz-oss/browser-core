@@ -5,10 +5,13 @@ import { css, i18n, chooseProduct } from '../utils';
 const _css = css('onboarding__');
 export default function Onboarding(props) {
   const product = chooseProduct(props.products);
-  /* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/accessible-emoji */
+  /* eslint-disable jsx-a11y/no-static-element-interactions */
   return (
     <div className={_css('container')}>
-      <div className={_css('title')}>{i18n('onboarding_title')}&nbsp;&#128075;</div>
+      <div className={_css('title')}>
+        {i18n('onboarding_title')}&nbsp;
+        <div className={_css('emoji')} />
+      </div>
       <div className={_css('text')}>
         {i18n('onboarding_description', props.products.chip ? 'CHIP Sparalarm' : 'MyOffrz')}
       </div>
@@ -36,5 +39,5 @@ export default function Onboarding(props) {
       </div>
     </div>
   );
-  /* eslint-enable jsx-a11y/no-static-element-interactions, jsx-a11y/accessible-emoji */
+  /* eslint-enable jsx-a11y/no-static-element-interactions */
 }

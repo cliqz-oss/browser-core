@@ -36,7 +36,6 @@ module.exports = {
   },
   modules: [
     'core',
-    'core-cliqz',
     'search',
     'video-downloader',
     'anolysis',

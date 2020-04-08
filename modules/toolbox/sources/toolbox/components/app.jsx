@@ -16,7 +16,6 @@ import Offers from './offers';
 import Preferences from './preferences';
 import ResourceLoaders from './resource-loaders';
 import SearchBackendConfig from './search-backend-config';
-import Telemetry from './telemetry';
 import ToolsShortcuts from './tools-shortcuts';
 
 import Button from './partials/button';
@@ -28,7 +27,6 @@ const tabs = [
   'Set / get prefs',
   'Action buttons',
   'HumanWeb',
-  'Telemetry',
   'Offers',
   'Resource loaders',
 ];
@@ -60,9 +58,6 @@ export default class App extends React.Component {
     }
     if (this.state.view === 'HumanWeb') {
       return <HumanWeb cliqz={this.background} />;
-    }
-    if (this.state.view === 'Telemetry') {
-      return <Telemetry cliqz={this.background} />;
     }
     if (this.state.view === 'Offers') {
       return <Offers cliqz={this.background} />;

@@ -73,6 +73,7 @@ export default [
   ] }),
   ccMetric('search_adult', { states: ['liberal', 'conservative', 'moderate'] }),
   ccMetric('search_location', { states: ['no', 'ask', 'yes'] }),
+  ccMetric('share_location_learn_more'),
   ccMetric('search_proxy', { states: BOOL_STATES }),
   ccMetric('search_transparency'),
   ccMetric('info_help'),

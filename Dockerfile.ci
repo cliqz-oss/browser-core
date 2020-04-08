@@ -126,3 +126,4 @@ COPY package-lock.json /app/
 WORKDIR /app/
 
 RUN npm ci
+RUN node node_modules/puppeteer-core/install.js

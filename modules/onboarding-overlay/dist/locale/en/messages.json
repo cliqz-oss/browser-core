@@ -48,13 +48,13 @@
         "message": "You can change these setting any time in the add-on."
     },
     "onboarding_cliqz_subtitle": {
-        "message": "Thank you for downloading <br />Cliqz Tab for Firefox!"
+        "message": "Thank you for using <br />Cliqz Tab for Firefox!"
     },
     "onboarding_cliqz_telemetry": {
         "message": "Share anonymous usage data"
     },
     "onboarding_cliqz_title": {
-        "message": "Cliqz Tab is installed!"
+        "message": "Welcome to Cliqz Tab!"
     },
 
     "onboarding_ghosterytab_description": {

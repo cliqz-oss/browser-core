@@ -53,7 +53,7 @@
   },
   "chrome_settings_overrides": {
     "search_provider": {
-      "name": "Cliqz",
+      "name": "Cliqz Private Search",
       "search_url": "https://beta.cliqz.com/search?q={searchTerms}#channel=amo",
       "is_default": true,
       "encoding": "UTF-8",

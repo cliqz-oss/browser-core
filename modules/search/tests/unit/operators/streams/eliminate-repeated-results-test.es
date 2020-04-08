@@ -11,12 +11,12 @@
 const Rx = require('rxjs');
 const operators = require('rxjs/operators');
 const rxSandbox = require('rx-sandbox').rxSandbox;
-const deepEqual = require('deep-equal');
+const deepEqual = require('fast-deep-equal');
 
 const mock = {
   rxjs: Rx,
   'rxjs/operators': operators,
-  'deep-equal': {
+  'fast-deep-equal': {
     default: deepEqual,
   },
 };

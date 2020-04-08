@@ -140,7 +140,7 @@ export default describeModule('offers-v2/offers/jobs/throttle',
           //
           // First pass: offer is pushed
           //
-          const offer1 = { ...fixture.VALID_OFFER_OBJ, offer_id: 'pushed' };
+          const offer1 = { ...fixture.VALID_OFFER_OBJ, offer_id: 'pushed', display_id: 'pushed' };
           const url = fixture.VALID_CATEGORY_MATCH_URL1;
           activateCategory(bg, { name: offer1.categories[0] });
           activateIntentWithOffers(bg, 'intent1', [offer1]);
@@ -157,6 +157,7 @@ export default describeModule('offers-v2/offers/jobs/throttle',
             ...fixture.VALID_OFFER_OBJ,
             campaign_id: 'filter_out_campaign',
             offer_id: 'filter_out',
+            display_id: 'filter_out'
           };
           activateIntentWithOffers(bg, 'intent1', [offer2]);
           await visitPageWithOffer(bg, url);

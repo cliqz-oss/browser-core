@@ -32,14 +32,13 @@ module.exports = {
   }),
   default_prefs: {
     'freshtab.search.mode': 'search',
+    'freshtab.search.autofocus': false,
     'modules.anolysis.enabled': false,
     'modules.browser-panel.enabled': false,
     'modules.offers-templates.enabled': false,
   },
   modules: [
     'core',
-    'telemetry',
-    'core-cliqz',
     'dropdown',
     'abtests-legacy',
     'geolocation',

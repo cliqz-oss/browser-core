@@ -19,7 +19,8 @@ class UndoDialRemoval extends React.Component {
     };
   }
 
-  componentWillReceiveProps(nextProps) {
+  // eslint-disable-next-line camelcase
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.visible !== this.state.visible) {
       this.setState({ visible: nextProps.visible });
     }

@@ -15,6 +15,7 @@ export default class Card extends React.Component {
     send('openURL', {
       offerId,
       url,
+      elemId,
       closePopup: false,
       isCallToAction: true,
     });
@@ -111,12 +112,14 @@ export default class Card extends React.Component {
     /* eslint-disable  jsx-a11y/no-static-element-interactions */
     return (
       <div className={_css('text')}>
+        {templateData.benefit && (
         <div
           onClick={() => this.onCtaElementClick(offerId, 'benefit', url)}
           className={_css('benefit')}
         >
           {templateData.benefit}
         </div>
+        )}
         {!autoTrigger && (
         <div
           onClick={onRemove}
@@ -152,12 +155,14 @@ export default class Card extends React.Component {
       onChangeCodeStatus,
       isCodeHidden,
       products,
+      autoTrigger,
       voucher = {},
     } = this.props;
     return (
       <React.Fragment>
         <Promo
           products={products}
+          autoTrigger={autoTrigger}
           isCodeHidden={isCodeHidden}
           onCopyCode={onChangeCodeStatus}
           voucher={voucher}

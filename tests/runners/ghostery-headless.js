@@ -5,7 +5,9 @@ const { spawnSync } = require('child_process');
 
 const tmp = require('tmp');
 
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+
+const lazyDownloadPuppeteer = require('./launchers/lazy-puppeteer-download');
 
 // Incremented counter to number TAP results
 let tapId = 1;
@@ -69,22 +71,22 @@ const TESTS = [
         document.body.appendChild(newElement);
       });
 
-      // Give time to Ghostery to have started and ad-blocker to be initialized
-      await wait(10000);
+      // Expect element to exist
+      await page.waitForSelector('#integration-tests');
 
-      // Make sure the element inserted was hidden
-      const visible = await page.evaluate(() => {
+      // Expect this element to be hidden eventually
+      await page.waitForFunction(() => {
         const newElement = document.getElementById('integration-tests');
-        return (
+        const visible = (
           window.getComputedStyle(newElement).getPropertyValue('display') !== 'none'
           && newElement.offsetHeight
           && newElement.offsetWidth
         );
-      });
 
-      if (visible) {
-        throw new Error('ads element should have been hidden');
-      }
+        return visible === false;
+      }, {
+        timeout: 60000,
+      });
     },
   },
 ];
@@ -100,7 +102,7 @@ const TESTS = [
  */
 async function switchToGhosteryPage(driver) {
   let index = 0;
-  while (index < 15) {
+  while (index < 30) {
     const ghosteryPages = (await driver.pages()).filter(page => page.url().startsWith('chrome-extension'));
     if (ghosteryPages.length !== 0) {
       await ghosteryPages[0].bringToFront();
@@ -120,7 +122,9 @@ async function switchToGhosteryPage(driver) {
  * is running".
  */
 function ghosteryInitialized(page) {
-  return page.waitForSelector('div.HomeView__featureTitle');
+  return page.waitForSelector('div.HomeView__featureTitle', {
+    timeout: 60000,
+  });
 }
 
 /**
@@ -272,12 +276,14 @@ async function createGhosteryExtension(navigationExtension) {
  * Package navigation-ghostery.
  */
 async function createNavigationExtension() {
-  return run('node', ['fern.js', 'pack', 'configs/ci/ghostery.js'], { returnStdout: true })
-    .split('\n')
-    .splice(-1)[0];
+  return run('node', ['fern.js', 'pack', 'configs/ci/ghostery.js'], {
+    returnStdout: true,
+  }).match(/(?:browser-core.\d+\.\d+\.\d+\.tgz)/)[0];
 }
 
 async function main() {
+  lazyDownloadPuppeteer();
+
   // Package navigation-extension
   const browserCoreArtifact = await createNavigationExtension();
   const baseDirectory = process.cwd();

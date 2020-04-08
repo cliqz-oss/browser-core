@@ -87,24 +87,27 @@ const hasOtherEntries = (entries, entry) => entries.size > +entries.has(entry);
  * See also EX-7894 and the comment inside "replaceOffersOnDB".
  * @param {OffersDB} offersDB
  * @return {(offers: Offer[]) => Offer[]} filter
- * that excludes offers of campaigns for which other offers
- * are either already stored in `offersDB`
- * or have already been seen in a previous index.
+ * that excludes offers of campaigns that are already stored in `offersDB`
  */
 const filterOffersOfSameCampaign = (offersDB) => {
-  const isNewCampaign = ({ campaignIDs }, { campaignID, uniqueID }) => !campaignIDs.has(campaignID)
-    && !hasOtherEntries(offersDB.getCampaignOffers(campaignID), uniqueID);
+  const isNewCampaign = ({ campaignID, uniqueID }) =>
+    !hasOtherEntries(offersDB.getCampaignOffers(campaignID), uniqueID);
 
-  const concatWhenNewCampaign = (collection, offer) => (isNewCampaign(collection, offer)
-    ? {
-      offers: collection.offers.concat(offer),
-      campaignIDs: new Set(collection.campaignIDs).add(offer.campaignID)
-    }
-    : collection);
+  return offers => offers.filter(isNewCampaign);
+};
 
-  const collection = { offers: [], campaignIDs: new Set() };
+/**
+ * @param {OfferDB} offersDB
+ * @return {(offers: Offer[]) => Offer[]} filter
+ * that retains offers that are either currently stored in `offersDB`
+ * or that do not have the same `displayID` as another offer currently stored in `offersDB`.
+ * note that this includes stored offers marked `removed`.
+ */
+const excludeOffersWithDisplayIDFromOtherStoredOffer = (offersDB) => {
+  const hasDisplayIDFromOtherStoredOffer = ({ uniqueID, displayID }) =>
+    offersDB.hasOfferData(uniqueID) || !offersDB.hasOfferWithDisplayID(displayID);
 
-  return offers => offers.reduce(concatWhenNewCampaign, collection).offers;
+  return offers => offers.filter(hasDisplayIDFromOtherStoredOffer);
 };
 
 /**
@@ -122,6 +125,7 @@ export default class DBReplacer extends OfferJob {
   process(offerList, { offersDB }) {
     const filters = [
       filterOffersAlreadyRemoved,
+      excludeOffersWithDisplayIDFromOtherStoredOffer,
       filterOffersOfSameCampaign,
       replaceOffersOnDB,
       getSameOffersFromDB // should be called after replaceOffersOnDB, see [NOTE-DEP]

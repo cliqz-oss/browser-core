@@ -7,19 +7,16 @@
  */
 
 import 'abortcontroller-polyfill/dist/abortcontroller-polyfill-only';
-import * as FETCH from 'whatwg-fetch';
-import { chrome } from './globals';
+import window from './globals-window';
+import chrome from './globals-chrome';
 
 const {
   fetch,
   Headers,
   Request,
   Response,
-} = FETCH;
-
-const AbortController = window.AbortController;
-
-export default fetch;
+  AbortController,
+} = window;
 
 /**
  * Note: On Chrome, chrome.runtime.id is the same, but
@@ -63,6 +60,8 @@ function isTrackableOriginHeaderFromOurExtension(value) {
 }
 
 export {
+  fetch as default,
+  fetch as fetchArrayBuffer,
   fetch,
   Headers,
   Request,
@@ -70,4 +69,3 @@ export {
   AbortController,
   isTrackableOriginHeaderFromOurExtension
 };
-export const fetchArrayBuffer = fetch;

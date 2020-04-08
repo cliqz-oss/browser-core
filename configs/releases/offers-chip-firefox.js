@@ -26,6 +26,9 @@ module.exports = Object.assign({}, configBase, {
     SUPPORTED_LANGS: ['de'],
     'dynamic-offers.enabled': false,
   }),
+  default_prefs: {
+    'humanWebOptOut': true,
+  },
   versionPrefix: '14',
   specific: 'offers',
   PRODUCT_PREFIX: 'chip',

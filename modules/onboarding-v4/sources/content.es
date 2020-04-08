@@ -16,7 +16,7 @@ registerContentScript({
   ],
   js: [
     (window, chrome, CLIQZ) => {
-      CLIQZ.app.modules['core-cliqz'].action('getSupportInfo')
+      CLIQZ.app.modules.core.action('getSupportInfo')
         .then((info) => {
           if (localStorage) {
             localStorage.setItem('extension-info', JSON.stringify(info));

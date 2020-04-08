@@ -30,9 +30,14 @@ class Urlbar extends React.Component {
   componentDidMount() {
     this.textInput.addEventListener('focus', urlBarFocusSignal);
     this.textInput.addEventListener('blur', urlBarBlurSignal);
+
+    const autofocusInput = document.querySelector('#autofocus-input');
+    this.textInput.value = autofocusInput.value;
+    this.textInput.focus();
   }
 
-  componentWillReceiveProps(nextProps) {
+  // eslint-disable-next-line camelcase
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       visible: nextProps.visible
     });
@@ -99,6 +104,18 @@ class Urlbar extends React.Component {
 
   handleDragOver = (ev) => {
     ev.stopPropagation();
+  }
+
+  blur = () => {
+    this.textInput.blur();
+  }
+
+  focus = () => {
+    this.textInput.focus();
+  }
+
+  setDisable = (mode) => {
+    this.textInput.disabled = mode;
   }
 
   handleDrop = (ev) => {

@@ -275,7 +275,10 @@ export default background({
       } else if (url.endsWith('modules/privacy-dashboard/index.html')) {
         friendlyURL = `${getMessage('control_center_transparency')}`;
         isSpecialUrl = true;
-      } else if (url.indexOf(globalConfig.settings.ONBOARDING_URL) === 0) {
+      } else if (
+        globalConfig.settings.ONBOARDING_URL
+        && url.startsWith(globalConfig.settings.ONBOARDING_URL)
+      ) {
         friendlyURL = moduleConfig.settings.BRAND;
         isSpecialUrl = true;
       } else if (url.startsWith('chrome://cliqz/content/anti-phishing/phishing-warning.html')) {

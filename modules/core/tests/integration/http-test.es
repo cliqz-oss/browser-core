@@ -7,7 +7,7 @@
  */
 
 import { testServer, expect } from '../test-helpers';
-import { promiseHttpHandler, fetch } from '../../../core/http';
+import { promiseHttpHandler } from '../../../core/http';
 
 
 export default function () {
@@ -17,7 +17,7 @@ export default function () {
   beforeEach(() => testServer.registerPathHandler('/', { result: responseTest }));
   describe('fetch', () => {
     it('doesn\'t send origin header', async () => {
-      await fetch(url);
+      await testServer.fetch();
       const hits = await testServer.getHitsForPath('/');
       const origin = hits[0].headers.origin;
       // Header was either removed or it didn't exist

@@ -45,12 +45,11 @@ module.exports = {
     'modules.human-web.enabled': true,
     'modules.hpnv2.enabled': true,
     'freshtab.search.mode': 'search',
+    'freshtab.search.autofocus': false,
     'offers2UserEnabled': false,
   },
   modules: [
     'core',
-    'telemetry',
-    'core-cliqz',
     'abtests-legacy',
     'geolocation',
     'search',

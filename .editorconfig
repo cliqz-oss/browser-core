@@ -30,6 +30,10 @@ indent_size = 4
 indent_style = space
 indent_size = 4
 
+[Jenkinsfile*]
+indent_style = space
+indent_size = 4
+
 # Editor config at CLIQZ
 #
 # To enforce common code formatting we are adopting this .editorconfig

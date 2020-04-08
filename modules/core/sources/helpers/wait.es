@@ -46,7 +46,7 @@ function waitForImpl(fn, timeout) {
   // Start check at regular interval until one of the following conditions is met:
   // * `timeout` ms elapsed
   // * `fn` eventually results into a truthy values
-  interval = setTimeoutIntervalInstant(check, 50);
+  interval = setTimeoutIntervalInstant(check, 10);
 
   // Reject after `timeout` ms
   timeoutId = timers.setTimeout(() => {

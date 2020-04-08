@@ -23,7 +23,8 @@ export default class SpeedDialsRow extends React.Component {
     return this.state.displayAddBtn();
   }
 
-  componentWillMount() {
+  // eslint-disable-next-line camelcase
+  UNSAFE_componentWillMount() {
     this.setState({
       isCustom: this.props.type === 'custom',
       displayAddBtn: () => this.props.dials.length < config.constants.MAX_SPOTS,

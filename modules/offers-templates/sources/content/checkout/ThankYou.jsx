@@ -5,12 +5,15 @@ import { css, i18n } from '../utils';
 const _css = css('thank-you__');
 export default function () {
   const url = 'https://sparalarm.chip.de/kontakt/';
-  /* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/accessible-emoji */
+  /* eslint-disable jsx-a11y/no-static-element-interactions */
   return (
     <div className={_css('content')}>
       <div style={{ height: '10px' }} />
       <div className={_css('header')}>
-        <div className={_css('title')}>{i18n('thank_you')}&nbsp;❤️</div>
+        <div className={_css('title')}>
+          {i18n('thank_you')}&nbsp;
+          <div className={_css('emoji')} />
+        </div>
         <div
           onClick={() => send('hideBanner')}
           className={_css('close')}
@@ -25,10 +28,10 @@ export default function () {
         onClick={() => send('openURL', { url, closePopup: false })}
         className={_css('link')}
       >
-          https://sparalarm.chip.de/kontakt/
+        https://sparalarm.chip.de/kontakt/
       </div>
       <div style={{ height: '10px' }} />
     </div>
   );
-  /* eslint-enable jsx-a11y/no-static-element-interactions, jsx-a11y/accessible-emoji */
+  /* eslint-enable jsx-a11y/no-static-element-interactions */
 }

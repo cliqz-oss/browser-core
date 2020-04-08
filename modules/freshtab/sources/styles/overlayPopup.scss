@@ -1,0 +1,97 @@
+.overlayPopup {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    min-width: 640px;
+    min-height: 665px;
+    top: 0px;
+    left: 0px;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    cursor: pointer;
+
+    .popup {
+        border: 0px none;
+        width: 660px;
+        min-height: 250px;
+        display: block;
+        margin: 0px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #f7faff;
+        border-radius: 15px;
+        color: #606367;
+
+        .logo {
+            position: absolute;
+            background-image: url("/assets/icon128.png");
+            background-repeat: no-repeat;
+            background-position: top center;
+            background-size: contain;
+            background-color: rgb(247, 250, 255);
+            border-radius: 50px 50px 0 0;
+            height: 100px;
+            width: 100px;
+            top: -51px;
+            left: 50%;
+            margin-left: -50px;
+                
+        }
+        .center {
+            padding: 50px 30px 10px 30px;
+
+
+            h1,
+            h2 {
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 30px;
+                color: #20292a;
+                margin: 5px;
+            }
+
+            h2 {
+                font-size: 16px;
+                color: #606367;
+                font-weight: 500;
+            }
+            .content {
+                font-size: 16px;
+                padding-top: 10px;
+            }
+            .description a {
+                color: #606367;
+            }
+            .actions {
+                text-align: center;
+                margin: 20px 0px;
+
+                .button {
+                    color: white;
+                    background: #00aef0; /* might be overriden by the branding */
+                    border-radius: 7px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    border: none;
+                    outline: none;
+                    width: 285px;
+                    user-select: none;
+                    background: #00aef0;
+                    display: inline-block;
+                    padding: 10px 0;
+
+                    &:first-child {
+                        margin-right: 10px;
+                    }
+                    &:last-child {
+                        margin-left: 10px;
+                    }
+                }
+            }
+        }
+    }
+}

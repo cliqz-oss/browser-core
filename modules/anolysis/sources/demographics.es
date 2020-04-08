@@ -267,15 +267,9 @@ function parseFullDistribution(fullDistribution) {
 }
 
 /**
- * Given full_distribution as well as information about sub_channel for MyOffrz,
- * create a final 'campaign' demographic of the form: /Channel/Id/Keywords or
- * /Channel/Subchannel (for MyOffrz).
+ * Given full_distribution create a final 'campaign' demographic of the form: /Channel/Id/Keywords.
  */
-export function parseCampaign({
-  fullDistribution,
-  offersChannel,
-  offersSubChannel,
-}) {
+export function parseCampaign(fullDistribution) {
   const parts = [];
 
   if (fullDistribution) {
@@ -292,12 +286,6 @@ export function parseCampaign({
       }
     } else {
       parts.push('other', fullDistribution);
-    }
-  } else if (offersChannel) {
-    parts.push(offersChannel);
-
-    if (offersSubChannel) {
-      parts.push(offersSubChannel);
     }
   }
 
@@ -363,17 +351,7 @@ export function parseBrowser({ userAgent, distributionVersion }) {
 
 export default async function getDemographics(appVersion, productDemographics) {
   return {
-    campaign: parseCampaign({
-      fullDistribution: prefs.get('full_distribution'),
-      offersChannel: prefs.get(
-        'offers.distribution.channel',
-        prefs.get('offers.distribution.referrer_url'),
-      ),
-      offersSubChannel: prefs.get(
-        'offers.distribution.channel.sub',
-        prefs.get('offers.distribution.advert_id'),
-      ),
-    }),
+    campaign: parseCampaign(prefs.get('full_distribution')),
     country: normalizeString(parseCountry(await getCountry())),
     install_date: normalizeString(parseInstallDate(await getInstallDate())),
     product: parseProduct(productDemographics),

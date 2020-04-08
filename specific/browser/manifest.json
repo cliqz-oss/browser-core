@@ -121,8 +121,8 @@
       "background_intermediate.js",
       "modules/vendor/math-expression-evaluator.min.js",
       "modules/vendor/dexie.min.js",
-      "modules/webextension-specific/app.bundle.js",
-      "background.js"
+      "background.js",
+      "modules/webextension-specific/app.bundle.js"
     ]
   },
   "chrome_url_overrides": {

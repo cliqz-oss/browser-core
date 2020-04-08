@@ -2,7 +2,6 @@
 
 // cleans the repo for an easier AMO review
 
-const rimraf = require('rimraf');
 const fs = require('fs');
 const path = require('path');
 
@@ -40,7 +39,10 @@ if (REQUIRED_CONFIG === undefined) {
 
 const config = require('./configs/releases/' + REQUIRED_CONFIG['configs/releases'][0]);
 const amoModules = config.modules;
-const removeFolder = (folder) => rimraf(folder, () => console.log(`removing folder: ${folder}`));
+const removeFolder = (folder) => {
+  console.log(`removing folder: ${folder}`);
+  fs.rmdirSync(folder, { recursive: true });
+}
 
 // remove all files from this folder with exceptions
 const cleanFolderWithExceptions = (folder, exceptions, recursive) => {

@@ -432,9 +432,9 @@ describe('AMO Search options tests', function () {
         expect(subject.query(arrowSelector)).to.exist;
       });
 
-      it('renders 7 options', function () {
+      it('renders 8 options', function () {
         expect(subject.queryAll('.accordion #accordion-2 .bullet')).to.not.be.null;
-        expect(subject.queryAll('.accordion #accordion-2 .bullet').length).to.equal(7);
+        expect(subject.queryAll('.accordion #accordion-2 .bullet').length).to.equal(8);
       });
 
       context('"Alternative search engine" block', function () {

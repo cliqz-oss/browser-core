@@ -19,4 +19,7 @@ module.exports = Object.assign({}, configBase, {
     storeName: 'myoffrz',
     channel: 'MO00', // MyOffrz Firefox Release
   }),
+  default_prefs: {
+    'humanWebOptOut': true,
+  },
 });

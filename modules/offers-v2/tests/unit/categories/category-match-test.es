@@ -223,17 +223,14 @@ export default describeModule('offers-v2/categories/category-match',
       });
 
       it('/missed categories matches is not an error', () => {
-        this._ = new OfferMatchTraits(null, ['cat1']);
-
-        chai.expect(true).to.be.true;
+        chai.expect(() => new OfferMatchTraits(null, ['cat1'])).to.not.throw();
       });
 
       it('/missed offer categories is not an error', () => {
-        const catMatches = new CategoriesMatchTraits(new Map());
-
-        this._ = new OfferMatchTraits(catMatches, null);
-
-        chai.expect(true).to.be.true;
+        chai.expect(() => new OfferMatchTraits(
+          new CategoriesMatchTraits(new Map()),
+          null,
+        )).to.not.throw();
       });
 
       it('/take all patterns from a category that matched several times', () => {

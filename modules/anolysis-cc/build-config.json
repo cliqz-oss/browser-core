@@ -1,6 +1,7 @@
 {
   "subprojects": [
     "jquery",
-    "handlebars"
+    "handlebars",
+    "spectrecss"
   ]
 }

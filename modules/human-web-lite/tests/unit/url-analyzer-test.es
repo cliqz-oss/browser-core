@@ -47,6 +47,16 @@ export default describeModule('human-web-lite/url-analyzer',
         });
       });
 
+      it('should detect query with "#" sign: "c# how to read a file"', function () {
+        const url = 'https://www.google.com/search?q=c%23+how+to+read+a+file&oq=c%23+how+to+read+a+file&aqs=chrome..69i57j69i58.7270j0j7&sourceid=chrome&ie=UTF-8';
+        expect(uut.parseSearchLinks(url)).to.eql({
+          found: true,
+          type: 'search-go',
+          query: 'c# how to read a file',
+          doublefetchUrl: 'https://www.google.com/search?q=c%23+how+to+read+a+file',
+        });
+      });
+
       it('should detect query with more special characters', function () {
         const url = 'https://www.google.com/search?q=a%2Bb&oq=a%2Bb&aqs=chrome..69i57j0l5.9078j0j8&sourceid=chrome&ie=UTF-8#sbfbu=1&pi=a%2Bb';
         expect(uut.parseSearchLinks(url)).to.eql({

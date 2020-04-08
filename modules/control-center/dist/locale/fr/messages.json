@@ -35,6 +35,9 @@
     "control_center_autoconsent_off": {
         "message": "Les notices de consentement ne seront pas bloquées"
     },
+    "control_center_autofocus": {
+        "message": "Cibler automatiquement la barre de recherche"
+    },
     "control_center_backend_country": {
         "message": "Obtenir des résultats pour"
     },

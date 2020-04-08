@@ -24,4 +24,8 @@ export default class Storage {
   save(data) {
     return KeyValueStore.set(this.key, data);
   }
+
+  delete() {
+    return KeyValueStore.remove(this.key);
+  }
 }

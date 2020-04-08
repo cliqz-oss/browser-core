@@ -1,7 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const getOptionsUrl = require('./test-options');
+const lazyDownloadPuppeteer = require('./lazy-puppeteer-download');
 
 exports.Browser = class ChromiumBrowser {
   constructor() {
@@ -9,6 +10,7 @@ exports.Browser = class ChromiumBrowser {
   }
 
   async run() {
+    lazyDownloadPuppeteer();
     this.driver = await puppeteer.launch({
       headless: false,
       args: [

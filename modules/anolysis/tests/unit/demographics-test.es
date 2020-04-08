@@ -554,43 +554,6 @@ export default describeModule('anolysis/demographics',
       });
 
       describe('#parseCampaign', () => {
-        describe('offers', () => {
-          [
-            {
-              offersChannel: '',
-              offersSubChannel: '',
-              expected: '',
-            },
-            {
-              offersChannel: '',
-              offersSubChannel: 'bar',
-              expected: '',
-            },
-            {
-              offersChannel: 'foo',
-              offersSubChannel: 'bar',
-              expected: 'foo/bar',
-            },
-            {
-              offersChannel: 'foo',
-              offersSubChannel: 'bar baz',
-              expected: 'foo/bar-baz',
-            },
-            {
-              offersChannel: 'foo',
-              offersSubChannel: '',
-              expected: 'foo',
-            },
-          ].forEach(({ offersChannel, offersSubChannel, expected }) => {
-            it(`channel=${offersChannel} + subchannel=${offersSubChannel}`, () => {
-              chai.expect(parseCampaign({
-                offersChannel,
-                offersSubChannel,
-              })).to.eql(expected);
-            });
-          });
-        });
-
         describe('full_distribution', () => {
           [
             ['keyword=%2Bbrowser&pk_campaign=GA255850517658', 'google/ga255850517658/browser'],
@@ -625,16 +588,7 @@ export default describeModule('anolysis/demographics',
             ['pk_campaign=web0003', 'cliqz-website/web0003'],
           ].forEach(([fullDistribution, expected]) => {
             it(`${fullDistribution}`, () => {
-              chai.expect(parseCampaign({
-                fullDistribution,
-
-                // If `fullDistribution` is specified then we ignore offers
-                // parameters (in practice this should never happen but we
-                // include this case in tests to make sure behavior is
-                // consistent).
-                offersChannel: 'foo',
-                offersSubChannel: 'bar',
-              })).to.eql(expected);
+              chai.expect(parseCampaign(fullDistribution)).to.eql(expected);
             });
           });
         });

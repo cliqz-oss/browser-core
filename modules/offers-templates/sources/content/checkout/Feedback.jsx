@@ -19,6 +19,7 @@ export default class Feedback extends React.Component {
   render() {
     const { view } = this.state;
     const { domain, back } = this.props;
+    if (view === 'success') { return (<Success />); }
 
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
@@ -30,7 +31,6 @@ export default class Feedback extends React.Component {
         {view === 'feedback' && <Survey onClick={this.onClick} domain={domain} back={back} />}
         {view === 'reason' && <Reason onClick={this.onClick} domain={domain} back={back} />}
         {view === 'thank-you' && <ThankYou />}
-        {view === 'success' && <Success />}
       </div>
     );
     /* eslint-enable jsx-a11y/no-static-element-interactions */

@@ -9,7 +9,7 @@
 const assert = require('assert');
 
 const UI = require('console-ui');
-const { onBuildSuccess } = require('broccoli/dist/messages');
+const { default: { onBuildSuccess } } = require('broccoli/dist/messages');
 
 const {
   configParameter,

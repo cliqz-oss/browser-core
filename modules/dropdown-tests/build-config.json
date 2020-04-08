@@ -3,7 +3,6 @@
     "chai",
     "chai-dom",
     "mocha",
-    "core-js",
     "sinon",
     "sinon-chai",
     "reactTestUtils"

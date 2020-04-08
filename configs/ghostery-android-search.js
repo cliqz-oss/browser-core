@@ -28,7 +28,6 @@ module.exports = {
   default_prefs: {},
   modules: [
     'core',
-    'core-cliqz',
     'search',
     'geolocation',
     'anolysis-remote',

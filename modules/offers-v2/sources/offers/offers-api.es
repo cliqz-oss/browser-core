@@ -11,15 +11,11 @@
  *
  */
 import events from '../../core/events';
-import config from '../../core/config';
-import { isGhostery } from '../../core/platform';
 import logger from '../common/offers_v2_logger';
 import { LANDING_MONITOR_TYPE } from '../common/constant';
 import ActionID from './actions-defs';
 import Offer from './offer';
-import OfferCollection, { isOfferCollection } from './offer-collection';
-
-const REWARD_BOX_REAL_ESTATE_TYPE = isGhostery ? 'ghostery' : 'offers-cc';
+import { isOfferCollection } from './offer-collection';
 
 const MessageType = {
   MT_PUSH_COLLECTION: 'push-offer-collection',
@@ -97,14 +93,11 @@ export default class OffersAPI {
    *   * {object?} offerData
    *   `offer_data` to publish in `push-offer` message
    *    instead of default from `offer`
-   *   * {boolean?} disableCollection
-   *   when `true`, do not publish the given `offer` as a collection,
-   *   regardless of platform `ENABLE_OFFER_COLLECTIONS` setting.
    * @returns {boolean} true on success
    */
   pushOffer(
     offer,
-    { displayRule, originID = ORIGIN_ID, matchTraits, offerData, disableCollection = false } = {}
+    { displayRule, originID = ORIGIN_ID, matchTraits, offerData } = {}
   ) {
     const ok = this._updateDbAndSetCampaignSignals(offer, originID, matchTraits);
     if (!ok) {
@@ -113,18 +106,7 @@ export default class OffersAPI {
     }
 
     const offerToPublish = offerData ? new Offer(offerData) : offer;
-    const pushOfferAsCollection = !disableCollection && config.settings.ENABLE_OFFER_COLLECTIONS
-      && offer.destinationRealEstates.includes(REWARD_BOX_REAL_ESTATE_TYPE);
-
-    if (pushOfferAsCollection) {
-      this._publishPushCollectionMessage(
-        new OfferCollection([offerToPublish]),
-        offer.destinationRealEstates,
-        { displayRule }
-      );
-    } else {
-      this._publishPushOfferMessage(offerToPublish, { displayRule });
-    }
+    this._publishPushOfferMessage(offerToPublish, { displayRule });
 
     return true;
   }
@@ -588,6 +570,11 @@ export default class OffersAPI {
     this._publishMessage(MessageType.MT_REMOVE_OFFER, realStatesDest, data);
 
     return true;
+  }
+
+  // environment signal
+  sendEnvironmentSignal(data) {
+    this.sigHandler.sendEnvironmentSignal(data);
   }
 
   /**

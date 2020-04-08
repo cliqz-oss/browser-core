@@ -42,6 +42,7 @@ const tail = list => list.slice(1);
 const BLACKLIST_URL_PREFIX = 'http://global.blacklist';
 const DYNAMIC_OFFER_CLIENT_ID = 'dynamic-offer-client-id';
 const HASH_STRING = 'hash-string';
+const AB_NUMBER = 1;
 
 // /////////////////////////////////////////////////////////////////////////////
 //                              MOCKS
@@ -112,7 +113,7 @@ export default describeModule('offers-v2/offers/offers-handler',
       weekDay: function () {
         return currentWeekDay;
       },
-      getABNumber: function () {},
+      getABNumber: () => AB_NUMBER,
       getLatestOfferInstallTs: function () {
         return latestOffersInstalledTs;
       },
@@ -194,6 +195,7 @@ export default describeModule('offers-v2/offers/offers-handler',
           const getOfferCampaignID = ({ campaign_id: cid }) => cid;
           const getOfferClientID = ({ client_id: cid }) => cid;
           const getOfferData = ({ offer_data: offer }) => offer;
+          const getOfferDisplayID = ({ display_id: did }) => did;
           const getOfferDisplayPriority = ({ displayPriority }) => displayPriority;
           const getOfferID = ({ offer_id: oid }) => oid;
           const getOfferMonitorData = ({ monitorData }) => monitorData;
@@ -211,6 +213,7 @@ export default describeModule('offers-v2/offers/offers-handler',
             (offer, campaignID) => { offer.campaign_id = campaignID; }
           );
           const setOfferClientID = tap((offer, clientID) => { offer.client_id = clientID; });
+          const setOfferDisplayID = tap((offer, displayID) => { offer.display_id = displayID; });
           const setOfferDisplayPriority = tap(
             (offer, displayPriority) => { offer.displayPriority = displayPriority; }
           );
@@ -239,7 +242,10 @@ export default describeModule('offers-v2/offers/offers-handler',
 
           const buildOffer = (offerID, campaignID, clientID, displayPriority, filterRules) => {
             const offer = cloneOffer();
-            if (offerID) { setOfferID(offer, offerID); }
+            if (offerID) {
+              setOfferID(offer, offerID);
+              setOfferDisplayID(offer, `${offerID}_D`);
+            }
             if (campaignID) { setOfferCampaignID(offer, campaignID); }
             if (clientID) { setOfferClientID(offer, clientID); }
             if (displayPriority) { setOfferDisplayPriority(offer, displayPriority); }
@@ -561,7 +567,6 @@ export default describeModule('offers-v2/offers/offers-handler',
                 buildOffer('o2', 'cid2', 'client2', 0.9),
               ];
               prepareTriggerOffers(offersList);
-
               await waitForBEPromise();
               await triggerOffers(offersList);
 
@@ -576,23 +581,17 @@ export default describeModule('offers-v2/offers/offers-handler',
             });
 
             it('/if offer of same campaign exists we replace and show that one', async () => {
-              const offersList = [
-                buildOffer('o1', 'cid1', 'client1', 0.1),
-                buildOffer('o2', 'cid1', 'client1', 0.9),
-              ];
+              const o1 = buildOffer('o1', 'cid1', 'client1', 0.1);
+              incOfferActions([o1], 'offer_dsp_session', 1); // o1 previously triggered
+
+              const o2 = buildOffer('o2', 'cid1', 'client1', 0.9); // o2 from same campaign as o1
+              const offersList = [o1, o2];
               prepareTriggerOffers(offersList);
 
               await waitForBEPromise();
               await triggerOffers(offersList);
 
-              expectSinglePushedOffer(offersList[0]);
-
-              events.clearAll();
-
-              // we now should get again the same offer since it is stored on the DB
-              await simulateUrlEventsAndWait();
-
-              expectSinglePushedOffer(offersList[0]);
+              expectSinglePushedOffer(o1);
             });
 
             it('/a `silent` offer is triggered when there are no non-silent targeted offers',
@@ -675,6 +674,51 @@ export default describeModule('offers-v2/offers/offers-handler',
               });
             });
 
+            it('/offers with a `display_id` from another already stored offer are ignored', async () => {
+              const displayID = 'portal-offer-id';
+              const storedOffer = buildOffer('stored-offer', 'cid1-1', 'client', 0.1);
+              const samePortalOfferAsStoredOffer = buildOffer('from-same-portal-offer', 'cid1-2', 'client', 0.1);
+              setOfferDisplayID(storedOffer, displayID);
+              setOfferDisplayID(samePortalOfferAsStoredOffer, displayID);
+              incOfferActions([storedOffer], 'offer_dsp_session', 1);
+              const offersList = [
+                samePortalOfferAsStoredOffer,
+                buildOffer('o2', 'cid2', 'client1', 0.8),
+                buildOffer('o3', 'cid3', 'client2', 0.7)
+              ];
+              prepareTriggerOffers(offersList);
+
+              await waitForBEPromise();
+              await triggerOffers(offersList);
+
+              const pushedOffers = getPushedOffers().map(getOfferData);
+              chai.expect(pushedOffers.length).to.equal(1);
+              const ignored = pushedOffers.find(hasOfferID('from-same-portal-offer'));
+              chai.expect(ignored).to.be.undefined;
+            });
+
+            it('/display action meta is migrated', async () => {
+              const offerID = 'stored-offer';
+              const displayID = `${offerID}_D`;
+              const storedOffer = buildOffer(offerID, 'cid', 'client', 0.9);
+              setOfferDisplayID(storedOffer, displayID);
+              incOfferActions([storedOffer], 'offer_dsp_session', 1);
+              const storedDisplayActionMeta = offersDB
+                .getOfferDisplayActionMeta(displayID, 'offer_dsp_session');
+
+              prepareTriggerOffers([storedOffer]);
+
+              await waitForBEPromise();
+              await triggerOffers([storedOffer]);
+
+              const pushedOffers = getPushedOffers().map(getOfferData);
+              chai.expect(pushedOffers.length).to.equal(1);
+              const pushedOffer = head(pushedOffers);
+              const pushedDisplayID = getOfferDisplayID(pushedOffer);
+              chai.expect(pushedDisplayID).not.to.equal(displayID);
+              chai.expect(offersDB.getOfferDisplayActionMeta(pushedDisplayID, 'offer_dsp_session'))
+                .to.deep.equal(storedDisplayActionMeta);
+            });
             it('/offers that fail when trying to update are discarded', async () => {
               const goodOffer = buildOffer('o1', 'cid1', 'client1', 0.9);
               // clone the offer but update the version
@@ -1016,6 +1060,19 @@ a reminder is pushed as single offer (not collection) if any`, async () => {
                 chai.expect(pushedOffers.length, 'incorrect count of pushed offers').to.equal(1);
               });
 
+              it(`/when only one targeted offer is relevant, it is pushed as single offer
+(not collection)`, async () => {
+                const offer = buildOffer('o1', 'cid1', 'client1', 0.9);
+                const offersList = prepareTriggerOffers([offer]);
+
+                await waitForBEPromise();
+                await triggerOffers(offersList);
+
+                const pushedOffers = getPushedOffers(); // not offer-collection
+                chai.expect(pushedOffers.length, 'incorrect count of pushed offers').to.equal(1);
+                chai.expect(getPushedOfferCollections()).to.be.empty;
+              });
+
               it(`/when multiple offers are relevant and more than one of these,
 including the best offer, include the "offers-cc" real-estate, all such offers are pushed together
 as a list starting with the best offer to the "offers-cc" real-estate`, async () => {
@@ -1053,6 +1110,39 @@ but are stored in the local offer database`, async () => {
                   chai.expect(hasStoredOffer).to.be.true;
                 }
                 expectSinglePushedOfferCollection(OFFERS_LIST);
+              });
+
+              it(`/when an offer's \`trigger_on_advertiser\` is true, 'dot', or 'tooltip',
+and when its real estates include "offers-cc", blacklist filters are overridden on its advertiser url
+and it is published as a single offer (not as offer-collection)
+as defined by its \`trigger_on_advertiser property\``, async () => {
+                const BLACKLIST_ADVERTISER_URL = `${BLACKLIST_URL_PREFIX}.advertiser.com`;
+
+                // create an offer with a trigger_on_advertiser property set to true,
+                // a 'popup' notif_type, real estates including 'offers-cc',
+                // and a page_imp monitor for the blacklisted url
+                const offerID = 'offer-with-trigger-on-advertiser';
+                const offer = buildOffer(offerID, 'cid', 'client'); // real estates already include "offers-cc"
+                setOfferTriggerOnAdvertiser(offer, 'tooltip');
+                setOfferNotifType(offer, 'popup');
+                const monitor = getOfferMonitorData(offer).find(hasMonitorSignalID('success'));
+                setMonitorSignalID(monitor, 'page_imp');
+                const { hostname } = new URL(BLACKLIST_ADVERTISER_URL);
+                setMonitorPatterns(monitor, [`||${hostname}$script`]);
+                setOfferBlacklistPatterns(offer, [`||${hostname}`]);
+
+                const offersList = [offer];
+                prepareTriggerOffers(offersList);
+
+                await waitForBEPromise();
+                await triggerOffers(offersList, [BLACKLIST_ADVERTISER_URL]);
+
+                const pushedOffers = getPushedOffers().map(getOfferData); // not offer-collection
+                chai.expect(pushedOffers.length).to.equal(1);
+                const pushedOffer = pushedOffers[0];
+                chai.expect(getOfferID(pushedOffer)).to.equal(offerID);
+                chai.expect(getOfferNotifType(pushedOffer)).to.equal('tooltip'); // instead of popup
+                chai.expect(getPushedOfferCollections()).to.be.empty;
               });
 
               it(`/offers pushed together as a list are each supplied with a "group" key,
@@ -1159,16 +1249,18 @@ and "offer_id" properties`, async () => {
                 expectSinglePushedOfferCollection(offersList);
               });
 
-              it('/offers pushed together as a list include at most one offer per campaign',
+              it('/offers pushed together as a list include at most one offer per A/B campaign',
                 async () => {
+                  const o1 = buildOffer('o1', 'cid1', 'client1', 0.9);
+                  setOfferAbTestInfo(o1, { start: 0, end: 4999 }); // winning A/B segment
+                  const o4 = buildOffer('o4', 'cid1', 'client1', 1.0); // same campaign as o1
+                  setOfferAbTestInfo(o4, { start: 5000, end: 9999 }); // loosing A/B segment
                   const uniqueCampaignOffersList = [
-                    buildOffer('o1', 'cid1', 'client1', 0.9),
+                    o1,
                     buildOffer('o2', 'cid2', 'client1', 0.8),
                     buildOffer('o3', 'cid3', 'client2', 0.7)
                   ];
-                  const offersList = uniqueCampaignOffersList.concat(
-                    buildOffer('o4', 'cid1', 'client1', 1.0), // same campaign as first
-                  );
+                  const offersList = uniqueCampaignOffersList.concat(o4);
                   prepareTriggerOffers(offersList);
 
                   await waitForBEPromise();
@@ -1195,6 +1287,58 @@ and "offer_id" properties`, async () => {
 
                   expectSinglePushedOfferCollection(uniqueCampaignOffersList);
                 });
+
+              it('/offers pushed together as a list exclude offers with a `display_id` from another already stored offer',
+                async () => {
+                  const displayID = 'portal-offer-id';
+                  const storedOffer = buildOffer('stored-offer', 'cid1-1', 'client', 0.1);
+                  const samePortalOfferAsStoredOffer = buildOffer('from-same-portal-offer', 'cid1-2', 'client', 0.1);
+                  setOfferDisplayID(storedOffer, displayID);
+                  setOfferDisplayID(samePortalOfferAsStoredOffer, displayID);
+                  incOfferActions([storedOffer], 'offer_dsp_session', 1);
+                  const uniqueDisplayIDOffersList = [
+                    buildOffer('o2', 'cid2', 'client1', 0.8),
+                    buildOffer('o3', 'cid3', 'client2', 0.7)
+                  ];
+                  const offersList = uniqueDisplayIDOffersList.concat(samePortalOfferAsStoredOffer);
+                  prepareTriggerOffers(offersList);
+
+                  await waitForBEPromise();
+                  await triggerOffers(offersList);
+
+                  expectSinglePushedOfferCollection(uniqueDisplayIDOffersList);
+                });
+
+              it('/offers pushed together as a list include at most one offer per `display_id`', async () => {
+                const displayID = 'portal-offer-id';
+                const o11 = buildOffer('first-offer-from-portal-offer', 'cid1-1', 'client', 0.5);
+                const o12 = buildOffer('second-offer-from-portal-offer', 'cid1-2', 'client', 0.5);
+                // both offers have same display_id and belong to the same advertiser
+                for (const offer of [o11, o12]) {
+                  setOfferDisplayID(offer, displayID);
+                  const monitor = getOfferMonitorData(offer).find(hasMonitorSignalID('success'));
+                  setMonitorSignalID(monitor, 'page_imp');
+                }
+                const offersList = [
+                  buildOffer('o2', 'cid2', 'client1', 0.8),
+                  buildOffer('o3', 'cid3', 'client2', 0.7),
+                  o11,
+                  o12
+                ];
+                prepareTriggerOffers(offersList);
+
+                await waitForBEPromise();
+                await triggerOffers(offersList);
+
+                const pushedOfferCollections = getPushedOfferCollections()
+                  .map(getOfferCollectionData);
+                chai.expect(pushedOfferCollections.length, 'incorrect count of pushed offer collections')
+                  .to.equal(1);
+                const pushedOffersList = pushedOfferCollections[0]
+                  .map(getOfferFromCollectionEntry);
+                chai.expect(pushedOffersList.length, 'incorrect count of offers in collection')
+                  .to.equal(3);
+              });
 
               it(`/offers pushed together as a list are sorted by match score,
 so the group with the best offer comes first`, async () => {
@@ -1261,36 +1405,6 @@ includes dynamic content if enabled`, async () => {
                   chai.expect(getDynamicContent(notBestPushedOffer)).to.deep.equal(
                     getDynamicContent(notBestOffer)
                   );
-                });
-
-                xit('/images are preloaded for all offers pushed as a list', async () => {
-                  const offersList = prepareTriggerOffers();
-                  const urls = {
-                    logo_url: 'fake://?body=some data&header.content-type=image/smth',
-                    picture_url: 'fake://?body=another data&header.content-type=image/smth'
-                  };
-                  for (const offer of offersList) {
-                    const template = getOfferTemplateData(offer);
-                    Object.assign(template, urls);
-                  }
-
-                  await waitForBEPromise();
-                  await triggerOffers(offersList);
-
-                  const offerCollection = getPushedOfferCollections()
-                    .flatMap(getOfferCollectionData);
-                  const pushedOffers = offerCollection.map(getOfferFromCollectionEntry);
-                  const pushedDataurls = pushedOffers
-                    .map(getOfferTemplateData)
-                    .map(
-                      ({ logo_dataurl, picture_dataurl }) => // eslint-disable-line camelcase
-                        ({ logo_dataurl, picture_dataurl })
-                    );
-
-                  chai.expect(pushedDataurls).to.deep.equal(offersList.map(() => ({
-                    logo_dataurl: 'data:null;base64,e30=',
-                    picture_dataurl: 'data:null;base64,e30='
-                  })));
                 });
               });
 

@@ -35,6 +35,9 @@
     "control_center_autoconsent_off": {
         "message": "Deaktiviert für alle Websites"
     },
+    "control_center_autofocus": {
+        "message": "Suchleiste automatisch fokussieren"
+    },
     "control_center_backend_country": {
         "message": "Suchergebnisse für"
     },

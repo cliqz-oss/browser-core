@@ -42,8 +42,6 @@ module.exports = {
   },
   modules: [
     'core',
-    'telemetry',
-    'core-cliqz',
     'geolocation',
     'search',
     'dropdown',

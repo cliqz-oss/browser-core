@@ -6,7 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const execa = require('execa');
+const { execSync } = require('child_process');
+const { join } = require('path');
 const git = require('ggit');
 const child = require('child_process');
 
@@ -19,6 +20,22 @@ function getCommit() {
     }
     return id;
   });
+}
+
+function run(command) {
+  // Make sure that binaries from `node_modules` are available in PATH.
+  let PATH = join(__dirname, '..', '..', 'node_modules', '.bin');
+  if (process.env.PATH) {
+    PATH += `:${process.env.PATH}`;
+  }
+
+  return execSync(command, {
+    encoding: 'utf-8',
+    env: {
+      ...process.env,
+      PATH,
+    },
+  }).trim();
 }
 
 module.exports = (program) => {
@@ -42,8 +59,7 @@ module.exports = (program) => {
             throw new Error('Pack not defined in config file');
           }
 
-          const output = execa.shellSync(`bash -c "${CONFIG.pack}"`).output[1] || '';
-          console.log(output);
+          console.log(run(`bash -c "${CONFIG.pack}"`));
         })
         .catch((e) => {
           console.error('Something went wrong', e);
@@ -73,8 +89,7 @@ module.exports = (program) => {
             return;
           }
 
-          const output = execa.shellSync(`bash -c "${CONFIG.sign}"`).output[1] || '';
-          console.log(output);
+          console.log(run(`bash -c "${CONFIG.sign}"`));
         })
         .catch((e) => {
           console.error('Something went wrong', e);

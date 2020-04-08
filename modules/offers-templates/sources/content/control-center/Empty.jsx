@@ -4,13 +4,12 @@ import { css, i18n, chooseProduct, getUILanguage } from '../utils';
 
 const _css = css('empty__');
 function Header(props) {
-  /* eslint-disable jsx-a11y/accessible-emoji */
   return (
     <div className={_css('title', `${props.product}-title`)}>
-      {i18n('welcome_title')}&nbsp;&#128075;
+      {i18n('welcome_title')}&nbsp;
+      <div className={_css('emoji')} />
     </div>
   );
-  /* eslint-enable jsx-a11y/accessible-emoji */
 }
 
 export default function Empty(props) {

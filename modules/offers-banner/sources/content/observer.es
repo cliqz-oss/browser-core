@@ -78,6 +78,35 @@ export default class Observer {
     }
   }
 
+  _restyleTimeout({ restyle, timeout = 0 } = {}) {
+    if (!restyle) { return undefined; }
+    const next = () => this.view.restyle(restyle);
+    return timeout ? setTimeout(next, timeout) : next();
+  }
+
+  _sendTimeout(msg = {}, payload = {}) {
+    const next = () => this._send(msg, payload);
+    return msg.timeout ? setTimeout(next, msg.timeout) : next();
+  }
+
+  async _tryInjectCouponIf({ view } = {}, config) {
+    return view === 'checkout'
+      ? retryFunctionSeveralTimes(window, () => tryToFindCoupon(window, config))
+      : { ok: true, payload: {} };
+  }
+
+  _logInjectCouponFailedIf(shouldLog = true) {
+    if (shouldLog) {
+      this.onaction({
+        action: 'log',
+        data: {
+          action: 'coupon_autofill_field_failed',
+          back: this.payload.back,
+        }
+      });
+    }
+  }
+
   _dispatcher({ data, handler, action } = {}) {
     if (!data || !(this._isBrowserPanel() ? handler : action)) { return; }
     const mapper = {
@@ -102,40 +131,25 @@ export default class Observer {
         resize: this.view.resize.bind(this.view),
         injectCode: (payload = {}) => injectCode(window, payload),
         newView: (payload = {}) => {
-          const products = this.config.products || {};
-          if (!products.chip) { return undefined; } // only for chip guys
-          const { restyle, view, timeout = 0 } = payload;
-          const next = () => {
-            if (restyle) { this.view.restyle(restyle); }
-            this._send({}, { ...this.payload, view });
-          };
-          return timeout ? setTimeout(next, timeout) : next();
+          if (!this.config.products?.chip) { return; } // only for chip guys
+          this._restyleTimeout(payload);
+          this._sendTimeout(payload, { ...this.payload, view: payload.view });
         },
+        /* eslint-disable consistent-return, operator-linebreak */
         getEmptyFrameAndData: async (payload) => {
           if (this.payload.view !== 'checkout') { return this._send(payload); }
-          const config = this.payload.back;
-          const { ok, payload: newPayload } = this.payload.view === 'checkout'
-            ? await retryFunctionSeveralTimes(window, () => tryToFindCoupon(window, config))
-            : { ok: true, payload: {} };
-          if (!ok) { return undefined; } // not ours coupon already was injected
-          if (newPayload.canInject === false) { this._logInjectCouponFailed(); }
-          return this._send(payload, { ...this.payload, ...newPayload });
+          const { ok, payload: newPayload } =
+            await this._tryInjectCouponIf(this.payload, this.payload.back);
+          if (!ok) { return; } // not ours coupon already was injected
+          this._logInjectCouponFailedIf(newPayload.canInject === false);
+          this._send(payload, { ...this.payload, ...newPayload });
         },
+        /* eslint-enable consistent-return, operator-linebreak */
       },
     };
     const noop = () => {};
     if (!mapper[this.config.type]) { return; }
     (mapper[this.config.type][this._isBrowserPanel() ? handler : action] || noop)(data);
-  }
-
-  _logInjectCouponFailed() {
-    this.onaction({
-      action: 'log',
-      data: {
-        action: 'coupon_autofill_field_failed',
-        back: this.payload.back,
-      }
-    });
   }
 
   _getBannerId() {

@@ -14,6 +14,7 @@ import {
 
 const DIALS_PREF = 'extensions.cliqzLocal.freshtab.speedDials';
 const MAX_DIALS = config.constants.MAX_SPOTS * config.constants.MAX_PAGES;
+const BLACKLISTED_SITES = new Set([config.settings.FRESHTAB_REDIRECT]);
 const PROTOCOL_AND_TRAILING_SLASH = {
   protocol: true,
   www: false,
@@ -90,7 +91,7 @@ class SpeedDials {
 
     const historyDials = topUrls
       .reduce((acc, history) => {
-        if (!hashesToHide[hash(history.url)]) {
+        if (!hashesToHide[hash(history.url)] && !BLACKLISTED_SITES.has(history.url)) {
           acc.push(new SpeedDial({
             url: history.url,
             title: history.title,
