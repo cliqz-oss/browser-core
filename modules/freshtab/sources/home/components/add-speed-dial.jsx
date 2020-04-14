@@ -128,7 +128,7 @@ export default class AddSpeedDial extends React.Component {
         state={this.state}
         submitLabel={t('app_speed_dial_add').toUpperCase()}
         titleLabel={t('app_speed_dial_input_title_placeholder')}
-        urlClass="addUrl"
+        urlClass={this.state.showError ? 'addUrl errorIconInput' : 'addUrl'}
         urlLabel={t('app_speed_dial_input_address_placeholder')}
       />
     );

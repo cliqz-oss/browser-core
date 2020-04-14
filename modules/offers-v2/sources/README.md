@@ -38,3 +38,19 @@ also plays like backend for all real estates, e.g. RewardBox or promobar.
 # Frequently Asked Questions
 
 ### Todo
+
+# Inter-module communication
+
+### Todo
+
+## Actions
+
+### `getImageAsDataurl`
+
+Input:
+- `{ url: string }`
+URL of the image
+
+Output:
+- `{ dataurl: string|null }`
+The image as dataurl, or `null` if cannot get the image

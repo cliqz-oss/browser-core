@@ -1,0 +1,55 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+#cliqz-offers-templates {
+  font-family: "-mac-system", "-apple-system", BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-weight: normal;
+}
+
+:root {
+  --chip-primary-color: #eb443f;
+  --chip-secondary-color: #eb443f;
+  --chip-primary-hover-color: #c93636;
+
+  --myoffrz-primary-color: #f67057;
+  --myoffrz-secondary-color: #f67057;
+  --myoffrz-primary-hover-color: #f67057;
+
+  --ghostery-primary-color: #5B005C;
+  --ghostery-secondary-color: #5B005C;
+  --ghostery-primary-hover-color: #5B005C;
+}
+
+body.chip {
+  background: linear-gradient(180deg, var(--chip-primary-color, #eb443f) 3%, rgba(251,249,249,1) 67%);
+  background-color: var(--chip-primary-color, #eb443f);
+}
+body.cliqz, body.amo {
+  background: linear-gradient(180deg, #00AEF0 3%, rgba(251,249,249,1) 67%);
+  background-color: #00AEF0;
+}
+body.myoffrz {
+  background: linear-gradient(180deg, var(--myoffrz-primary-color, #f67057) 3%, rgba(251,249,249,1) 67%);
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
+
+@import "control-center/Tooltip";
+@import "control-center/Main";
+@import "control-center/Header";
+@import "control-center/Menu";
+@import "control-center/WhyDoIsee";
+@import "control-center/OptIn";
+@import "control-center/Onboarding";
+@import "control-center/Empty";
+@import "control-center/Feedback";
+@import "control-center/Content";
+@import "control-center/Footer";
+@import "control-center/Badge";
+@import "control-center/GroupHeader";
+@import "control-center/Card/Card";
+@import "control-center/Card/Promo";

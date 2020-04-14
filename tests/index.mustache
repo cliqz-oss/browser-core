@@ -6,7 +6,6 @@
     <script src="/node_modules/mocha/mocha.js"></script>
     <script src="/node_modules/chai/chai.js"></script>
     <script src="/node_modules/chai-dom/chai-dom.js"></script>
-    <script src="/node_modules/fetch-mock/es5/client-browserified.js"></script>
     <script src="/testem.js"></script>
     <script>mocha.setup('bdd')</script>
     <style>
@@ -18,6 +17,13 @@
   </head>
   <body>
     <div id="mocha"></div>
+    <script>
+      window.chrome = Object.assign(window.chrome || {}, {
+        runtime: {
+          id: 'test',
+        },
+      });
+    </script>
     {{#serve_files}}
     <script src="/{{src}}"></script>
     {{/serve_files}}

@@ -113,14 +113,16 @@ export default class CategoryHandler {
   /**
    * This will build the proper data after categories were added / removed.
    * Without calling this method the expected behavior cannot be ensured.
+   *
+   * @param {Map<string, string[]>} patterns
    */
-  build() {
+  build(patterns) {
     if (!this.buildResources) {
       logger.error('CategoryHandler::build() should be called with initialized resources');
       return;
     }
     this.catMatch = new CategoryMatch();
-    this.catMatch.build(this.buildResources.patterns);
+    this.catMatch.build(patterns);
   }
 
   /**
@@ -178,25 +180,25 @@ export default class CategoryHandler {
     return matches;
   }
 
-  loadPersistentData() {
+  async loadPersistentData() {
     if (!this._acquireBuildResources('loadPersistentData')) {
-      return Promise.resolve();
+      return false;
     }
-    return this.persistentHelper.loadCategories().then((catList) => {
-      this.catTree.clear();
+    const catList = await this.persistentHelper.loadCategories();
+    this.catTree.clear();
 
-      for (let i = 0; i < catList.length; i += 1) {
-        const category = catList[i];
-        const patterns = category.getPatterns();
-        category.dropPatterns();
-        this.catTree.addCategory(category);
-        this.buildResources.addCategory(category, patterns);
-      }
+    for (const category of catList) {
+      const patterns = category.getPatterns();
+      category.dropPatterns();
+      this.catTree.addCategory(category);
+      this.buildResources.addCategory(category, patterns);
+    }
 
-      // build the pattern index here
-      this.build();
-      this._releaseBuildResources();
-    });
+    // build the pattern index here
+    this.build(this.buildResources.patterns);
+
+    this._releaseBuildResources();
+    return true;
   }
 
   learnTargeting(featureName) {
@@ -258,9 +260,11 @@ export default class CategoryHandler {
     }
     //
     // Bring categories to working state
+    // Take all patterns from persistence, not delta from `buildResources`.
     //
-    this.build();
     await this.persistentHelper.commitBuild(this.buildResources);
+    const patterns = await this.persistentHelper.getPatterns();
+    this.build(patterns);
     this._releaseBuildResources();
   }
 

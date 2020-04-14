@@ -13,6 +13,7 @@ export const PASSIVE_EVENTS = [
   'blur',
   'mouseup',
   'drop',
+  'keyup',
 ];
 
 export const PREVENTABLE_EVENTS = [

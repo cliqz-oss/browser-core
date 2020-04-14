@@ -1081,12 +1081,9 @@ export default {
       visible: true,
       active: true
     },
-    'onboarding-v3': null,
     history: null,
     'offers-cc': null,
     'video-downloader': null,
-    p2p: null,
-    pairing: null,
     'antitracking-blocker': null,
     adult: {
       visible: true,

@@ -33,6 +33,7 @@ export default async function service() {
   let cancelUpdate = new Defer();
   let USER_LAT = null;
   let USER_LNG = null;
+  let hasInitialLocation = false;
 
   service.unload = () => {};
 
@@ -81,6 +82,10 @@ export default async function service() {
      * and latitude will have null as a value. This function is always sync.
      */
     getGeolocation() {
+      if (!hasInitialLocation) {
+        this.updateGeoLocation();
+        hasInitialLocation = true;
+      }
       return { latitude: USER_LAT, longitude: USER_LNG };
     },
 
@@ -120,6 +125,7 @@ export default async function service() {
       cancelUpdate.reject({
         canceled: true,
       });
+      hasInitialLocation = false;
       cancelUpdate = new Defer();
       USER_LAT = null;
       USER_LNG = null;

@@ -4,6 +4,7 @@ import App from '../core/app';
 import { newTab } from '../platform/tabs';
 import { chrome, window } from '../platform/globals';
 import telemetry from '../core/services/telemetry';
+import pacemaker from '../core/services/pacemaker';
 import config from '../core/config';
 import prefs from '../core/prefs';
 import Defer from '../core/helpers/defer';
@@ -14,6 +15,26 @@ import { guessDistributionChannel } from './attribution';
 const CLIQZ = {};
 const DEBUG = config.settings.channel === 'MO02';
 const appCreated = new Defer();
+let whoAmItimer;
+
+function triggerOnboardingOffers(onInstall) {
+  CLIQZ.app.modules['offers-v2'].action('triggerOnboardingOffers', onInstall);
+}
+
+function sendEnvironmentalSignal(startup) {
+  // this signal is basically a duplicate of environment.offers signal
+  // we plan to run them in paralel for 1 version and remove
+  // environment.offers if the numbers match
+  CLIQZ.app.modules['offers-v2'].action('sendEnvironmentSignal', {
+    uuid: prefs.get('session', ''),
+    action_id: 'environment',
+    startup,
+    version: inject.app.version,
+    channel: prefs.get('offers.distribution.channel', ''),
+    subchannel: prefs.get('offers.distribution.channel.sub', ''),
+    agent: navigator.userAgent
+  });
+}
 
 (async () => {
   await prefs.init();
@@ -55,17 +76,18 @@ const appCreated = new Defer();
         subchannel: prefs.get('offers.distribution.channel.sub',
           prefs.get('offers.distribution.advert_id', ''))
       }, undefined, true);
+
+      sendEnvironmentalSignal(true);
+      whoAmItimer = pacemaker.everyHour(
+        sendEnvironmentalSignal.bind(null, false),
+      );
+
+      triggerOnboardingOffers(false);
     });
 
   window.CLIQZ = CLIQZ;
   appCreated.resolve();
 })();
-
-function triggerOnboardingOffers() {
-  const intentName = 'Segment.Onboarding';
-  const durationSec = 60 * 60; // 1 hour
-  CLIQZ.app.modules['offers-v2'].action('triggerOfferByIntent', intentName, durationSec);
-}
 
 async function onboarding(details) {
   if (details.reason === 'install' && config.settings.channel !== '99') {
@@ -82,13 +104,17 @@ async function onboarding(details) {
       action: 'onboarding-show',
     });
 
-    triggerOnboardingOffers();
+    triggerOnboardingOffers(true);
   }
 }
 
 chrome.runtime.onInstalled.addListener(onboarding);
 
 window.addEventListener('unload', () => {
-  CLIQZ.app.stop();
+  if (whoAmItimer) {
+    whoAmItimer.stop();
+    whoAmItimer = null;
+  }
   chrome.runtime.onInstalled.removeListener(onboarding);
+  CLIQZ.app.stop();
 });

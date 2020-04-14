@@ -35,7 +35,9 @@ export function settingsBackgroundSelectSignal(bg, product) {
     ...settingsBaseSignal,
     action: 'click',
     target: 'background_image',
-    state: config.backgrounds[product][bg].alias,
+    state: bg === config.constants.CUSTOM_BG
+      ? config.constants.CUSTOM_BG
+      : config.backgrounds[product][bg].alias,
   });
 }
 

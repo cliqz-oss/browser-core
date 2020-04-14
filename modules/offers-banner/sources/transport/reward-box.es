@@ -26,6 +26,8 @@ export function actions(data = {}) {
   send(msg, 'offers');
 }
 
+export function actionsMany(payload = []) { payload.forEach(actions); }
+
 export function commonAction({ actionId } = {}) {
   const msg = {
     origin: REAL_ESTATE_ID,
@@ -53,9 +55,7 @@ export function callToAction(data = {}) {
   if (elemId) { send(makeMsg(offerId, `offer_${elemId}`), 'offers'); }
 }
 
-export function seenOffer(providedOfferId, data, autoTrigger) {
-  const offerId = data.offer_id || providedOfferId;
-
+export function seenOffer({ offer_id: offerId } = {}, autoTrigger) {
   send(makeMsg(offerId, 'offer_dsp_session'), 'offers');
   send(makeMsg(offerId, 'offer_shown'), 'offers');
   if (!autoTrigger) { send(makeMsg(offerId, 'offer_pulled'), 'offers'); }

@@ -3,6 +3,12 @@
   var iframeUrl = chrome.runtime.getURL('modules/onboarding-overlay/index.html');
   var iframe = document.querySelector('[src="' + iframeUrl + '"]');
 
+  window.addEventListener('message', function(message) {
+    if (message.data.action === 'continue'){
+      document.body.removeChild(overlay);
+    }
+  });
+
   if (iframe) {
     // if the onboarding overlay iframe is already here
     // we need to reload it in order to get access to the new extension
@@ -23,10 +29,4 @@
   iframe.setAttribute("src", iframeUrl);
   iframe.style = "border: 0; width: 640px; height: 665px;display: block;margin: 0;position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);"
   overlay.appendChild(iframe);
-
-  window.addEventListener('message', function(message) {
-    if (message.data.action === 'continue'){
-      document.body.removeChild(overlay);
-    }
-  });
 })()

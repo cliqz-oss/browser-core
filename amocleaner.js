@@ -2,32 +2,47 @@
 
 // cleans the repo for an easier AMO review
 
-const rimraf = require('rimraf');
 const fs = require('fs');
 const path = require('path');
-let CONFIG;
 
-switch(process.argv[2]) {
-  case 'cliqz':
-    CONFIG = 'amo-webextension.js';
-    break;
-  case 'sparalarm':
-    CONFIG = 'offers-chip-firefox.js';
-    break;
-  case 'myoffrz':
-    CONFIG = 'offers-firefox.js';
-    break;
-  default:
-    console.log('Usage: node amocleaner.js product');
-    console.log('* product one of |cliqz|, |sparalarm| or |myoffrz|');
-    console.log('');
-    console.log('eg: node amocleaner.js cliqz');
-    return;
+const COMMON_CONFIGS = ['urls.js', 'system.js', 'publish.js'];
+const CONFIGS = {
+  cliqz: {
+    configs: [],
+    'configs/common': [...COMMON_CONFIGS, 'urls-cliqz.js'],
+    'configs/releases': ['amo-webextension.js'],
+  },
+  sparalarm: {
+    configs: ['offers.js'],
+    'configs/common': [...COMMON_CONFIGS, 'urls-myoffrz.js'],
+    'configs/releases': ['offers-chip-firefox.js', 'offers-chip-chrome.js'],
+  },
+  myoffrz: {
+    configs: ['offers.js'],
+    'configs/common': [...COMMON_CONFIGS, 'urls-myoffrz.js'],
+    'configs/releases': ['offers-chip-firefox.js', 'offers-chip-chrome.js'],
+  },
+  gt: {
+    configs: ['ghostery-tab-base.js', 'ghostery-tab-firefox.js', 'ghostery-tab-chrome.js'],
+    'configs/common': [...COMMON_CONFIGS, 'urls-ghostery.js'],
+    'configs/releases': ['ghostery-tab-firefox.js', 'ghostery-tab-chrome.js'],
+  }
 }
 
-const config = require('./configs/releases/' + CONFIG);
+const REQUIRED_CONFIG = CONFIGS[process.argv[2]];
+if (REQUIRED_CONFIG === undefined) {
+  console.log('Usage: node amocleaner.js product');
+  console.log('* product one of |cliqz|, |sparalarm|, |myoffrz| or |gt|');
+  console.log('\neg: node amocleaner.js cliqz');
+  return;
+}
+
+const config = require('./configs/releases/' + REQUIRED_CONFIG['configs/releases'][0]);
 const amoModules = config.modules;
-const removeFolder = (folder) => rimraf(folder, () => console.log(`removing folder: ${folder}`));
+const removeFolder = (folder) => {
+  console.log(`removing folder: ${folder}`);
+  fs.rmdirSync(folder, { recursive: true });
+}
 
 // remove all files from this folder with exceptions
 const cleanFolderWithExceptions = (folder, exceptions, recursive) => {
@@ -87,13 +102,14 @@ cleanFolders('modules', ['debug'], true);
 cleanFolders('modules', ['experimental-apis'], true);
 cleanFolders('specific', fs.readdirSync('specific').filter(specific => config.specific != specific), false);
 cleanFolders('platforms', ['node', 'react-native', 'web'], false);
-cleanFolders('configs', ['ci', 'experiments'], false);
+cleanFolders('configs', ['ci', 'experiments', 'base'], false);
 
 cleanFolderWithExceptions('./', ['.eslintignore', '.eslintrc', '.gitignore', 'LICENSE', 'README.md', 'VERSION', 'amocleaner.js', 'amobuilder.sh', 'config.es', 'fern.js', 'package.json','package-lock.json', 'Brocfile.js', 'Jenkinsfile.multibranch', 'Dockerfile.publish'], false);
 cleanFolderWithExceptions('broccoli', ['modules', 'Brocfile.webextension.js', 'modules-tree.js', 'cliqz-env.js', 'config.js', 'util.js', 'instrument.js', 'specific-tree.js'], false);
-cleanFolderWithExceptions('configs', ['offers.js'], false);
-cleanFolderWithExceptions('configs/releases', ['offers-chip-firefox.js', 'offers-chip-chrome.js', 'amo-webextension.js', 'offers-firefox.js', 'offers-chrome.js'], false);
+
+Object.entries(REQUIRED_CONFIG).forEach(([path, exceptions]) => {
+  cleanFolderWithExceptions(path, exceptions, false);
+});
 
 cleanSpecificFilesFromFolder('modules', ['debug.html', 'debug0.html', 'debug.bundle.es', 'inspect.bundle.es']);
 cleanSpecificFilesFromFolder('configs', ['ghostery-urls.js']);
-

@@ -26,7 +26,7 @@ function shouldShowInFreshInstalled(offer) {
 
 /**
  * @param {Offer} offer
- * @param {string} url
+ * @param {string|UrlData} url
  * @return {boolean} `true` when the given `offer`'s destination real estates
  * include `offers-cc` and its `trigger_on_advertiser` property is `true`,
  * and when the given `url` matches this offer's page impression
@@ -40,42 +40,62 @@ export function shouldTriggerOnAdvertiser(offer, url = '') {
 }
 
 /**
- * First check the global blacklist, then check the offer's blacklist.
- * The global blacklist is overridden
- * if the offer is set to trigger on the advertiser's website
- * and the url is that of the advertiser's website
- * and the offer's destination real estates include 'offers-cc'.
- * The given callback is called when an offer is filtered out.
- *
- * @param {Offer} offer
- * @param {BlackListSpec} context
- * a context object with the following properties:
- *   * {UrlData} urlData
- *   * {OffersHandler} offersHandler
- *   * {(offer: Offer, actionID: string) => void} offerIsFilteredOutCb
- *   called when an offer is filtered out
- *
- * @return {boolean} `true` when the given `offer` is not blacklisted
- * in either the global or the offer's own blacklist,
- * or, if it is blacklisted in the global blacklist,
- * when the offer is set to trigger on the advertiser's website
- * and the url is that of the advertiser's website
- * and the offer's destination real estates include 'offers-cc'.
- * `false` otherwise.
+ * @param {(...args: any[]) => void} effect
+ * @return {((offer: Offer) => boolean) => ((offer: Offer) => boolean)} decorator
+ * that extends a given predicate such that the given `effect` is called
+ * whenever the predicate returns `false`.
  */
-function passBlacklist(offer, { urlData, offersHandler, offerIsFilteredOutCb }) {
+const tapOnFalse = effect => predicate => (...args) => {
+  if (predicate(...args)) {
+    return true;
+  }
+  effect(...args);
+  return false;
+};
+
+/**
+ * predicate factory.
+ * @param {OfferJobContext} context
+ * @return {((offer: Offer) => boolean)|null} `null` when the given `urlData`
+ * is not on the global blacklist,
+ * or else a predicate with side-effect that only returns `true`
+ * for offers that should trigger on the given blacklisted `urlData`.
+ * as side-effect, the predicate calls the given `offerIsFilteredOutCb`
+ * for excluded offers.
+ */
+function excludeGlobalBlacklist({ offersHandler, offerIsFilteredOutCb, urlData }) {
   const url = urlData.getRawUrl();
-  if (offersHandler.isUrlBlacklisted(url) && !shouldTriggerOnAdvertiser(offer, url)) {
+  if (!offersHandler.isUrlBlacklisted(url)) {
+    return null;
+  }
+
+  const notifyGlobalBlacklistHit = offer =>
     offerIsFilteredOutCb(offer, ActionID.AID_OFFER_FILTERED_GLOBAL_BLACKLIST);
-    return false;
-  }
-  const isInBlacklist = () => offer.hasBlacklistPatterns()
-    && offer.blackListPatterns.match(urlData.getPatternRequest());
-  if (isInBlacklist()) {
+  const withNotifyGlobalBlacklistHit = tapOnFalse(notifyGlobalBlacklistHit);
+
+  return withNotifyGlobalBlacklistHit(offer => shouldTriggerOnAdvertiser(offer, urlData));
+}
+
+/**
+ * predicate factory.
+ * @param {OfferJobContext} context
+ * @return {(offer: Offer) => boolean} predicate with side-effect
+ * that returns `true` for offers for which the given `urlData` does not match their blacklist
+ * if any.
+ * as side-effect, the predicate calls the given `offerIsFilteredOutCb`
+ * for excluded offers.
+ */
+function excludeOfferBlacklist({ offerIsFilteredOutCb, urlData }) {
+  const notifyOfferBlacklistHit = offer =>
     offerIsFilteredOutCb(offer, ActionID.AID_OFFER_FILTERED_OFFER_BLACKLIST);
-    return false;
-  }
-  return true;
+  const withNotifyOfferBlacklistHit = tapOnFalse(notifyOfferBlacklistHit);
+
+  const isNotInOfferBlacklist = offer => !offer.hasBlacklistPatterns()
+    || !offer.blackListPatterns.match(urlData.getPatternRequest());
+
+  return withNotifyOfferBlacklistHit(
+    offer => isNotInOfferBlacklist(offer) || shouldTriggerOnAdvertiser(offer, urlData)
+  );
 }
 
 //
@@ -87,10 +107,18 @@ export default class SoftFilter extends OfferJob {
   }
 
   process(offers, context) {
-    const result = offers
-      .filter(shouldShowInFreshInstalled)
-      .filter(offer => passBlacklist(offer, context))
-      .filter(offer => !shouldFilterOffer(offer, context.offersDB, context.offerIsFilteredOutCb));
+    const { offersDB, offerIsFilteredOutCb } = context;
+    const softFilter = offer => !shouldFilterOffer(offer, offersDB, offerIsFilteredOutCb);
+
+    const filters = [
+      shouldShowInFreshInstalled,
+      excludeGlobalBlacklist(context), // may be `false`
+      excludeOfferBlacklist(context),
+      softFilter
+    ];
+
+    const applyFilter = (offersList, filter) => offersList.filter(filter);
+    const result = filters.filter(Boolean).reduce(applyFilter, offers);
     return Promise.resolve(result);
   }
 }

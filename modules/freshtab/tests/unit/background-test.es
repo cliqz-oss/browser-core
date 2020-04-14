@@ -15,7 +15,16 @@ export default describeModule('freshtab/background',
     return {
       'platform/globals': {
         chrome: {},
-        browser: {},
+        browser: {
+          runtime: {
+            getURL() {},
+          },
+          webRequest: {
+            onBeforeRequest: {
+              addListener() {}
+            }
+          }
+        },
       },
       'platform/lib/moment': {
         default: moment,

@@ -432,7 +432,7 @@ html {
     .headline {
       @include hyphenate;
       cursor: pointer;
-      overflow: hidden
+      overflow: hidden;
     }
 
     .title {
@@ -442,7 +442,7 @@ html {
       font-size: 13.5px;
       cursor: pointer;
       max-height: 63px;
-      overflow: hidden
+      overflow: hidden;
     }
 
     .common {

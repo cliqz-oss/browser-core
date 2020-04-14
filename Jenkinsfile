@@ -83,20 +83,10 @@ def matrix = [
         'config': 'configs/ci/cliqz-tab.js',
         'testParams': '-l chromium-headless',
     ],
-    'mobile-cards': [
-        'gpu': true,
-        'config': 'configs/ci/mobile-cards.js',
-        'testParams': '-l firefox-web-ext --firefox ~/firefox64/firefox/firefox',
-    ],
     'ghostery': [
         'gpu': false,
         'config': 'configs/ci/ghostery.js',
         'testParams': '-l ghostery-headless',
-    ],
-    'cliqz-ios': [
-        'gpu': false,
-        'config':'configs/ci/cliqz-ios.js',
-        'testParams': '-l react-native',
     ],
 ]
 
@@ -348,7 +338,14 @@ def getStepsForParallel(matrix) {
     return buildSteps
 }
 
-def stepsForParallelTests = helpers.entries(matrix).collectEntries {
+parallel helpers.entries(getStepsForParallel(matrix)).collectEntries {
+    [("Build ${it[0]}"): build(
+        config: it[1]['config'],
+        getCodeDockerImage: { codeDockerImage }
+    )]
+}
+
+parallel helpers.entries(matrix).collectEntries {
     [(it[0]): test(
         context: it[0],
         config: it[1]['config'],
@@ -359,15 +356,3 @@ def stepsForParallelTests = helpers.entries(matrix).collectEntries {
         ignoreFailure: it[1]['ignoreFailure'],
     )]
 }
-
-def stepsForParallelBuilds = helpers.entries(getStepsForParallel(matrix)).collectEntries {
-    [("Build ${it[0]}"): build(
-        config: it[1]['config'],
-        getCodeDockerImage: { codeDockerImage }
-    )]
-}
-
-parallel stepsForParallelBuilds
-
-
-parallel stepsForParallelTests

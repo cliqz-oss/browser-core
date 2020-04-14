@@ -27,10 +27,7 @@ registerContentScript({
     injectCosmetics(
       window,
       true, /* enable mutation observer */
-      async (payload) => {
-        const result = await CLIQZ.app.modules.adblocker.action('getCosmeticsFilters', payload);
-        return result || {};
-      },
+      payload => CLIQZ.app.modules.adblocker.action('getCosmeticsFilters', payload),
     );
   }],
 });

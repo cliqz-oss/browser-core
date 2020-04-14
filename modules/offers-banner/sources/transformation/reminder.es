@@ -4,7 +4,7 @@ import { products, getResourceUrl } from '../utils';
 export function transform(data = {}) {
   const payload = {
     config: {
-      url: getResourceUrl('offers-reminder'),
+      url: getResourceUrl({ filename: 'reminder.html' }),
       type: 'offers-reminder',
       styles: {
         animation: data.state === 'new',

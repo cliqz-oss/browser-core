@@ -30,14 +30,16 @@ export default function tokenizeUrl(url, cpt = 'script') {
 
 /**
  * @param {string[]} patterns
- * @param {string} url
+ * @param {string|UrlData} url
  * @return {boolean} `true` when the given `url` matches
  * any of the given `patterns`,
  * `false` otherwise.
  */
 export function matchUrl(patterns = [], url = '') {
   // https://www.npmjs.com/package/@cliqz/adblocker#network-filters
-  const request = PatternMatching.Request.fromRawDetails({ url, type: 'script' });
+  const request = typeof url === 'string'
+    ? PatternMatching.Request.fromRawDetails({ url, type: 'script' })
+    : url.getPatternRequest();
 
   function matchRequest(pattern) {
     const filter = PatternMatching.NetworkFilter.parse(pattern);

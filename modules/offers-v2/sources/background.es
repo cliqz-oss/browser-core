@@ -40,6 +40,7 @@ import ShopReminder from './shop_reminder';
 import patternsStatMigrationCheck from './patterns_stat_migration_check';
 import { PatternsStat } from './patterns_stat';
 import ChipdeHandler from './whitelabel/chipde/handler';
+import ImageDownloader from './offers/image-downloader';
 
 // /////////////////////////////////////////////////////////////////////////////
 // consts
@@ -124,6 +125,8 @@ export default background({
     // OffersDB
     this.offersDB = new OfferDB();
     await this.offersDB.loadPersistentData();
+
+    this.offersImageDownloader = new ImageDownloader(this.offersDB);
 
     // the backend connector
     this.backendConnector = new BEConnector();
@@ -327,6 +330,7 @@ export default background({
       this.categoryHandler = null;
     }
 
+    this.offersImageDownloader = null;
     this.offersDB = null;
     this.initialized = false;
   },
@@ -457,7 +461,7 @@ export default background({
   _publishOfferReminderPushEventIfNeeded(url = '', detectOfferReminder = {}) {
     const { active = false, offerID: offerId, description = '' } = detectOfferReminder;
     const domain = extractHostname(url); // by design
-    if (active && domain) { this.shopReminder.add(domain, offerId); }
+    if (active && domain) { this.shopReminder.add(domain, offerId, description); }
     const [ok, notification] = this.shopReminder.notification(domain);
     if (!ok) { return; }
     if (notification.state === 'new') {
@@ -468,12 +472,11 @@ export default background({
       offerId: notification.offerId,
       domain,
       notification,
-      description,
       url,
     });
   },
 
-  _publishOfferReminderPushEvent({ offerId, domain, notification, description, url: currentUrl }) {
+  _publishOfferReminderPushEvent({ offerId, domain, notification, url: currentUrl }) {
     const offer = this.offersHandler.getOfferObject(offerId);
     const meta = this.offersDB.getOfferMeta(offerId);
     if (!offer || meta.removed) { return; }
@@ -482,10 +485,11 @@ export default background({
     const isCodeHidden = this.offersDB.getOfferAttribute(offerId, 'isCodeHidden') || false;
     const { call_to_action: { url: ctaurl = '' } = {} } = templateData;
     const voucher = {
-      description,
+      description: notification.description,
       benefit: templateData.benefit,
       code: templateData.code,
-      logo: templateData.logo_dataurl,
+      logoUrl: templateData.logo_url,
+      logoDataurl: templateData.logo_dataurl,
       logoClass: templateData.logo_class,
       isCodeHidden,
       offerId,
@@ -599,6 +603,12 @@ export default background({
 
       if (this.offersAPI) {
         this.offersAPI.processRealEstateMessage(message);
+      }
+    },
+
+    sendEnvironmentSignal(message) {
+      if (this.offersAPI) {
+        this.offersAPI.sendEnvironmentSignal(message);
       }
     },
 
@@ -725,19 +735,46 @@ export default background({
       };
     },
 
+    // we need to trigger the onboarding offers both at install plus
+    // at each extension start in case the onboarding offers are not
+    // loaded correctly. It happes often in Firefox if the user allows
+    // the extension to run in private mode (this triggers an extension restart)
+    //
+    // we keep the state in "offers-v2.onboarding.state"
+    //     0(null) - onboarding offers not loaded
+    //     1       - onboarding offers loading was triggered
+    //     2       - onboarding offers were loaded
+    async triggerOnboardingOffers(onInstall) {
+      const onboardingState = prefs.get('offers-v2.onboarding.sofar', '');
+      if (onInstall || onboardingState === 'started') {
+        if (onInstall) {
+          prefs.set('offers-v2.onboarding.sofar', 'started');
+        }
+
+        // next line will trigger a network request which can take
+        // a while. We change the state of "offers-v2.onboarding.sofar" only
+        // after the onboarding offers are loaded correctly
+        await this.actions.triggerOfferByIntent(
+          'Segment.Onboarding', // intent name
+          60 * 60 // intent duration - 1 hour
+        );
+
+        prefs.set('offers-v2.onboarding.sofar', 'loaded');
+      }
+    },
+
     async triggerOfferByIntent(name, duration) {
       this.intentHandler.activateIntent(new Intent(name, duration));
       await this.offersHandler.updateIntentOffers();
       const offers = this.offersHandler.getOffersForIntent(name) || [];
-      try {
-        const imageLoaders = offers.map(
-          offer => this.offersHandler._preloadImages(offer)
-        );
-        await Promise.all(imageLoaders);
-      } catch (e) {
-        logger.warning('Can not preload images for bootstrap offers:', e);
-      }
       offers.forEach(offer => this.offersAPI.pushOffer(offer));
-    }
+    },
+
+    async getImageAsDataurl({ url }) {
+      const dataurl = this.offersImageDownloader
+        ? await this.offersImageDownloader.processUrl(url)
+        : null;
+      return { dataurl };
+    },
   },
 });

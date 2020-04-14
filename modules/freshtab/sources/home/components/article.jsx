@@ -11,9 +11,17 @@ import PropTypes from 'prop-types';
 import Link from './partials/link';
 import Logo from './logo';
 import t from '../i18n';
+import cliqz from '../cliqz';
 import { newsClickSignal, newsHoverSignal } from '../services/telemetry/news';
 
 let startEnter = 0;
+const sendUrlHash = cliqz.news.sendUrlHash;
+
+const isPrivateMode = !!(
+  chrome
+  && chrome.extension
+  && chrome.extension.inIncognitoContext
+);
 
 function Article({
   article,
@@ -26,6 +34,14 @@ function Article({
     startEnter = Date.now();
   };
 
+  const getNewsProductFromArticle = (a) => {
+    const articleTypeProductMap = {
+      topnews: 'ATN',
+      yournews: 'HBR',
+    };
+    return articleTypeProductMap[a.type];
+  };
+
   const onMouseLeave = (ev) => {
     const elapsed = Date.now() - startEnter;
     const type = article.type;
@@ -33,6 +49,12 @@ function Article({
     startEnter = 0;
     if (elapsed > 2000) {
       newsHoverSignal(ev, type, index, elapsed, edition);
+      if (isPrivateMode) return;
+      sendUrlHash({
+        url: article.url,
+        action: 'hover',
+        product: getNewsProductFromArticle(article),
+      });
     }
   };
 
@@ -57,17 +79,22 @@ function Article({
 
   const isBreakingNews = () => article.type === 'breaking-news';
 
+  const onClick = (ev) => {
+    newsClickSignal(ev, article.type, index, article.edition);
+    if (isPrivateMode) return;
+    sendUrlHash({
+      url: article.url,
+      action: 'click',
+      product: getNewsProductFromArticle(article),
+    });
+  };
+
   return (
     <Link
       className="news-url"
       href={article.url}
       idx={`${index}`}
-      onClick={ev => newsClickSignal(
-        ev,
-        article.type,
-        index,
-        article.edition
-      )}
+      onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >

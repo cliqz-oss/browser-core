@@ -6,7 +6,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-const execa = require('execa');
+const { execSync } = require('child_process');
+const { join } = require('path');
 const git = require('ggit');
 const child = require('child_process');
 
@@ -21,6 +22,22 @@ function getCommit() {
   });
 }
 
+function run(command) {
+  // Make sure that binaries from `node_modules` are available in PATH.
+  let PATH = join(__dirname, '..', '..', 'node_modules', '.bin');
+  if (process.env.PATH) {
+    PATH += `:${process.env.PATH}`;
+  }
+
+  return execSync(command, {
+    encoding: 'utf-8',
+    env: {
+      ...process.env,
+      PATH,
+    },
+  }).trim();
+}
+
 module.exports = (program) => {
   program.command(`pack ${configParameter}`)
     .action((configPath) => {
@@ -29,7 +46,7 @@ module.exports = (program) => {
 
       getCommit()
         .then((id) => { process.env.GIT_COMMIT = id; }, () => {})
-        .then(() => getExtensionVersion('package'))
+        .then(() => getExtensionVersion('package', CONFIG))
         .then((version) => {
           process.env.PACKAGE_VERSION = version;
           process.env.EXTENSION_VERSION = version;
@@ -42,8 +59,7 @@ module.exports = (program) => {
             throw new Error('Pack not defined in config file');
           }
 
-          const output = execa.shellSync(`bash -c "${CONFIG.pack}"`).output[1] || '';
-          console.log(output);
+          console.log(run(`bash -c "${CONFIG.pack}"`));
         })
         .catch((e) => {
           console.error('Something went wrong', e);
@@ -58,7 +74,7 @@ module.exports = (program) => {
 
       getCommit()
         .then((id) => { process.env.GIT_COMMIT = id; }, () => {})
-        .then(() => getExtensionVersion('package'))
+        .then(() => getExtensionVersion('package', CONFIG))
         .then((version) => {
           process.env.PACKAGE_VERSION = version;
           process.env.EXTENSION_VERSION = version;
@@ -73,8 +89,7 @@ module.exports = (program) => {
             return;
           }
 
-          const output = execa.shellSync(`bash -c "${CONFIG.sign}"`).output[1] || '';
-          console.log(output);
+          console.log(run(`bash -c "${CONFIG.sign}"`));
         })
         .catch((e) => {
           console.error('Something went wrong', e);
@@ -89,7 +104,7 @@ module.exports = (program) => {
 
       getCommit()
         .then((id) => { process.env.GIT_COMMIT = id; }, () => {})
-        .then(() => getExtensionVersion('package'))
+        .then(() => getExtensionVersion('package', CONFIG))
         .then((version) => {
           process.env.PACKAGE_VERSION = version;
           process.env.EXTENSION_VERSION = version;

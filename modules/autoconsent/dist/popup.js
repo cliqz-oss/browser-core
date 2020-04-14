@@ -7,10 +7,10 @@
  */
 
 // i18n
-document.getElementById('autoconsent-onboarding-message').innerText = chrome.i18n.getMessage('autoconsent-onboarding-message');
-document.getElementById('autoconsent-onboarding-description').innerText = chrome.i18n.getMessage('autoconsent-onboarding-description');
-document.getElementById('enable').innerText = chrome.i18n.getMessage('autoconsent-onboarding-enable');
-document.getElementById('later').innerText = chrome.i18n.getMessage('autoconsent-onboarding-later');
+document.getElementById('autoconsent_onboarding_message').innerText = chrome.i18n.getMessage('autoconsent_onboarding_message');
+document.getElementById('autoconsent_onboarding_description').innerText = chrome.i18n.getMessage('autoconsent_onboarding_description');
+document.getElementById('enable').innerText = chrome.i18n.getMessage('autoconsent_onboarding_enable');
+document.getElementById('later').innerText = chrome.i18n.getMessage('autoconsent_onboarding_later');
 
 // message handlers
 function emit(message) {

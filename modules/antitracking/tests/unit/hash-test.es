@@ -15,7 +15,11 @@ const probData = require('../../../antitracking/prob.json');
 export default describeModule('antitracking/hash', function () {
   return {
     'core/resource-loader': {
-      default: class MockResourceLoader {},
+      BundledResource: class BundledResource {
+        load() {
+          return Promise.resolve(probData);
+        }
+      },
     },
   };
 },

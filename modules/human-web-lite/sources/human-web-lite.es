@@ -12,6 +12,8 @@ import MessageSender from './message-sender';
 import DuplicateDetector from './duplicate-detector';
 import SearchExtractor from './search-extractor';
 import JobScheduler from './job-scheduler';
+import ServerPublicKeyAccessor from './server-public-key-accessor';
+import ProxiedHttp from './proxied-http';
 import PersistedHashes from './persisted-hashes';
 import logger from './logger';
 
@@ -27,9 +29,15 @@ export default class HumanWebLite {
       storage,
       storageKey: 'deduplication_hashes',
     });
+    this.serverPublicKeyAccessor = new ServerPublicKeyAccessor({
+      config,
+      storage,
+      storageKey: 'server-ecdh-keys',
+    });
+    this.proxiedHttp = new ProxiedHttp(config, this.serverPublicKeyAccessor);
     this.duplicateDetector = new DuplicateDetector(this.persistedHashes);
 
-    this.messageSender = new MessageSender(config, this.duplicateDetector);
+    this.messageSender = new MessageSender(this.duplicateDetector, this.proxiedHttp);
     this.searchExtractor = new SearchExtractor({
       config,
       sanitizer: this.sanitizer,

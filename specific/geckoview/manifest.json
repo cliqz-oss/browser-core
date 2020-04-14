@@ -1,0 +1,46 @@
+{
+  "name": "Cliqz",
+  "description": "Cliqz Features for Geckoview",
+  "version": "{{version}}",
+  "manifest_version": 2,
+  "default_locale": "en",
+  "applications": {
+    "gecko": {
+      "id": "cliqz@cliqz.com"
+    }
+  },
+  "permissions": [
+    "webNavigation",
+    "webRequest",
+    "webRequestBlocking",
+    "cookies",
+    "tabs",
+    "http://*/*",
+    "https://*/*",
+    "storage",
+    "geolocation",
+    "<all_urls>",
+    "nativeMessaging",
+    "unlimitedStorage",
+    "privacy",
+    "geckoViewAddons"
+  ],
+  "background": {
+    "scripts": [
+      "modules/vendor/dexie.min.js",
+      "modules/core/cliqz.bundle.js",
+      "startup.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "run_at": "document_start",
+      "match_about_blank": true,
+      "js": ["modules/core/content-script.bundle.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    "modules/autoconsent/popup.html"
+  ]
+}

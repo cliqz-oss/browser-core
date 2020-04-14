@@ -14,7 +14,7 @@ import { timestampMS } from '../../utils';
 const getLatestUpdatedOfferFromCampaign = (offerID, offersDB) => {
   const campaignID = offersDB.getCampaignID(offerID);
   const campaignOffers = offersDB.getCampaignOffers(campaignID);
-  if (!campaignOffers) {
+  if (!campaignOffers.size) {
     return null;
   }
 

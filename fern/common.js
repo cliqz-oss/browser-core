@@ -14,12 +14,15 @@ const TreeSync = require('tree-sync');
 const WatchDetector = require('watch-detector');
 const git = require('git-rev');
 const childProcess = require('child_process');
+const { gitDescribeSync } = require('git-describe');
 
 let CONFIG;
 let OUTPUT_PATH;
 
-function getExtensionVersion(version) {
-  return new Promise((resolve) => {
+async function getExtensionVersion(version, config) {
+  const prefix = config.versionPrefix;
+  const distance = config.versionDistance;
+  const ver = await new Promise((resolve) => {
     switch (version) {
       case 'tag': {
         git.tag(resolve);
@@ -32,6 +35,16 @@ function getExtensionVersion(version) {
         resolve(version);
     }
   });
+  const versionParts = ver.split('.');
+  if (prefix) {
+    versionParts[0] = prefix;
+  }
+
+  if (distance) {
+    const gitInfo = gitDescribeSync();
+    versionParts.push(gitInfo.distance || 0);
+  }
+  return versionParts.join('.');
 }
 
 function setConfigPath(configPath, buildIntoSubdir) {

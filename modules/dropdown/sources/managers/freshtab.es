@@ -13,7 +13,9 @@ export default class ContentDropdownManager extends BaseDropdownManager {
     super();
     this.view = view;
     this.cliqz = cliqz;
-    document.addEventListener('visibilitychange', this.onBlur);
+    this.iframeWrapperReady.then(() => {
+      document.addEventListener('visibilitychange', this.onBlur);
+    });
   }
 
   unload() {

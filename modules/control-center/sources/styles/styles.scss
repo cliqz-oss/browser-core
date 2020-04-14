@@ -22,7 +22,6 @@ $firefox-red: #DD3C32;
 
 body,
 html {
-    background-color: #e5e5e5;
     overflow-y: auto;
     overflow-x: hidden;
     height: 100%;
@@ -30,6 +29,10 @@ html {
 
 html {
   overflow-x: hidden;
+}
+
+body {
+  background: linear-gradient(to bottom, $cliqz-blue 0px, #e5e5e5 1px) $cliqz-blue;
 }
 
 * {
@@ -963,7 +966,7 @@ svg.arrow {
     transition: height linear 0.15s;
     &.open.settings {
         // exact height not auto, so as to allow height transition
-        height: 206px;
+        height: 234px;
     }
     &.open.offrz {
         // exact height not auto, so as to allow height transition

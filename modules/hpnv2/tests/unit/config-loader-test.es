@@ -57,6 +57,7 @@ function createEndpointStub() {
   const _stats = {
     calls: {
       getConfig: 0,
+      getServerTimestamp: 0,
     },
   };
   const _network = {
@@ -67,14 +68,27 @@ function createEndpointStub() {
     _stats,
     _changeSourceMap() { sourceMapVersion += 1; },
     _network,
-    async getConfig() {
+    async getConfig(fields) {
       _stats.calls.getConfig += 1;
-      const now = Date();
+      const now = new Date();
       if (_network.availability(now)) {
-        return createFakeConfig(now, { sourceMapVersion });
+        let config = createFakeConfig(now, { sourceMapVersion });
+        if (fields) {
+          // only select the requested fields
+          config = Object.assign({}, ...fields.split(',').map(field => ({ [field]: config[field] })));
+        }
+        return JSON.stringify(config);
       }
       throw Error('Simulated network is down.');
     },
+    async getServerTimestamp() {
+      _stats.calls.getServerTimestamp += 1;
+      const now = new Date();
+      if (_network.availability(now)) {
+        return now.toISOString();
+      }
+      throw Error('Simulated network is down.');
+    }
   };
 }
 

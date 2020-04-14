@@ -10,7 +10,7 @@ import EventEmitter from '../../../core/event-emitter';
 
 import LastQuery from './last-query';
 import { nextTick } from '../../../core/decorators';
-import { PASSIVE_LISTENER_OPTIONS } from '../../../dropdown/managers/utils';
+import { PASSIVE_LISTENER_OPTIONS, stopEvent } from '../../../dropdown/managers/utils';
 
 const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
 const AC_PROVIDER_NAME = 'cliqz-results';
@@ -177,6 +177,11 @@ export default class URLBar extends EventEmitter {
       this.inputField.placeholder = this._placeholder;
     }
 
+    // Override original goButton click handler
+    this._goButtonOnClick = this.urlbar.goButton.onclick;
+    this.urlbar.goButton.onclick = null;
+    this.urlbar.goButton.addEventListener('click', this);
+
     this._window.addEventListener('resize', this, PASSIVE_LISTENER_OPTIONS);
     this._themePref = Services.prefs.getBranch('extensions.activeThemeID');
     this._themePref.addObserver('', this);
@@ -192,6 +197,10 @@ export default class URLBar extends EventEmitter {
   unload() {
     this._themePref.removeObserver('', this);
     this._window.removeEventListener('resize', this, PASSIVE_LISTENER_OPTIONS);
+
+    // Restore goButton click handlers
+    this.urlbar.goButton.removeEventListener('click', this);
+    this.urlbar.goButton.onclick = this._goButtonOnClick;
 
     // Restore original
     this._searchShortcutElements.forEach((item) => {
@@ -317,6 +326,11 @@ export default class URLBar extends EventEmitter {
     if (event.type === 'resize') {
       this._updateURLBarAttributes();
     }
+
+    if (event.type === 'click' && event.target === this.urlbar.goButton) {
+      this.emit('gobutton-click', event);
+      stopEvent(event);
+    }
   }
 
   _updateURLBarAttributes() {
@@ -337,6 +351,8 @@ export default class URLBar extends EventEmitter {
       left: urlbarLeftPos,
       width: urlbarWidth,
     };
+
+    this.emit('update-attributes', this._URLBarAttributes);
   }
 
   _updateUrlbarBackgroundColor() {
@@ -355,6 +371,10 @@ export default class URLBar extends EventEmitter {
     } else {
       this._color = null;
     }
+
+    this.emit('update-attributes', {
+      navbarColor: this._color,
+    });
   }
 
 

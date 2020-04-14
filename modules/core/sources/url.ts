@@ -192,6 +192,37 @@ function getIndexAfterProtocol(url: string, start: number): number {
 }
 
 /**
+  * WIP Used to create a canonical representation of a path
+  * Currently only used to remedy known errors of specific news URLs
+  * >>> normalizePath('') === ''
+  * >>> normalizePath('/') === '/'
+  * >>> normalizePath('//my/sample/path/') === '/my/sample/path/'
+  * >>> normalizePath('/yet/another/path') === '/yet/another/path'
+  * >>> normalizePath('my/other/path') === 'my/other/path'
+  */
+function normalizePath(path: string): string {
+  if (path.length === 0) return path;
+  let index = 0;
+  while (index < path.length && path.charCodeAt(index) === 47 /* '/' */) {
+    index += 1;
+  }
+  return index === 0 ? path : path.slice(index - 1);
+}
+
+/**
+  * WIP Used for news related URLs
+  */
+export function normalize(url: string): string {
+  if (typeof url !== 'string' || url.length === 0) {
+    return url;
+  }
+  const urlParts = new ImmutableURL(url);
+
+  const res = (urlParts.hostname + normalizePath(urlParts.pathname))
+  return strip(res, { trailingSlash: true, www: true });
+}
+
+/**
  * Generic function which can be used to strip different parts of a URL in its
  * raw string format. The goal is to normalize the input without having to rely
  * on more expensive parsing. Furthermore, this function is implemented in such

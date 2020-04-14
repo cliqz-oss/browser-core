@@ -204,24 +204,31 @@ export class Subject {
     this.messages = [];
 
     const runtime = {
+      id: 'test',
       onMessage: {
         addListener: () => {
         },
         removeListener: () => {
         }
       },
-      sendMessage: async ({ module, action, args }) => {
-        this.messages.push({ module, action, args });
+      // eslint-disable-next-line consistent-return
+      sendMessage: async (message, ...rest) => {
+        const module = message?.module || message?.target;
+        const action = message?.action || message?.message?.action;
+
+        this.messages.push(message);
 
         if (this.areWeListening === true) {
-          this.messagesByAction.get(action).push({
-            module,
-            action,
-            args,
-          });
+          this.messagesByAction.get(action).push(message);
         }
 
-        return this.modules[module].actions[action];
+        const response = this.modules[module]?.actions[action];
+        const lastArg = rest[rest.length - 1];
+        const lastArgIsCallback = typeof lastArg === 'function';
+        if (!lastArgIsCallback) {
+          return response;
+        }
+        lastArg(response);
       },
     };
 

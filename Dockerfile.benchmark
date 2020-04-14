@@ -1,4 +1,4 @@
-FROM node:lts-stretch
+FROM node:lts-buster
 
 ARG DEBIAN_FRONTEND=noninteractive
 

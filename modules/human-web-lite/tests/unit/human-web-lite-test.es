@@ -13,6 +13,7 @@ const expect = chai.expect;
 export default describeModule('human-web-lite/human-web-lite',
   () => ({
     'platform/fetch': {},
+    'core/zlib': {},
     'webextension-polyfill': {},
     'core/crypto/random': {
       random() {

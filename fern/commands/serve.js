@@ -83,6 +83,7 @@ module.exports = (program) => {
         'extensions.systemAddon.update.url': '',
         'devtools.aboutdebugging.new-enabled': false,
         'devtools.storage.extensionStorage.enabled': true,
+        'devtools.browserconsole.contentMessages': true,
 
         // Disable built-in tracking protection
         'privacy.socialtracking.block_cookies.enabled': false,
@@ -102,7 +103,7 @@ module.exports = (program) => {
 
       const start = Date.now();
 
-      getExtensionVersion(options.version).then((version) => {
+      getExtensionVersion(options.version, CONFIG).then((version) => {
         process.env.PACKAGE_VERSION = version;
         process.env.EXTENSION_VERSION = version;
 

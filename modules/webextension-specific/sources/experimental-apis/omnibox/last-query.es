@@ -6,11 +6,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* globals ChromeUtils, windowTracker, tabTracker */
+/* globals ChromeUtils */
 import {
   TAB_CHANGE_EVENTS,
   PASSIVE_LISTENER_OPTIONS,
 } from '../../../dropdown/managers/utils';
+import ExtensionGlobals from '../shared/extension-globals';
+
+const { tabTracker, windowTracker } = ExtensionGlobals;
 
 const { EventEmitter } = ChromeUtils.import('resource://gre/modules/EventEmitter.jsm');
 const LAST_QUERY_BOX_ID = 'cliqzLastQueryBox';

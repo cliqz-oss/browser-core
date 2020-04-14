@@ -32,17 +32,11 @@ module.exports = {
     },
   }),
   default_prefs: {
-    'modules.pairing.enabled': false,
     'modules.insights.enabled': false,
   },
   modules: [
     'core',
-    'core-cliqz',
     'search',
-    'p2p',
-    'pairing',
-    'mobile-pairing',
-    'mobile-cards',
     'video-downloader',
     'anolysis',
     'geolocation',
@@ -50,9 +44,6 @@ module.exports = {
   ],
   bundles: [
   ],
-  react_components: {
-    ExtensionApp: './modules/mobile-cards/cliqz-ios/ExtensionApp'
-  },
   resources: {
     bundling: 'assets',
     include: [

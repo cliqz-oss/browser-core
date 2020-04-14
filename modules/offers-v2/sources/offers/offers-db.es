@@ -55,8 +55,11 @@ class OfferDB {
     // temporary mapping counter to know when to remove a display or not
     this.displayIDCounter = {};
 
-    // we will dynamically keep track of which offers are related to a particular
-    // campaign id: campaign_id -> Set(offersIDs)
+    /**
+     * we will dynamically keep track of which offers are related to a particular
+     * campaign id: campaign_id -> Set(offersIDs)
+     * @type {{ [campaign_id: string]: Set<string> }}
+     */
     this.campaignToOffersMap = {};
 
     // callbacks list
@@ -135,6 +138,12 @@ class OfferDB {
     if (container) {
       logger.warn(`addOfferObject: The offer id: ${offerID} already exists, will not add it here`);
       return false;
+    }
+
+    const displayID = offerData.display_id;
+    if (this.hasOfferWithDisplayID(displayID)) {
+      // this should never happen since DBReplacer will exclude such offers
+      logger.warn(`addOfferObject: The display id: ${displayID} already exists`);
     }
 
     // create the container and a copy of the offer data object to avoid issues
@@ -304,8 +313,9 @@ class OfferDB {
     if (container.offer_obj) {
       // check if we have an old object here
       const localOffer = container.offer_obj;
-      if (offerData.offer_id !== localOffer.offer_id
-          || offerData.campaign_id !== localOffer.campaign_id) {
+      const isUnchangedCampaign = offerData.offer_id === localOffer.offer_id
+        && offerData.campaign_id === localOffer.campaign_id;
+      if (!isUnchangedCampaign) {
         logger.warn('updateOfferObject: the offer core data is not similar? not supported for now');
         return false;
       }
@@ -339,6 +349,19 @@ class OfferDB {
     // propagate event
     this._pushCallbackEvent('offer-updated', container);
 
+    return true;
+  }
+
+  /**
+   * Saves the offer in a persistent storage
+   */
+  flushOfferObject(offerID) {
+    const container = this.offersIndexMap.get(offerID);
+    if (!container) {
+      logger.warn(`flushOfferObject: the offer with ID: ${offerID} is not present`);
+      return false;
+    }
+    this.offersIndexMap.set(offerID, container);
     return true;
   }
 
@@ -570,6 +593,18 @@ class OfferDB {
   }
 
   /**
+   * @param {string} displayID
+   * @return {boolean} true when this OffersDB includes
+   * at least one offer with the given `displayID`.
+   * note that the offer(s) may be marked `removed`,
+   * i.e. {@link #hasOfferRemoved} may return `true`
+   * for these offers.
+   */
+  hasOfferWithDisplayID(displayID) {
+    return this.displayIdIndexMap.has(displayID);
+  }
+
+  /**
    * will return the associated campaign id for a particular offer, or null if not found
    *
    * @method getCampaignID
@@ -590,29 +625,11 @@ class OfferDB {
    *
    * @method getCampaignOffers
    * @param  {string} campaignID
-   * @return {string}
+   * @return {Set<string>}
    */
   getCampaignOffers(campaignID) {
-    if (!campaignID) {
-      return null;
-    }
-    return this.campaignToOffersMap[campaignID];
-  }
-
-  /**
-   * @method hasAnotherOfferOfSameCampaign
-   * @param {Offer} offer
-   *   An Offer object is used instead of offerID because we need
-   *   campaignID, which we don't have in the database for yet unseen offers.
-   * @return {boolean}
-   */
-  hasAnotherOfferOfSameCampaign(offer) {
-    const offerID = offer.uniqueID;
-    const campaignID = offer.campaignID;
-    const campaignOffers = this.getCampaignOffers(campaignID);
-    return campaignOffers
-      ? [...campaignOffers].some(id => offerID !== id)
-      : false;
+    const campaignOfferIDs = campaignID && this.campaignToOffersMap[campaignID];
+    return campaignOfferIDs || new Set();
   }
 
   /**

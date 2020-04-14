@@ -73,7 +73,7 @@ export default function () {
               sources: [
                 'default-search'
               ],
-              classes: ['google']
+              classes: ['Google']
             },
             {
               sources: [

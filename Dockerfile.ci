@@ -1,4 +1,4 @@
-FROM node:lts-stretch
+FROM node:lts-buster
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -13,8 +13,6 @@ RUN apt-get update --no-install-recommends  \
     jq \
     libasound2 \
     libatk1.0-0 \
-    libav-tools \
-    libavcodec-extra57 \
     libc6 \
     libcairo-gobject2 \
     libcairo2 \
@@ -128,3 +126,4 @@ COPY package-lock.json /app/
 WORKDIR /app/
 
 RUN npm ci
+RUN node node_modules/puppeteer-core/install.js

@@ -27,7 +27,6 @@ module.exports = {
     freshTabNews: true,
     freshTabStats: true,
     browserAction: 'quicksearch',
-    OFFERS_CHANNEL: 'ghostery-tab',
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'se'],
     FRESHTAB_TITLE: 'Ghostery Tab',
     offboardingURLs: {
@@ -46,12 +45,11 @@ module.exports = {
     'modules.human-web.enabled': true,
     'modules.hpnv2.enabled': true,
     'freshtab.search.mode': 'search',
+    'freshtab.search.autofocus': false,
     'offers2UserEnabled': false,
   },
   modules: [
     'core',
-    'telemetry',
-    'core-cliqz',
     'abtests-legacy',
     'geolocation',
     'search',

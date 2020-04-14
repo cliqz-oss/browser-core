@@ -251,7 +251,6 @@ $basic-line-height: (16 / 14) + 0em;
         display: block;
         padding: 0.6em 0;
         border-radius: 2px;
-        overflow: hidden;
 
         &:visited {
             /* FIXME: withour any visited style, styles for nested element does not work */
@@ -378,7 +377,7 @@ $basic-line-height: (16 / 14) + 0em;
                 .duration {
                     position: absolute;
                     bottom: 0;
-                    right: 10px;
+                    right: 0;
                     font-size: 9px;
                     color: #fff;
                     background-color: rgba(0, 0, 0, 0.6);
@@ -924,6 +923,12 @@ $basic-line-height: (16 / 14) + 0em;
                 }
             }
         }
+    }
+}
+
+.modifier {
+    .switchtab {
+        background-image: none!important;
     }
 }
 

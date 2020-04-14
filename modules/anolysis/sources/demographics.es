@@ -22,6 +22,7 @@ import {
 } from '../core/helpers/date';
 import Logger from '../core/logger';
 import getSynchronizedDate from '../core/synchronized-time';
+import inject from '../core/kord/inject';
 import prefs from '../core/prefs';
 
 const logger = Logger.get('anolysis', {
@@ -238,7 +239,6 @@ function decodeChannel(pkCampaign) {
 function parseFullDistribution(fullDistribution) {
   const KEYWORD_PREFIX = 'keyword=';
   const PKCAMPAIGN_PREFIX = 'pk_campaign=';
-  const BRAND_PREFIX = 'brand=';
 
   let pkCampaign;
   let keyword;
@@ -251,8 +251,6 @@ function parseFullDistribution(fullDistribution) {
       keyword = normalizeKeyword(part.slice(KEYWORD_PREFIX.length));
     } else if (part.startsWith(PKCAMPAIGN_PREFIX)) {
       pkCampaign = part.slice(PKCAMPAIGN_PREFIX.length);
-    } else if (part.startsWith(BRAND_PREFIX)) {
-      pkCampaign = part.slice(BRAND_PREFIX.length);
     }
   }
 
@@ -269,15 +267,9 @@ function parseFullDistribution(fullDistribution) {
 }
 
 /**
- * Given full_distribution as well as information about sub_channel for MyOffrz,
- * create a final 'campaign' demographic of the form: /Channel/Id/Keywords or
- * /Channel/Subchannel (for MyOffrz).
+ * Given full_distribution create a final 'campaign' demographic of the form: /Channel/Id/Keywords.
  */
-export function parseCampaign({
-  fullDistribution,
-  offersChannel,
-  offersSubChannel,
-}) {
+export function parseCampaign(fullDistribution) {
   const parts = [];
 
   if (fullDistribution) {
@@ -294,12 +286,6 @@ export function parseCampaign({
       }
     } else {
       parts.push('other', fullDistribution);
-    }
-  } else if (offersChannel) {
-    parts.push(offersChannel);
-
-    if (offersSubChannel) {
-      parts.push(offersSubChannel);
     }
   }
 
@@ -365,23 +351,13 @@ export function parseBrowser({ userAgent, distributionVersion }) {
 
 export default async function getDemographics(appVersion, productDemographics) {
   return {
-    campaign: parseCampaign({
-      fullDistribution: prefs.get('full_distribution'),
-      offersChannel: prefs.get(
-        'offers.distribution.channel',
-        prefs.get('offers.distribution.referrer_url'),
-      ),
-      offersSubChannel: prefs.get(
-        'offers.distribution.channel.sub',
-        prefs.get('offers.distribution.advert_id'),
-      ),
-    }),
+    campaign: parseCampaign(prefs.get('full_distribution')),
     country: normalizeString(parseCountry(await getCountry())),
     install_date: normalizeString(parseInstallDate(await getInstallDate())),
     product: parseProduct(productDemographics),
     extension: parseExtension(appVersion),
     browser: await parseBrowser({
-      distributionVersion: prefs.get('distribution.version'),
+      distributionVersion: await inject.service('host-settings', ['get']).get('distribution.version', ''),
       userAgent: await getUserAgent(),
     }),
     os: normalizeString(parseOS(await getUserAgent())),

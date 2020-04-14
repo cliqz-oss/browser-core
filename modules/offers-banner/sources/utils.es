@@ -2,7 +2,6 @@ import { chrome } from '../platform/globals';
 import { getTab } from '../platform/tabs';
 import adblocker from '../platform/lib/adblocker';
 import { getActiveTab } from '../core/browser';
-import logos from '../core/services/logos';
 import { isCliqzBrowser, isAMO, isGhostery } from '../core/platform';
 import config from '../core/config';
 
@@ -27,12 +26,9 @@ const BLACK_LIST = [
 
 export function getTitleColor(templateData = {}) {
   const {
-    styles: { headline_color: headlineColor } = {},
-    call_to_action: { url } = {},
+    styles: { headline_color: headlineColor } = {}
   } = templateData;
-  if (headlineColor) { return headlineColor; }
-  const logoDetails = logos.getLogoDetails(url) || { brandTxtColor: '2d2d2d' };
-  return `#${logoDetails.brandTxtColor}`;
+  return headlineColor || '#2d2d2d';
 }
 
 function canRenderOnUrl(url, title) {
@@ -61,16 +57,6 @@ export function getOfferNotificationType(data = {}) {
   return uiInfo.notif_type;
 }
 
-export function filterValues(obj, predicate) {
-  const newObj = {};
-  Object.keys(obj).forEach((key) => {
-    if (predicate(obj[key])) {
-      newObj[key] = obj[key];
-    }
-  });
-  return newObj;
-}
-
 export function products() {
   const brand = config.settings.OFFERS_BRAND;
   return {
@@ -95,8 +81,11 @@ export function matchPatternsByUrl(patterns, url) {
   }, false);
 }
 
-export function getResourceUrl(module = 'offers-cc') {
+export function getResourceUrl({
+  module = 'offers-templates',
+  filename = 'control-center.html',
+  suffix = 'cross-origin',
+} = {}) {
   const prefix = isGhostery ? 'cliqz' : 'modules';
-  const path = 'index.html?cross-origin';
-  return chrome.runtime.getURL(`${prefix}/${module}/${path}`);
+  return chrome.runtime.getURL(`${prefix}/${module}/${filename}?${suffix}`);
 }

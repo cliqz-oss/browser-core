@@ -6,7 +6,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 /* eslint-disable import/prefer-default-export */
-import { fetch } from '../core/http';
 
 const SECOND = 1000;
 

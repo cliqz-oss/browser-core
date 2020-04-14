@@ -278,3 +278,34 @@ export default class ResourceLoader extends UpdateCallbackHandler {
     this.intervalTimer = null;
   }
 }
+
+
+/**
+ * A Resource that is bundled with the extension and never remotely updated.
+ */
+export class BundledResource {
+  constructor(name, options = {}) {
+    this.name = (typeof name === 'string') ? [name] : name;
+    this.dataType = options.dataType || 'json';
+    this.filePath = ['cliqz', ...this.name];
+    this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
+
+    // delete any storage associated with this resource (this is to clean out storage
+    // for older clients who previously had this resource persisted)
+    new Storage(this.filePath).delete();
+  }
+
+  async load() {
+    const res = await fetch(this.chromeURL);
+    if (!res.ok) {
+      throw new Error(res.statusText);
+    }
+    if (this.dataType === 'json') {
+      return res.json();
+    }
+    if (this.dataType === 'binary') {
+      return res.arrayBuffer();
+    }
+    return res.text();
+  }
+}

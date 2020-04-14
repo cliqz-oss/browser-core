@@ -13,6 +13,21 @@ import { buildSimplePatternIndex } from '../common/pattern-utils';
 //                            Helper methods
 
 export const NOTIF_TYPE_DOT = 'dot';
+export const NOTIF_TYPE_SILENT = 'silent';
+export const NOTIF_TYPE_TOOLTIP = 'tooltip';
+
+const TRIGGER_ON_ADVERTISER_NOTIF_TYPES = [
+  NOTIF_TYPE_DOT, NOTIF_TYPE_TOOLTIP // default first
+];
+
+/**
+ * EX-9624 - temporary hack: may/should be removed once display_id updated accordingly on portal
+ * extract the substring from start until and excluding the first `_` (underscore character),
+ * or the entire string when no underscore.
+ * as of March 2020, this corresponds to the offer id on the portal when applied to the `offer_id`.
+ * however, there is no guarantee that this will still apply in the future.
+ */
+const PORTAL_ID_FROM_OFFER_ID_REGEXP = /^[^_]+/;
 
 /**
  * the expected geo data is a object: { country -> { city -> [postal1, ...] }};
@@ -301,12 +316,21 @@ export default class Offer {
     return this.offerObj.categories;
   }
 
+  isSilent() {
+    const { ui_info: uiInfo = {} } = this.offerObj;
+    return uiInfo.notif_type === NOTIF_TYPE_SILENT;
+  }
+
   isTargeted() {
     return Boolean(this.offerObj.targeted);
   }
 
+  isTargetedAndNotSilent() {
+    return this.isTargeted() && !this.isSilent();
+  }
+
   shouldShowDynamicOffer() {
-    return this.offerObj.show_dynamic_offer || true;
+    return this.offerObj.show_dynamic_offer;
   }
 
   hasDynamicContent() {
@@ -318,6 +342,16 @@ export default class Offer {
    */
   shouldTriggerOnAdvertiser() {
     return Boolean(this.offerObj.trigger_on_advertiser);
+  }
+
+  getTriggerOnAdvertiserNotifType() {
+    if (!this.shouldTriggerOnAdvertiser()) {
+      return undefined;
+    }
+    const setting = this.offerObj.trigger_on_advertiser;
+    return TRIGGER_ON_ADVERTISER_NOTIF_TYPES.includes(setting)
+      ? setting
+      : TRIGGER_ON_ADVERTISER_NOTIF_TYPES[0];
   }
 
   /**
@@ -336,6 +370,39 @@ export default class Offer {
   }
 
   /**
+   * EX-9624 - temporary hack: may/should be removed once display_id updated accordingly on portal
+   *
+   * the `display_id` may only be updated when the following pre-conditions are met:
+   * * the `display_id` string starts with the `offer_id` string
+   * * the `display_id` string may be parsed from the `offer_id` string
+   *   with {@link PORTAL_ID_FROM_OFFER_ID_REGEXP} and results in a new string.
+   *
+   * @returns {BackendOffer} the underlying offer object unchanged
+   * when its `display_id` field may not be change,
+   * otherwise a new offer object based on the underlying object
+   * with its `display_id` and `version` fields updated.
+   * the new version ensures that local storage is updated with new `display_id`.
+   *
+   * @see {@link PORTAL_ID_FROM_OFFER_ID_REGEXP}
+   */
+  getDataObjectWithDisplayIDFromPortalID() {
+    const offerID = this.uniqueID;
+    const displayID = this.displayID;
+    const portalOfferID = displayID?.startsWith(offerID)
+      && PORTAL_ID_FROM_OFFER_ID_REGEXP.exec(offerID)?.[0];
+
+    const shouldUpdateDisplayID = portalOfferID && (portalOfferID !== displayID);
+    if (!shouldUpdateDisplayID) {
+      return this.offerObj;
+    }
+
+    const version = `${this.version}_alt1`;
+    const updatedOfferObject = { ...this.offerObj, display_id: portalOfferID, version };
+
+    return updatedOfferObject;
+  }
+
+  /**
    * The offer's reward will be based on eCPM (effective cost per mille).
    * At the moment, it is based on manually set display priority.
    * If the display priority is not set, return 1.
@@ -351,27 +418,39 @@ export default class Offer {
     return (reward || 0) <= 0 ? 1.0 : reward;
   }
 
+  hasTemplate() {
+    return Boolean(this.offerObj.ui_info.template_data);
+  }
+
   getLogoUrl() {
-    return this.offerObj.ui_info.template_data.logo_url;
+    return this.hasTemplate() ? this.offerObj.ui_info.template_data.logo_url : null;
   }
 
   getLogoDataurl() {
-    return this.offerObj.ui_info.template_data.logo_dataurl;
+    return this.hasTemplate() ? this.offerObj.ui_info.template_data.logo_dataurl : null;
   }
 
   setLogoDataurl(dataurl) {
+    if (!this.hasTemplate()) {
+      logger.warn(`Cannot set logo dataurl on offer without template: ${this.uniqueID}`);
+      return;
+    }
     this.offerObj.ui_info.template_data.logo_dataurl = dataurl;
   }
 
   getPictureUrl() {
-    return this.offerObj.ui_info.template_data.picture_url;
+    return this.hasTemplate() ? this.offerObj.ui_info.template_data.picture_url : null;
   }
 
   getPictureDataurl() {
-    return this.offerObj.ui_info.template_data.picture_dataurl;
+    return this.hasTemplate() ? this.offerObj.ui_info.template_data.picture_dataurl : null;
   }
 
   setPictureDataurl(dataurl) {
+    if (!this.hasTemplate()) {
+      logger.warn(`Cannot set picture dataurl on offer without template: ${this.uniqueID}`);
+      return;
+    }
     this.offerObj.ui_info.template_data.picture_dataurl = dataurl;
   }
 
@@ -382,6 +461,10 @@ export default class Offer {
   }
 
   setDynamicContent(productPictureUrl, productCtaUrl) {
+    if (!this.hasTemplate()) {
+      logger.warn(`Cannot set dynamic content on offer without template: ${this.uniqueID}`);
+      return;
+    }
     this.offerObj.ui_info.template_data.picture_url = productPictureUrl;
     this.offerObj.ui_info.template_data.picture_dataurl = undefined;
     this.offerObj.ui_info.template_data.call_to_action.url = productCtaUrl;

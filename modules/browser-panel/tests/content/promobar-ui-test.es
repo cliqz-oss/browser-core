@@ -4,16 +4,11 @@ import {
 import {
   expect,
 } from '../../core/test-helpers';
-import fixtureData from './fixtures/full-long-logo';
+import data, { dataurl } from './fixtures/full-long-logo';
 import config from '../../../core/config';
 
-function withDataUrl(fixture) {
-  let s = JSON.stringify(fixture);
-  s = s.replace('logo_url', 'logo_dataurl');
-  s = s.replace('picture_url', 'picture_dataurl');
-  return JSON.parse(s);
-}
-const data = withDataUrl(fixtureData);
+const OFFERS_TEMPLATES_MODULE = 'cliqz-offers-templates';
+const GET_IMAGE_AS_DATA_URL_ACTION = 'getImageAsDataurl';
 
 describe('Promo bar', function () {
   let subject;
@@ -73,7 +68,13 @@ describe('Promo bar', function () {
           buildUrl: path,
           iframeWidth: frameWidth
         });
+        subject.respondsWith({
+          module: OFFERS_TEMPLATES_MODULE,
+          action: GET_IMAGE_AS_DATA_URL_ACTION,
+          response: { dataurl }
+        });
         await subject.pushData(target, data, 'render_template');
+
         $promoContainer = subject.query(promoContainerSelector);
         $promoCodeContainer = $promoContainer.querySelector(promoCodeContainerSelector);
         $promoBody = $promoContainer.querySelector(promoBodySelector);
@@ -155,7 +156,7 @@ describe('Promo bar', function () {
 
           expect($logo).to.exist;
           expect(subject.getComputedStyle($logo).display).to.not.equal('none');
-          expect($logo.src).to.contain(data.template_data.logo_dataurl.slice(1));
+          expect($logo.src).to.contain(dataurl);
           expect($logo.getAttribute('data-openurl')).to.equal(data.template_data.call_to_action.url);
         });
 
@@ -170,7 +171,7 @@ describe('Promo bar', function () {
           expect($pictureContainer).to.exist;
           if (sizes[frameWidth].hasPicture) {
             expect(subject.getComputedStyle($pictureContainer).display).to.not.equal('none');
-            expect($picture.src).to.equal(data.template_data.picture_dataurl);
+            expect($picture.src).to.equal(dataurl);
             expect($picture.getAttribute('data-openurl')).to.equal(data.template_data.call_to_action.url);
           } else {
             expect(subject.getComputedStyle($pictureContainer).display).to.equal('none');

@@ -38,9 +38,6 @@ function humanwebExistsAndDisabled() {
 * @class Background
 */
 export default background({
-  // Injected in window.es
-  controlCenter: inject.module('control-center'),
-
   requiresServices: ['cliqz-config', 'domainInfo', 'pacemaker', 'telemetry'],
   telemetrySchemas: [
     ...popupActionsMetrics,
@@ -204,9 +201,6 @@ export default background({
       return this.attrack.getTrackerListForTab(tab);
     },
     getGhosteryStats(tabId) {
-      if (!this.pageStore) {
-        return { bugs: {}, others: {} };
-      }
       const page = this.pageStore.tabs.get(tabId);
       if (!page
           || !page.annotations

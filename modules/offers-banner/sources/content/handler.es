@@ -79,13 +79,10 @@ export default class Handler {
         hideBanner: this.removeBanner,
       },
       'offers-checkout': {
-        hideBanner: ({ timeout = 0 }) => {
-          if (timeout) {
-            setTimeout(this.removeBanner, timeout);
-          } else {
-            this.removeBanner();
-          }
-        },
+        /* eslint-disable no-confusing-arrow */
+        hideBanner: ({ timeout = 0 }) =>
+          timeout ? setTimeout(this.removeBanner, timeout) : this.removeBanner(),
+        /* eslint-enable no-confusing-arrow */
       },
     };
     const noop = () => {};

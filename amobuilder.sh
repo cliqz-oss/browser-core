@@ -16,7 +16,7 @@ set -e
 usage () {
   echo
   echo "Usage: bash $0 product"
-  echo "* product one of |cliqz|, |sparalarm| or |myoffrz|"
+  echo "* product one of |cliqz|, |sparalarm|, |myoffrz| or |gt|"
   echo
   echo "eg: bash amobuilder.sh cliqz"
 }
@@ -37,6 +37,10 @@ case "$1" in
 
   myoffrz)
       CONFIG="offers-firefox.js"
+      ;;
+
+  gt)
+      CONFIG="ghostery-tab-firefox.js"
       ;;
 
   *)

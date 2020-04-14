@@ -68,6 +68,13 @@ export default class CategoryPersistentDataHelper {
     return true;
   }
 
+  async getPatterns() {
+    if (!this._isInitialized('getPatterns')) {
+      return new Map();
+    }
+    return new Map(await this.patternsDb.entries());
+  }
+
   /**
    * will return a promise with a list of all the categories already built
    */
@@ -78,7 +85,7 @@ export default class CategoryPersistentDataHelper {
     // Track orphaned IDs on the fly
     //
     const allCategories = await this.categoriesDb.entries();
-    const allPatterns = new Map(await this.patternsDb.entries());
+    const allPatterns = await this.getPatterns();
     const orphanCatIDs = [];
 
     const result = [];
@@ -129,12 +136,21 @@ export default class CategoryPersistentDataHelper {
     // Don't use `this.smth` as it set be can to `null` during await
     const categoriesDb = this.categoriesDb;
     const patternsDb = this.patternsDb;
+    //
     // Delete categories
+    //
+    // Order is important: first delete, then set.
+    // When a category is updated, it is actually deleted first and
+    // then re-created. The name of the category appears in both lists,
+    // in the list to update as well in the list to delete.
+    //
     await Promise.all([
       categoriesDb.bulkDelete(buildResources.removeCategoriesIDs),
       patternsDb.bulkDelete(buildResources.removeCategoriesIDs)
     ]);
+    //
     // Set new categories
+    //
     const cats = new Map();
     buildResources.categories.forEach((cat, cname) =>
       cats.set(cname, extractCategoryData(cat)));

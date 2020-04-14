@@ -12,6 +12,7 @@ export default class Settings extends React.Component {
     super(props);
     const { data = {} } = props;
     const search = data.module.search || {};
+    const freshtab = data.module.freshtab || {};
     const humanWeb = data.module['human-web'] || {};
     const humanWebOptOut = data.module.humanWebOptOut || false;
     const countriesMap = this.getSupportedIndexCountries(search);
@@ -34,6 +35,7 @@ export default class Settings extends React.Component {
       geoOptions: geoMap.options,
       searchProxy,
       telemetry: data.telemetry || false,
+      autoFocus: freshtab.autofocus || false,
       open: props.open
     };
   }
@@ -108,7 +110,8 @@ export default class Settings extends React.Component {
     this.setState({ [key]: value });
   }
 
-  componentWillReceiveProps({ open }) {
+  // eslint-disable-next-line camelcase
+  UNSAFE_componentWillReceiveProps({ open }) {
     if (this.state.open !== open) {
       this.setState({ open });
     }
@@ -135,6 +138,7 @@ export default class Settings extends React.Component {
       countries,
       searchProxy,
       telemetry,
+      autoFocus,
       open
     } = this.state;
     const { data, localize, openUrl } = this.props;
@@ -287,7 +291,7 @@ export default class Settings extends React.Component {
                   className="location-more"
                   role="button"
                   target={data.locationSharingURL}
-                  onClick={() => openUrl(data.locationSharingURL)}
+                  onClick={() => openUrl(data.locationSharingURL, true, 'share_location_learn_more')}
                 >
                   {localize('control_center_info_share_location_link')}
                 </span>
@@ -344,6 +348,20 @@ export default class Settings extends React.Component {
                 className="custom-dropdown"
                 defaultValue={telemetry}
                 onChange={e => this.handlePref(e, 'telemetry', 'telemetry', 'telemetry', true)}
+              >
+                <option value="true">{localize('control_center_enabled')}</option>
+                <option value="false">{localize('control_center_disabled')}</option>
+              </select>
+            </span>
+          )}
+
+          {!data.isDesktopBrowser && (
+            <span className="bullet autofocus">
+              <span className="no-tooltip-label">{localize('control_center_autofocus')}</span>
+              <select
+                className="custom-dropdown"
+                defaultValue={autoFocus}
+                onChange={e => this.handlePref(e, 'freshtab.search.autofocus', 'autoFocus', 'autoFocus', true)}
               >
                 <option value="true">{localize('control_center_enabled')}</option>
                 <option value="false">{localize('control_center_disabled')}</option>

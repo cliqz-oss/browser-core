@@ -1,14 +1,14 @@
 {
-  "autoconsent-onboarding-description": {
+  "autoconsent_onboarding_description": {
     "message": ""
   },
-  "autoconsent-onboarding-enable": {
+  "autoconsent_onboarding_enable": {
     "message": "Always hide"
   },
-  "autoconsent-onboarding-later": {
+  "autoconsent_onboarding_later": {
     "message": "Not now"
   },
-  "autoconsent-onboarding-message": {
+  "autoconsent_onboarding_message": {
     "message": "Always hide and deny cookie dialogs in Cliqz?"
   }
 }

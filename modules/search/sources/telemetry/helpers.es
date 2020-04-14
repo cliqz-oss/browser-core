@@ -79,13 +79,13 @@ export const RESULT_CLASSES = [
   'EntityWeather',
   'SoccerEZ',
   // search engines
-  'bing',
-  'cliqz',
-  'duckduckgo',
-  'ecosia',
-  'google',
-  'qwant-search',
-  'start-page',
+  'Bing',
+  'Cliqz',
+  'DuckDuckGo',
+  'Ecosia',
+  'Google',
+  'Qwant',
+  'Start Page',
   // other values
   'other',
 ];

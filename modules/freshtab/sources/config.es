@@ -105,6 +105,7 @@ export default {
   settings: {
     HISTORY_URL: config.settings.HISTORY_URL,
     SUGGESTIONS_URL: config.settings.SUGGESTIONS_URL,
+    FRESHTAB_REDIRECT: config.settings.FRESHTAB_REDIRECT,
     frameScriptWhitelist: config.settings.frameScriptWhitelist,
     onBoardingPref: config.settings.onBoardingPref,
     onboardingVersion: config.settings.onboardingVersion,
@@ -115,6 +116,7 @@ export default {
     TOOLTIP_WORLDCUP_KNOCKOUT: 'worldcup-knockout',
     PREF_SEARCH_MODE: 'freshtab.search.mode',
     NO_BG: 'bg-default',
+    CUSTOM_BG: 'bg-custom',
     MAX_SPOTS: 6,
     MAX_PAGES: 3,
   },

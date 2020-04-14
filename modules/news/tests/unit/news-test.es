@@ -54,11 +54,7 @@ export default describeModule('news/news',
   },
   function () {
     describe('history based news tests', function () {
-      function cliqzHash(s) {
-        return s.split('')
-          .reduce(function (a, b) { return (((a << 4) - a) + b.charCodeAt(0)) & 0xEFFFFFF; }, 0);
-      }
-
+      let cliqzHash;
       function readMock(fileName) {
         return new Promise(function (resolve, reject) {
           fs.readFile(fileName, 'utf8', function (err, data) {
@@ -69,6 +65,11 @@ export default describeModule('news/news',
           });
         });
       }
+      beforeEach(async function () {
+        if (cliqzHash === undefined) {
+          cliqzHash = (await this.system.import('core/helpers/hash')).default;
+        }
+      });
 
       it('one history domain', function () {
         const historyHelper = {

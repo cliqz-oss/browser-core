@@ -51,11 +51,6 @@ export default class Visit extends React.Component {
       handleVisitKeywordClick,
     } = this.props;
 
-    if (!keyword) {
-      event.preventDefault();
-      return;
-    }
-
     handleVisitKeywordClick(event, keyword, url);
   }
 

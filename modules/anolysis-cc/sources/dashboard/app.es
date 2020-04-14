@@ -62,7 +62,7 @@ function showSignalDefinitions(anolysis, metricsToday) {
  * state for today's date
  */
 function getMetric(metricsToday, metricName) {
-  const available = metricsToday[metricName];
+  const available = metricsToday[metricName] || [];
   const signals = [];
   if (available.length > 0) {
     for (let i = 0; i < available.length; i += 1) {

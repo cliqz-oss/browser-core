@@ -16,7 +16,8 @@ const id = 'firefoxtab@ghostery.com';
 const CUSTOM_MANIFEST_ENTRY = `
   ,"applications": {
     "gecko": {
-      "id": "${id}"
+      "id": "${id}",
+      "strict_min_version": "57.0"
     }
   }
 `;

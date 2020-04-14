@@ -18,7 +18,7 @@ module.exports = {
   testem_launchers_ci: ['unit-node'],
   versionPrefix: '3',
   pack: [
-    "(jq '.name=\\\"browser-core-user-agent-ios\\\"' package.json > package-new.json)",
+    `(jq '.name=\\"browser-core-user-agent-ios\\" | .version=\\"${process.env.VERSION}\\"' package.json > package-new.json)`,
     'mv package.json package-old.json',
     'mv package-new.json package.json',
     'npm pack',
@@ -31,8 +31,9 @@ module.exports = {
     RESULTS_PROVIDER_ORDER: ['calculator', 'history', 'cliqz', 'querySuggestions', 'instant'],
     CLEAR_RESULTS_AT_SESSION_START: false,
 
-    // (leave empty if you do not want to send messages)
-    HUMAN_WEB_LITE_COLLECTOR: 'https://collector-stub.test.cliqz.com',
+    // Available proxies are: https://proxy[1-100].(cliqz|humanweb).foxyproxy.com
+    HUMAN_WEB_LITE_COLLECTOR_VIA_PROXY: 'https://proxy*.cliqz.foxyproxy.com',
+    HUMAN_WEB_LITE_COLLECTOR_DIRECT: 'https://collector-hpn.cliqz.com',
     HW_CHANNEL: 'ios',
 
     telemetry: {
@@ -49,7 +50,6 @@ module.exports = {
     'core',
     'human-web-lite',
     'search',
-    'mobile-cards',
     'anolysis',
     'geolocation',
     'news',

@@ -445,7 +445,7 @@ export default describeModule('offers-v2/offers/offers-db',
           });
 
           it('invalid campaign has not offers', function () {
-            chai.expect(db.getCampaignOffers('x')).to.not.exist;
+            chai.expect(db.getCampaignOffers('x').size).to.equal(0);
           });
 
           it('single offer single campaign', function () {
@@ -787,46 +787,6 @@ export default describeModule('offers-v2/offers/offers-db',
               const updatedSpec = db.getOfferObject(offer1id).abTestInfo;
               chai.expect(updatedSpec).eql(origBucket);
             });
-          });
-        });
-
-        context('/has another offer of same campaign', () => {
-          let db;
-          let offer;
-          let anotherOffer;
-
-          beforeEach(() => {
-            persistenceMocks['core/persistence/map'].reset();
-            db = new OffersDB({});
-            offer = new Offer(JSON.parse(JSON.stringify(VALID_OFFER_OBJ)));
-            const o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
-            o.offer_id = 'another';
-            anotherOffer = new Offer(o);
-          });
-
-          it('/no offers at all', () => {
-            const unseenOffer = anotherOffer;
-
-            const hasAnother = db.hasAnotherOfferOfSameCampaign(unseenOffer);
-
-            chai.expect(hasAnother).to.be.false;
-          });
-
-          it('/only one offer and it is the same', () => {
-            db.addOfferObject(offer.uniqueID, offer.offerObj);
-
-            const hasAnother = db.hasAnotherOfferOfSameCampaign(offer);
-
-            chai.expect(hasAnother).to.be.false;
-          });
-
-          it('/several offers', () => {
-            db.addOfferObject(offer.uniqueID, offer.offerObj);
-            db.addOfferObject(anotherOffer.uniqueID, anotherOffer.offerObj);
-
-            const hasAnother = db.hasAnotherOfferOfSameCampaign(offer);
-
-            chai.expect(hasAnother).to.be.true;
           });
         });
 

@@ -86,7 +86,9 @@ export default describeModule('offers-v2/categories/category-handler',
         catDataList.forEach((cd) => {
           const d = copyData(GENERIC_CAT_DATA);
           d.name = cd.name;
-          d.patterns = cd.patterns;
+          if (cd.patterns) {
+            d.patterns = cd.patterns;
+          }
           if (cd.timeRangeSecs) {
             d.timeRangeSecs = cd.timeRangeSecs;
           }
@@ -178,7 +180,7 @@ export default describeModule('offers-v2/categories/category-handler',
             chai.expect(catHandler.hasCategory(c.getName())).eql(false);
             catHandler.addCategory(c);
           }
-          catHandler.build();
+          catHandler.build(new Map());
           catNames.forEach(cname => chai.expect(catHandler.hasCategory(cname)).eql(true));
         });
 
@@ -212,7 +214,7 @@ export default describeModule('offers-v2/categories/category-handler',
             chai.expect(catHandler.hasCategory(_c.getName())).eql(false);
             catHandler.addCategory(_c);
           }
-          catHandler.build();
+          catHandler.build(new Map());
           for (const _c of cats) {
             catHandler.removeCategory(_c);
           }
@@ -729,6 +731,22 @@ export default describeModule('offers-v2/categories/category-handler',
             chai.expect(getCategoryNames().sort()).to.eql(
               ['', 'cat1', 'cat2', 'cat3', 'cat4']
             );
+          });
+
+          it('/provide patterns of all categories to adblocker wrapper, not only delta', async () => {
+            // eslint-disable-next-line no-shadow
+            const cat1 = { name: 'cat1', version: '1', patterns: ['||pattern1.de$script'] };
+            const cat2 = { name: 'cat2', version: '2', patterns: ['||pattern2.de$script'] };
+            catHandler._releaseBuildResources();
+            await catHandler.syncCategories(createCategories([cat1, cat2]));
+
+            const cat2updated = { name: 'cat2', version: '3', patterns: ['||pattern2updated.de$script'] };
+            await catHandler.syncCategories(createCategories([cat1, cat2updated]));
+
+            const index = catHandler.catMatch.getIndex();
+            const storedPatterns = [...index.id2pattern.values()];
+            storedPatterns.sort();
+            chai.expect(storedPatterns).to.eql([cat1.patterns[0], cat2updated.patterns[0]]);
           });
         });
       });

@@ -1,0 +1,192 @@
+{
+  "url": "https://www.bing.com/images/search?q=kamel&form=HDRSC2&first=1&cw=1117&ch=825",
+
+  "mustContain": [{
+    "type": "humanweb",
+    "action": "img",
+    "payload": {
+      "r": {
+        "0": {
+          "t": "Kamel - Wikipedia",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/07._Camel_Profile%2C_near_Silverton%2C_NSW%2C_07.07.2007.jpg/220px-07._Camel_Profile%2C_near_Silverton%2C_NSW%2C_07.07.2007.jpg",
+          "ru": "https://tpi.wikipedia.org/wiki/Kamel"
+        },
+        "1": {
+          "t": "Trampeltier (Camelus bactrianus)",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Camel_in_Mongolia.jpg/300px-Camel_in_Mongolia.jpg",
+          "ru": "https://de.wikipedia.org/wiki/Kamele"
+        },
+        "2": {
+          "t": "Kamel – Wikipedia",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Teve_2.jpg/1200px-Teve_2.jpg",
+          "ru": "https://sv.wikipedia.org/wiki/Kamel"
+        },
+        "3": {
+          "t": "Wüstenschiffe in der Arktis: Das Kamel kam aus der Kälte ...",
+          "u": "http://bilder2.n-tv.de/img/incoming/crop503889/9061322001-cImg_16_9-w1200/zaehne.jpg",
+          "ru": "http://www.n-tv.de/wissen/Das-Kamel-kam-aus-der-Kaelte-article10239081.html"
+        },
+        "4": {
+          "t": "Altweltkamele – Wikipedia",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/CamelFrankfurt.jpg/220px-CamelFrankfurt.jpg",
+          "ru": "https://de.wikipedia.org/wiki/Altweltkamele"
+        },
+        "5": {
+          "t": "Kamel - Wikipedia, den frie encyklopædi",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Camelus_ferus_prague_zoo.jpg/1200px-Camelus_ferus_prague_zoo.jpg",
+          "ru": "https://da.wikipedia.org/wiki/Baktrisk_kamel"
+        },
+        "6": {
+          "t": "Kameler – Wikipedia",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Camel.jpg/1200px-Camel.jpg",
+          "ru": "https://no.wikipedia.org/wiki/Kameler"
+        },
+        "7": {
+          "t": "Kamel Vilde Kameler Bactrian Dyr · Gratis foto på Pixabay",
+          "u": "https://cdn.pixabay.com/photo/2017/08/29/20/27/camel-2694771_960_720.jpg",
+          "ru": "https://pixabay.com/da/kamel-vilde-kameler-bactrian-2694771/"
+        },
+        "8": {
+          "t": "Baby Kamel in der Nähe Mutter Kamel in der Stock-Foto",
+          "u": "https://www.colourbox.de/preview/1774545-baby-camel-near-mother-camel-in-the-desert.jpg",
+          "ru": "https://www.colourbox.de/bild/baby-kamel-in-der-nahe-mutter-kamel-in-der-wuste-bild-1774545"
+        },
+        "9": {
+          "t": "Dubai Police Rescue a Trapped Camel | POPSUGAR Middle East ...",
+          "u": "https://media1.popsugar-assets.com/files/thumbor/2PIly8A72iPndouWYtI7SwejeIU/fit-in/2048xorig/filters:format_auto-!!-:strip_icc-!!-/2017/05/30/313/n/38922795/88b35267422c8945_shutterstock_199591094.jpg",
+          "ru": "https://me.popsugar.com/love/Dubai-Police-Rescue-Trapped-Camel-43586191"
+        },
+        "10": {
+          "t": "South Australian man's death caused by camel on farm",
+          "u": "https://s.yimg.com/uu/api/res/1.2/3rmMWsqa6lRxcCRbSgO_eg--~B/aD0zNDEyO3c9NTEyODtzbT0xO2FwcGlkPXl0YWNoeW9u/https://media.zenfs.com/creatr-images/GLB/2018-05-07/31885be0-51c4-11e8-8adf-59e1908b135b_camel.jpg",
+          "ru": "https://au.news.yahoo.com/mans-death-caused-camel-tragic-farming-accident-065829123.html"
+        },
+        "11": {
+          "t": "Warum haben Kamele Höcker? - Bibliothek - Wissen macht Ah ...",
+          "u": "http://www1.wdr.de/kinder/tv/wissen-macht-ah/bibliothek/kuriosah/tier/img-kamele-leben-in-heissen-gegenden-100~_v-gseapremiumxl.jpg",
+          "ru": "http://www1.wdr.de/kinder/tv/wissen-macht-ah/bibliothek/kuriosah/bibliothek-warum-haben-kamele-hoecker-100.html"
+        },
+        "12": {
+          "t": "Waldemar Ingdahl: Kamelen, öknens skepp",
+          "u": "http://2.bp.blogspot.com/-tLaLB5XhlaY/UOFXCq27MWI/AAAAAAAAArM/DDrfh3uUXRo/s1600/oknenskung.jpg",
+          "ru": "http://waldemaringdahl.blogspot.com/2012/12/kamelen-oknens-skepp.html"
+        },
+        "13": {
+          "t": "Ting jeg elsker å lage",
+          "u": "http://1.bp.blogspot.com/-Xz_k-bdVw2o/VFjQ0XBGJwI/AAAAAAAAELg/lVJBhDo_5X0/s1600/kamel%2B2.jpg",
+          "ru": "http://themeaningoflife-bente.blogspot.com/"
+        },
+        "14": {
+          "t": "Kameler – Wikipedia",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Chameau_de_bactriane.JPG/250px-Chameau_de_bactriane.JPG",
+          "ru": "https://sv.wikipedia.org/wiki/Kameler"
+        },
+        "15": {
+          "t": "Kamel – Wikipedia",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Camelus_bactrianus.jpg/250px-Camelus_bactrianus.jpg",
+          "ru": "https://sv.wikipedia.org/wiki/Kamel"
+        },
+        "16": {
+          "t": "Kamele: Überlebenskünstler in der Wüste - Wildtiere ...",
+          "u": "http://www.planet-wissen.de/natur/wildtiere/kamele/diehoeckersinddieenergiereserve100~_v-gseagaleriexl.jpg",
+          "ru": "https://www.planet-wissen.de/natur/wildtiere/kamele/pwieueberlebenskuenstlerinderwueste100.html"
+        },
+        "17": {
+          "t": "Camels in Iran will be issued with LICENCE PLATES after an ...",
+          "u": "https://i.dailymail.co.uk/i/pix/2016/12/07/16/3B24C5AF00000578-0-image-a-85_1481129957738.jpg",
+          "ru": "https://www.dailymail.co.uk/news/article-4010360/Camels-issued-LICENCE-PLATES-Iran-increase-road-accidents.html"
+        },
+        "18": {
+          "t": "Kamel – Wikipedia",
+          "u": "http://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bactrian.camel.sideon.arp.jpg/220px-Bactrian.camel.sideon.arp.jpg",
+          "ru": "http://nn.wikipedia.org/wiki/Kamel"
+        },
+        "19": {
+          "t": "Animal A Day!: Dromedary Camel",
+          "u": "http://3.bp.blogspot.com/-TsMyMhRi6lw/UrHjRb1RTVI/AAAAAAAAKis/hQSj-K1XxIk/s1600/Camel.jpg",
+          "ru": "http://animaladay.blogspot.com/2013/12/dromedary-camel.html"
+        },
+        "20": {
+          "t": "Kamel Wüste Emirate · Kostenloses Foto auf Pixabay",
+          "u": "https://cdn.pixabay.com/photo/2015/04/17/21/45/camel-728096_960_720.jpg",
+          "ru": "https://pixabay.com/de/kamel-w%C3%BCste-emirate-dubai-d%C3%BCne-728096/"
+        },
+        "21": {
+          "t": "Kamel Pattedyr Dyr · Gratis billeder på Pixabay",
+          "u": "https://cdn.pixabay.com/photo/2017/01/17/18/45/camel-1987672_960_720.png",
+          "ru": "https://pixabay.com/da/kamel-pattedyr-dyr-bump-%C3%B8rken-skib-1987672/"
+        },
+        "22": {
+          "t": "12 Kamele wegen Botox von Schönheitswettbewerb in Riad ...",
+          "u": "https://bilder.t-online.de/b/83/10/97/44/id_83109744/tid_da/der-kopf-eines-kamels-laut-kriterien-des-schoenheitswettbewerbs-sollte-dieser-besonders-gross-und-die-lippen-voll-sein-.jpg",
+          "ru": "http://www.t-online.de/nachrichten/panorama/buntes-kurioses/id_83109450/12-kamele-wegen-botox-von-schoenheitswettbewerb-in-riad-ausgeschlossen.html"
+        },
+        "23": {
+          "t": "Die Geschichte vom weinenden Kamel (Trailer OmU) - YouTube",
+          "u": "https://i.ytimg.com/vi/hxwDt0a5GYE/maxresdefault.jpg",
+          "ru": "https://www.youtube.com/watch?v=hxwDt0a5GYE"
+        },
+        "24": {
+          "t": "Körperbau des Kamels – kameldungen.de",
+          "u": "http://www.kameldungen.de/wp-content/uploads/2017/03/cropped-kamele.jpg",
+          "ru": "http://www.kameldungen.de/?p=17"
+        },
+        "25": {
+          "t": "Rülpsendes Kamel in der Negev-Wüste - YouTube",
+          "u": "https://i.ytimg.com/vi/t31ZcCs5r_s/maxresdefault.jpg",
+          "ru": "http://www.youtube.com/watch?v=t31ZcCs5r_s"
+        },
+        "26": {
+          "t": "kamel - Wiktionary",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Kamel_Koelner_Zoo_04.JPG/1200px-Kamel_Koelner_Zoo_04.JPG",
+          "ru": "https://en.wiktionary.org/wiki/kamel"
+        },
+        "27": {
+          "t": "Leseförderung mit Kamel | Weblog der Stadtbibliothek Straubing",
+          "u": "https://stadtbibliothekstraubing.files.wordpress.com/2010/12/kamel.jpg",
+          "ru": "https://stadtbibliothekstraubing.wordpress.com/2010/12/10/leseforderung-mit-kamel/"
+        },
+        "28": {
+          "t": "Pin auf Camels are such cute gals and guys!",
+          "u": "https://i.pinimg.com/736x/96/39/b7/9639b7d4b5f9a7716791027d33b78541--camels-fat.jpg",
+          "ru": "https://www.pinterest.com/pin/406731410077898558/"
+        },
+        "29": {
+          "t": "Warum haben Kamele Höcker? - Bibliothek - Wissen macht Ah ...",
+          "u": "http://www1.wdr.de/kinder/tv/wissen-macht-ah/bibliothek/kuriosah/tier/img-kamele-leben-in-heissen-gegenden-104~_v-gseapremiumxl.jpg",
+          "ru": "http://www1.wdr.de/kinder/tv/wissen-macht-ah/bibliothek/kuriosah/bibliothek-warum-haben-kamele-hoecker-100.html"
+        },
+        "30": {
+          "t": "Faktoider: Kamel-kvack",
+          "u": "https://4.bp.blogspot.com/-lmtO-TsoXV0/WJxO2HSMLZI/AAAAAAAALdo/qAAgX9gmnbUso1h09hiwUvbehC47mtBTwCLcB/s1600/1360880712-482598387-1-pictures-of-camel-milk.jpg",
+          "ru": "http://faktoider.blogspot.com/2017/02/kamel-kvack.html"
+        },
+        "31": {
+          "t": "Kamel – Wikipedia",
+          "u": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Dromedary_and_Bactrian_camels_%28New_Student%27s_Reference_Work%2C_1914%29.jpg/300px-Dromedary_and_Bactrian_camels_%28New_Student%27s_Reference_Work%2C_1914%29.jpg",
+          "ru": "https://nn.wikipedia.org/wiki/Kamel"
+        },
+        "32": {
+          "t": "Kamel - Miniatyrfigur fra PAPO | Sprell - veldig fine ...",
+          "u": "https://www.sprell.no/produktbilder/2013/zoom/Bactrian_camel.jpg",
+          "ru": "https://www.sprell.no/produkt/miniatyrfigur-kamel"
+        },
+        "33": {
+          "t": "Lesen Sie vom großen zweihöckrigen Kamel hier",
+          "u": "https://www.diana-jagdreisen.de/app/webroot/_resized/uploads/vildtarter/kamel--topuklet-4dcd68fd6b962b0975d25937d14e6b54.jpg",
+          "ru": "https://www.diana-jagdreisen.de/wildarten/topuklet-kamel"
+        },
+        "34": {
+          "t": "Ani: Å svelge en kamel",
+          "u": "http://bp1.blogger.com/_ahCYyyST0eY/Rh_Gp0lF71I/AAAAAAAAAH0/2UyWndYhb8Y/s320/kamel.jpg",
+          "ru": "http://ani106.blogspot.com/2007/04/svelge-en-kamel.html"
+        }
+      },
+      "q": "kamel",
+      "qurl": "https://www.bing.com/images/search?q=kamel&form=HDRSC2&first=1&cw=1117&ch=825",
+      "ctry": "de"
+    }
+  }],
+
+  "mustNotContain": [{ "action": "query" }]
+}

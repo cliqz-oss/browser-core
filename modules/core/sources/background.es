@@ -12,6 +12,9 @@ import events from './events';
 import telemetry from './services/telemetry';
 import language from './language';
 import config from './config';
+import prefs from './prefs';
+import inject from './kord/inject';
+import pacemaker from './services/pacemaker';
 import LocationChangeObserver from '../platform/location-change-observer';
 import ContentCommunicationManager from '../platform/content-communication-manager';
 import FastContentAppStateInjecter from '../platform/fast-content-app-state-injection';
@@ -47,8 +50,8 @@ export default background({
     'pacemaker',
     'host-settings',
     'telemetry',
-    'domainInfo',
   ],
+  hostSettings: inject.service('host-settings', ['get']),
   providesServices,
   telemetrySchemas: [
     hourlyPingMetric,
@@ -79,6 +82,12 @@ export default background({
     resourceManager.init();
     logger.init();
     language.init();
+
+    this.reportStartupTimeout = pacemaker.setTimeout(() => this.reportStartupTime(), 1000 * 60);
+    this.reportVersionTimeout = pacemaker.register(() => telemetry.push({}, 'core.metric.ping.hourly'), {
+      timeout: 1000 * 60 * 60,
+      startImmediately: true,
+    });
   },
 
   unload() {
@@ -91,6 +100,37 @@ export default background({
     resourceManager.unload();
     logger.unload();
     language.unload();
+
+    pacemaker.clearTimeout(this.reportStartupTimeout);
+    this.reportStartupTimeout = null;
+
+    pacemaker.clearTimeout(this.reportVersionTimeout);
+    this.reportVersionTimeout = null;
+  },
+
+  async reportStartupTime() {
+    const status = await this.actions.status();
+    await telemetry.push(
+      Object.keys(status.modules).map((module) => {
+        const moduleStatus = status.modules[module];
+        return {
+          module,
+          isEnabled: moduleStatus.isEnabled,
+          loadingTime: moduleStatus.loadingTime,
+          loadingTimeSync: moduleStatus.loadingTimeSync,
+        };
+      }),
+      'metrics.performance.app.startup',
+    );
+
+    const resourceLoaderReport = await ResourceLoader.report();
+    telemetry.push(
+      Object.keys(resourceLoaderReport).map(name => ({
+        name,
+        size: resourceLoaderReport[name].size,
+      })),
+      'metrics.performance.app.resource-loaders',
+    );
   },
 
   getWindowStatusFromModules(win) {
@@ -276,8 +316,18 @@ export default background({
       this.appStateInjecter.shareAppState(this.app);
     },
 
-    reportResourceLoaders() {
-      return ResourceLoader.report();
-    },
+    async getSupportInfo() {
+      const version = this.settings.version;
+      const host = await this.hostSettings.get('distribution.id', '');
+      const hostVersion = await this.hostSettings.get('distribution.version', '');
+      const info = {
+        version,
+        host,
+        hostVersion,
+        country: prefs.get('config_location', ''),
+        status: prefs.get('ext_status', '') || 'active',
+      };
+      return info;
+    }
   },
 });

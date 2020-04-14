@@ -5,9 +5,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
+import ExtensionGlobals from '../shared/extension-globals';
 
-const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm', {}); // eslint-disable-line no-undef
-const searchService = Services.search;
+const { Services: { search: searchService } } = ExtensionGlobals;
 
 function getUriForType(type, engineWrapper) {
   const uriWrapper = engineWrapper.getSubmission('{searchTerms}', type);

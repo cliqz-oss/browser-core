@@ -48,13 +48,13 @@ export default class Observer {
   _onmessage({ data, origin } = {}) {
     if (!data || !this.config.url.startsWith(origin)) { return; }
     const { target, origin: targetOrigin, message = {} } = JSON.parse(data);
-    const mapper = {
-      'offers-cc': 'cliqz-offers-cc',
+    const desirableTarget = {
+      'offers-cc': 'cliqz-offers-templates',
       'browser-panel': 'cqz-browser-panel-re',
-      'offers-reminder': 'cliqz-offers-reminder',
-      'offers-checkout': 'cliqz-offers-checkout',
-    };
-    const desirableTarget = mapper[this.config.type] || 'cliqz-offers-cc';
+      'offers-reminder': 'cliqz-offers-templates',
+      'offers-checkout': 'cliqz-offers-templates',
+    }[this.config.type] || 'cliqz-offers-templates';
+
     if (target !== desirableTarget || targetOrigin !== 'iframe') {
       return;
     }
@@ -75,6 +75,35 @@ export default class Observer {
       const newPayload = payload.isPair ? payload.tooltip : payload;
       this.view.sendToIframe(newPayload);
       this.view.makeVisible();
+    }
+  }
+
+  _restyleTimeout({ restyle, timeout = 0 } = {}) {
+    if (!restyle) { return undefined; }
+    const next = () => this.view.restyle(restyle);
+    return timeout ? setTimeout(next, timeout) : next();
+  }
+
+  _sendTimeout(msg = {}, payload = {}) {
+    const next = () => this._send(msg, payload);
+    return msg.timeout ? setTimeout(next, msg.timeout) : next();
+  }
+
+  async _tryInjectCouponIf({ view } = {}, config) {
+    return view === 'checkout'
+      ? retryFunctionSeveralTimes(window, () => tryToFindCoupon(window, config))
+      : { ok: true, payload: {} };
+  }
+
+  _logInjectCouponFailedIf(shouldLog = true) {
+    if (shouldLog) {
+      this.onaction({
+        action: 'log',
+        data: {
+          action: 'coupon_autofill_field_failed',
+          back: this.payload.back,
+        }
+      });
     }
   }
 
@@ -102,25 +131,20 @@ export default class Observer {
         resize: this.view.resize.bind(this.view),
         injectCode: (payload = {}) => injectCode(window, payload),
         newView: (payload = {}) => {
-          const products = this.config.products || {};
-          if (!products.chip) { return undefined; } // only for chip guys
-          const { restyle, view, timeout = 0 } = payload;
-          const next = () => {
-            if (restyle) { this.view.restyle(restyle); }
-            this._send({}, { ...this.payload, view });
-          };
-          return timeout ? setTimeout(next, timeout) : next();
+          if (!this.config.products?.chip) { return; } // only for chip guys
+          this._restyleTimeout(payload);
+          this._sendTimeout(payload, { ...this.payload, view: payload.view });
         },
+        /* eslint-disable consistent-return, operator-linebreak */
         getEmptyFrameAndData: async (payload) => {
           if (this.payload.view !== 'checkout') { return this._send(payload); }
-          const config = this.payload.back;
-          const { ok, payload: newPayload } = this.payload.view === 'checkout'
-            ? await retryFunctionSeveralTimes(window, () => tryToFindCoupon(window, config))
-            : { ok: true, payload: {} };
-          if (!ok) { return undefined; } // not ours coupon already was injected
-          if (newPayload.canInject === false) { this._logInjectCouponFailed(); }
-          return this._send(payload, { ...this.payload, ...newPayload });
+          const { ok, payload: newPayload } =
+            await this._tryInjectCouponIf(this.payload, this.payload.back);
+          if (!ok) { return; } // not ours coupon already was injected
+          this._logInjectCouponFailedIf(newPayload.canInject === false);
+          this._send(payload, { ...this.payload, ...newPayload });
         },
+        /* eslint-enable consistent-return, operator-linebreak */
       },
     };
     const noop = () => {};
@@ -128,19 +152,9 @@ export default class Observer {
     (mapper[this.config.type][this._isBrowserPanel() ? handler : action] || noop)(data);
   }
 
-  _logInjectCouponFailed() {
-    this.onaction({
-      action: 'log',
-      data: {
-        action: 'coupon_autofill_field_failed',
-        back: this.payload.back,
-      }
-    });
-  }
-
   _getBannerId() {
     const products = this.config.products || {};
-    const prefix = ['freundin', 'chip', 'cliqz'].find(product => products[product]);
+    const prefix = ['chip', 'cliqz', 'amo', 'ghostery'].find(product => products[product]);
     return `${prefix || 'myoffrz'}-offers-banner`;
   }
 

@@ -429,6 +429,13 @@ export default describeModule('anolysis/demographics',
         get(_, d) { return d; }
       },
     },
+    'core/kord/inject': {
+      default: {
+        service: () => ({
+          get: (_, d) => d,
+        }),
+      },
+    },
     'core/logger': {
       default: { get() {
         return {
@@ -547,56 +554,8 @@ export default describeModule('anolysis/demographics',
       });
 
       describe('#parseCampaign', () => {
-        describe('offers', () => {
-          [
-            {
-              offersChannel: '',
-              offersSubChannel: '',
-              expected: '',
-            },
-            {
-              offersChannel: '',
-              offersSubChannel: 'bar',
-              expected: '',
-            },
-            {
-              offersChannel: 'foo',
-              offersSubChannel: 'bar',
-              expected: 'foo/bar',
-            },
-            {
-              offersChannel: 'foo',
-              offersSubChannel: 'bar baz',
-              expected: 'foo/bar-baz',
-            },
-            {
-              offersChannel: 'foo',
-              offersSubChannel: '',
-              expected: 'foo',
-            },
-          ].forEach(({ offersChannel, offersSubChannel, expected }) => {
-            it(`channel=${offersChannel} + subchannel=${offersSubChannel}`, () => {
-              chai.expect(parseCampaign({
-                offersChannel,
-                offersSubChannel,
-              })).to.eql(expected);
-            });
-          });
-        });
-
         describe('full_distribution', () => {
           [
-            ['brand=BI0001', 'bing/bi0001'],
-            ['brand=BU0002', 'browser-upgrade/bu0002'],
-            ['brand=CP0001', 'chip/cp0001'],
-            ['brand=F00005', 'focus/f00005'],
-            ['brand=FB0011', 'facebook/fb0011'],
-            ['brand=GA0030', 'google/ga0030'],
-            ['brand=GAEN0003', 'google/gaen0003'],
-            ['brand=HA0001', 'heise/ha0001'],
-            ['brand=MSI0001', 'meinestadt/msi0001'],
-            ['brand=XXXXXXXXXX', 'other/brand=xxxxxxxxxx'],
-            ['brand=web0001', 'cliqz-website/web0001'],
             ['keyword=%2Bbrowser&pk_campaign=GA255850517658', 'google/ga255850517658/browser'],
             ['keyword=%2Bbrowser&pk_campaign=LP_myoffrz_126', 'other/keyword=%2bbrowser&pk_campaign=lp_myoffrz_126'],
             ['keyword=%2Bcliqz&pk_campaign=GA383310118991', 'google/ga383310118991/cliqz'],
@@ -629,16 +588,7 @@ export default describeModule('anolysis/demographics',
             ['pk_campaign=web0003', 'cliqz-website/web0003'],
           ].forEach(([fullDistribution, expected]) => {
             it(`${fullDistribution}`, () => {
-              chai.expect(parseCampaign({
-                fullDistribution,
-
-                // If `fullDistribution` is specified then we ignore offers
-                // parameters (in practice this should never happen but we
-                // include this case in tests to make sure behavior is
-                // consistent).
-                offersChannel: 'foo',
-                offersSubChannel: 'bar',
-              })).to.eql(expected);
+              chai.expect(parseCampaign(fullDistribution)).to.eql(expected);
             });
           });
         });

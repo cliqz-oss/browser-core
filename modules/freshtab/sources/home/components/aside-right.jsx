@@ -17,6 +17,7 @@ function AsideRight({
   isSettingsOpen,
   hasHistorySpeedDialsToRestore,
   onBackgroundImageChanged,
+  onCustomBackgroundImageUploaded,
   onDeveloperModulesOpen,
   onNewsSelectionChanged,
   resetStatistics,
@@ -44,6 +45,7 @@ function AsideRight({
           isAllPrefsLinkSupported={config.isAllPrefsLinkSupported}
           isStatsSupported={config.isStatsSupported}
           onBackgroundImageChanged={onBackgroundImageChanged}
+          onCustomBackgroundImageUploaded={onCustomBackgroundImageUploaded}
           onNewsSelectionChanged={onNewsSelectionChanged}
           resetStatistics={resetStatistics}
           restoreHistorySpeedDials={restoreHistorySpeedDials}
@@ -85,6 +87,7 @@ AsideRight.propTypes = {
   hasHistorySpeedDialsToRestore: PropTypes.bool,
   isSettingsOpen: PropTypes.bool,
   onBackgroundImageChanged: PropTypes.func,
+  onCustomBackgroundImageUploaded: PropTypes.func,
   onDeveloperModulesOpen: PropTypes.func,
   onNewsSelectionChanged: PropTypes.func,
   resetStatistics: PropTypes.func,

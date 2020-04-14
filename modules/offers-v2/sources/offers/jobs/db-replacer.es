@@ -6,11 +6,12 @@ import logger from '../../common/offers_v2_logger';
 /**
  * Replace all offers in db if we have a new version
  */
-const replaceOffersOnDB = (offerList, offersDB) => {
+const replaceOffersOnDB = offersDB => (offerList) => {
   const result = [];
   offerList.forEach((offer) => {
-    if (offersDB.isOfferPresent(offer.uniqueID)
-        && offersDB.getOfferObject(offer.uniqueID).version !== offer.version) {
+    const hasStoredOfferWithOtherVersion = offersDB.isOfferPresent(offer.uniqueID)
+      && offersDB.getOfferObject(offer.uniqueID).version !== offer.version;
+    if (hasStoredOfferWithOtherVersion) {
       // update it and add it to be processed again
       //
       // The parameter "retainAbTestInfo=true" is inspired by EX-7894.
@@ -54,11 +55,12 @@ const replaceOffersOnDB = (offerList, offersDB) => {
   return result;
 };
 
-const getSameOffersFromDB = (offerList, offersDB) => {
+const getSameOffersFromDB = offersDB => (offerList) => {
   const resultList = [];
   offerList.forEach((offer) => {
-    if (offersDB.isOfferPresent(offer.uniqueID)
-        && offersDB.getOfferObject(offer.uniqueID).version === offer.version) {
+    const hasStoredOfferWithSameVersion = offersDB.isOfferPresent(offer.uniqueID)
+      && offersDB.getOfferObject(offer.uniqueID).version === offer.version;
+    if (hasStoredOfferWithSameVersion) {
       resultList.push(new Offer(offersDB.getOfferObject(offer.uniqueID)));
     } else {
       resultList.push(offer);
@@ -70,15 +72,43 @@ const getSameOffersFromDB = (offerList, offersDB) => {
 /**
  * will remove all the offers that had been already removed from the DB
  */
-const filterOffersAlreadyRemoved = (offerList, offersDB) =>
+const filterOffersAlreadyRemoved = offersDB => offerList =>
   offerList.filter(offer => !offersDB.hasOfferRemoved(offer.uniqueID));
+
+/**
+ * @param {Set<any>} entries
+ * @param {any} entry
+ * @return {boolean} `true` when the given `entries` includes other entries than `entry`
+ */
+const hasOtherEntries = (entries, entry) => entries.size > +entries.has(entry);
 
 /**
  * Remove AB-offers.
  * See also EX-7894 and the comment inside "replaceOffersOnDB".
+ * @param {OffersDB} offersDB
+ * @return {(offers: Offer[]) => Offer[]} filter
+ * that excludes offers of campaigns that are already stored in `offersDB`
  */
-const filterOffersOfSameCampaign = (offerList, offersDB) =>
-  offerList.filter(offer => !offersDB.hasAnotherOfferOfSameCampaign(offer));
+const filterOffersOfSameCampaign = (offersDB) => {
+  const isNewCampaign = ({ campaignID, uniqueID }) =>
+    !hasOtherEntries(offersDB.getCampaignOffers(campaignID), uniqueID);
+
+  return offers => offers.filter(isNewCampaign);
+};
+
+/**
+ * @param {OfferDB} offersDB
+ * @return {(offers: Offer[]) => Offer[]} filter
+ * that retains offers that are either currently stored in `offersDB`
+ * or that do not have the same `displayID` as another offer currently stored in `offersDB`.
+ * note that this includes stored offers marked `removed`.
+ */
+const excludeOffersWithDisplayIDFromOtherStoredOffer = (offersDB) => {
+  const hasDisplayIDFromOtherStoredOffer = ({ uniqueID, displayID }) =>
+    offersDB.hasOfferData(uniqueID) || !offersDB.hasOfferWithDisplayID(displayID);
+
+  return offers => offers.filter(hasDisplayIDFromOtherStoredOffer);
+};
 
 /**
  * This job will replace all the current offers we have on the DB with the same
@@ -93,15 +123,20 @@ export default class DBReplacer extends OfferJob {
   }
 
   process(offerList, { offersDB }) {
-    return Promise.resolve(
-      [filterOffersAlreadyRemoved,
-        filterOffersOfSameCampaign,
-        replaceOffersOnDB,
-        getSameOffersFromDB // should be called after replaceOffersOnDB, see [NOTE-DEP]
-      ].reduce(
-        (collected, fn) => fn(collected, offersDB),
-        offerList
-      )
+    const filters = [
+      filterOffersAlreadyRemoved,
+      excludeOffersWithDisplayIDFromOtherStoredOffer,
+      filterOffersOfSameCampaign,
+      replaceOffersOnDB,
+      getSameOffersFromDB // should be called after replaceOffersOnDB, see [NOTE-DEP]
+    ]
+      .map(filterFactory => filterFactory(offersDB));
+
+    const selectedOffers = filters.reduce(
+      (list, filter) => filter(list),
+      offerList
     );
+
+    return Promise.resolve(selectedOffers);
   }
 }

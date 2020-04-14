@@ -313,14 +313,18 @@ export default class Manager {
     // 1) When fetching the configuration, the config loader
     //    has access to the server timestamp, which is then
     //    used to synchronize the trusted clock.
-    this.trustedClock.onClockOutOfSync = () => {
-      this.configLoader.synchronizeClocks();
+    this.trustedClock.onClockOutOfSync = async () => {
+      try {
+        await this.configLoader.synchronizeClocks();
 
-      // react on a hint: if the last, we failed to join because of the clock,
-      // we can now bypass the timer and immediately try to join again
-      if (this._joinScheduler.state === JOIN_STATE.WAITING_FOR_CLOCK_SYNC) {
-        this._joinScheduler.state = JOIN_STATE.PENDING_JOINS;
-        this.scheduleJoinGroup();
+        // react on a hint: if the last, we failed to join because of the clock,
+        // we can now bypass the timer and immediately try to join again
+        if (this._joinScheduler.state === JOIN_STATE.WAITING_FOR_CLOCK_SYNC) {
+          this._joinScheduler.state = JOIN_STATE.PENDING_JOINS;
+          this.scheduleJoinGroup();
+        }
+      } catch (e) {
+        logger.info('onClockOutOfSync handler failed', e);
       }
     };
 
@@ -379,11 +383,42 @@ export default class Manager {
     await this.initUserPK();
     this.configLoader.init();
 
-    // This is the first network request that the module will do on init.
-    // We do not skip in order to check whether the system clock is correct or not
-    // based on the Date response header. If there is significant drift, loading
-    // will fail.
-    await this.configLoader.fetchConfig();
+    // hpnv2 will only be able to send messages once the clock has been synchronized
+    // with the server and once the configuration has been fetched.
+    //
+    // We can perform the initialization in the background, as hpnv2 will buffer
+    // messages from other modules until the initialization is completed.
+    // Also there are situations where the initialization will have to be delayed,
+    // e.g. if no internet connection is available.
+    //
+    // The system needs to be error tolerant, i.e. it will be able to recover from
+    // any starting state. Still, it is recommended to wait for the the clock
+    // synchronization first, as otherwise "join" operations are expected to fail
+    // (harmless, but leading to noisy warnings).
+    (async () => {
+      let errors = false;
+      try {
+        await this.configLoader.synchronizeClocks();
+      } catch (e) {
+        logger.warn('Failed to synchronize clocks with the server. Continue with the initialization. '
+                    + 'Errors are expected now, but the system should eventually arrive at a consistent state.');
+        errors = true;
+      }
+
+      try {
+        await this.configLoader.fetchConfig();
+      } catch (e) {
+        logger.warn('Failed to fetch the config from the server. '
+                    + 'Errors are expected now, but the system should eventually arrive at a consistent state.');
+        errors = true;
+      }
+      if (errors) {
+        logger.warn('Background initialization finished with errors, '
+                    + 'but the failed operations will be retried automatically.');
+      } else {
+        logger.info('Background initialization finished without errors.');
+      }
+    })();
   }
 
   unload() {
@@ -462,7 +497,9 @@ export default class Manager {
     Object.keys(sourceMap.actions).forEach((action) => {
       this.db.setSourceMapAction(action, sourceMap.actions[action]);
     });
-    this.throttler.updateConfig(trafficHints, sourceMap);
+    if (trafficHints) {
+      this.throttler.updateConfig(trafficHints, sourceMap);
+    }
 
     // Database cleanup:
     const { inSync, hoursSinceEpoch } = this.trustedClock.checkTime();

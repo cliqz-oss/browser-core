@@ -8,8 +8,7 @@
 
 /* eslint no-param-reassign: 'off' */
 
-import ResourceLoader from '../core/resource-loader';
-import config from '../core/config';
+import { BundledResource } from '../core/resource-loader';
 import { isIpv4Address } from '../core/url';
 
 export class HashProb {
@@ -21,10 +20,7 @@ export class HashProb {
       this.probHashChars[e] = idx;
     });
 
-    this.probLoader = new ResourceLoader(['antitracking', 'prob.json'], {
-      remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/prob.json`,
-      cron: 7 * 24 * 60 * 60 * 1000, // weekly
-    });
+    this.probLoader = new BundledResource(['antitracking', 'prob.json']);
   }
 
   _update(data) {
@@ -33,13 +29,10 @@ export class HashProb {
   }
 
   init() {
-    this.probLoader.onUpdate(this._update.bind(this));
     return this.probLoader.load().then(this._update.bind(this));
   }
 
-  unload() {
-    this.probLoader.stop();
-  }
+  unload() {}
 
   isHashProb(str) {
     if (!this.probHashLogM || !this.probHashThreshold) {

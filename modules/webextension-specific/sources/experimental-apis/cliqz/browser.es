@@ -6,8 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global windowTracker, MigrationUtils, ChromeUtils, Components */
-const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
+/* global MigrationUtils, Components */
+import ExtensionGlobals from '../shared/extension-globals';
+
+const { ExtensionCommon, windowTracker } = ExtensionGlobals;
 
 export function openImportDialog() {
   if (typeof MigrationUtils === 'undefined') {

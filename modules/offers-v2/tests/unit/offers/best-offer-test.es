@@ -193,12 +193,16 @@ export default describeModule('offers-v2/offers/best-offer',
         );
       }
 
-      function defineOffer(collection, oid, cats) {
+      function defineOffer(collection, oid, cats, rsDest) {
         const o = JSON.parse(JSON.stringify(fixture.VALID_OFFER_OBJ));
         o.offer_id = oid;
         o.campaign_id = oid;
+        o.display_id = oid;
         o.categories = cats;
         o.filterRules = undefined;
+        if (rsDest) {
+          o.rs_dest = rsDest;
+        }
         collection.push(o);
       }
 
@@ -211,41 +215,51 @@ export default describeModule('offers-v2/offers/best-offer',
         return stat;
       }
 
-      it('/proportions are as expected', async () => {
-        //
-        // Arrange: offers
-        //
-        const c4 = createCategoryJson('c4', 4);
-        const c3 = createCategoryJson('c3', 3);
-        const c2 = createCategoryJson('c2', 2);
-        await bg.categoryHandler.syncCategories([c4, c3, c2]);
-        const offers = [];
-        defineOffer(offers, 'o4', ['c4']); // 4-token match
-        defineOffer(offers, 'o32', ['c3', 'c2']); // 3-token + 2-token matches
-        defineOffer(offers, 'o3', ['c3']); // 3-token match
-        defineOffer(offers, 'o2', ['c2']); // 2-token match
-        const intent = new Intent('intent1', 48 * 60 * 60);
-        activateIntentWithOffers(bg, intent, offers);
-        //
-        // Arrange: spies
-        //
-        const pushMock = sinon.spy(bg.offersAPI, 'pushOffer');
+      context('/when only the most relevant offer is pushed', () => {
+        let RS_DEST;
+        beforeEach(() => {
+          RS_DEST = ['ghostery'];
+          bg.actions.registerRealEstate({ realEstateID: 'ghostery' });
+        });
+        afterEach(() => {
+          bg.actions.unregisterRealEstate({ realEstateID: 'ghostery' });
+        });
+        it('/proportions are as expected', async () => {
+          //
+          // Arrange: offers
+          //
+          const c4 = createCategoryJson('c4', 4);
+          const c3 = createCategoryJson('c3', 3);
+          const c2 = createCategoryJson('c2', 2);
+          await bg.categoryHandler.syncCategories([c4, c3, c2]);
+          const offers = [];
+          defineOffer(offers, 'o4', ['c4'], RS_DEST); // 4-token match
+          defineOffer(offers, 'o32', ['c3', 'c2'], RS_DEST); // 3-token + 2-token matches
+          defineOffer(offers, 'o3', ['c3'], RS_DEST); // 3-token match
+          defineOffer(offers, 'o2', ['c2'], RS_DEST); // 2-token match
+          const intent = new Intent('intent1', 48 * 60 * 60);
+          activateIntentWithOffers(bg, intent, offers);
+          //
+          // Arrange: spies
+          //
+          const pushMock = sinon.spy(bg.offersAPI, 'pushOffer');
 
-        //
-        // Act
-        //
-        for (let i = 0; i < 20; i += 1) {
-          // eslint-disable-next-line no-await-in-loop
-          await visitPageWithOffer(bg, 'http://some.com/level1/level2/level3');
-        }
+          //
+          // Act
+          //
+          for (let i = 0; i < 20; i += 1) {
+            // eslint-disable-next-line no-await-in-loop
+            await visitPageWithOffer(bg, 'http://some.com/level1/level2/level3');
+          }
 
-        //
-        // Assert
-        //
-        const pushes = countNumberOfPushesPerOffer(pushMock);
-        chai.expect(pushes.o4 / pushes.o32).closeTo(Math.E, 0.3);
-        chai.expect(pushes.o32 / pushes.o3).closeTo(1, 0.01);
-        chai.expect(pushes.o3 / pushes.o2).closeTo(Math.E, 0.8);
+          //
+          // Assert
+          //
+          const pushes = countNumberOfPushesPerOffer(pushMock);
+          chai.expect(pushes.o4 / pushes.o32).closeTo(Math.E, 0.3);
+          chai.expect(pushes.o32 / pushes.o3).closeTo(1, 0.01);
+          chai.expect(pushes.o3 / pushes.o2).closeTo(Math.E, 0.8);
+        });
       });
     });
   });

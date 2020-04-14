@@ -79,7 +79,6 @@ export default background({
     core: inject.module('core'),
     humanWeb: inject.module('human-web'),
     'offers-v2': inject.module('offers-v2'),
-    telemetry: inject.module('telemetry'),
   },
   /**
     @method init
@@ -139,11 +138,6 @@ export default background({
     async getResourceLoadersState() {
       return {
         RLStatus: await this.actions.getResourceLoaders(),
-      };
-    },
-    async getTelemetryState() {
-      return {
-        telemetryStatus: await this.deps.telemetry.action('getTrk'),
       };
     },
     setPref(name, value) {

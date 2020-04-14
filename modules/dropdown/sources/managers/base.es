@@ -10,6 +10,17 @@ import Spanan from 'spanan';
 import Defer from '../../core/helpers/defer';
 
 const KEYS_TO_IGNORE = new Set(['Unidentified', 'Dead']);
+const MODIFIERS = ['ctrl', 'alt', 'shift', 'meta'];
+
+function getKeyModifier(ev) {
+  return MODIFIERS.find(k => ev[`${k}Key`]) || null;
+}
+
+function serializeEvent({ type, button, ctrlKey, altKey, shiftKey, metaKey }) {
+  return {
+    type, button, ctrlKey, altKey, shiftKey, metaKey
+  };
+}
 
 export default class BaseDropdownManager {
   constructor() {
@@ -17,8 +28,12 @@ export default class BaseDropdownManager {
     this.hoveredResult = null;
     this._lastEvent = null;
     this._iframeWrapperDefer = new Defer();
+    this.iframeWrapperReady.then(() => {
+      this.updateUrlbarAttributes(this._getUrlbarAttributes());
+    });
     this._delayedBlur = null;
     this._queryId = 0;
+    this._urlbarAttributes = {};
     this._resetQuery();
   }
 
@@ -36,6 +51,11 @@ export default class BaseDropdownManager {
 
   get query() {
     return this._queryString;
+  }
+
+  updateUrlbarAttributes = (attrs) => {
+    Object.assign(this._urlbarAttributes, attrs);
+    this.dropdownAction.updateUrlbarAttributes(attrs);
   }
 
   actions = {
@@ -109,7 +129,7 @@ export default class BaseDropdownManager {
     // presses arrow, we need to remove this part. This can be done nicely once
     // (and if) we know we want to keep this feature.
     if (this.hasCompletion && query.includes(' — ')) {
-      this._setUrlbarValue(query.slice(0, query.indexOf(' — ')));
+      this._setUrlbarValue(query.slice(0, query.lastIndexOf(' — ')));
     }
   }
 
@@ -142,8 +162,6 @@ export default class BaseDropdownManager {
         isTyped,
         keyCode,
         targetModule: this.targetModule,
-      }, {
-        urlbarAttributes: this._getUrlbarAttributes(),
       });
     } else {
       this.collapse();
@@ -154,6 +172,7 @@ export default class BaseDropdownManager {
     url,
     {
       newTab,
+      noSwitch,
       eventType,
       result,
       resultOrder,
@@ -182,7 +201,7 @@ export default class BaseDropdownManager {
       return;
     }
 
-    if (result.isSwitchtab && !newTab) {
+    if (result.isSwitchtab && !noSwitch) {
       this._switchToTab(url);
     } else {
       this._navigateTo(url, newTab);
@@ -375,9 +394,20 @@ export default class BaseDropdownManager {
     }, 100);
   }
 
+  onKeyup(ev) {
+    const modifier = getKeyModifier(ev);
+    if (this._urlbarAttributes.modifier !== modifier) {
+      this.updateUrlbarAttributes({ modifier });
+    }
+  }
+
   onKeydown(ev) {
     this._lastEvent = ev;
     let preventDefault = false;
+    const modifier = getKeyModifier(ev);
+    if (modifier) {
+      this.updateUrlbarAttributes({ modifier });
+    }
     switch (ev.key) {
       case 'ArrowLeft':
       case 'ArrowRight':
@@ -415,7 +445,7 @@ export default class BaseDropdownManager {
           || this.selectedResult.urlbarValue === query;
 
         if (this.isOpen && urlbarValueMatchesResultQuery) {
-          this.dropdownAction.handleEnter({ newTab });
+          this.dropdownAction.handleEnter(serializeEvent(ev));
         } else {
           this._handleEnter(newTab);
         }

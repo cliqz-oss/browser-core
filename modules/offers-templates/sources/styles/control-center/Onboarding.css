@@ -1,0 +1,51 @@
+.onboarding__container { }
+
+.onboarding__emoji {
+  background: url('../images/onboarding-emoji.png') no-repeat left;
+  display: inline-block;
+  background-size: contain;
+  width: 17px;
+  height: 17px;
+  margin-bottom: -2px;
+}
+
+.onboarding__title {
+  font-size: 16px;
+  text-align: center;
+  color: #20292a;
+  padding: 15px 0px 5px 0px;
+}
+
+.onboarding__text {
+  font-size: 12px;
+  text-align: center;
+  color: #20292a;
+  padding-bottom: 16px;
+}
+
+.onboarding__button {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  width: 90%;
+  margin: auto;
+  height: 36px;
+  line-height: 36px;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: var(--myoffrz-primary-color, #f67057);
+}
+
+.onboarding__button.onboarding__chip-button {
+  background-color: #4d4d4d;
+}
+
+.onboarding__no-thanks {
+  font-size: 12px;
+  color: #b4b4b4;
+  text-align: center;
+  padding: 9px 0px 18px 0px;
+  cursor: pointer;
+}

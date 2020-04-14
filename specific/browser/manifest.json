@@ -80,8 +80,8 @@
   },
   "browser_action": {
     "default_title": "__MSG_offers_hub_title__",
-    "default_icon": "modules/offers-cc/images/offers-cc-icon.svg",
-    "default_popup": "modules/offers-cc/index.html?popup#{{PRODUCT_PREFIX}}"
+    "default_icon": "modules/offers-templates/images/offers-cc-icon.svg",
+    "default_popup": "modules/offers-templates/control-center.html?popup#{{PRODUCT_PREFIX}}"
   },
   "page_action": {
     "default_icon": {
@@ -121,8 +121,8 @@
       "background_intermediate.js",
       "modules/vendor/math-expression-evaluator.min.js",
       "modules/vendor/dexie.min.js",
-      "modules/webextension-specific/app.bundle.js",
-      "background.js"
+      "background.js",
+      "modules/webextension-specific/app.bundle.js"
     ]
   },
   "chrome_url_overrides": {
@@ -141,9 +141,10 @@
     }
   ],
   "web_accessible_resources": [
+    "modules/autoconsent/popup.html",
     "modules/browser-panel/index.html",
-    "modules/offers-cc/index.html",
-    "modules/offers-reminder/index.html",
-    "modules/autoconsent/popup.html"
+    "modules/offers-templates/reminder.html",
+    "modules/offers-templates/control-center.html",
+    "modules/offers-templates/checkout.html"
   ]
 }

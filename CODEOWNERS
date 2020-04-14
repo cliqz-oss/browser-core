@@ -4,12 +4,8 @@
 /configs/ @private-face @sammacbeth @remusao @philipp-classen
 
 # CONFIGS - Mobile
-/configs/base/mobile-cards.js @chrmod
-/configs/ci/cliqz-ios.js @chrmod
-/configs/ci/mobile-cards.js @chrmod
 /configs/cliqz-android.js @chrmod
 /configs/common/urls-lumen.js @chrmod
-/configs/experiments/cliqzs.json @chrmod @sammacbeth
 /configs/ghostery-android-privacy.js @chrmod
 /configs/ghostery-android-search.js @chrmod
 /configs/ghostery-ios.js @chrmod
@@ -58,11 +54,8 @@
 /modules/inter-ext-messaging/ @sammacbeth
 /modules/notifications/ @chrmod
 /modules/omnibox/ @private-face
-/modules/onboarding-v3/ @mai-cliqz @luciancor
 /modules/onboarding-v4/ @aleksei-cliqz
 /modules/overlay/ @private-face
-/modules/p2p/ @philipp-classen
-/modules/pairing/ @philipp-classen
 /modules/privacy-dashboard/ @private-face
 /modules/privacy-migration/ @sammacbeth
 /modules/privacy/ @ecnmst
@@ -76,19 +69,13 @@
 
 # MODULES - Mobile
 /modules/cliqz-android/ @chrmod
-/modules/mobile-cards-vertical/ @chrmod
-/modules/mobile-cards/ @chrmod
-/modules/mobile-pairing/ @chrmod
-/modules/mobile-ui/ @chrmod
 
 # MODULES - MyOffrz
-/modules/browser-panel/ @luciancor @giota-cliqz
-/modules/myoffrz-helper/ @olpa-cliqz @aleksandr-cliqz
+/modules/browser-panel/ @luciancor @giota-cliqz @smcatala
+/modules/myoffrz-helper/ @olpa-cliqz @aleksandr-cliqz @smcatala
 /modules/offers-banner/ @aleksandr-cliqz
-/modules/offers-cc/ @aleksandr-cliqz @gabriel-cliqz @giota-cliqz @mai-cliqz
-/modules/offers-reminder/ @aleksandr-cliqz @olpa-cliqz
-/modules/offers-v2/ @eleniS @aleksandr-cliqz @olpa-cliqz
-/modules/offers-checkout/ @aleksandr-cliqz @olpa-cliqz
+/modules/offers-templates/ @aleksandr-cliqz @gabriel-cliqz @giota-cliqz @mai-cliqz
+/modules/offers-v2/ @eleniS @aleksandr-cliqz @olpa-cliqz @smcatala
 
 # PLATFORMS
 /platforms/ @private-face @sammacbeth @remusao @philipp-classen

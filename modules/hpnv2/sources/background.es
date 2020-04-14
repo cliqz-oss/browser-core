@@ -53,7 +53,7 @@ export default background({
       const { action, payload, body, rp } = msg;
       if (action === 'instant') {
         if (rp === config.settings.BW_URL) {
-          const res = await this.manager.send({ action: 'antiphishing', payload: `md5=${payload}`, method: 'GET' });
+          const res = await this.manager.send({ action: 'antiphishingv2', payload: '', method: 'GET', path: `/${payload}` });
           const text = await res.text();
           return text;
         }

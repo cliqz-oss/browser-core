@@ -28,10 +28,12 @@ export default class Dropdown {
   }
 
   init() {
+    this.styleElement = document.createElement('style');
     this.rootElement.innerHTML = templates.main();
     this.dropdownElement.addEventListener('click', this.onClick);
     this.dropdownElement.addEventListener('auxclick', this.onClick);
     this.dropdownElement.addEventListener('mousemove', this.onMouseMove, { passive: true });
+    document.head.appendChild(this.styleElement);
   }
 
   get dropdownElement() {
@@ -119,6 +121,22 @@ export default class Dropdown {
     }
   }
 
+  updateUrlbarAttributes(attrs) {
+    if ('modifier' in attrs) {
+      document.body.classList[attrs.modifier ? 'add' : 'remove']('modifier');
+    }
+
+    if ('padding' in attrs) {
+      this.dropdownElement.style.setProperty('--content-padding-start', `${attrs.padding}px`);
+    }
+
+    if ('navbarColor' in attrs) {
+      this.styleElement.textContent = attrs.navbarColor
+        ? `.history { background-color: ${attrs.navbarColor}!important }`
+        : '';
+    }
+  }
+
   updateSelection() {
     this.selectCurrentResult();
     this.actions.reportHighlight(this.selectedResult.serialize());
@@ -145,7 +163,6 @@ export default class Dropdown {
   }
 
   renderResults(results, {
-    urlbarAttributes,
     extensionId,
     channelId,
     queryId,
@@ -167,12 +184,11 @@ export default class Dropdown {
     const html = templates.results({
       historyResults: results.historyResults,
       genericResults: results.genericResults,
+    }, {
+      allowProtoMethodsByDefault: true,
+      allowProtoPropertiesByDefault: true,
     });
     this.dropdownElement.innerHTML = html;
-
-    if (urlbarAttributes) {
-      this.dropdownElement.style.setProperty('--content-padding-start', `${urlbarAttributes.padding}px`);
-    }
 
     // Nofify results that have been rendered
     results.results.forEach((result) => {

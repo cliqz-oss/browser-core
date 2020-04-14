@@ -43,6 +43,8 @@ const ACCORDIAN_STATES = ['expanded', 'collapsed'];
 const BOOL_STATES = ['false', 'true'];
 
 export default [
+  ccMetric('antitracking_watchdog'),
+  ccMetric('adblocker_watchdog'),
   ccMetric('report_url'),
   ccMetric('attrack'),
   ccMetric('attrack_switch', { states: SWITCH_STATES }),
@@ -71,6 +73,7 @@ export default [
   ] }),
   ccMetric('search_adult', { states: ['liberal', 'conservative', 'moderate'] }),
   ccMetric('search_location', { states: ['no', 'ask', 'yes'] }),
+  ccMetric('share_location_learn_more'),
   ccMetric('search_proxy', { states: BOOL_STATES }),
   ccMetric('search_transparency'),
   ccMetric('info_help'),

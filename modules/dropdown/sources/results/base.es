@@ -251,11 +251,13 @@ export default class BaseResult {
   click(href, ev, meta = {}) {
     if (this.isUrlMatch(href)) {
       const newTab = ev.altKey || ev.metaKey || ev.ctrlKey || ev.button === 1;
+      const noSwitch = newTab || ev.shiftKey;
 
       this.resultTools.actions.openLink(this.url, {
         result: this.serialize(),
         resultOrder: this.resultTools.results.kinds,
         newTab,
+        noSwitch,
         eventType: ev instanceof MouseEvent ? 'mouse' : 'keyboard',
         eventOptions: {
           type: ev.type,

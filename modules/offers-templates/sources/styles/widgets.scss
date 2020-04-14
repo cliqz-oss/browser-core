@@ -1,0 +1,16 @@
+:root {
+  --chip-primary-color: #eb443f;
+  --chip-secondary-color: #eb443f;
+  --chip-primary-hover-color: #c93636;
+
+  --myoffrz-primary-color: #f67057;
+  --myoffrz-secondary-color: #f67057;
+  --myoffrz-primary-hover-color: #f67057;
+
+  --ghostery-primary-color: #5B005C;
+  --ghostery-secondary-color: #5B005C;
+  --ghostery-primary-hover-color: #5B005C;
+}
+
+@import "widgets/Picture";
+@import "widgets/BulletedList";

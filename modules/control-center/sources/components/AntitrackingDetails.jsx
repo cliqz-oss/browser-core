@@ -58,7 +58,7 @@ export default class Antitracking extends React.Component {
 
   openUrl = ({ name, watchDogUrl }) => {
     if (name === 'First Party') return;
-    this.props.openUrl(watchDogUrl, false);
+    this.props.openUrl(watchDogUrl, false, 'antitracking_watchdog');
   }
 
   render() {

@@ -26,8 +26,8 @@ const HISTORY_URL = getResourceUrl(config.settings.HISTORY_URL);
 const CLIQZ_INTERFACE_PAGES = [
   NEW_TAB_URL,
   HISTORY_URL,
-  getResourceUrl(config.settings.ONBOARDING_URL),
-];
+  config.settings.ONBOARDING_URL ? getResourceUrl(config.settings.ONBOARDING_URL) : undefined,
+].filter(Boolean);
 
 /**
 * @namespace history

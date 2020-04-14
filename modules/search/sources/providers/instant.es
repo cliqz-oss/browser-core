@@ -24,12 +24,12 @@ function getKind(query) {
     return [source];
   }
 
-  const name = engine.name.toLowerCase().replace(/ /g, '-');
+  const name = engine.name;
 
   // To implement `kind` conventions: the source ('default-search') is followed
   // by a stringified object having a key 'class' that contains (in this context)
   // the search engine's name; they are separated by '|'. For example:
-  //    'default-search|{"class":"google"}'
+  //    'default-search|{"class":"Google"}'
   // Doing this allows us to reuse existing telemetry pipelines.
   return [`${source}|${JSON.stringify({ class: name })}`];
 }

@@ -1,0 +1,12 @@
+.content__size {
+  max-height: 568px; /* max(650) >= header(43) + content(568) + footer(38) */
+}
+.content__size.content__normal-trigger-size {
+  max-height: 518px; /* max for popup is 600 */
+}
+.content__size.content__ghostery-size.content__normal-trigger-size {
+  max-height: 370px;
+}
+.content__group-header {
+  cursor: pointer;
+}

@@ -16,7 +16,7 @@ const MODULE_BLACKLIST = [
 module.exports = Object.assign({}, configBase, {
   publish: publish.toPrereleaseFullName('ghostery_start_tab', 'ghosterytab_pre', 'chrome', 'zip'),
   settings: Object.assign({}, configBase.settings, {
-    name: 'ghosteryTabAppName',
+    name: 'ghosteryTabAppNameFirefox',
     channel: 'GT10', // Ghostery Tab Chrome Release
   }),
   modules: configBase.modules.filter(m => MODULE_BLACKLIST.indexOf(m) === -1),

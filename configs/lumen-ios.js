@@ -19,7 +19,7 @@ module.exports = {
   versionPrefix: '13',
   // pack changes the name in package.json before running npm pack
   pack: [
-    "(jq '.name=\\\"browser-core-lumen-ios\\\"' package.json > package-new.json)",
+    `(jq '.name=\\"browser-core-lumen-ios\\" | .version=\\"${process.env.VERSION}\\"' package.json > package-new.json)`,
     'mv package.json package-old.json',
     'mv package-new.json package.json',
     'npm pack',
@@ -42,21 +42,14 @@ module.exports = {
   }),
   modules: [
     'core',
-    'core-cliqz',
     'search',
-    'mobile-cards',
-    'mobile-cards-vertical',
     'video-downloader',
     'anolysis',
-    'telemetry',
     'insights',
     'geolocation',
   ],
   bundles: [
   ],
-  react_components: {
-    ExtensionApp: './modules/mobile-cards/cliqz-ios/ExtensionApp'
-  },
   resources: {
     bundling: 'assets',
     include: [

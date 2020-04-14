@@ -2,38 +2,14 @@
     "video_downloader_audio_label": {
         "message": "Audio File"
     },
-    "video_downloader_connect_settings": {
-        "message": "Settings"
-    },
     "video_downloader_download_button_label": {
         "message": "Download"
     },
     "video_downloader_live_video": {
         "message": "Désolé ! Il n'est malheureusement pas possible de télécharger de vidéos live."
     },
-    "video_downloader_mobile_android_app": {
-        "message": "https://play.google.com/store/apps/details?hl=en&id=com.cliqz.browser"
-    },
-    "video_downloader_mobile_ios_app": {
-        "message": "https://itunes.apple.com/us/app/cliqz-browser/id1065837334"
-    },
-    "video_downloader_open_connect_page": {
-        "message": "Open Connect Settings"
-    },
-    "video_downloader_send_button_label": {
-        "message": "Send"
-    },
-    "video_downloader_send_to_mobile": {
-        "message": "Envoyer vers téléphone"
-    },
-    "video_downloader_sent_message": {
-        "message": "Video is sent to mobile"
-    },
     "video_downloader_tab_desktop": {
         "message": "COMPUTER"
-    },
-    "video_downloader_tab_mobile": {
-        "message": "MOBILE DEVICE"
     },
     "video_downloader_title": {
         "message": "Télécharger la vidéo"
@@ -45,15 +21,12 @@
         "message": "D'accord"
     },
     "video_downloader_uitour_description": {
-        "message": "Regardez cette vidéo hors ligne. Téléchargez-la vers votre ordinateur or votre périphérique."
+        "message": "Regardez cette vidéo hors ligne. Téléchargez-la vers votre ordinateur."
     },
     "video_downloader_uitour_title": {
         "message": "Video Downloader"
     },
     "video_downloader_unsupported_format": {
         "message": "Désolé ! Nous n'arrivons pas à télécharger cette video."
-    },
-    "video_downloader_wifi_warning": {
-        "message": "Make sure that your mobile device is connect to WiFi to avoid additional costs."
     }
 }

@@ -20,6 +20,7 @@ function getDay() {
 }
 
 export async function service(app) {
+  let newUser = false;
   const hostSettings = app.services['host-settings'];
   await hostSettings.isReady();
 
@@ -27,6 +28,8 @@ export async function service(app) {
     prefs.set('session', sessionString);
     hostSettings.api.set('host.session', sessionString);
   };
+
+  const isNewUser = () => newUser;
 
   if (!prefs.has('session')) {
     // Get number of days since epoch either from config_ts if available
@@ -52,12 +55,15 @@ export async function service(app) {
       // freshtab is opt-out since 2.20.3
       prefs.set('freshtab.state', true);
     }
+
+    newUser = true;
   }
 
   return {
     saveSession,
     getSession,
+    isNewUser,
   };
 }
 
-export default inject.service('sessions', ['getSession']);
+export default inject.service('session', ['getSession', 'isNewUser']);

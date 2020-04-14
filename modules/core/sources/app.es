@@ -9,7 +9,7 @@
 /* eslint no-param-reassign: 'off' */
 import browserPolyfill from 'webextension-polyfill';
 
-import config from './config';
+import defaultConfig from './config';
 import events, { subscribe } from './events';
 import prefs from './prefs';
 import Module from './app/module';
@@ -54,7 +54,13 @@ export default class App {
   // But if `App` is instantiated by a third-party that uses
   // `browser-core` as a library, then no `version` is given
   // and therefore `App` should find out the version self.
-  constructor({ version = config.EXTENSION_VERSION, debug, browser = browserPolyfill } = {}) {
+  constructor({
+    config = defaultConfig,
+    version = defaultConfig.EXTENSION_VERSION,
+    debug,
+    browser = browserPolyfill,
+    skipModules = [],
+  } = {}) {
     this.settings = createSettings(config.settings, { version });
     this.isFullyLoaded = false;
 
@@ -82,6 +88,7 @@ export default class App {
     this._startedDefer = new Defer();
 
     config.modules.forEach((moduleName) => {
+      if (skipModules.includes(moduleName)) return;
       const module = new Module(moduleName);
 
       // special handling for core as it is not really a module and it manages app state
@@ -165,7 +172,7 @@ export default class App {
 
     await initPrefs();
 
-    if (config.environment === 'development' || this.debug) {
+    if (this.config.environment === 'development' || this.debug) {
       prefs.set('developer', true);
     }
 

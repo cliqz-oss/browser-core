@@ -40,12 +40,12 @@ const fillIn = async ({
   query,
   view,
 }) => {
-  await waitFor(() => view.document.querySelector('input'));
-  const input = view.document.querySelector('input');
+  await waitFor(() => view.document.querySelector('input.urlbarSearch'));
+  const input = view.document.querySelector('input.urlbarSearch');
   input.dispatchEvent(new Event('focus'));
   await waitFor(() => checkIframeExists(view));
   input.value = query;
-  input.dispatchEvent(new Event('input', {}));
+  input.dispatchEvent(new Event('input', { bubbles: true }));
 };
 
 const waitForFreshtab = tabId => waitFor(() => chrome.extension.getViews({ tabId })[0]);

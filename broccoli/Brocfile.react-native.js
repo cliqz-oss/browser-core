@@ -14,7 +14,6 @@ const util = require('./util');
 const cliqzConfig = require('./config');
 const cliqzEnv = require('./cliqz-env');
 const modules = require('./modules-tree');
-const components = require('./react-components');
 const resources = require('./resources');
 
 // cliqz.json should be saved after not transpiled modules are removed from configration
@@ -30,7 +29,6 @@ const v8 = new MergeTrees([
   modules.locales,
   new Funnel(config, { destDir: 'config' }),
   new Funnel('specific/react-native'),
-  new Funnel(components),
   new Funnel(resources),
 ], { overwrite: true });
 

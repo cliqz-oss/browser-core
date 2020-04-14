@@ -6,11 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* global windowTracker */
-
+import ExtensionGlobals from '../shared/extension-globals';
 import { addStylesheet, removeStylesheet } from '../../../core/helpers/stylesheet';
 
-const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm', {}); // eslint-disable-line no-undef
+const { Services, windowTracker } = ExtensionGlobals;
 
 const FRESHTAB_THEME_PREF = 'extensions.cliqz.freshtab.blueTheme.enabled';
 

@@ -20,11 +20,6 @@ const subprojects = {
     include: ['ajv.min.js'],
     dest: 'vendor',
   },
-  qrcodejs: {
-    src: 'node_modules/qrcodejs',
-    include: ['qrcode.min.js'],
-    dest: 'vendor',
-  },
   tablesorter: {
     src: 'node_modules/tablesorter/dist/js',
     include: ['jquery.tablesorter.min.js'],
@@ -43,11 +38,6 @@ const subprojects = {
   mocha: {
     src: 'node_modules/mocha',
     include: ['mocha.css', 'mocha.js'],
-    dest: 'vendor',
-  },
-  'core-js': {
-    src: 'node_modules/core-js/client',
-    include: ['core.js'],
     dest: 'vendor',
   },
   'ua-parser-js': {
@@ -72,7 +62,7 @@ const subprojects = {
   },
   handlebars: {
     src: 'node_modules/handlebars/dist',
-    include: ['handlebars.min.js'],
+    include: ['handlebars.runtime.min.js'],
     dest: 'vendor'
   },
   pako: {

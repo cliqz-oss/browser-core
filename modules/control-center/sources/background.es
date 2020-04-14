@@ -17,7 +17,7 @@ import events from '../core/events';
 import inject from '../core/kord/inject';
 import pacemaker from '../core/services/pacemaker';
 import { getMessage } from '../core/i18n';
-import { isDesktopBrowser, isAMO, isGhostery } from '../core/platform';
+import { isDesktopBrowser, isAMO, isGhostery, isCliqzBrowser } from '../core/platform';
 import background from '../core/base/background';
 import { getActiveTab, getWindow } from '../core/browser';
 import { openLink } from '../platform/browser-actions';
@@ -121,7 +121,11 @@ export default background({
     });
   },
 
-  onLocationChange({ url, tabId, windowId }) {
+  updateBadgeOnLocationChange({ url, tabId, windowId }) {
+    if (!isCliqzBrowser) {
+      return;
+    }
+
     if (this.intervals.has(windowId)) {
       this.intervals.remove(windowId);
     }
@@ -207,14 +211,10 @@ export default background({
 
   events: {
     'content:location-change': function onLocationChange(...args) {
-      if (!isAMO) {
-        this.onLocationChange(...args);
-      }
+      this.updateBadgeOnLocationChange(...args);
     },
     'core:tab_select': function onTabSelect(...args) {
-      if (!isAMO) {
-        this.onLocationChange(...args);
-      }
+      this.updateBadgeOnLocationChange(...args);
     },
   },
   actions: {
@@ -275,7 +275,10 @@ export default background({
       } else if (url.endsWith('modules/privacy-dashboard/index.html')) {
         friendlyURL = `${getMessage('control_center_transparency')}`;
         isSpecialUrl = true;
-      } else if (url.indexOf(globalConfig.settings.ONBOARDING_URL) === 0) {
+      } else if (
+        globalConfig.settings.ONBOARDING_URL
+        && url.startsWith(globalConfig.settings.ONBOARDING_URL)
+      ) {
         friendlyURL = moduleConfig.settings.BRAND;
         isSpecialUrl = true;
       } else if (url.startsWith('chrome://cliqz/content/anti-phishing/phishing-warning.html')) {
@@ -386,26 +389,6 @@ export default background({
           index: data.index
         }, `metrics.legacy.control_center.${data.target}`);
       }
-    },
-
-    sendTelemetry(data) {
-      if (data.isPrivateMode) {
-        return;
-      }
-
-      const signal = {
-        type: TELEMETRY_TYPE,
-        target: data.target,
-        action: 'click'
-      };
-      const state = data.state;
-      if (state) {
-        signal.state = state;
-      }
-      if (data.index) {
-        signal.index = data.index;
-      }
-      telemetry.push(signal, `metrics.legacy.control_center.${data.target}`);
     },
 
     'antitracking-strict': function antitrackingStrict({ isPrivateMode, status }) {
@@ -555,16 +538,18 @@ export default background({
       if (state === 'off_all' || state === 'critical') {
         prefs.set('modules.autoconsent.enabled', false);
       } else {
-        prefs.set('modules.autoconsent.enabled', true);
+        const enable = inject.module('core').action('enableModule', 'autoconsent');
         const autoconsent = inject.module('autoconsent');
-        autoconsent.action('setDefaultAction', deny ? 'deny' : 'allow');
-        if (hostname) {
-          if (state === 'active') {
-            autoconsent.action('clearSiteAction', hostname);
-          } else {
-            autoconsent.action('setSiteAction', hostname, 'none', isPrivateMode);
+        enable.then(() => {
+          autoconsent.action('setDefaultAction', deny ? 'deny' : 'allow');
+          if (hostname) {
+            if (state === 'active') {
+              autoconsent.action('clearSiteAction', hostname);
+            } else {
+              autoconsent.action('setSiteAction', hostname, 'none', isPrivateMode);
+            }
           }
-        }
+        });
       }
       if (!isPrivateMode) {
         const msg = {

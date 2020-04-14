@@ -14,7 +14,13 @@ module.exports = {
   platform: 'webextension',
   brocfile: 'Brocfile.ghostery-mobile.js',
   baseURL: '/cliqz/',
-  pack: 'npm pack',
+  pack: [
+    `(jq '.version=\\"${process.env.VERSION}\\"' package.json > package-new.json)`,
+    'mv package.json package-old.json',
+    'mv package-new.json package.json',
+    'npm pack',
+    'mv package-old.json package.json',
+  ].join(' && '),
   publish: publish.toEdge('browser-core', 'ghostery-mobile'),
   sourceMaps: false,
   versionPrefix: '7',
@@ -22,7 +28,6 @@ module.exports = {
   settings: Object.assign({}, urls, {
     channel: 'MA50',
     MSGCHANNEL: 'web-extension',
-    OFFERS_CHANNEL: 'ghostery',
     ATTRACK_TELEMETRY_PROVIDER: 'hpnv2',
     HW_CHANNEL: 'ghostery',
     ALLOWED_COUNTRY_CODES: ['de', 'at', 'ch', 'es', 'us', 'fr', 'nl', 'gb', 'it', 'be', 'se', 'dk', 'fi', 'cz', 'gr', 'hu', 'ro', 'no', 'ca', 'au', 'ru', 'ua', 'in', 'pl', 'jp', 'br', 'mx', 'cn', 'ar'],
@@ -60,15 +65,10 @@ module.exports = {
     'webrequest-pipeline',
     'adblocker',
     'anolysis',
-    // mobile cards
-    'core-cliqz',
     'abtests-legacy',
     'cliqz-android',
     'webextension-specific',
-    'telemetry',
   ],
   builderDefault: base.builderConfig,
-  babelPlugins: [
-    ['react-native-web', { commonjs: true }]
-  ]
+  babelPlugins: [],
 };

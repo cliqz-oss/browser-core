@@ -8,7 +8,7 @@
 
 import background from '../core/base/background';
 import { chrome } from '../platform/globals';
-import webNavigation from '../platform/webnavigation';
+import { isFirefox } from '../core/platform';
 import prefs from '../core/prefs';
 
 function inject(tabId) {
@@ -37,15 +37,17 @@ export default background({
     //
     // the following few lines try to detect if our overlay is injected and visible
     // if yes it will reload it and make it work again
-    chrome.windows.getAll({ populate: true }, windows =>
-      windows.forEach(window =>
-        window.tabs.forEach(tab =>
-          webNavigation.getAllFrames({ tabId: tab.id }, frames =>
-            frames.forEach((frame) => {
-              if (frame.url === overlayUrl) {
-                inject(tab.id);
-              }
-            })))));
+    if (isFirefox) {
+      chrome.windows.getAll({ populate: true }, windows =>
+        windows.forEach(window =>
+          window.tabs.forEach(tab =>
+            chrome.webNavigation.getAllFrames({ tabId: tab.id }, frames =>
+              frames.forEach((frame) => {
+                if (frame.url === overlayUrl) {
+                  inject(tab.id);
+                }
+              })))));
+    }
   },
 
   unload() {},
@@ -72,5 +74,8 @@ export default background({
         prefs.set('humanWebOptOut', humanWebOptOut);
       }
     },
+    markConsentBoxShown() {
+      prefs.set('consentDialogShown', true);
+    }
   }
 });

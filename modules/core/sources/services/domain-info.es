@@ -7,9 +7,8 @@
  */
 
 import inject from '../kord/inject';
-import ResourceLoader from '../resource-loader';
+import { BundledResource } from '../resource-loader';
 import { getGeneralDomain } from '../tlds';
-import config from '../config';
 
 class DomainInfo {
   constructor() {
@@ -74,11 +73,7 @@ export const service = async function service() {
     domainInfo.domainOwners = revList;
   }
 
-  const loader = new ResourceLoader(['antitracking', 'tracker_db_v2.json'], {
-    remoteURL: `${config.settings.CDN_BASEURL}/anti-tracking/tracker_db_v2.json`,
-    cron: 24 * 60 * 60 * 1000,
-  });
-  loader.onUpdate(parseDomainOwners);
+  const loader = new BundledResource(['antitracking', 'tracker_db_v2.json']);
   parseDomainOwners(await loader.load());
 
   service.unload = () => {

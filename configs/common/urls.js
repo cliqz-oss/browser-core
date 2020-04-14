@@ -11,7 +11,7 @@ module.exports = (base, cdn = 'cdn') => ({
   ANOLYSIS_BACKEND_URL: `https://anolysis.privacy.${base}`, // anolysis/sources/backend-communication.es
   ANOLYSIS_STAGING_BACKEND_URL: `https://anolysis-staging.privacy.${base}`, // anolysis/sources/backend-communication.es
   BACKGROUND_IMAGE_URL: `https://${cdn}.${base}/brands-database/database/`, // core/sources/utils.es
-  BW_URL: `https://antiphishing.${base}/api/bwlist?md5=`, // anti-phishing/sources/anti-phishing.es
+  BW_URL: `https://antiphishing.${base}/api/v1/`, // anti-phishing/sources/anti-phishing.es
   CDN_BASEURL: `https://${cdn}.${base}`,
   ADBLOCKER_BASE_URL: `https://${cdn}.${base}/adblocker/configs`,
   CONFIG_PROVIDER: `https://api.${base}/api/v1/config`,

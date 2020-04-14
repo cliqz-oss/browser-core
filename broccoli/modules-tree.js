@@ -60,6 +60,7 @@ const babelOptions = {
     '@babel/plugin-transform-react-jsx',
     '@babel/plugin-proposal-async-generator-functions',
     '@babel/plugin-transform-async-to-generator',
+    '@babel/plugin-proposal-optional-chaining',
     ...(cliqzConfig.babelPlugins || []),
     ...(cliqzConfig.format === 'common' ? ['@babel/plugin-transform-modules-commonjs'] : []),
     ...(cliqzConfig.format === 'system' ? ['@babel/plugin-transform-modules-systemjs'] : []),

@@ -6,16 +6,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* globals ExtensionAPI, windowTracker, EventManager, ChromeUtils */
+/* globals ExtensionAPI */
 import Dropdown from './dropdownapi';
 import URLBar from './urlbar';
+import ExtensionGlobals from '../shared/extension-globals';
 
-const { ExtensionUtils } = ChromeUtils.import('resource://gre/modules/ExtensionUtils.jsm');
-const { ExtensionError } = ExtensionUtils;
+const { EventManager, windowTracker } = ExtensionGlobals;
 
 const assert = (condition, errorMessage) => {
   if (!condition) {
-    throw new ExtensionError(errorMessage || '');
+    throw new ExtensionGlobals.ExtensionError(errorMessage || '');
   }
 };
 

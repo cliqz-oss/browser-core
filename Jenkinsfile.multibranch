@@ -81,8 +81,8 @@ if (env.BRANCH_NAME.startsWith('v11.')) {
 }
 
 if (env.BRANCH_NAME.startsWith('v12.')) {
-    matrix['privacy'] = [
-        'config': 'privacy.js',
+    matrix['cliqz-geckoview'] = [
+        'config': 'cliqz-geckoview.js',
     ]
 }
 
@@ -142,10 +142,6 @@ if (isIntegrationBranch) {
         'config': 'ghostery.js',
     ]
 
-    matrix['cliqzs'] = [
-        'config': 'experiments/cliqzs.json',
-    ]
-
     matrix['cliqz-android'] = [
         'config': 'cliqz-android.js',
     ]
@@ -158,8 +154,8 @@ if (isIntegrationBranch) {
         'config': 'ghostery-android-search.js',
     ]
 
-    matrix['privacy'] = [
-        'config': 'privacy.js',
+    matrix['cliqz-geckoview'] = [
+        'config': 'cliqz-geckoview.js',
     ]
 
     matrix['lumen-ios'] = [

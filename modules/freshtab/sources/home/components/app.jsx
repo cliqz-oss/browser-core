@@ -81,6 +81,15 @@ class App extends React.Component {
     window.addEventListener('blur', () => sendHomeBlurSignal({ tabIndex }));
     window.addEventListener('focus', () => sendHomeFocusSignal({ tabIndex }));
 
+    document.body.addEventListener('dragover', event => event.preventDefault());
+    document.body.addEventListener('drop', (event) => {
+      const file = event.dataTransfer.files[0];
+      if (file && file.type.split('/')[0] === 'image') {
+        this.onCustomBackgroundImageUploaded(URL.createObjectURL(file));
+      }
+      event.preventDefault();
+    });
+
     await Promise.all([
       this.getSpeedDials(),
       this.getNews(),
@@ -150,6 +159,43 @@ class App extends React.Component {
     }));
   }
 
+  async onCustomBackgroundImageUploaded(src) {
+    // add new image to the list of wallpapers and select it
+    await cliqz.freshtab.saveCustomBackgroundImage(src);
+
+    let index = 0;
+    this.setState((prevState) => {
+      const wallpapers = prevState.config.wallpapers
+        .filter(w => w.name !== config.constants.CUSTOM_BG)
+        .concat([{
+          alias: 'custom-background',
+          isDefault: false,
+          name: config.constants.CUSTOM_BG,
+          src,
+          thumbnailSrc: src,
+        }]);
+
+      index = wallpapers.length - 1;
+      const newState = {
+        config: {
+          ...prevState.config,
+          wallpapers,
+          componentsState: {
+            ...prevState.config.componentsState,
+            background: {
+              ...prevState.config.componentsState.background,
+              image: config.constants.CUSTOM_BG,
+              index,
+            }
+          }
+        }
+      };
+      cliqz.freshtab.saveBackgroundImage(config.constants.CUSTOM_BG, index);
+      this.setCustomBackground(config.constants.CUSTOM_BG, newState.config);
+      return newState;
+    });
+  }
+
   onNewsSelectionChanged(country) {
     newsSelectionChangeSignal(country);
     cliqz.freshtab.updateTopNewsCountry(country);
@@ -179,10 +225,12 @@ class App extends React.Component {
     let bgImage = freshtabConfig.componentsState.background.image;
     const { product } = freshtabConfig;
 
-    // Fall back to default background if current config contains
-    // non-existing name of the background
-    if ((bgImage !== config.constants.NO_BG)
+    if (bgImage === config.constants.CUSTOM_BG) {
+      this.setCustomBackground(bgImage, freshtabConfig);
+    } else if ((bgImage !== config.constants.NO_BG)
       && (Object.keys(config.backgrounds[product]).indexOf(bgImage) === -1)) {
+      // Fall back to default background if current config contains
+      // non-existing name of the background
       bgImage = getDefaultWallpaper(product);
     }
 
@@ -227,6 +275,18 @@ class App extends React.Component {
       .then(data => this.setState({ stats: data }));
   }
 
+  // TODO: come up with a better name
+  setCustomBackground = (bg, freshtabConfig) => {
+    const wallpapers = (freshtabConfig || this.state.config).wallpapers;
+    if (bg === config.constants.CUSTOM_BG) {
+      const customWallpaper = wallpapers
+        .find(w => w.name === config.constants.CUSTOM_BG);
+      document.body.style.backgroundImage = `url(${customWallpaper.src})`;
+    } else {
+      document.body.style.backgroundImage = '';
+    }
+  }
+
   /*
    * theme is also set inside of home.html
    */
@@ -234,9 +294,11 @@ class App extends React.Component {
     localStorage.setItem('theme', bg);
     const classList = document.body.classList;
 
-    if (classList.contains(`theme-${bg}`)) {
+    if (classList.contains(`theme-${bg}`)
+      && bg !== config.constants.CUSTOM_BG) {
       return;
     }
+    this.setCustomBackground(bg);
 
     document.body.className.split(' ').forEach((className) => {
       if (className.indexOf('theme-') === 0) {
@@ -462,6 +524,15 @@ class App extends React.Component {
     cliqz.freshtab.saveMessageDismission({ id: 'tooltip-settings' });
   }
 
+  isHumanWebActive = async (consent) => {
+    // Use this function to get humanweb status
+    // as well as update consent.
+    if (consent) {
+      return cliqz.freshtab.setHumanWeb(consent);
+    }
+    return cliqz.freshtab.isHumanWebEnabled();
+  }
+
   render() {
     const {
       config: freshtabConfig,
@@ -520,6 +591,8 @@ class App extends React.Component {
                         product={freshtabConfig.product}
                         ref={(c) => { this.urlbarElem = c; }}
                         results={this.state.results}
+                        isHumanWebActive={this.isHumanWebActive}
+                        isAMO={freshtabConfig.isAMO}
                         showOverlay={this.showOverlay}
                         toggleComponent={this.toggleComponent}
                         visible={visibleComponents.includes('search')}
@@ -620,6 +693,7 @@ class App extends React.Component {
 
             <AsideRight
               onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
+              onCustomBackgroundImageUploaded={src => this.onCustomBackgroundImageUploaded(src)}
               onDeveloperModulesOpen={this.onDeveloperModulesOpen}
               onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
               resetStatistics={() => this.resetStatistics()}

@@ -39,6 +39,8 @@ class MockResourceStorage {
   }
 
   save() {}
+
+  delete() {}
 }
 
 const THIRD_PARTY_HOST1 = '127.0.0.1:60508';
@@ -82,7 +84,15 @@ export default describeModule('antitracking/attrack',
     },
     'core/http': {
       default: {},
-      fetch: url => Promise.reject(new Error(`fetch rejected for ${url}`)),
+      fetch: (url) => {
+        if (url.endsWith('/prob.json')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(resources['prob.json']),
+          });
+        }
+        return Promise.reject(new Error(`fetch rejected for ${url}`));
+      },
     },
     'core/zlib': {},
     'core/resource-manager': {

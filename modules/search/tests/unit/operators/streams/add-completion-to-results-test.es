@@ -29,10 +29,11 @@ export default describeModule('search/operators/streams/add-completion-to-result
   () => {
     describe('#getCompletion', () => {
       let getCompletion;
-      const complete = ({ query, url, title }) => getCompletion(
+      const defaultOptions = { useTitle: true, maxTitleLength: undefined };
+      const complete = ({ query, url, title, options = defaultOptions }) => getCompletion(
         query,
         { url, title },
-        { useTitle: true },
+        options,
       );
 
       beforeEach(function () {
@@ -46,6 +47,24 @@ export default describeModule('search/operators/streams/add-completion-to-result
             url: 'https://example.com',
             title: 'description',
           })).to.eql('ription — https://example.com');
+        });
+
+        it('cuts long titles', () => {
+          chai.expect(complete({
+            query: 'desc',
+            url: 'https://example.com',
+            title: 'description',
+            options: { useTitle: true, maxTitleLength: 6 },
+          })).to.eql('ri — https://example.com');
+        });
+
+        it('cuts long titles correctly with longer queries present', () => {
+          chai.expect(complete({
+            query: 'descript',
+            url: 'https://example.com',
+            title: 'description',
+            options: { useTitle: true, maxTitleLength: 6 },
+          })).to.eql(' — https://example.com');
         });
 
         it('does not use stripped query', () => {

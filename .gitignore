@@ -56,3 +56,6 @@ ghostery.zip
 # chrome packages and certs
 *.crx
 *.pem
+
+# eslint
+.eslintcache

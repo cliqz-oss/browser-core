@@ -14,7 +14,7 @@ import analyses from './telemetry/analyses';
 
 export default background({
   requiresServices: ['telemetry'],
-  telemetry: inject.service('telemetry', ['register']),
+  telemetry: inject.service('telemetry', ['register', 'unregister']),
   telemetrySchemas: [
     ...metrics,
     ...analyses,

@@ -16,10 +16,12 @@ import config from './config';
 import { getWallpapers, getDefaultWallpaper } from './wallpapers';
 import openImportDialog from '../platform/freshtab/browser-import-dialog';
 import SpeedDials from './speed-dials';
+import getDexie from '../platform/lib/dexie';
 import background from '../core/base/background';
 import { queryTabs, reloadTab, getTabsWithUrl } from '../core/tabs';
 import {
   getResourceUrl,
+  isAMO,
   isCliqzBrowser,
   isChromium,
   product,
@@ -32,6 +34,7 @@ import extChannel from '../platform/ext-messaging';
 import { isBetaVersion } from '../platform/platform';
 import moment from '../platform/lib/moment';
 import formatTime from './utils';
+import console from '../core/console';
 
 // Telemetry for freshtab
 import metrics from './telemetry/metrics';
@@ -41,7 +44,9 @@ import genericInteractionsAnalysis from './telemetry/analyses/generic/interactio
 
 const FRESHTAB_CONFIG_PREF = 'freshtabConfig';
 const DEVELOPER_FLAG_PREF = 'developer';
+const FRESHTAB_AUTOFOCUS_PREF = 'freshtab.search.autofocus';
 const DISMISSED_ALERTS = 'dismissedAlerts';
+const CUSTOM_BG_PREF = 'modules.freshtab.customBackground';
 
 const COMPONENT_STATE_VISIBLE = {
   visible: true,
@@ -52,10 +57,15 @@ const COMPONENT_STATE_INVISIBLE = {
 };
 
 const NEW_TAB_URL = isChromium ? 'chrome://newtab/' : getResourceUrl(config.settings.NEW_TAB_URL);
+const NEW_TAB_REDIRECTED_URL = `${getResourceUrl(config.settings.NEW_TAB_URL)}#ntp`;
 const HISTORY_URL = getResourceUrl(config.settings.HISTORY_URL);
 
-const historyWhitelist = [
+const freshtabUrls = [
   NEW_TAB_URL,
+  NEW_TAB_REDIRECTED_URL,
+];
+const historyWhitelist = [
+  ...freshtabUrls,
   HISTORY_URL
 ];
 
@@ -117,8 +127,20 @@ export default background({
   /**
   * @method init
   */
-  init(settings) {
+  async init(settings) {
     telemetry.register(this.telemetrySchemas);
+
+    if (this.isCustomBackgroundSupported) {
+      const Dexie = await getDexie();
+      this.db = new Dexie('freshtab');
+      this.db.version(1).stores({
+        wallpapers: 'id'
+      });
+
+      await this.db.open().catch((e) => {
+        console.error('Could not open freshtab database: ', e);
+      });
+    }
 
     this.settings = settings;
     this.messages = {};
@@ -143,10 +165,15 @@ export default background({
     if (browser.cliqz) {
       browser.cliqz.onPrefChange.removeListener(this.onThemeChanged);
     }
+    if (this.db) {
+      this.db.close();
+      this.db = null;
+    }
   },
 
   status() {
     return {
+      autofocus: prefs.get(FRESHTAB_AUTOFOCUS_PREF, false),
       visible: true,
       enabled: true,
     };
@@ -154,13 +181,18 @@ export default background({
 
   async _onThemeChanged() {
     const theme = await this.browserTheme();
-    this.core.action(
-      'callContentAction',
-      'freshtab',
-      'updateBrowserTheme',
-      { url: NEW_TAB_URL },
-      theme,
-    );
+    this._callFreshtabAction('updateBrowserTheme', theme);
+  },
+
+  _callFreshtabAction(action, ...args) {
+    freshtabUrls.forEach(url =>
+      this.core.action(
+        'callContentAction',
+        'freshtab',
+        action,
+        { url },
+        ...args,
+      ));
   },
 
   _onVisitRemoved(removed) {
@@ -205,6 +237,10 @@ export default background({
     return isCliqzBrowser;
   },
 
+  get isCustomBackgroundSupported() {
+    return prefs.get(CUSTOM_BG_PREF, false);
+  },
+
   get tooltip() {
     let activeTooltip = '';
     const dismissedMessages = prefs.getObject(DISMISSED_ALERTS);
@@ -241,6 +277,7 @@ export default background({
     const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
     const backgroundName = (freshtabConfig.background && freshtabConfig.background.image)
       || getDefaultWallpaper(product);
+    const wallpapers = await getWallpapers();
     return {
       historyDials: { ...COMPONENT_STATE_VISIBLE, ...freshtabConfig.historyDials },
       customDials: {
@@ -260,10 +297,29 @@ export default background({
       },
       background: {
         image: backgroundName,
-        index: getWallpapers(product).findIndex(bg => bg.name === backgroundName),
+        index: wallpapers.findIndex(bg => bg.name === backgroundName),
       },
       stats: { ...COMPONENT_STATE_VISIBLE, ...freshtabConfig.stats },
     };
+  },
+
+  async getWallpapers() {
+    const wallpapers = getWallpapers(product);
+    if (this.isCustomBackgroundSupported) {
+      const customWp = await this.db.wallpapers.get('1');
+      if (customWp) {
+        const src = URL.createObjectURL(customWp.blob);
+        const wp = {
+          alias: 'custom-background',
+          isDefault: false,
+          name: config.constants.CUSTOM_BG,
+          src,
+          thumbnailSrc: src,
+        };
+        wallpapers.push(wp);
+      }
+    }
+    return wallpapers;
   },
 
   /**
@@ -302,14 +358,7 @@ export default background({
 
   async _onSpeedDialsChanged() {
     const dials = await SpeedDials.get();
-    this.core.action(
-      'callContentAction',
-      'freshtab',
-      'updateSpeedDials',
-      { url: NEW_TAB_URL },
-      dials,
-      SpeedDials.hasHidden
-    );
+    this._callFreshtabAction('updateSpeedDials', dials, SpeedDials.hasHidden);
   },
 
   hasCustomDialups() {
@@ -362,6 +411,22 @@ export default background({
         image: name,
         index
       });
+    },
+
+    async saveCustomBackgroundImage(src) {
+      // TODO: we could skip fetching resource here if we stored
+      // the image directly on the freshtab page
+      const response = await fetch(src);
+      if (!response.ok) {
+        console.error('Could not load custom background:', response.statusText);
+        return;
+      }
+      try {
+        const blob = await response.blob();
+        await this.db.wallpapers.put({ id: '1', blob });
+      } catch (e) {
+        console.error('Could not save custom background:', e);
+      }
     },
 
     async updateTopNewsCountry(preferedCountry) {
@@ -468,7 +533,7 @@ export default background({
     * Get list with top & personalized news
     * @method getNews
     */
-    getNews() {
+    async getNews() {
       // disables the whole news block if required by the config
       if (!this.settings.freshTabNews) {
         return {
@@ -621,7 +686,8 @@ export default background({
         isBlueThemeSupported: this.isBlueThemeSupported,
         isBrowserThemeSupported: this.isBrowserThemeSupported,
         isAllPrefsLinkSupported: this.isAllPreferencesLinkSupported,
-        wallpapers: getWallpapers(product),
+        isCustomBackgroundSupported: this.isCustomBackgroundSupported,
+        wallpapers: await this.getWallpapers(product),
         product,
         tabIndex,
         messages: this.messages,
@@ -639,6 +705,8 @@ export default background({
         isUserOnboarded: this.isUserOnboarded(),
         onboardingVersion: this.onboardingVersion(),
         tooltip: this.tooltip,
+        showConsentDialog: isAMO && !prefs.get('consentDialogShown', false),
+        isAMO,
       };
     },
 
@@ -696,6 +764,15 @@ export default background({
     getComponentsState() {
       return this.getComponentsState();
     },
+
+    isHumanWebEnabled() {
+      return !prefs.get('humanWebOptOut', true);
+    },
+
+    setHumanWeb(consent) {
+      prefs.set('humanWebOptOut', !consent);
+      return consent;
+    }
   },
 
   events: {

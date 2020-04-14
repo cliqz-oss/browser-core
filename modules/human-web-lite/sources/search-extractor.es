@@ -121,12 +121,11 @@ export default class SearchExtractor {
       return [];
     }
 
-    // TODO: things like ctry=de should not be hard-coded
     // TODO: to simplify delayed sending (and resending after errors),
     // we should not immediately fill in the ts, but only before sending
     const msg = {
       type: 'humanweb',
-      action: 'query',
+      action: 'hwlite.query',
       payload: {
         r: results.map((x, i) => ({ [i]: x })),
         q: query,

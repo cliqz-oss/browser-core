@@ -7,6 +7,7 @@
  */
 
 import config from '../core/config';
+import { isAMO, isGhosteryTab } from '../core/platform';
 import createModuleWrapper from '../core/helpers/action-module-wrapper';
 import { getMessage } from '../core/i18n';
 
@@ -27,6 +28,7 @@ function saveOptions() {
 async function saveOptionsAndClose() {
   await saveOptions();
   window.parent.postMessage({ action: 'continue' }, '*');
+  window.close();
 }
 
 async function restoreOptions() {
@@ -50,3 +52,20 @@ Array.prototype.forEach.call(document.querySelectorAll('[data-i18n]'), (el) => {
   // eslint-disable-next-line no-param-reassign
   el.innerHTML = getMessage(`onboarding_${PRODUCT}_${el.dataset.i18n}`);
 });
+
+if (isAMO || isGhosteryTab) {
+  // Make the data collection consent popup "modal"
+  chrome.windows.getCurrent(({ id }) => {
+    chrome.windows.onFocusChanged.addListener((activeWindowId) => {
+      if (id !== activeWindowId) {
+        chrome.windows.update(id, { focused: true, drawAttention: true });
+      }
+    });
+  });
+}
+
+if (isAMO) {
+  // We show the consent box only once after install/update
+  // Even if the window is closed we should not show popup again.
+  onboarding.markConsentBoxShown();
+}

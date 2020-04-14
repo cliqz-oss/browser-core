@@ -19,4 +19,6 @@ module.exports = {
   antitrackingHeader: 'CLIQZ-AntiTracking',
   FRESHTAB_TITLE: 'Cliqz Tab',
   OFFERS_BRAND: 'cliqz',
+  ENABLE_OFFER_COLLECTIONS: false,
+  MAX_GROUPS_IN_OFFER_COLLECTIONS: 3,
 };

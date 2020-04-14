@@ -6,12 +6,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-/* globals ChromeUtils, Components */
+/* globals Components */
+import ExtensionGlobals from '../shared/extension-globals';
 
-const { ExtensionCommon } = ChromeUtils.import('resource://gre/modules/ExtensionCommon.jsm');
-const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
-
-const { EventManager } = ExtensionCommon;
+const { Services, EventManager } = ExtensionGlobals;
 
 const prefSvc = Services.prefs;
 const COMPLEX_VALUE_RE = /^chrome:\/\/.+\/locale\/.+\.properties/;

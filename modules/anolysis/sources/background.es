@@ -64,13 +64,20 @@ async function instantiateAnolysis(configTs, browser, demographics) {
     anolysis = new Anolysis(date, config);
   }
 
-  const isHealthy = await anolysis.init();
+  // Check if the browser was started in automatic private mode. This
+  // information is useful to understand why storage might not be available.
+  const autoPrivateMode = await inject.service('host-settings', ['get']).get(
+    'browser.privatebrowsing.autostart',
+    false,
+  );
+
+  const isHealthy = await anolysis.init(autoPrivateMode);
 
   if (!isHealthy) {
     // Try to send a 'health check' metric to backend, which should be sent
     // straight away since storage is not working properly.
     await anolysis.handleTelemetrySignal(
-      { state: 'broken' },
+      { state: 'broken', autoPrivateMode },
       'metrics.anolysis.health.storage',
       { force: true },
     );

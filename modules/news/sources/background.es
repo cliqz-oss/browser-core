@@ -6,10 +6,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 import { getCleanHost, parse } from '../core/url';
+import { setTimeout, clearTimeout } from '../core/timers';
+import Logger from '../core/logger';
 import logos from '../core/services/logos';
 import background from '../core/base/background';
+import inject from '../core/kord/inject';
 import { getMessage } from '../core/i18n';
 import News from './news';
+import { hashUrl, getProduct, getRandomDelay } from './helpers';
+
+const logger = Logger.get('news', { level: 'log' });
 
 const NEWS_EDITIONS = [
   {
@@ -51,21 +57,48 @@ const NEWS_EDITIONS = [
   @class Background
  */
 export default background({
-  requiresServices: [
-    'logos',
-  ],
+  hpnv2: inject.module('hpnv2'),
+  telemetry: inject.service('telemetry', ['isEnabled']),
+  requiresServices: ['logos', 'telemetry'],
   /**
     @method init
     @param settings
   */
   init(settings, browser) {
     this.news = new News(browser);
+    this._timerIds = new Set();
   },
 
   unload() {
+    for (const timer of this._timerIds) {
+      clearTimeout(timer);
+    }
+    this._timerIds.clear();
   },
 
   events: {
+    'ui:enter': function pressEnterHandler(result) {
+      const product = getProduct(result);
+      const isPrivateResult = result.isPrivateResult || result.isPrivateMode;
+      if (!product || isPrivateResult) return;
+
+      this.actions.sendUrlHash({
+        url: result.url,
+        action: 'click',
+        product,
+      });
+    },
+    'ui:click-on-url': function clickOnUrlHandler(result) {
+      const product = getProduct(result);
+      const isPrivateResult = result.isPrivateResult || result.isPrivateMode;
+      if (!product || isPrivateResult) return;
+
+      this.actions.sendUrlHash({
+        url: result.url,
+        action: 'click',
+        product,
+      });
+    },
   },
 
   actions: {
@@ -79,6 +112,7 @@ export default background({
           title: r.title_hyphenated || r.title,
           description: r.description,
           displayUrl: getCleanHost(parse(r.url)) || r.title,
+          domain: r.domain,
           logo: logos.getLogoDetails(r.url),
           url: r.url,
           type: r.type,
@@ -104,6 +138,40 @@ export default background({
         name: getMessage(edition.text),
         isSelected: edition.value === currentEdition,
       }));
-    }
+    },
+    async sendUrlHash({ url, action, product }) {
+      const PRODUCTS = ['HBR', 'NSD', 'ATN', 'SmartCliqz'];
+      const DISALLOWED_PRODUCTS = ['HBR'];
+      const SUPPORTED_ACTIONS = ['click', 'hover'];
+
+      const isNewsProduct = PRODUCTS.includes(product);
+      const isDisallowed = DISALLOWED_PRODUCTS.includes(product);
+      const isSupportedAction = SUPPORTED_ACTIONS.includes(action);
+      const isTelemetryEnabled = this.telemetry.isEnabled();
+
+      if (
+        !isNewsProduct
+        || isDisallowed
+        || !isSupportedAction
+        || !isTelemetryEnabled
+      ) return;
+
+      const payload = {
+        article_id: hashUrl(url),
+        product,
+        action,
+      };
+      const msg = { action: 'news-api', method: 'POST', payload };
+
+      const timer = setTimeout(() => {
+        this._timerIds.delete(timer);
+        this.hpnv2.action('send', msg).catch((err) => {
+          logger.debug('Failed to send the following signal via hpnv2:');
+          logger.debug(msg);
+          logger.debug(err);
+        });
+      }, getRandomDelay());
+      this._timerIds.add(timer);
+    },
   },
 });

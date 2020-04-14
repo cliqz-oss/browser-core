@@ -11,11 +11,13 @@ import config from '../core/config';
 import ResourceLoader from '../core/resource-loader';
 import { parse } from '../core/url';
 import { isBetaVersion } from '../platform/platform';
+import Logger from '../core/logger';
 
 const COSMETICS_URL = `${config.settings.CDN_BASEURL}/autoconsent/${isBetaVersion() ? 'staging-' : ''}cosmetics.json`;
 
 export default class Cosmetics {
   constructor(settings) {
+    this.logger = Logger.get('autoconsent', { level: 'log' });
     this.contentScript = null;
     this.settings = settings;
     this.rules = {};
@@ -74,7 +76,11 @@ export default class Cosmetics {
 
   unload() {
     if (this.contentScript) {
-      this.contentScript.unregister();
+      try {
+        this.contentScript.unregister();
+      } catch (e) {
+        this.logger.warn('error unloading content script', e);
+      }
       this.contentScript = null;
     }
   }

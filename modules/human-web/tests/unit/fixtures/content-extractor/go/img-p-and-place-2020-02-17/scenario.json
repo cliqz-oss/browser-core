@@ -1,0 +1,46 @@
+{
+  "url": "https://www.google.com/search?hl=en&q=green%20apple",
+
+  "mustContain": [
+    {
+      "type": "humanweb",
+      "action": "img-p",
+      "payload": {
+        "q": "green apple",
+        "qurl": "https://www.google.com/search?hl=en&q=green%20apple",
+        "r": {
+          "0": {
+            "u": "https://pixers.de/aufkleber/green-apple-37753391"
+          },
+          "1": {
+            "u": "https://www.angryorchard.com/our-ciders/green-apple"
+          },
+          "2": {
+            "u": "https://food.ndtv.com/food-drinks/5-amazing-benefits-of-green-apples-for-skin-and-overall-health-1804690"
+          },
+          "3": {
+            "u": "https://deaflora.de/Shop/Gurken/Gurke-Richmond-Green-Apple.html?language=de"
+          },
+          "4": {
+            "u": "https://www.e-zigaretten-dampfen.de/green-apple-zazo-liquid.html"
+          }
+        },
+        "ctry": "de"
+      }
+    },
+
+    {
+      "type": "humanweb",
+      "action": "place",
+      "payload": {
+        "t": "Green Apple Pilates GmbH",
+        "u": "http://www.sunyardpilatesclub.com/",
+        "addr": "Adresse: Daphnestraße 21, 81925 München",
+        "loc": "48.15029,11.6248599,15z",
+        "ctry": "de"
+      }
+    }
+  ],
+
+  "mustNotContain": []
+}

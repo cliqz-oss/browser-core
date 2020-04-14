@@ -20,7 +20,6 @@ import { addListener, removeListener } from '../core/http';
 import { getMessage } from '../core/i18n';
 import CliqzHumanWeb from '../human-web/human-web';
 import { parse, tryDecodeURIComponent } from '../core/url';
-import telemetry from '../telemetry/background';
 
 const TELEMETRY_SERVICE = inject.service('telemetry', ['installProvider', 'uninstallProvider']);
 
@@ -109,9 +108,9 @@ const SignalListener = {
 
   monkeyPatchTelemetry: {
     name: 'monkeyPatch',
-    send() {
+    send(sig) {
       SignalListener.SigCache.tel = {
-        sig: [lastElementArray(telemetry.trk)],
+        sig: [sig],
         timestamp: Date.now()
       };
 
@@ -153,15 +152,9 @@ const SignalListener = {
 
       // if Signals only start listens only when someone open the dashboard
       // -> there'll be no data to be shown
-      // to avoid disappointment from the users, we will show the last telemetry signal
-      // and the last Humanweb signal
-      // stored in the queue (if any)
+      // to avoid disappointment from the users, we will show the last Humanweb
+      // signal stored in the queue (if any)
 
-      // this should be the signal user clicking the privacy dashboard button
-      SignalListener.SigCache.tel = {
-        sig: [lastElementArray(telemetry.trk)],
-        timestamp: Date.now()
-      };
       // last human web signal
       try {
         SignalListener.SigCache.hw = {

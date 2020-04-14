@@ -63,19 +63,6 @@ const chromeQueryHtml = async (url, selector, attribute, {
   );
 };
 
-const chromeQueryComputedStyle = async (url, selector) => {
-  const window = browser.extension.getViews().find(w => w.location.href === url);
-
-  if (!window) {
-    return [];
-  }
-
-  return Array.prototype.map.call(
-    window.document.querySelectorAll(selector),
-    el => window.getComputedStyle(el),
-  );
-};
-
 const bgWindow = wrap(() => browser.extension.getBackgroundPage().window);
 export const win = wrap(() => bgWindow);
 export const CLIQZ = wrap(() => bgWindow.CLIQZ);
@@ -103,9 +90,6 @@ export function queryHTML(url, ...rest) {
 }
 
 export function queryComputedStyle(url, ...rest) {
-  if (url.startsWith(browser.runtime.getURL(''))) {
-    return chromeQueryComputedStyle(url, ...rest);
-  }
   return contentQueryComputedStyle(url, ...rest);
 }
 

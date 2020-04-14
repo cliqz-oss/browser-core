@@ -35,7 +35,8 @@ export default class Settings extends React.Component {
     this.setState({ [mode]: value });
   }
 
-  componentWillReceiveProps({ open }) {
+  // eslint-disable-next-line camelcase
+  UNSAFE_componentWillReceiveProps({ open }) {
     if (this.state.open !== open) {
       this.setState({ open });
     }
