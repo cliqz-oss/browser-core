@@ -51,7 +51,7 @@ const skipModules = [];
 // Check from Cliqz browser if any special policy exist
 if (chrome?.cliqz?.getPref) {
   const disabledModulesString = chrome.cliqz.getPref(
-    'extensions.cliqz.enterpirse.disabledModules'
+    'extensions.cliqz.enterprise.disabledModules'
   ) || '';
 
   if (disabledModulesString !== '') {
