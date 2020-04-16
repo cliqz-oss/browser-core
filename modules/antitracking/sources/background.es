@@ -201,6 +201,9 @@ export default background({
       return this.attrack.getTrackerListForTab(tab);
     },
     getGhosteryStats(tabId) {
+      if (!this.pageStore) {
+        return { bugs: {}, others: {} };
+      }
       const page = this.pageStore.tabs.get(tabId);
       if (!page
           || !page.annotations
