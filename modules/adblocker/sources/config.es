@@ -6,6 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import console from '../core/console';
 import prefs from '../core/prefs';
 import cliqzConfig from '../core/config';
 import { isMobile } from '../core/platform';
@@ -14,6 +15,11 @@ import { isMobile } from '../core/platform';
 export const ADB_PREF = 'cliqz-adb';
 export const ADB_PREF_STRICT = 'cliqz-adb-strict';
 export const ADB_USER_LANG = 'cliqz-adb-lang';
+export const ADB_MODE = 'cliqz_adb_mode';
+
+const ADS_ONLY = 'ads';
+const ADS_AND_TRACKERS = 'ads-trackers';
+const ADS_TRACKERS_AND_ANNOYANCES = 'full';
 
 function buildAllowedListsUrl(type) {
   return `${cliqzConfig.settings.ADBLOCKER_BASE_URL}/${type}/allowed-lists.json`;
@@ -23,9 +29,7 @@ class Config {
   get allowedListsUrl() {
     const platformOverride = cliqzConfig.settings.ADBLOCKER_PLATFORM;
     if (platformOverride) {
-      return this.strictMode
-        ? buildAllowedListsUrl(`${platformOverride}-ads-trackers`)
-        : buildAllowedListsUrl(`${platformOverride}-ads`);
+      return buildAllowedListsUrl(`${platformOverride}-${this.preset}`);
     }
 
     // react-native has a custom set of lists to avoid hitting incompatible code
@@ -34,14 +38,37 @@ class Config {
         ? buildAllowedListsUrl('mobile-react-native-ads-trackers')
         : buildAllowedListsUrl('mobile-react-native-ads');
     }
+
     if (isMobile) {
       return this.strictMode
         ? buildAllowedListsUrl('mobile-ads-trackers')
         : buildAllowedListsUrl('mobile-ads');
     }
-    return this.strictMode
-      ? buildAllowedListsUrl('desktop-ads-trackers')
-      : buildAllowedListsUrl('desktop-ads');
+
+    return buildAllowedListsUrl(`desktop-${this.preset}`);
+  }
+
+  get preset() {
+    if (this.strictMode) {
+      return 'ads-trackers';
+    }
+
+    const adbMode = prefs.get(ADB_MODE, 0);
+    switch (adbMode) {
+      case 0: {
+        return ADS_ONLY;
+      }
+      case 1: {
+        return ADS_AND_TRACKERS;
+      }
+      case 2: {
+        return ADS_TRACKERS_AND_ANNOYANCES;
+      }
+      default: {
+        console.warn(`Unknown adblocker mode: ${adbMode}`);
+        return ADS_ONLY;
+      }
+    }
   }
 
   get strictMode() {

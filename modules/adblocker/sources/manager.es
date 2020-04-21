@@ -91,8 +91,9 @@ export default class EngineManager {
   }
 
   async updateAllowedLists() {
-    this.log('update allowed lists from CDN', config.allowedListsUrl);
-    this.allowedLists = await fetchJSON(config.allowedListsUrl);
+    const allowedListsUrl = config.allowedListsUrl;
+    this.log('update allowed lists from CDN', allowedListsUrl);
+    this.allowedLists = await fetchJSON(allowedListsUrl);
     return this.allowedLists;
   }
 

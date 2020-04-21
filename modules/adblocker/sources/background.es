@@ -18,6 +18,7 @@ import config, {
   ADB_PREF,
   ADB_PREF_STRICT,
   ADB_USER_LANG,
+  ADB_MODE,
 } from './config';
 import { isUrl, parse } from '../core/url';
 import telemetry from '../core/services/telemetry';
@@ -195,8 +196,8 @@ export default background({
     },
 
     async prefchange(pref) {
-      if (pref === ADB_PREF_STRICT) {
-        logger.log('Strict mode pref changed: reset');
+      if (pref === ADB_PREF_STRICT || pref === ADB_MODE) {
+        logger.log('Adblocker mode changed: reset');
         if (this.adblocker !== null) {
           await this.adblocker.reset();
         }
