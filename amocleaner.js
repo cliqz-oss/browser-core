@@ -15,12 +15,12 @@ const CONFIGS = {
   sparalarm: {
     configs: ['offers.js'],
     'configs/common': [...COMMON_CONFIGS, 'urls-myoffrz.js'],
-    'configs/releases': ['offers-chip-firefox.js', 'offers-chip-chrome.js'],
+    'configs/releases': ['offers-chip-firefox.js', 'offers-chip-chrome.js', 'offers-chip-edge.js'],
   },
   myoffrz: {
     configs: ['offers.js'],
     'configs/common': [...COMMON_CONFIGS, 'urls-myoffrz.js'],
-    'configs/releases': ['offers-chip-firefox.js', 'offers-chip-chrome.js'],
+    'configs/releases': ['offers-firefox.js', 'offers-chrome.js'],
   },
   gt: {
     configs: ['ghostery-tab-base.js', 'ghostery-tab-firefox.js', 'ghostery-tab-chrome.js'],

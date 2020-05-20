@@ -6,6 +6,7 @@ const commonMocks = require('../../utils/common');
 const persistenceMocks = require('../../utils/persistence');
 const VALID_OFFER_OBJ = require('../../utils/offers/data').VALID_OFFER_OBJ;
 const beMocks = require('../../utils/offers/intent');
+const cloneObject = require('../../utils/utils').cloneObject;
 
 const HistoryMatcherMock = beMocks['offers-v2/backend-connector'].HistoryMatcherMock;
 const CategoryHandlerMock = beMocks['offers-v2/backend-connector'].CategoryHandlerMock;
@@ -61,7 +62,7 @@ export default describeModule('offers-v2/offers/jobs/hard-filters',
       });
 
       function getOfferObj() {
-        return JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+        return cloneObject(VALID_OFFER_OBJ);
       }
 
       function buildOffer({ filterRules, offer_id, rs_dest }) {

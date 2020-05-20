@@ -8,7 +8,7 @@
 
 /* eslint no-param-reassign: off */
 
-import { readFile, writeFile } from './fs';
+import { readFile, writeFile, deleteFile } from './fs';
 import resources from '../../resources';
 import console from './console';
 
@@ -48,5 +48,9 @@ export default class Storage {
 
   save(data) {
     return writeFile(this.filePath, data);
+  }
+
+  delete() {
+    return deleteFile(this.filePath);
   }
 }

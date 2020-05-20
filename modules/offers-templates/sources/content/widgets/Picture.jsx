@@ -13,13 +13,17 @@ export default class Picture extends React.Component {
     notification: '',
     styles: {},
     onLoadImage: () => {},
+    onError: () => {},
   }
   /* eslint-enable react/static-property-placement */
 
   componentDidMount() {
     if (this.props.dataurl || !this.props.url) { return; }
-    const response = data => this.props.onLoadImage(data.dataurl);
+    /* eslint-disable no-confusing-arrow */
+    const response = ({ dataurl } = {}) =>
+      dataurl ? this.props.onLoadImage(dataurl) : this.props.onError(dataurl);
     sendThroughRuntime('getImageAsDataurl', { url: this.props.url }, response);
+    /* eslint-enable no-confusing-arrow */
   }
 
   renderImage() {

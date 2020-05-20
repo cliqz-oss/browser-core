@@ -33,6 +33,16 @@ export default class UrlbarWithResults extends Urlbar {
     };
   }
 
+  componentDidMount() {
+    super.componentDidMount();
+
+    if (this.props.isAutofocusEnabled) {
+      const autofocusInput = document.querySelector('#autofocus-input');
+      this.textInput.value = autofocusInput.value;
+      this.textInput.focus();
+    }
+  }
+
   get classes() {
     return [
       super.classes,

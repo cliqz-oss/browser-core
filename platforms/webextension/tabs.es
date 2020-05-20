@@ -78,7 +78,11 @@ export function getCurrentTab(id) {
 export function closeTabsWithUrl(url, { strict = true } = {}) {
   let urls = [url];
   if (!strict) {
-    urls = getUrlVariations(url);
+    urls = getUrlVariations(url, {
+      protocol: true,
+      www: true,
+      trailingSlash: false,
+    });
   }
   return new Promise((resolve) => {
     chrome.tabs.query({ url: urls }, (tabs = []) => {

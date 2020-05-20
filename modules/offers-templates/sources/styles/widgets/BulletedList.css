@@ -1,0 +1,63 @@
+.widgets-bulleted-list__text {
+  hyphens: auto;
+  font-size: 14px;
+  cursor: default;
+  color: #b4b4b4;
+}
+
+.widgets-bulleted-list__content-title {
+  font-weight: 500;
+  display: inline-block;
+  padding-bottom: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #b4b4b4;
+}
+
+.widgets-bulleted-list__content-title.widgets-bulleted-list__cursor-default {
+  cursor: default;
+}
+
+.widgets-bulleted-list__bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  padding-left: 15px;
+  font-size: 14px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.widgets-bulleted-list__bullet {
+  color: #b4b4b4;
+  padding-bottom: 2px;
+  font-size: 14px;
+  cursor: initial;
+}
+.widgets-bulleted-list__bullet:before {
+  content: "\2022";
+  position: absolute;
+  color: #B3B3B3;
+  font-weight: 500;
+  display: inline-block;
+  margin-left: -12px;
+}
+
+.widgets-bulleted-list__small-triangle {
+  display: inline-block;
+  background: url('../images/triangle.svg') no-repeat center;
+  width: 10px;
+  height: 8px;
+  margin-bottom: 1px;
+}
+
+.widgets-bulleted-list__small-triangle-rotated {
+  transform: rotate(180deg);
+}
+
+.widgets-bulleted-list__show-more {
+  cursor: pointer;
+  color: #b4b4b4;
+  padding-bottom: 2px;
+  font-size: 14px;
+}

@@ -156,4 +156,56 @@ export default describeModule('offers-templates/content/control-center/algorithm
         });
       });
     });
+
+    describe('removeWord function', () => {
+      let removeWord;
+
+      describe('basic cases', () => {
+        beforeEach(function () {
+          removeWord = this.module().removeWord;
+        });
+        it('with default arguments', () => {
+          chai.expect(removeWord()).to.be.eql([false, '']);
+        });
+        it('with empty text', () => {
+          chai.expect(removeWord('')).to.be.eql([false, '']);
+        });
+        it('with empty word', () => {
+          chai.expect(removeWord('hello', '')).to.be.eql([false, 'hello']);
+        });
+        it('with text equal word', () => {
+          chai.expect(removeWord('hello', 'hello')).to.be.eql([true, '']);
+        });
+      });
+
+      describe('position of the word', () => {
+        beforeEach(function () {
+          removeWord = this.module().removeWord;
+        });
+        it('starts with', () => {
+          chai.expect(removeWord('hello world', 'hello')).to.be.eql([true, 'world']);
+        });
+        it('in the middle', () => {
+          chai.expect(removeWord('hello w again', 'w')).to.be.eql([true, 'hello again']);
+        });
+        it('ends with', () => {
+          chai.expect(removeWord('hello world', 'world')).to.be.eql([true, 'hello ']);
+        });
+      });
+
+      describe('exotic cases', () => {
+        beforeEach(function () {
+          removeWord = this.module().removeWord;
+        });
+        it('text less then word', () => {
+          chai.expect(removeWord('a', 'aa')).to.be.eql([false, 'a']);
+        });
+        it('match many times simple', () => {
+          chai.expect(removeWord('a a a a a', 'a')).to.be.eql([true, '']);
+        });
+        it('match many times extended', () => {
+          chai.expect(removeWord('ba a ad a ac', 'a')).to.be.eql([true, 'ba ad ac']);
+        });
+      });
+    });
   });

@@ -17,9 +17,9 @@ import logger from './logger';
  * on Mobile as well, but it is a project on its own to port it.
  */
 export default class MessageSender {
-  constructor(duplicateDetector, proxiedHttp) {
+  constructor(duplicateDetector, hpn) {
     this.duplicateDetector = duplicateDetector;
-    this.proxiedHttp = proxiedHttp;
+    this.hpn = hpn;
   }
 
   async send(message) {
@@ -30,10 +30,7 @@ export default class MessageSender {
     }
     try {
       // Note: assume fire-and-forget message here
-      await this.proxiedHttp.send({
-        method: 'POST',
-        body: JSON.stringify(message),
-      });
+      await this.hpn.action('send', message);
       logger.info('Successfully sent message:', message);
     } catch (e) {
       // rollback to allow future resending attempts

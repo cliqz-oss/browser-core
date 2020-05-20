@@ -108,23 +108,10 @@ export function getCompletion(query, link, options) {
     title
     && options
     && options.useTitle
-    && title.toLowerCase().startsWith(ltrim(lowerQuery))
+    && title.toLowerCase().startsWith(lowerQuery)
     && !isUrl(lowerQuery)
   ) {
-    let titleLength = title.length;
-    // When long titles are auto-completed, the query is not visible anymore as
-    // the cursor jumps to the end. Therefore, we shorten the displayed title.
-    // Note that we could simply not perform auto-completion for long titles,
-    // but the problem really is the display of the title, not the auto-
-    // completion per se (auto-completing long titles still might be useful).
-    if (options.maxTitleLength !== undefined && titleLength > options.maxTitleLength) {
-      // If the query is longer than the max. allowed title length make sure
-      // that we don't cut the title at the wron position. Note: adding ellipses
-      // would be nice to have, but it intrduced some additional complexity.
-      titleLength = Math.max(query.length, options.maxTitleLength);
-    }
-
-    return `${title.substring(query.length, titleLength)} — ${link.friendlyUrl || url}`;
+    return `${title.substring(query.length)} — ${link.friendlyUrl || url}`;
   }
 
   return '';

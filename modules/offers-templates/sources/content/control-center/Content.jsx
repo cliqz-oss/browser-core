@@ -16,13 +16,14 @@ export default class Content extends React.Component {
   constructor(props) {
     super(props);
     const cards = {};
-    const { vouchers, shouldShowOnboarding, autoTrigger } = props;
+    const { vouchers, shouldShowOnboarding, autoTrigger, products } = props;
     vouchers.forEach((voucher) => {
       const { template_data: templateData = {} } = voucher;
       cards[voucher.offer_id] = {
         isCodeHidden: voucher.isCodeHidden,
         status: 'active',
         logoDataurl: templateData.logo_dataurl,
+        pictureDataurl: products.ghostery && autoTrigger && templateData.picture_dataurl,
       };
     });
     const voucher = vouchers[0] || {};
@@ -45,9 +46,9 @@ export default class Content extends React.Component {
     onChangeSeenOffers(subgroup.map(v => v.offer_id));
   }
 
-  onLoadLogo = offerId => (dataurl) => {
+  onLoadImage = (offerId, key = 'logoDataurl') => (dataurl) => {
     const { cards } = this.state;
-    cards[offerId].logoDataurl = dataurl;
+    cards[offerId][key] = dataurl;
     this.setState({ cards });
   }
 
@@ -165,7 +166,7 @@ export default class Content extends React.Component {
       >
         <Badge
           logoDataurl={cards[offerId].logoDataurl}
-          onLoadLogo={this.onLoadLogo(offerId)}
+          onLoadLogo={this.onLoadImage(offerId)}
           key={offerId}
           voucher={voucher}
           notification={subgroup.length}
@@ -214,17 +215,18 @@ export default class Content extends React.Component {
     /* eslint-disable jsx-a11y/no-static-element-interactions */
     return (
       <React.Fragment key={offerId}>
-        <div
-          className={_css('group-header')}
-          onClick={this.onClickActiveGroupHeader}
-        >
+        <div className={_css('group-header')}>
           <GroupHeader
             logoDataurl={cards[offerId].logoDataurl}
-            onLoadLogo={this.onLoadLogo(offerId)}
+            pictureDataurl={cards[offerId].pictureDataurl}
+            onLoadLogo={this.onLoadImage(offerId)}
+            onLoadPicture={this.onLoadImage(offerId, 'pictureDataurl')}
+            onClick={this.onClickActiveGroupHeader}
             key={`${leader.offer_id}group-header`}
             voucher={leader}
             notification={shouldShowNotification && subgroup.length}
             products={products}
+            autoTrigger={autoTrigger}
           />
         </div>
         <div key={`${leader.offer_id}_top`} style={{ height: '7px' }} />

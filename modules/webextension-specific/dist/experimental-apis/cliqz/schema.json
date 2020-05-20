@@ -286,6 +286,21 @@
     "description": "checks if the browser is default",
     "async": "callback",
     "parameters": []
+  },
+  {
+    "name": "externalProtocolHandlerExists",
+    "type": "function",
+    "description": "checks if a given protocol is handled by the browser",
+    "parameters": [
+      {
+        "name": "aProtocolScheme",
+        "type": "string",
+        "description": "Protocol scheme"
+      }
+    ],
+    "returns": {
+      "type": "boolean"
+    }
   }],
   "events": [
     {

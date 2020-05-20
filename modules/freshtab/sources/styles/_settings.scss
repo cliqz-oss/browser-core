@@ -165,8 +165,14 @@ $settings-panel-width: 270px;
             cursor: pointer;
             margin-bottom: 4px;
 
+            .bg-thumbnail {
+                width: 71px;
+                height: 43px;
+                background-size: cover;
+            }
+
             &:hover .selected-img,
-            .active + .selected-img {
+            .active .selected-img {
                 display: flex;
                 align-items: center;
                 justify-content: center

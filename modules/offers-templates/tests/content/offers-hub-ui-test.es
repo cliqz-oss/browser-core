@@ -189,9 +189,10 @@ describe('Offers Hub UI tests', function () {
     });
 
     it('with description', function () {
-      expect(subject.query('.card__description')).to.exist;
+      expect(subject.query('.widgets-bulleted-list__text')).to.exist;
       const conditions = data.vouchers[0].template_data.conditions.substr(0, 80);
-      const result = subject.query('.card__description').textContent.trim().substr(0, 80);
+      const result = subject.query('.widgets-bulleted-list__text')
+        .textContent.trim().substr(0, 80);
       expect(result).to.equal(conditions);
     });
 
@@ -269,8 +270,8 @@ describe('Offers Hub UI tests', function () {
     });
 
     it('with description', function () {
-      expect(subject.query('.card__description')).to.exist;
-      expect(subject.query('.card__description').textContent.trim())
+      expect(subject.query('.widgets-bulleted-list__text')).to.exist;
+      expect(subject.query('.widgets-bulleted-list__text').textContent.trim())
         .to.equal(data.vouchers[0].template_data.conditions || '');
     });
 

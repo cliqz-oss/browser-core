@@ -74,6 +74,7 @@ module.exports = {
     'offers-templates/offers-control-center.bundle.js',
     'offers-templates/offers-control-center-after.bundle.js',
     'offers-banner/app.bundle.js',
+    'offers-v2/environment.bundle.js',
     'human-web/page.bundle.js',
     'human-web/rusha.bundle.js',
     'onboarding-overlay/app.bundle.js',

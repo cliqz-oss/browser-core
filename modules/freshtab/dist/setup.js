@@ -10,9 +10,14 @@
 'use strict';
 
 (function setup() {
-  const theme = localStorage.theme;
+  const { theme, customBgSrc } = localStorage;
   if (theme) {
     document.body.classList.add(['theme-', theme].join(''));
+    if (customBgSrc) {
+      document.body.style.backgroundImage = `url(${customBgSrc})`;
+    } else {
+      document.body.style.backgroundImage = '';
+    }
   }
 
   if (chrome.extension

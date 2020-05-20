@@ -14,6 +14,13 @@ const URL_TO_CHANNEL = {
   'https://chrome.google.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-chip&subchannel=MKTG22': { channel: 'external-chip', subchannel: 'MKTG22' },
   'https://chrome.random.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-focus': { channel: null, subchannel: null },
   'https://chrome.random.com/webstore/detail/myoffrz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-chip&subchannel=MKTG22': { channel: null, subchannel: null },
+  'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?hl=en-GB&utm_source=external-chip': { channel: 'external-chip', subchannel: null },
+  'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-chip': { channel: 'external-chip', subchannel: null },
+  'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-focus': { channel: 'external-focus', subchannel: null },
+  'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test': { channel: 'external-test', subchannel: null },
+  'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-focus&subchannel=MKTG1': { channel: 'external-focus', subchannel: 'MKTG1' },
+  'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-chip&subchannel=MKTG1': { channel: 'external-chip', subchannel: 'MKTG1' },
+  'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test&subchannel=MKTG1': { channel: 'external-test', subchannel: 'MKTG1' },
   'https://myoffrz.net': { channel: null, subchannel: null },
   'https://sparalarm.chip.de/?utm_source=external-chip': { channel: 'external-chip', subchannel: null },
   'https://sparalarm.chip.de/?utm_source=external-focus': { channel: 'external-focus', subchannel: null },
@@ -270,6 +277,28 @@ export default describeModule('offers-banner/attribution',
             chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });
+
+        describe('/Edge', async () => {
+          it('/known url with known channel', async () => {
+            STATES.getCurrentTab = { url: 'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-focus' };
+            chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
+          });
+
+          it('/known url with unknown channel', async () => {
+            STATES.getCurrentTab = { url: 'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test' };
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+
+          it('/unknown url with known channel', async () => {
+            STATES.getCurrentTab = { url: 'https://microsoftedge.microsoft.com/addons/detail/random?utm_source=external-focus' };
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+
+          it('/unknown url with unknown channel', async () => {
+            STATES.getCurrentTab = { url: 'https://microsoftedge.microsoft.com/addons/random/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test' };
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+        });
       });
 
       describe('/Open Tabs', async () => {
@@ -316,6 +345,28 @@ export default describeModule('offers-banner/attribution',
 
           it('/unknown url with unknown channel', async () => {
             STATES.query = [{ url: 'https://chrome.google.com/webstore/detail/cliqz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test' }];
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+        });
+
+        describe('/Edge', async () => {
+          it('/known url with known channel', async () => {
+            STATES.query = [{ url: 'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-focus' }];
+            chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
+          });
+
+          it('/known url with unknown channel', async () => {
+            STATES.query = [{ url: 'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test' }];
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+
+          it('/unknown url with known channel', async () => {
+            STATES.query = [{ url: 'https://microsoftedge.microsoft.com/addons/detail/random?utm_source=external-focus' }];
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+
+          it('/unknown url with unknown channel', async () => {
+            STATES.query = [{ url: 'https://microsoftedge.microsoft.com/addons/random/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test' }];
             chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });
@@ -366,6 +417,28 @@ export default describeModule('offers-banner/attribution',
 
           it('/unknown url with unknown channel', async () => {
             STATES.history = [{ url: 'https://chrome.google.com/webstore/detail/cliqz/eoofgbeobdepdoihpmogabekjddpcbei?utm_source=external-test' }];
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+        });
+
+        describe('/Edge', async () => {
+          it('/known url with known channel', async () => {
+            STATES.history = [{ url: 'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-focus' }];
+            chai.expect((await guessDistributionChannel()).clean).to.eql('focus');
+          });
+
+          it('/known url with unknown channel', async () => {
+            STATES.history = [{ url: 'https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test' }];
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+
+          it('/unknown url with known channel', async () => {
+            STATES.history = [{ url: 'https://microsoftedge.microsoft.com/addons/detail/random?utm_source=external-focus' }];
+            chai.expect((await guessDistributionChannel()).clean).to.eql('');
+          });
+
+          it('/unknown url with unknown channel', async () => {
+            STATES.history = [{ url: 'https://microsoftedge.microsoft.com/addons/random/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test' }];
             chai.expect((await guessDistributionChannel()).clean).to.eql('');
           });
         });

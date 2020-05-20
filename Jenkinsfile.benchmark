@@ -45,6 +45,7 @@ node('docker && !gpu && us-east-1') {
     withEnv(["CLIQZ_CONFIG_PATH=./configs/${params.CONFIG}"]) {
       stage('fern build') {
         sh 'cp -r /app/node_modules ./'
+        sh 'cp -r /app/benchmarks/node_modules ./benchmarks/'
         sh './fern.js build'
       }
 

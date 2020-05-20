@@ -47,6 +47,7 @@ module.exports = {
     'freshtab.search.mode': 'search',
     'freshtab.search.autofocus': false,
     'offers2UserEnabled': false,
+    'modules.freshtab.customBackground': true,
   },
   modules: [
     'core',
@@ -65,7 +66,8 @@ module.exports = {
     'anolysis-cc',
     'overlay',
     'control-center',
-    'toolbox'
+    'toolbox',
+    'whotracksme',
   ],
   bundles: [
     'hpnv2/worker.wasm.bundle.js',

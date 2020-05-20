@@ -1,9 +1,13 @@
 import events from '../../core/events';
-import prefs from '../../core/prefs';
 import Feature from './feature';
+import { getLocation } from '../utils';
 
-const GEO_COUNTRY_PREF_NAME = 'config_location';
-const GEO_CITY_PREF_NAME = 'config_location.city';
+const GEO_PREFS = [
+  'config_location',
+  'config_location.override',
+  'config_location.city',
+  'config_location.city.override'
+];
 
 export default class GeoChecker extends Feature {
   constructor() {
@@ -20,8 +24,7 @@ export default class GeoChecker extends Feature {
 
     // for now we will listen for a pref change
     this.onPrefChange = events.subscribe('prefchange', (pref) => {
-      if (pref === GEO_CITY_PREF_NAME
-          || pref === GEO_COUNTRY_PREF_NAME) {
+      if (GEO_PREFS.indexOf(pref) !== -1) {
         this._updateLocFromPrefs();
       }
     });
@@ -130,10 +133,7 @@ export default class GeoChecker extends Feature {
 
   _updateLocFromPrefs() {
     const locData = {
-      loc: {
-        country: prefs.get(GEO_COUNTRY_PREF_NAME, '--'),
-        city: prefs.get(GEO_CITY_PREF_NAME, '--'),
-      }
+      loc: getLocation()
     };
     this.updateLocation(locData);
   }

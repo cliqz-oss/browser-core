@@ -1,0 +1,66 @@
+{
+  "url": "https://www.google.com/search?q=donald+trump&oq=donald+trump",
+  "type": "search-go",
+  "query": "donald trump",
+  "ctry": "de",
+
+  "mustContain": [
+    {
+      "type": "humanweb",
+      "action": "hwlite.query",
+      "payload": {
+        "r": {
+          "0": {
+            "t": "Donald Trump – Wikipedia",
+            "u": "https://de.m.wikipedia.org/wiki/Donald_Trump",
+            "age": null
+          },
+          "1": {
+            "t": "Seoul: Donald Trump blamiert sich bei Coronavirus-Pressekonferenz - Politik - Bild.de",
+            "u": "https://m.bild.de/politik/trump/politik-ausland/seoul-donald-trump-blamiert-sich-bei-coronavirus-pressekonferenz-69746056,view=amp.bildMobile.html",
+            "age": "vor 8 Stunden · "
+          },
+          "2": {
+            "t": "Peinlicher Patzer: Donald Trump behauptet, Seoul habe \"38 Millionen\" Einwohner",
+            "u": "https://www.t-online.de/nachrichten/ausland/usa/id_87622186/tid_amp/peinlicher-patzer-donald-trump-behauptet-seoul-habe-38-millionen-einwohner-.html",
+            "age": "vor 13 Stunden · "
+          },
+          "3": {
+            "t": "Donald Trump will zwei Billionen Dollar für Straßen und Brücken - Faz - Faz.net",
+            "u": "https://m.faz.net/aktuell/wirtschaft/donald-trump-will-zwei-billionen-dollar-fuer-strassen-und-bruecken-16705871.amp.html",
+            "age": "vor 3 Stunden · "
+          },
+          "4": {
+            "t": "Donald Trump: Zwei Billionen Dollar gegen Corona | ZEIT ONLINE",
+            "u": "https://www.zeit.de/thema/donald-trump",
+            "age": null
+          },
+          "5": {
+            "t": "Donald Trump - DER SPIEGEL",
+            "u": "https://www.spiegel.de/thema/donald_trump/",
+            "age": null
+          },
+          "6": {
+            "t": "Donald Trump - News von WELT",
+            "u": "http://m.welt.de/themen/donald-trump/",
+            "age": null
+          },
+          "7": {
+            "t": "Donald Trump News: Aktuelle deutsche Nachrichten von heute",
+            "u": "https://www.handelsblatt.com/themen/donald-trump",
+            "age": null
+          },
+          "8": {
+            "t": "Donald J. Trump (@realDonaldTrump) | Twitter",
+            "u": "https://twitter.com/realdonaldtrump?lang=de",
+            "age": null
+          }
+        },
+        "q": "donald trump",
+        "qurl": "https://www.google.com/search?q=donald+trump&oq=donald+trump",
+        "ctry": "de"
+      }
+    }],
+
+  "mustNotContain": [{ "action": "ads_*" }]
+}

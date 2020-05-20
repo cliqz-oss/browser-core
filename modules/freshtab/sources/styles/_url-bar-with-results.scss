@@ -18,13 +18,16 @@
     $search-input-height,
     $search-font-size,
     $search-text-indent,
+    $search-logo-size,
 
     $search-input-box-shadow,
     $search-input-border,
     $search-input-box-shadow-focus,
     $search-input-color,
     $search-input-cliqz-bg-image,
-    $search-input-ghostery-bg-image
+    $search-input-ghostery-bg-image,
+    $cliqz-logo-bg,
+    $ghostery-tab-logo-bg,
 ) {
     $width: $inner-content-width;
 

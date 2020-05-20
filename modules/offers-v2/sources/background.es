@@ -10,13 +10,15 @@ import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
 import config from '../core/config';
 import events from '../core/events';
+import i18n from '../core/i18n';
 import pacemaker from '../core/services/pacemaker';
 import { isCliqzBrowser } from '../core/platform';
 import background from '../core/base/background';
 import Database from '../core/database-migrate';
 import EventEmitter from '../core/event-emitter';
 import md5 from '../core/helpers/md5';
-
+import { debounce } from '../core/decorators';
+import { setTimeout } from '../core/timers';
 import OffersHandler from './offers/offers-handler';
 import Offer from './offers/offer';
 import ActionID from './offers/actions-defs';
@@ -45,7 +47,16 @@ import ImageDownloader from './offers/image-downloader';
 // /////////////////////////////////////////////////////////////////////////////
 // consts
 const DEBUG_DEXIE_MIGRATION = false;
-
+/**
+ *
+ * @type {number} debounce time for url-changed events in ms.
+ * note that debouncing is applied regardless of which tab triggers a url-change.
+ */
+const URL_CHANGED_EVENT_DEBOUNCE = 500;
+/**
+ * @type {number}
+ */
+const MOUNT_ONBOARDING_MAX_RETRIES = 10;
 // If the offers are toggled on/off, the real estate modules should
 // be activated or deactivated.
 function touchManagedRealEstateModules(isEnabled) {
@@ -134,7 +145,16 @@ export default background({
     // create the event handler
     this.eventHandler = new EventHandler();
 
-    this.onUrlChange = this.onUrlChange.bind(this);
+    const urlChangedEventDebounce = config.settings.URL_CHANGED_EVENT_DEBOUNCE
+      || URL_CHANGED_EVENT_DEBOUNCE;
+    // debounce to process only the last url in a series of redirects,
+    // which is the most relevant in terms of user intent (EX-973 & EX-9674).
+    // debouncing is applied regardless of which tab triggers url-change,
+    // so some intents might occasionally be ignored,
+    // but this should be sufficiently rare to justify the benefit of not overloading
+    // the browser with intent processing when multiple tabs trigger all together.
+    // no need to cancel: onUrlChange does nothing after softUnload.
+    this.onUrlChange = debounce(this.onUrlChange.bind(this), urlChangedEventDebounce);
     this.eventHandler.subscribeUrlChange(this.onUrlChange);
 
     this.signalReEmitter = new EventEmitter();
@@ -571,6 +591,27 @@ export default background({
       if (origin !== 'offers-checkout') { return; }
       this.couponHandler.dispatcher(type, data);
     },
+    'lifecycle:onboarding': function onOnboarding({ tabId }) {
+      const mount = (retries = 0) => this.core.action(
+        'callContentAction',
+        'offers-v2',
+        'mount-onboarding',
+        { windowId: tabId }
+      )
+        .then(() => {
+          logger.debug('background:lifecycle:onboarding:mounted');
+        })
+        .catch((err) => {
+          if (retries > 0) {
+            // consider checking if tab still exists
+            logger.debug('background:lifecycle:onboarding:retry-on-error', err.message);
+            setTimeout(() => mount(retries - 1), 300); // retry later
+          } else {
+            logger.warn('background:lifecycle:onboarding:too-many-retries', err.message);
+          }
+        });
+      mount(MOUNT_ONBOARDING_MAX_RETRIES);
+    },
     'ui:click-on-reward-box-icon': function onClickRewardBoxIcon() {
       this.offersHandler.markOffersAsRead();
     },
@@ -718,21 +759,106 @@ export default background({
       await this.softInit();
     },
 
-    getOffersStatus() {
+    getFullOffersEnvironment() {
+      const handler = this.offersHandler;
+      const offersDB = handler.offersDB;
+      const patternObj = this.categoryHandler.catMatch.multiPatternObj;
+
       return {
+        initialized: this.initialized,
+        // general prefs
+        backendEnvironment: ({
+          [config.settings.OFFERS_BE_BASE_URL]: 'production',
+          [config.settings.OFFERS_STAGING_BASE_URL]: 'staging'
+        })[OffersConfigs.BACKEND_URL] || `custom | ${OffersConfigs.BACKEND_URL}`,
+        distributionDetails: {
+          channel: prefs.get('offers.distribution.channel', ''),
+          subchannel: prefs.get('offers.distribution.channel.sub', '')
+        },
+        country: prefs.get('config_location', ''),
+        city: prefs.get('config_location.city', ''),
+        countryOverride: prefs.get('config_location.override', ''),
+        cityOverride: prefs.get('config_location.city.override', ''),
+        language: i18n.PLATFORM_LANGUAGE,
+        languageOverride: prefs.get('offers-v2.language.override', ''),
+        channel: config.settings.channel,
+        // offers state
         activeCategories: this.categoryHandler.catTree
           .getAllSubCategories('')
           .map(node => node.getCategory())
           .filter(cat => cat && cat.isActive())
           .map(cat => cat.getName()),
+        activePatternCount: {
+          id2categories: patternObj.id2categories.size,
+          id2pattern: patternObj.id2pattern.size
+        },
         activeIntents: this.intentHandler.activeIntents.keys(),
-        activeOffers: this.offersHandler.offersDB.offersIndexMap.keys(),
         activeRealEstates: this.registeredRealEstates,
-        categories: this.categoryHandler.catTree.getAllSubCategories('')
+        loadedCategories: this.categoryHandler.catTree.getAllSubCategories('')
           .map(catNode => catNode.name),
-        initialized: this.initialized,
         triggerCache: Object.keys(this.globObjects.trigger_cache.triggerIndex),
+        offersWithReason: offersDB.getOffers().map(
+          ({offer, offer_id: offerId, offer: {display_id: portalId}}) => ({
+            portalId,
+            offerId,
+            reason: offersDB.getReasonForHaving(offerId)?.reason?.map(r => r.pattern).join(', '),
+            // eslint-disable-next-line camelcase
+            cta: offer.ui_info.template_data?.call_to_action.url
+          })
+        ),
+        offersFull: [...offersDB.offersIndexMap.entries()],
+        'offersToday/OffersMaxToday': `${handler.offersGeneralStats.offersAddedToday()}/${OffersConfigs.MAX_NUM_OFFERS_PER_DAY}`,
       };
+    },
+
+    getCategoryForUrl(url) {
+      const urlPatternRequest = new UrlData(url).getPatternRequest();
+      const matches = this.categoryHandler.newUrlEvent(urlPatternRequest);
+      return [...matches.matches.entries()];
+    },
+
+    async setBackendOverride() {
+      prefs.set('triggersBE', config.settings.OFFERS_STAGING_BASE_URL);
+      await this.actions.softReloadOffers();
+      await this.cancelPostInit();
+      await this.postInit();
+    },
+
+    async resetBackendOverride() {
+      prefs.clear('triggersBE');
+      await this.actions.softReloadOffers();
+      await this.cancelPostInit();
+      await this.postInit();
+    },
+
+    async setCountryOverride(country) {
+      prefs.set('config_location.override', country);
+      await this.actions.softReloadOffers();
+      await this.cancelPostInit();
+      await this.postInit();
+    },
+
+    async resetCountryOverride() {
+      prefs.clear('config_location.override');
+      await this.actions.softReloadOffers();
+      await this.cancelPostInit();
+      await this.postInit();
+    },
+
+    async setCityOverride(city) {
+      prefs.set('config_location.city.override', city);
+    },
+
+    async resetCityOverride() {
+      prefs.clear('config_location.city.override');
+    },
+
+    async setLanguageOverride(language) {
+      prefs.set('offers-v2.language.override', language);
+    },
+
+    async resetLanguageOverride() {
+      prefs.clear('offers-v2.language.override');
     },
 
     // we need to trigger the onboarding offers both at install plus
@@ -760,6 +886,17 @@ export default background({
         );
 
         prefs.set('offers-v2.onboarding.sofar', 'loaded');
+      }
+    },
+
+    /**
+     * erase onboarding offers, i.e. for all offers referenced by the given ids
+     * completely delete the offer together with its associated meta-data.
+     * @param {string[]} offerIds
+     */
+    deleteOnboardingOffers(offerIds = []) {
+      for (const offerID of offerIds) {
+        this.offersDB.eraseOfferObject(offerID, { expired: false });
       }
     },
 

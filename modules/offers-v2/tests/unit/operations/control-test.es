@@ -54,7 +54,8 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
       },
       weekDay: function () {
         return currentWeekDay;
-      }
+      },
+      getLocation: () => ({ country: '', city: '' }),
     },
     'offers-v2/regexp_cache': {
       default: class {
@@ -278,6 +279,13 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
         it('/simple checks exists string same value', () => {
           const o = ['$if_pref', ['test_pref_str', 'value1']];
           prefs.set('test_pref_str', 'value1');
+          return testCase(o, true, ctx);
+        });
+
+        it('/override checks if override takes precedence', () => {
+          const o = ['$if_pref', ['test_pref', 'value2']];
+          prefs.set('test_pref', 'value1');
+          prefs.set('test_pref.override', 'value2');
           return testCase(o, true, ctx);
         });
       });
@@ -1050,6 +1058,34 @@ export default describeModule('offers-v2/trigger_machine/ops/control_expr',
               'fr'
             ]
           ];
+          platformLaguage = 'es';
+          return testCase(o, false, ctx);
+        });
+
+        it('/override checks if override takes precedence - language in the list', () => {
+          const o = [
+            '$lang_is',
+            [
+              'en',
+              'de',
+              'fr'
+            ]
+          ];
+          prefs.set('offers-v2.language.override', 'fr');
+          platformLaguage = 'es';
+          return testCase(o, true, ctx);
+        });
+
+        it('/override checks if override takes precedence - language not in the list', () => {
+          const o = [
+            '$lang_is',
+            [
+              'en',
+              'de',
+              'fr'
+            ]
+          ];
+          prefs.set('offers-v2.language.override', 'ro');
           platformLaguage = 'es';
           return testCase(o, false, ctx);
         });

@@ -24,7 +24,7 @@ import logger from './logger';
 import { queryCliqz, openLink, openTab, getOpenTabs, getReminders } from '../platform/browser-actions';
 import providesServices from './services';
 import { httpHandler } from './http';
-import { updateTab, closeTab, query, getCurrentTab } from './tabs';
+import { updateTab, closeTab, query, getCurrentTab as getCurrentTabPlatform } from './tabs';
 import { enableRequestSanitizer, disableRequestSanitizer } from './request-sanitizer';
 import ResourceLoader from './resource-loader';
 import { getResourceUrl } from './platform';
@@ -135,15 +135,25 @@ export default background({
 
   getWindowStatusFromModules(win) {
     let currentTab;
+    const getCurrentTab = async () => {
+      if (!currentTab) {
+        currentTab = await getCurrentTabPlatform(win.id);
+      }
+      return currentTab;
+    };
+
     return Object.keys(this.app.modules).map(async (module) => {
       const backgroundModule = this.app.modules[module].background;
       let status = null;
       if (backgroundModule && backgroundModule.currentWindowStatus) {
-        if (!currentTab) {
-          currentTab = await getCurrentTab(win.id);
+        currentTab = await getCurrentTab(win.id);
+        if (currentTab) {
+          status = await backgroundModule.currentWindowStatus(currentTab);
+          return { module, status };
         }
-        status = await backgroundModule.currentWindowStatus(currentTab);
-      } else if (backgroundModule && backgroundModule.status) {
+      }
+
+      if (backgroundModule && backgroundModule.status) {
         status = await backgroundModule.status();
       }
       return { module, status };
@@ -216,8 +226,8 @@ export default background({
       return telemetry.push(signal, schema, instant);
     },
 
-    queryCliqz(q) {
-      queryCliqz(q);
+    queryCliqz(q, options) {
+      queryCliqz(q, options);
     },
 
     async openLink(
@@ -244,7 +254,7 @@ export default background({
         });
         const tab = tabs.find(t => t.url === fixedURL);
         if (tab) {
-          const currentTab = await getCurrentTab();
+          const currentTab = await getCurrentTabPlatform();
           id = tab.id;
           updateTab(id, { active: true });
           if (currentTab && currentTab.url === getResourceUrl(config.settings.NEW_TAB_URL)) {

@@ -19,6 +19,13 @@ export const DISTRIBUTION_STORES = [
     addonMatcher: `/webstore/detail/${config.settings.storeName || 'myoffrz/eoofgbeobdepdoihpmogabekjddpcbei'}`
   },
   {
+    // eg: https://microsoftedge.microsoft.com/addons/detail/nhceipmndngbhhhadbohlngbaehbiogj?utm_source=external-test&subchannel=campaign_22
+    host: 'microsoftedge.microsoft.com',
+    queryUtmSource: 'utm_source',
+    queryUtmCampaign: 'subchannel',
+    addonMatcher: `/addons/detail/${config.settings.storeName || 'nhceipmndngbhhhadbohlngbaehbiogj'}`
+  },
+  {
     // eg: https://sparalarm.chip.de/?utm_source=external-chip&utm_campaign=campaign_22
     host: 'sparalarm.chip.de',
     queryUtmSource: 'utm_source',

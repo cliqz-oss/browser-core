@@ -53,16 +53,18 @@ export default class InstantProvider extends BaseProvider {
         if (isQueryUrl) {
           const url = fixURL(query);
 
-          results.push(normalize({
-            provider: this.id,
-            type: 'navigate-to',
-            url,
-            friendlyUrl: url,
-            text: query,
-            data: {
-              kind: ['navigate-to'],
-            },
-          }));
+          if (url !== null) {
+            results.push(normalize({
+              provider: this.id,
+              type: 'navigate-to',
+              url,
+              friendlyUrl: url,
+              text: query,
+              data: {
+                kind: ['navigate-to'],
+              },
+            }));
+          }
         }
 
         if (!config.settings['search.config.providers.complementarySearch.disabled']) {

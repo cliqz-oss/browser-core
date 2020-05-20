@@ -11,7 +11,7 @@ import logger from './logger';
 import { truncatedHash } from '../core/helpers/md5';
 import random from '../core/crypto/random';
 import { anonymousHttpGet } from './http';
-import { getTimeAsYYYYMMDD } from './timestamps';
+import { getTimeAsYYYYMMDD } from '../hpn-lite/timestamps';
 
 function doublefetchQueryHash(query, type) {
   // defines a cooldown to avoid performing unnecessary
@@ -109,10 +109,10 @@ export default class SearchExtractor {
     }
 
     const results = [];
-    [].forEach.call(rso.querySelectorAll('div.srg'), (x) => {
+    [].forEach.call(rso.querySelectorAll('div.mnr-c.xpd.O9g5cc.uUPGi'), (x) => {
       const url = (x.querySelector('a.C8nzq') || {}).href;
-      const title = (x.querySelector('a > div[role="heading"]') || { textContent: '' }).textContent;
-      const age = (x.querySelector('div[jsname="ao5mud"] div.pAkzie div.LZ8hH div.MUxGbd.yDYNvb span.MUxGbd.wuQ4Ob.WZ8Tjf') || { textContent: '' }).textContent;
+      const title = (x.querySelector('a > div > div') || { textContent: '' }).textContent;
+      const age = (x.querySelector('div[id^=tsuid] span.MUxGbd.wuQ4Ob.WZ8Tjf') || { textContent: '' }).textContent;
       if (url && title) {
         results.push({ t: title, u: url, age: age || null });
       }
@@ -127,12 +127,12 @@ export default class SearchExtractor {
       type: 'humanweb',
       action: 'hwlite.query',
       payload: {
-        r: results.map((x, i) => ({ [i]: x })),
+        r: { ...results },
         q: query,
         qurl: doublefetchUrl,
         ctry: this.sanitizer.getSafeCountryCode(),
       },
-      ver: '2.7',
+      ver: '2.8',
       channel: this.channel,
       ts: getTimeAsYYYYMMDD(),
       'anti-duplicates': Math.floor(random() * 10000000),

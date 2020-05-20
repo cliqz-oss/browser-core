@@ -9,8 +9,7 @@ import Category from './category';
 import logger from '../common/offers_v2_logger';
 import SimpleDB from '../../core/persistence/simple-db';
 import pacemaker from '../../core/services/pacemaker';
-import { shouldKeepResource } from '../utils';
-import prefs from '../../core/prefs';
+import { shouldKeepResource, getLocation } from '../utils';
 
 // name of the key on the DB
 const CATEGORY_FETCHER_DB_ID = 'cliqz-cat-fetcher';
@@ -81,11 +80,10 @@ export default class CategoryFetcher {
    * Will perform the fetch and set the categories if any
    */
   async _performFetch() {
-    const country = prefs.get('config_location', '') || '';
     try {
       const payload = await this.beConnector.sendApiRequest(
         'categories',
-        { last_rev: this.lastRevision, country },
+        { last_rev: this.lastRevision, country: getLocation().country },
         'GET',
         { useCache: false }
       );

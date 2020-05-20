@@ -57,7 +57,6 @@ export function getOfferNotificationType(data = {}) {
   return uiInfo.notif_type;
 }
 
-
 export function products() {
   const brand = config.settings.OFFERS_BRAND;
   return {

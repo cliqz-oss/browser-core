@@ -20,3 +20,15 @@ export function groupBy(array = [], op = identity) {
   });
   return map;
 }
+
+/**
+* text {string}
+* word {string}
+* @return {[boolean, string]}
+*/
+export function removeWord(text = '', word) {
+  if (!word) { return [false, text]; }
+  const regexp = new RegExp(`\\b${word}\\b ?`, 'g');
+  const newText = text.replace(regexp, '');
+  return [newText.length < text.length, newText];
+}

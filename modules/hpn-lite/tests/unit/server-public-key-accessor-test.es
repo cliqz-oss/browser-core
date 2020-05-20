@@ -46,7 +46,7 @@ const MOCKS = {
   },
 };
 
-export default describeModule('human-web-lite/server-public-key-accessor',
+export default describeModule('hpn-lite/server-public-key-accessor',
   () => ({
     'platform/globals': {
       default: {}

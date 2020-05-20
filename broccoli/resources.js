@@ -16,7 +16,7 @@ let fileContents = '';
 
 if (config.resources && config.resources.bundling === 'require') {
   const pathVariable = path => path.replace('/', '_').replace('.', '_').replace('-', '_');
-  const assets = config.resources.include.map(path => [pathVariable(path), path]);
+  const assets = config.resources.include.map(path => ({ varName: pathVariable(path), resourcePath: path }));
   const importStatements = assets.map((args) => {
     const varName = args.varName;
     const resourceName = args.resourcePath;

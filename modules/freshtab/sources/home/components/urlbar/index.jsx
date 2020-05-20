@@ -30,10 +30,6 @@ class Urlbar extends React.Component {
   componentDidMount() {
     this.textInput.addEventListener('focus', urlBarFocusSignal);
     this.textInput.addEventListener('blur', urlBarBlurSignal);
-
-    const autofocusInput = document.querySelector('#autofocus-input');
-    this.textInput.value = autofocusInput.value;
-    this.textInput.focus();
   }
 
   // eslint-disable-next-line camelcase
@@ -49,7 +45,7 @@ class Urlbar extends React.Component {
   }
 
   _queryCliqz(input) {
-    cliqz.core.queryCliqz(input);
+    cliqz.core.queryCliqz(input, { entryPoint: 'newTab' });
 
     cliqz.core.sendTelemetry({
       type: 'home',

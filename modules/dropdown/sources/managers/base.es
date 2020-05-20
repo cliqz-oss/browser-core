@@ -138,7 +138,10 @@ export default class BaseDropdownManager {
     return this._queryId;
   }
 
-  async _queryCliqz(_query, { allowEmptyQuery = false } = {}) {
+  async _queryCliqz(_query, {
+    allowEmptyQuery = false,
+    entryPoint = this.entryPoint
+  } = {}) {
     // Don't create a tick if possible
     if (!this._iframeWrapperDefer.isSettled) {
       await this.iframeWrapperReady;
@@ -161,6 +164,7 @@ export default class BaseDropdownManager {
         isPrivate: incognito,
         isTyped,
         keyCode,
+        entryPoint,
         targetModule: this.targetModule,
       });
     } else {
@@ -335,8 +339,8 @@ export default class BaseDropdownManager {
     this._iframeWrapperDefer.resolve();
   }
 
-  close() {
-    this.dropdownAction.stopSearch({ entryPoint: this.entryPoint });
+  close = () => {
+    this.dropdownAction.stopSearch();
     this.collapse();
   }
 
@@ -354,7 +358,7 @@ export default class BaseDropdownManager {
     clearTimeout(this._delayedBlur);
   }
 
-  onInput() {
+  onInput(ev = null, mixerOptions = {}) { // eslint-disable-line no-unused-vars
     if (this._lastEvent && KEYS_TO_IGNORE.has(this._lastEvent.key)) {
       // No need to trigger search on "dead" and "unidentified" keystrokes
       return false;
@@ -368,7 +372,7 @@ export default class BaseDropdownManager {
         current_length: this.query.length,
       });
     }
-    this._queryCliqz();
+    this._queryCliqz(null, mixerOptions);
     return true;
   }
 

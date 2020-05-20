@@ -6,6 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * Any changes made to the following variables:
+ *   `search-logo-size`, `search-input-height`, `dial-height`, `news-height`
+ * should be reflected in `COMPONENT_SIZES` object in
+ *  modules/freshtab/sources/home/components/app.jsx
+ */
 $configs: (
     xsmall: (
         base: (
@@ -31,6 +37,7 @@ $configs: (
         url-bar: (
             search-size: 375px,
             search-input-height: 34px,
+            search-logo-size: 46px,
             search-font-size: 17px,
             search-text-indent: 40px,
         ),
@@ -97,6 +104,7 @@ $configs: (
         url-bar: (
             search-size: 436px,
             search-input-height: 34px,
+            search-logo-size: 46px,
             search-font-size: 17px,
             search-text-indent: 40px,
         ),
@@ -163,6 +171,7 @@ $configs: (
         url-bar: (
             search-size: 677px,
             search-input-height: 48px,
+            search-logo-size: 66px,
             search-font-size: 21px,
             search-text-indent: 57px,
         ),
@@ -229,6 +238,7 @@ $configs: (
         url-bar: (
             search-size: 477px,
             search-input-height: 48px,
+            search-logo-size: 66px,
             search-font-size: 21px,
             search-text-indent: 57px,
         ),
@@ -295,6 +305,7 @@ $configs: (
         url-bar: (
             search-size: 764px,
             search-input-height: 63px,
+            search-logo-size: 86px,
             search-font-size: 24px,
             search-text-indent: 74px,
         ),

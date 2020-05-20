@@ -99,6 +99,9 @@ if (env.BRANCH_NAME.startsWith('v14.')) {
     matrix['offers-chip-chrome'] = [
         'config': 'releases/offers-chip-chrome.js',
     ]
+    matrix['offers-chip-edge'] = [
+        'config': 'releases/offers-chip-edge.js',
+    ]
 }
 
 if (isIntegrationBranch) {

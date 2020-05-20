@@ -49,6 +49,7 @@ module.exports = {
   modules: [
     'core',
     'human-web-lite',
+    'hpn-lite',
     'search',
     'anolysis',
     'geolocation',
@@ -63,6 +64,7 @@ module.exports = {
     include: [
       'core/logo-database.json',
       'autoconsent/cosmetics.json',
+      'core/tracker_db_v2.json',
     ]
   }
 };

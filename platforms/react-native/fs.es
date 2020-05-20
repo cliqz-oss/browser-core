@@ -22,3 +22,4 @@ if (NativeModules.RNFSManager) {
 export const readFile = fs.readFile;
 export const readFileAssets = fs.readFileAssets;
 export const writeFile = fs.writeFile;
+export const deleteFile = fs.deleteFile;

@@ -210,17 +210,15 @@ export default class OffersAPI {
       return;
     }
     const bestOffer = offerCollection.getBestOffer();
-    const offers = [...offerCollection.values()]
-      .filter(({ offer }) => offer.isTargetedAndNotSilent())
-      .map(({ offer, group }) => ({
-        ...this._withAttributes(offer),
-        group
-      }));
-    if (!offers.length) {
-      logger.info(
-        'OffersAPI#_publishPushCollectionMessage:'
-        + 'collection consists only of silent or non-targeted offers, nothing to publish'
-      );
+    const targetedNotSilentOffers = [...offerCollection.values()]
+      .filter(({ offer }) => offer.isTargetedAndNotSilent());
+    if (!targetedNotSilentOffers.length) {
+      const bestOfferIsOOTW = !bestOffer.isTargeted() && !bestOffer.isSilent();
+      if (bestOfferIsOOTW) {
+        this._publishPushOfferMessage(bestOffer, { displayRule });
+      } else {
+        logger.info('OffersAPI#_publishPushCollectionMessage: nothing to publish');
+      }
       return;
     }
     if (!bestOffer.isTargetedAndNotSilent()) {
@@ -230,6 +228,11 @@ export default class OffersAPI {
       );
       return;
     }
+    const offers = targetedNotSilentOffers
+      .map(({ offer, group }) => ({
+        ...this._withAttributes(offer),
+        group
+      }));
     const msgData = {
       display_rule: displayRule || bestOffer.ruleInfo,
       offers
@@ -519,27 +522,37 @@ export default class OffersAPI {
   }
 
   /**
-   * This method should be called whenever an offer is removed from the DB
+   * This method should be called whenever an offer is removed or erased from the DB
    */
-  offerRemoved(offerID, campaignID, erased) {
+  offerRemoved(offerID, campaignID, erased, expired = true) {
     if (!erased) { return; }
 
-    // add the new signal to be sent and force to be sent right away
-    // we should remove the associated signals on the signal handler here
-    this.sigHandler.setCampaignSignal(
-      campaignID,
-      offerID,
-      ORIGIN_ID,
-      ActionID.AID_OFFER_EXPIRED
-    );
-    // we force the signal handler to send the signal now
-    this.sigHandler.sendCampaignSignalNow(campaignID).then(
+    const sendOfferExpiredSignalWhenExpired = expired
+      ? this._sendOfferExpiredCampaignSignalNow(offerID, campaignID)
+      : Promise.resolve();
+
+    sendOfferExpiredSignalWhenExpired.then(
       () => this.sigHandler.removeCampaignSignals(campaignID)
     );
   }
 
   // /////////////////////////////////////////////////////////////////////////////
   // internal methods
+  /**
+   * force-send an `offer_removed` signal
+   * @param {string} offerID
+   * @param {string} campaignID
+   * @return {Promise<void>} resolves when the sending is done
+   */
+  async _sendOfferExpiredCampaignSignalNow(offerID, campaignID) {
+    this.sigHandler.setCampaignSignal(
+      campaignID,
+      offerID,
+      ORIGIN_ID,
+      ActionID.AID_OFFER_EXPIRED
+    );
+    await this.sigHandler.sendCampaignSignalNow(campaignID);
+  }
 
   //
   // @brief Remove a particular offer

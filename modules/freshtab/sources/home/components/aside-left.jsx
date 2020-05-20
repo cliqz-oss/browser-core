@@ -18,7 +18,7 @@ function AsideLeft({
   onHistoryClick,
 }) {
   return (
-    <aside className="aside">
+    <aside className="aside" id="aside-left">
       <AsideElement
         condition={isHistoryEnabled}
         href={historyUrl}

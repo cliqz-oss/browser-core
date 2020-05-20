@@ -106,21 +106,15 @@ function shouldKeepResource(resourceWeight) {
   return newUserGroup >= resourceWeight;
 }
 
-function oncePerInterval(f, shift = 1000 * 60 * 5) {
-  const m = {};
-  return function wrapper(obj = {}) {
-    const { key = 'default-key' } = obj;
-    if (m[key] && (m[key] + shift > Date.now())) {
-      return { cached: true };
-    }
-    m[key] = Date.now();
-    f.apply(this, [obj]);
-    return { cached: false };
-  };
-}
-
 function isDeveloper() {
   return prefs.get('developer', false);
+}
+
+function getLocation() {
+  return {
+    country: prefs.get('config_location.override', prefs.get('config_location')) || '--',
+    city: prefs.get('config_location.city.override', prefs.get('config_location.city')) || '--'
+  };
 }
 
 export {
@@ -132,8 +126,8 @@ export {
   getLatestOfferInstallTs,
   getABNumber,
   hashString,
-  oncePerInterval,
   randRange,
   shouldKeepResource,
-  isDeveloper
+  isDeveloper,
+  getLocation
 };

@@ -20,6 +20,7 @@
 /configs/common/urls-myoffrz.js @luciancor
 /configs/offers.js @luciancor
 /configs/releases/offers-chip-chrome.js @luciancor
+/configs/releases/offers-chip-edge.js @luciancor
 /configs/releases/offers-chip-firefox.js @luciancor
 /configs/releases/offers-chrome.js @luciancor
 /configs/releases/offers-edge.js @luciancor
@@ -71,13 +72,11 @@
 /modules/cliqz-android/ @chrmod
 
 # MODULES - MyOffrz
-/modules/browser-panel/ @luciancor @giota-cliqz
-/modules/myoffrz-helper/ @olpa-cliqz @aleksandr-cliqz
+/modules/browser-panel/ @luciancor @giota-cliqz @smcatala
+/modules/myoffrz-helper/ @olpa-cliqz @aleksandr-cliqz @smcatala
 /modules/offers-banner/ @aleksandr-cliqz
-/modules/offers-cc/ @aleksandr-cliqz @gabriel-cliqz @giota-cliqz @mai-cliqz
-/modules/offers-reminder/ @aleksandr-cliqz @olpa-cliqz
-/modules/offers-v2/ @eleniS @aleksandr-cliqz @olpa-cliqz
-/modules/offers-checkout/ @aleksandr-cliqz @olpa-cliqz
+/modules/offers-templates/ @aleksandr-cliqz @gabriel-cliqz @giota-cliqz @mai-cliqz
+/modules/offers-v2/ @eleniS @aleksandr-cliqz @olpa-cliqz @smcatala
 
 # PLATFORMS
 /platforms/ @private-face @sammacbeth @remusao @philipp-classen

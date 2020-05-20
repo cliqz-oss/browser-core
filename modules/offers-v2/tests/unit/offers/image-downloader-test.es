@@ -4,6 +4,7 @@ const commonMocks = require('../utils/common');
 const fetchMocks = require('../utils/fetch');
 const persistenceMocks = require('../utils/persistence');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const cloneObject = require('../utils/utils').cloneObject;
 
 const okUrl = 'http://ok';
 const failUrl = 'fake://?status=404';
@@ -18,7 +19,7 @@ const url1 = 'http://cdn.cliqz.com/img-1';
 const dataurl1 = 'dataurl://for-img-1';
 
 function storeOffer(odb, oid, templateProperties) {
-  const o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+  const o = cloneObject(VALID_OFFER_OBJ);
   o.offer_id = oid;
   Object.assign(o.ui_info.template_data, templateProperties);
   odb.addOfferObject(oid, o);

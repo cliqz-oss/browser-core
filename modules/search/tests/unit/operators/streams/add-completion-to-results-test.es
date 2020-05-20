@@ -49,24 +49,6 @@ export default describeModule('search/operators/streams/add-completion-to-result
           })).to.eql('ription — https://example.com');
         });
 
-        it('cuts long titles', () => {
-          chai.expect(complete({
-            query: 'desc',
-            url: 'https://example.com',
-            title: 'description',
-            options: { useTitle: true, maxTitleLength: 6 },
-          })).to.eql('ri — https://example.com');
-        });
-
-        it('cuts long titles correctly with longer queries present', () => {
-          chai.expect(complete({
-            query: 'descript',
-            url: 'https://example.com',
-            title: 'description',
-            options: { useTitle: true, maxTitleLength: 6 },
-          })).to.eql(' — https://example.com');
-        });
-
         it('does not use stripped query', () => {
           chai.expect(complete({
             query: 'about:desc',

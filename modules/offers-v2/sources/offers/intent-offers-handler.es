@@ -1,7 +1,6 @@
-import { timestampMS, shouldKeepResource } from '../utils';
+import { timestampMS, shouldKeepResource, getLocation } from '../utils';
 import logger from '../common/offers_v2_logger';
 import Offer from './offer';
-import prefs from '../../core/prefs';
 import { buildCachedMap } from '../common/cached-map-ext';
 
 
@@ -90,10 +89,9 @@ export default class IntentOffersHandler {
       return Promise.resolve(true);
     }
 
-    const country = prefs.get('config_location', '') || '';
     return this.backendConnector.sendApiRequest(
       'offers',
-      { intent_name: intentName, country },
+      { intent_name: intentName, country: getLocation().country },
       'GET'
     ).then((aIntentOffers) => {
       if (!aIntentOffers) {

@@ -45,6 +45,22 @@ export default class Footer extends React.Component {
     showNotification: false
   }
 
+  checkClick = () => {
+    const { autoTrigger } = this.props;
+    this.setState((prevState) => {
+      let { clicks = 0 } = prevState;
+      if (clicks > 5) {
+        const url = chrome.runtime.getURL('/modules/offers-v2/environment/index.html');
+
+        send('openURL', { url, closePopup: true });
+        clicks = 0;
+        if (!autoTrigger) { window.close(); }
+      }
+
+      return { clicks: clicks + 1 };
+    });
+  }
+
   render() {
     const { products, autoTrigger, shouldShowOptIn } = this.props;
     const { showNotification } = this.state;
@@ -65,6 +81,7 @@ export default class Footer extends React.Component {
               `${prefix}-container`
             )
           }
+          onClick={this.checkClick}
         >
           {products.ghostery
             ? (

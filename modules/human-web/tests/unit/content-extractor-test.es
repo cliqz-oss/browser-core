@@ -310,6 +310,16 @@ export default describeModule('human-web/content-extractor',
           )).to.equal('münchen');
         });
 
+        it('should find search terms on cliqz.com', function () {
+          expect(uut.tryExtractCliqzSerpQuery(
+            'https://cliqz.com/search?lang=en&country=us&safe_search=on&q=harzer%20k%C3%A4se&news_edition=intl'
+          )).to.equal('harzer käse');
+
+          expect(uut.tryExtractCliqzSerpQuery(
+            'https://cliqz.com/search?q=m%C3%BCnchen&lang=en&country=de#channel=website'
+          )).to.equal('münchen');
+        });
+
         it('should not find false positives', function () {
           [
             'https://beta.cliqz.com/',

@@ -1,9 +1,9 @@
 /* global describeModule */
 /* global chai */
 const commonMocks = require('../../utils/common');
+const cloneObject = require('../../utils/utils').cloneObject;
 const { VALID_OFFER_OBJ, VALID_OFFER_SUCCESS_URL } = require('../../utils/offers/data');
 
-const clone = obj => JSON.parse(JSON.stringify(obj));
 const getMonitor = (offer, sID) => offer.monitorData.find(({ signalID }) => signalID === sID);
 const createHostnamePattern = url => `||${new URL(url).hostname}$script`;
 
@@ -36,10 +36,10 @@ export default describeModule('offers-v2/offers/relation-stats/offers-to-page',
 
       it('should return related offers by site owner', () => {
         const url = urlData(VALID_OFFER_SUCCESS_URL);
-        const offer = clone(VALID_OFFER_OBJ);
+        const offer = cloneObject(VALID_OFFER_OBJ);
         const catMatches = { haveCommonWith: () => false };
         // add a page_imp monitor based on the success monitor
-        const monitor = clone(getMonitor(offer, 'success'));
+        const monitor = cloneObject(getMonitor(offer, 'success'));
         monitor.signalID = 'page_imp';
         monitor.patterns = [createHostnamePattern(VALID_OFFER_SUCCESS_URL)]; // match host
         offer.monitorData.push(monitor);
@@ -53,12 +53,12 @@ export default describeModule('offers-v2/offers/relation-stats/offers-to-page',
       it('should return related offers but less then #stored-offers', () => {
         const url = urlData('https://hello.world/offers');
         const catMatches = { haveCommonWith: () => false };
-        const offer = clone(VALID_OFFER_OBJ);
-        const monitor = clone(getMonitor(offer, 'success'));
+        const offer = cloneObject(VALID_OFFER_OBJ);
+        const monitor = cloneObject(getMonitor(offer, 'success'));
         monitor.signalID = 'page_imp';
         monitor.patterns = [createHostnamePattern(VALID_OFFER_SUCCESS_URL)]; // don't match host
         offer.monitorData.unshift(monitor);
-        const offer2 = clone(offer);
+        const offer2 = cloneObject(offer);
         offer.offer_id = 'oid1';
         offer2.offer_id = 'oid2';
         const monitor2 = offer2.monitorData[0]; // see unshift above

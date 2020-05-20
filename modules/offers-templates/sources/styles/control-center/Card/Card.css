@@ -27,23 +27,9 @@
 }
 
 .card__description {
-  hyphens: auto;
+  color: #b4b4b4;
   font-size: 14px;
   cursor: default;
-  color: #b4b4b4;
-}
-
-.card__condition-title {
-  font-weight: 500;
-  display: inline-block;
-  padding-bottom: 3px;
-  cursor: pointer;
-}
-
-.card__conditions {
-  color: #999;
-  font-size: 13px;
-  line-height: 1.4em;
 }
 
 .card__text {
@@ -58,44 +44,6 @@
 
 .card__text.card__cursor-default {
   cursor: default;
-}
-
-.card__bullets {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  padding-left: 15px;
-}
-
-.card__bullet {
-  color: #b4b4b4;
-  padding-bottom: 2px;
-}
-.card__bullet:before {
-  content: "\2022";
-  position: absolute;
-  color: #B3B3B3;
-  font-weight: 500;
-  display: inline-block;
-  margin-left: -12px;
-}
-
-.card__small-triangle {
-  display: inline-block;
-  background: url('../images/triangle.svg') no-repeat center;
-  width: 10px;
-  height: 8px;
-  margin-bottom: 1px;
-}
-
-.card__small-triangle-rotated {
-  transform: rotate(180deg);
-}
-
-.card__show-more {
-  cursor: pointer;
-  color: #b4b4b4;
-  padding-bottom: 2px;
 }
 
 .card__screen-main {

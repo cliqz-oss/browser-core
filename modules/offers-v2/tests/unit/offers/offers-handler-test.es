@@ -8,6 +8,7 @@ const persistenceMocks = require('../utils/persistence');
 const beMocks = require('../utils/offers/intent');
 const eventsMock = require('../utils/events');
 const { VALID_OFFER_OBJ, VALID_OOTW_OFFER_OBJ } = require('../utils/offers/data');
+const cloneObject = require('../utils/utils').cloneObject;
 const SignalHandlerMock = require('../utils/offers/signals')['offers-v2/signals/signals_handler'].default;
 const ehMocks = require('../utils/offers/event_handler')['offers-v2/event_handler'];
 
@@ -29,7 +30,6 @@ let globalActiveCats = new Set();
 let enableOfferCollections = false;
 let maxGroupsInOfferCollection = Infinity;
 
-const cloneObject = obj => JSON.parse(JSON.stringify(obj));
 const cloneOffer = (offer = VALID_OFFER_OBJ) => cloneObject(offer);
 const tap = fn => function (...args) {
   fn(...args);
@@ -119,6 +119,7 @@ export default describeModule('offers-v2/offers/offers-handler',
       },
       shouldKeepResource: () => 1,
       isDeveloper: () => prefs.get('developer'),
+      getLocation: () => ({ country: '', city: '' }),
       hashString: () => HASH_STRING
     },
     'offers-v2/background': {
@@ -278,7 +279,7 @@ export default describeModule('offers-v2/offers/offers-handler',
           function incOfferActions(offerList, offerAction, count) {
             offerList.forEach((offer) => {
               offersDB.addOfferObject(offer.offer_id, offer);
-              offersDB.incOfferAction(offer.offer_id, offerAction, true, count);
+              offersDB.incOfferAction(offer.offer_id, offerAction, count);
             });
           }
 
@@ -636,6 +637,24 @@ export default describeModule('offers-v2/offers/offers-handler',
               chai.expect(pushedOffers.length, 'incorrect count of pushed offers').to.equal(1);
             });
 
+            it('/if any, an `offers-notification:unread-offers-count` is published excluding pushed offers',
+              async () => {
+                const storedUnreadOffers = [
+                  buildOffer('o1', 'cid1', 'client1', 0.9),
+                  buildOffer('o2', 'cid2', 'client2', 0.9),
+                ];
+                for (const unreadOffer of storedUnreadOffers) {
+                  offersDB.addOfferObject(unreadOffer.offer_id, unreadOffer);
+                }
+                const offersList = [storedUnreadOffers[0]];
+                prepareTriggerOffers(offersList);
+                await waitForBEPromise();
+
+                await triggerOffers(offersList);
+                const msgs = events.getMessagesForChannel('offers-notification:unread-offers-count') || [];
+                chai.expect(msgs.length, 'unread-offers-count notification count').to.equal(1);
+                chai.expect(msgs[0]?.count, 'unread offer count').to.equal(1);
+              });
             context('/some offer in DB is of the same campaign', () => {
               const campaignId = 'cid';
               const dboffer = buildOffer('oid', campaignId, 'client', 1);
@@ -1094,7 +1113,7 @@ as a list starting with the best offer to the "offers-cc" real-estate`, async ()
               });
 
               it(`/offer of the week is not pushed in a collection,
-but are stored in the local offer database`, async () => {
+but is stored in the local offer database`, async () => {
                 const ootw = cloneOffer(VALID_OOTW_OFFER_OBJ);
                 const offersList = cloneObject(OFFERS_LIST).concat(ootw);
                 prepareTriggerOffers(offersList);
@@ -1110,6 +1129,17 @@ but are stored in the local offer database`, async () => {
                   chai.expect(hasStoredOffer).to.be.true;
                 }
                 expectSinglePushedOfferCollection(OFFERS_LIST);
+              });
+
+              it('/offer of the is pushed as single offer when no targeted offers', async () => {
+                const ootw = cloneOffer(VALID_OOTW_OFFER_OBJ);
+                const offersList = [ootw];
+                prepareTriggerOffers(offersList);
+                await waitForBEPromise();
+
+                await triggerOffers(offersList);
+
+                expectSinglePushedOffer(ootw);
               });
 
               it(`/when an offer's \`trigger_on_advertiser\` is true, 'dot', or 'tooltip',

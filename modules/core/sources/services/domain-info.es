@@ -73,7 +73,7 @@ export const service = async function service() {
     domainInfo.domainOwners = revList;
   }
 
-  const loader = new BundledResource(['antitracking', 'tracker_db_v2.json']);
+  const loader = new BundledResource(['core', 'tracker_db_v2.json']);
   parseDomainOwners(await loader.load());
 
   service.unload = () => {

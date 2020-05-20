@@ -15,11 +15,7 @@ export default describeModule('human-web-lite/human-web-lite',
     'platform/fetch': {},
     'core/zlib': {},
     'webextension-polyfill': {},
-    'core/crypto/random': {
-      random() {
-        return Math.random();
-      }
-    },
+    'core/crypto/random': {},
   }),
   () => {
     describe('#HumanWebLite', function () {

@@ -52,7 +52,7 @@ function getHeight(type, padding, autoTrigger) {
 }
 
 function getWidth({ type, products, autoTrigger }) {
-  if (products.ghostery && !autoTrigger) { return 344; }
+  if (products.ghostery && type === 'card' && !autoTrigger) { return 344; }
   return {
     tooltip: 260,
     card: 307,

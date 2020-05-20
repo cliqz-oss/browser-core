@@ -124,6 +124,7 @@ module.exports = {
     'offers-templates/offers-checkout.bundle.js',
     'offers-templates/offers-control-center.bundle.js',
     'offers-templates/offers-control-center-after.bundle.js',
+    'offers-v2/environment.bundle.js',
     'freshtab/home.bundle.js',
     'history/home.bundle.js',
     'onboarding-v4/app.bundle.js',

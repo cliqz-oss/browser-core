@@ -26,7 +26,10 @@ module.exports = (base, cdn = 'cdn') => ({
   // not used as URL, but as key to signal to ambassor to fetch news
   HB_NEWS: `hb-news.${base}`, // freshtab/sources/news.es, history/sources/rich-header-proxy.es
   OFFERS_BE_BASE_URL: `https://offers-api.${base}`,
+  // expected to be unbranded as this is only use for testing purpouses
+  OFFERS_STAGING_BASE_URL: 'https://offers-api-staging-myo.myoffrz.ninja',
   PRIVACY_SCORE_URL: `https://anti-tracking.${base}/api/v1/score?`, // antitracking/sources/privacy-score.es
+  TRACKER_SCORE_URL: `https://${cdn}.${base}/privacy-score/privacy_score.json`, // whotracksme/source/background.es
   RESULTS_PROVIDER: `https://api.${base}/api/v2/results?nrh=1&q=`, // core/config.es
   RESULTS_PROVIDER_LOG: `https://api.${base}/api/v1/logging?q=`, // core/config.es
   RICH_HEADER: `https://api.${base}/api/v2/rich-header?path=/v2/map`,

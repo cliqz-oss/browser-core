@@ -1,3 +1,5 @@
+const cloneObject = require('./utils').cloneObject;
+
 let persistenceMap = {};
 let simpleDb = {};
 
@@ -10,7 +12,7 @@ module.exports = {
     default: class {
       upsert(docID, docData) {
         return new Promise((resolve) => {
-          simpleDb[docID] = JSON.parse(JSON.stringify(docData));
+          simpleDb[docID] = cloneObject(docData);
           resolve();
         });
       }
@@ -18,7 +20,7 @@ module.exports = {
       get(docID) {
         return new Promise((resolve) => {
           if (simpleDb[docID]) {
-            resolve(JSON.parse(JSON.stringify(simpleDb[docID])));
+            resolve(cloneObject(simpleDb[docID]));
           } else {
             resolve(null);
           }

@@ -3,6 +3,7 @@
 const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const cloneObject = require('../utils/utils').cloneObject;
 
 let mockedTS = Date.now();
 function mockCurrentTS(ts) {
@@ -24,7 +25,7 @@ export default describeModule('offers-v2/offers/offers-db',
       let OffersConfigs;
 
       function getCopyValidOffer() {
-        return JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+        return cloneObject(VALID_OFFER_OBJ);
       }
 
       async function waitForDBLoaded(db) {
@@ -65,7 +66,7 @@ export default describeModule('offers-v2/offers/offers-db',
           beforeEach(function () {
             persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
-            offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            offerObj = cloneObject(VALID_OFFER_OBJ);
           });
 
           it('no display id', function () {
@@ -94,7 +95,7 @@ export default describeModule('offers-v2/offers/offers-db',
           beforeEach(function () {
             persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
-            offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            offerObj = cloneObject(VALID_OFFER_OBJ);
           });
 
           it('offer added properly', function () {
@@ -139,7 +140,7 @@ export default describeModule('offers-v2/offers/offers-db',
           beforeEach(function () {
             persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
-            offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            offerObj = cloneObject(VALID_OFFER_OBJ);
           });
 
           it('to non existing offer', function () {
@@ -181,7 +182,7 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(db.addOfferObject('x', offerObj)).to.equal(true);
             chai.expect(db.getOfferActionMeta('x', 'h1')).to.not.exist;
             mockCurrentTS(actionTS);
-            chai.expect(db.incOfferAction('x', 'h1', true, 100)).to.equal(true);
+            chai.expect(db.incOfferAction('x', 'h1', 100)).to.equal(true);
             let action = db.getOfferActionMeta('x', 'h1');
             chai.expect(action).to.exist;
             chai.expect(action.count).to.equal(100);
@@ -202,7 +203,7 @@ export default describeModule('offers-v2/offers/offers-db',
             const actionTS = addedTS + (60 * 1000);
             const action2ndTS = addedTS + (120 * 1000);
 
-            const offerObj2 = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            const offerObj2 = cloneObject(VALID_OFFER_OBJ);
             offerObj2.offer_id = 'y';
 
             mockCurrentTS(addedTS);
@@ -239,7 +240,7 @@ export default describeModule('offers-v2/offers/offers-db',
             const actionTS = addedTS + (60 * 1000);
             const action2ndTS = addedTS + (120 * 1000);
 
-            const offerObj2 = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            const offerObj2 = cloneObject(VALID_OFFER_OBJ);
             offerObj2.offer_id = 'y';
 
             mockCurrentTS(addedTS);
@@ -250,7 +251,7 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(db.getOfferDisplayActionMeta(offerObj.display_id, 'h1')).to.not.exist;
 
             mockCurrentTS(actionTS);
-            chai.expect(db.incOfferAction('x', 'h1', true, 100)).to.equal(true);
+            chai.expect(db.incOfferAction('x', 'h1', 100)).to.equal(true);
             chai.expect(db.getOfferActionMeta('x', 'h1').count).to.equal(100);
             chai.expect(db.getOfferActionMeta('y', 'h1')).to.not.exist;
 
@@ -261,7 +262,7 @@ export default describeModule('offers-v2/offers/offers-db',
 
             // inc again
             mockCurrentTS(action2ndTS);
-            chai.expect(db.incOfferAction('y', 'h1', true, 5)).to.equal(true);
+            chai.expect(db.incOfferAction('y', 'h1', 5)).to.equal(true);
             chai.expect(db.getOfferActionMeta('x', 'h1').count).to.equal(100);
             chai.expect(db.getOfferActionMeta('y', 'h1').count).to.equal(5);
 
@@ -279,7 +280,7 @@ export default describeModule('offers-v2/offers/offers-db',
           beforeEach(function () {
             persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
-            offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            offerObj = cloneObject(VALID_OFFER_OBJ);
           });
 
           it('attribute added properly', function () {
@@ -308,7 +309,7 @@ export default describeModule('offers-v2/offers/offers-db',
           it('adding multiple offers', function () {
             const offers = [];
             for (let i = 0; i < 10; i += 1) {
-              const o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+              const o = cloneObject(VALID_OFFER_OBJ);
               o.offer_id = `offer-${i}`;
               offers.push(o);
               chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
@@ -328,7 +329,7 @@ export default describeModule('offers-v2/offers/offers-db',
 
           beforeEach(function () {
             persistenceMocks['core/persistence/map'].reset();
-            o = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            o = cloneObject(VALID_OFFER_OBJ);
           });
 
           it('stored offers remains', async function () {
@@ -712,7 +713,11 @@ export default describeModule('offers-v2/offers/offers-db',
             chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
             chai.expect(resultEvent).to.eql({ evt: 'offer-added', offer: o, lastUpdateTS: mockedTS });
             chai.expect(db.eraseOfferObject(o.offer_id)).to.equal(true);
-            chai.expect(resultEvent).to.eql({ evt: 'offer-removed', offer: o, lastUpdateTS: mockedTS, extraData: { erased: true } });
+            chai.expect(resultEvent).to.eql({ evt: 'offer-removed', offer: o, lastUpdateTS: mockedTS, extraData: { erased: true, expired: true } });
+            chai.expect(db.addOfferObject(o.offer_id, o)).to.equal(true);
+            chai.expect(resultEvent).to.eql({ evt: 'offer-added', offer: o, lastUpdateTS: mockedTS });
+            chai.expect(db.eraseOfferObject(o.offer_id, { expired: false })).to.equal(true);
+            chai.expect(resultEvent).to.eql({ evt: 'offer-removed', offer: o, lastUpdateTS: mockedTS, extraData: { erased: true, expired: false } });
           });
 
           it('unregistered callbacks works', function () {
@@ -797,7 +802,7 @@ export default describeModule('offers-v2/offers/offers-db',
           beforeEach(() => {
             persistenceMocks['core/persistence/map'].reset();
             db = new OffersDB({});
-            const offer = new Offer(JSON.parse(JSON.stringify(VALID_OFFER_OBJ)));
+            const offer = new Offer(cloneObject(VALID_OFFER_OBJ));
             offerID = offer.uniqueID;
             db.addOfferObject(offerID, offer.offerObj);
           });

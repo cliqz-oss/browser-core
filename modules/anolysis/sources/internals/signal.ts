@@ -8,7 +8,7 @@
 
 import { Demographics } from './demographics';
 
-export type Behavior = object;
+export type Behavior = any;
 
 export interface Meta {
   demographics: Partial<Demographics>;

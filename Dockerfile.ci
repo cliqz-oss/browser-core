@@ -20,6 +20,8 @@ RUN apt-get update --no-install-recommends  \
     libdbus-glib-1-2 \
     libfontconfig1 \
     libfreetype6 \
+    libgbm-dev \
+    libgbm1 \
     libgcc1 \
     libgconf-2-4 \
     libgdk-pixbuf2.0-0 \

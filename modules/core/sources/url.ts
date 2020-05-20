@@ -321,12 +321,21 @@ const KNOWN_PROTOCOLS = new Set([
   'chrome-extension',
   'view-source',
   'data',
-  'dat',
   'resource',
 ]);
 
 function isKnownProtocol(protocol: string): boolean {
-  return KNOWN_PROTOCOLS.has(protocol);
+  const known = KNOWN_PROTOCOLS.has(protocol);
+  if (
+    !known &&
+    typeof browser !== 'undefined' &&
+    browser.cliqz &&
+    browser.cliqz.externalProtocolHandlerExists(protocol)
+  ) {
+    KNOWN_PROTOCOLS.add(protocol);
+    return true;
+  }
+  return known;
 }
 
 const LD = 'a-z0-9';
@@ -393,7 +402,7 @@ export function isIpAddress(host: string): boolean {
   return isIpv4Address(host) || isIpv6Address(host);
 }
 
-const urlCache: Cache<ImmutableURL> = new Cache(100);
+const urlCache: Cache<ImmutableURL> = new Cache(128);
 
 /**
  * This is an abstraction over URL with caching and basic error handling built in. The main
@@ -424,13 +433,13 @@ export function parse(url: string): URL | null {
 }
 
 export function fixURL(url: string): string | null {
-  let fixed = url;
+  let fixed = strip(url, { spaces: true });
   let uri = parse(fixed);
   if (uri === null || !uri.scheme || !isKnownProtocol(uri.scheme)) {
     // The following regex will strip any prefix which looks like a protocol to
     // clean-up `url`. This allows to then prepend a generic http:// protocol
     // and try parsing the input again.
-    fixed = `http://${url.replace(/^:?\/*/, '')}`;
+    fixed = `http://${fixed.replace(/^:?\/*/, '')}`;
     uri = parse(fixed);
   }
 
@@ -561,7 +570,7 @@ function* toggleWWW(urlObj: URL, enabled: boolean): IterableIterator<URL> {
   yield urlObj;
 }
 
-export function getUrlVariations(url: string, { protocol = true, www = true } = {}): string[] {
+export function getUrlVariations(url: string, { protocol = true, www = true, trailingSlash = true } = {}): string[] {
   let protocols = protocol ? ['http:', 'https:'] : [];
 
   // NOTE: here we should not use URLInfo (cached) because the resulting `u`
@@ -593,17 +602,19 @@ export function getUrlVariations(url: string, { protocol = true, www = true } = 
       // Two more variants: with and without trailing slash
       let href = u.href;
       urlSet.add(href);
-      if (u.pathname !== '/' && !u.pathname.endsWith('/')) {
-        u.pathname = `${u.pathname}/`;
-        href = u.href;
-      } else if (u.search.startsWith('?')) {
-        href = href.replace('/?', '?');
-      } else if (u.hash.startsWith('#')) {
-        href = href.replace('/#', '#');
-      } else if (href.endsWith('/')) {
-        href = href.slice(0, -1);
+      if (trailingSlash) {
+        if (u.pathname !== '/' && !u.pathname.endsWith('/')) {
+          u.pathname = `${u.pathname}/`;
+          href = u.href;
+        } else if (u.search.startsWith('?')) {
+          href = href.replace('/?', '?');
+        } else if (u.hash.startsWith('#')) {
+          href = href.replace('/#', '#');
+        } else if (href.endsWith('/')) {
+          href = href.slice(0, -1);
+        }
+        urlSet.add(href);
       }
-      urlSet.add(href);
     }
     /* eslint-enable no-unused-vars, no-shadow */
   }

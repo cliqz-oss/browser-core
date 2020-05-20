@@ -7,8 +7,10 @@
  */
 
 import { encodeWithPadding } from './padding';
-import { toBase64, toUTF8 } from '../core/encoding';
+import { fromBase64, toBase64, fromUTF8, toUTF8 } from '../core/encoding';
 import { randomInt } from '../core/crypto/random';
+import { inflate } from '../core/zlib';
+import { ProtocolError } from './errors';
 
 const HPNV2_PROTOCOL_VERSION = 1;
 const HPNV2_ECDH_P256_AES_128_GCM = 0xEA;
@@ -44,6 +46,7 @@ export default class ProxiedHttp {
     const {
       ciphertext,
       iv,
+      secret,
       clientPublicKey,
       serverPublicKeyDate,
     } = await this.encrypt(body);
@@ -73,12 +76,35 @@ export default class ProxiedHttp {
       body: ciphertext,
     });
     if (!response.ok) {
-      throw new Error(`Failed to sent data (${response.statusText})`);
+      throw new Error(`Failed to send data (${response.statusText})`);
+    }
+    let data = new Uint8Array(await response.arrayBuffer());
+
+    const serverIV = response.headers.get('Encryption-IV');
+    if (serverIV) {
+      const decrypted = await crypto.subtle.decrypt({
+        name: 'AES-GCM',
+        iv: fromBase64(serverIV),
+        tagLength: 128
+      }, secret, data);
+      data = new Uint8Array(decrypted);
     }
 
-    // TODO: decrypt & return response
-    // (needed when we send messages that are not fire-and-forget)
-    // Note: shared secret is returned in this.encrypt
+    // Depending on the message type, we need to decompress the data.
+    // In the HPN protocol, the type is implicitely defined:
+    // * if the data starts with 0x7B (=== '{'), it can be directly consume
+    //   (e.g. fire-and-forget messages will always return '{}')
+    // * otherwise, decompress it
+    //   (format: "<size: 4-byte unsigned int>:<data: "size" bytes>")
+    if (data[0] !== 0x7B) {
+      const size = (new DataView(data.buffer)).getUint32();
+      if (4 + size > data.length) {
+        throw new ProtocolError('Overflow in data received from the server');
+      }
+      data = inflate(data.subarray(4, 4 + size));
+    }
+    const { status, body: body_ } = JSON.parse(fromUTF8(data));
+    return new Response(body_, { status });
   }
 
   _chooseRandomProxyUrl() {

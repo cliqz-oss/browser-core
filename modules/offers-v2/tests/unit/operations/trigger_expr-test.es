@@ -5,6 +5,7 @@
 
 const commonMocks = require('../utils/common');
 const beMocks = require('../utils/offers/intent');
+const cloneObject = require('../utils/utils').cloneObject;
 
 const BackendConnectorMock = beMocks['offers-v2/backend-connector'].BackendConnectorMock;
 
@@ -14,8 +15,6 @@ const currentDayHour = 0;
 const currentWeekDay = 0;
 const abNumber = 0;
 let shouldKeepResourceRet = false;
-
-const copy = e => JSON.parse(JSON.stringify(e));
 
 class TriggerMachineMock {
   constructor() {
@@ -27,7 +26,7 @@ class TriggerMachineMock {
   }
 
   run(trigger, ctx) {
-    this.runCalls.push({ trigger: copy(trigger), ctx });
+    this.runCalls.push({ trigger: cloneObject(trigger), ctx });
     return Promise.resolve(true);
   }
 }
@@ -70,6 +69,7 @@ export default describeModule('offers-v2/trigger_machine/ops/trigger_expr',
       shouldKeepResource: function () {
         return shouldKeepResourceRet;
       },
+      getLocation: () => ({ country: '', city: '' }),
     },
     'offers-v2/trigger_machine/trigger_cache': {
       default: class {

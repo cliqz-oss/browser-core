@@ -66,4 +66,49 @@ export default describeModule('core/decorators',
         });
       });
     });
+
+    describe('#debounce', () => {
+      let target;
+      let debounce;
+      let debounced;
+      let clock;
+
+      beforeEach(function () {
+        debounce = this.module().debounce;
+        target = sinon.spy();
+        debounced = debounce(target, 500);
+        clock = sinon.useFakeTimers();
+      });
+
+      afterEach(() => {
+        target.resetHistory();
+        clock.restore();
+      });
+
+      it('should be exported', async () => {
+        chai.expect(typeof debounce).to.equal('function');
+      });
+
+      it('should delay a single call', () => {
+        debounced('a', 'b', 'c');
+        clock.tick(499);
+        chai.expect(target.notCalled).to.be.true;
+        clock.tick(1);
+        chai.expect(target.calledWith('a', 'b', 'c')).to.be.true;
+      });
+
+      it('should debounce sequential calls', () => {
+        debounced('first');
+        clock.tick(300);
+        debounced('second');
+        clock.tick(300);
+        debounced('third');
+        clock.tick(499);
+        chai.expect(target.notCalled).to.be.true;
+        clock.tick(1);
+        chai.expect(target.calledWith('third')).to.be.true;
+        clock.tick(2000);
+        chai.expect(target.calledOnce).to.be.true;
+      });
+    });
   });

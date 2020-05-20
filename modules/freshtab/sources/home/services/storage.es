@@ -12,12 +12,16 @@ const localStore = {
   },
   getItem(key) {
     return localStorage.getItem(key);
+  },
+  removeItem(key) {
+    return localStorage.removeItem(key);
   }
 };
 
 const dummyStore = {
   setItem() {},
   getItem() {},
+  removeItem() {},
 };
 
 const getStore = () => {

@@ -88,6 +88,7 @@ export default describeModule('offers-v2/categories/category-fetcher',
       timestampMS: function () {
         return Date.now();
       },
+      getLocation: () => ({ country: '', city: '' }),
     },
     'platform/gzip': {
     },

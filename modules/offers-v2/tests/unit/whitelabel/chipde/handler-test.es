@@ -7,6 +7,7 @@ const commonMocks = require('../../utils/common');
 const persistenceMocks = require('../../utils/persistence');
 const fixture = require('../../utils/offers/data');
 const waitFor = require('../../utils/waitfor');
+const cloneObject = require('../../utils/utils').cloneObject;
 const { doRedirects, urls } = require('./redirect');
 
 const config = commonMocks['core/config'].default;
@@ -40,7 +41,7 @@ export default describeModule('offers-v2/whitelabel/chipde/handler',
         });
 
         async function activateOffer() {
-          const cat = JSON.parse(JSON.stringify(fixture.VALID_CATEGORY));
+          const cat = cloneObject(fixture.VALID_CATEGORY);
           cat.patterns.push('||mediamarkt.de$script');
           cat.patterns.push('Beauty$domain=amazon.de,xmlhttprequest');
           const catObj = new Category(

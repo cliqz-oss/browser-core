@@ -35,6 +35,7 @@ module.exports = {
     OFFBOARDING_URL: 'https://myoffrz.com/off-boarding/',
     SHOW_ONBOARDING_OVERLAY: true,
     THROTTLE_OFFER_APPEARANCE_MODE: 'PER_DOMAIN',
+    URL_CHANGED_EVENT_DEBOUNCE: 500,
     ENABLE_OFFER_COLLECTIONS: true,
     MAX_GROUPS_IN_OFFER_COLLECTIONS: 3,
     telemetry: {
@@ -75,6 +76,7 @@ module.exports = {
     'offers-templates/offers-checkout.bundle.js',
     'offers-templates/offers-control-center.bundle.js',
     'offers-templates/offers-control-center-after.bundle.js',
+    'offers-v2/environment.bundle.js',
     'onboarding-overlay/app.bundle.js',
   ],
   builderDefault: Object.assign({}, base.builderConfig, {

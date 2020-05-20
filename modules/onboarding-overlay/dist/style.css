@@ -117,7 +117,8 @@ body.chip .button {
 }
 
 body.chip .logo {
-  background-image: url(/assets/chip-icon128.png);
+  background-image: url(/images/chip-animated-belly-logo.gif);
+  border-radius: 24px;
 }
 
 body.myoffrz .button {

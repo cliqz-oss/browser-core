@@ -49,6 +49,12 @@ export function writeFile(filePath, data) {
   return AsyncStorage.setItem(key, data);
 }
 
+export function deleteFile(filePath) {
+  const key = getKey(filePath);
+
+  return AsyncStorage.removeItem(key);
+}
+
 export function mkdir() {
   return Promise.resolve();
 }

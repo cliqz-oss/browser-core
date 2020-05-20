@@ -22,8 +22,8 @@ const checkIframeExists = async (view) => {
   return !!(iframe && iframe.src);
 };
 const triggerIframeCreation = async (view) => {
-  await waitFor(() => view.document.querySelector('input'));
-  const input = view.document.querySelector('input');
+  await waitFor(() => view.document.querySelector('input.urlbarSearch'));
+  const input = view.document.querySelector('input.urlbarSearch');
   input.dispatchEvent(new Event('focus'));
 };
 const getIframeStyle = async (view) => {

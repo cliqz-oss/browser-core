@@ -6,6 +6,7 @@ const jspe = require('jsep');
 const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const cloneObject = require('../utils/utils').cloneObject;
 
 const ABTestNumber = 0;
 
@@ -53,7 +54,7 @@ export default describeModule('offers-v2/offers/soft-filter',
       });
 
       function getOfferObj() {
-        return JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+        return cloneObject(VALID_OFFER_OBJ);
       }
 
       function buildOffer(filterRules) {
@@ -71,7 +72,7 @@ export default describeModule('offers-v2/offers/soft-filter',
 
         beforeEach(function () {
           db = new OfferDB({});
-          offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+          offerObj = cloneObject(VALID_OFFER_OBJ);
         });
 
         function updateOfferOnDB(ob, rules) {

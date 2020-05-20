@@ -21,6 +21,7 @@ module.exports = {
     channel: 'CH80',
     MSGCHANNEL: 'web-extension',
     OFFERS_CHANNEL: 'ghostery',
+    URL_CHANGED_EVENT_DEBOUNCE: 500,
     ENABLE_OFFER_COLLECTIONS: false,
     MAX_GROUPS_IN_OFFER_COLLECTIONS: 3,
     ATTRACK_TELEMETRY_PROVIDER: 'hpnv2',
@@ -65,6 +66,7 @@ module.exports = {
     'offers-templates/offers-checkout.bundle.js',
     'offers-templates/offers-control-center.bundle.js',
     'offers-templates/offers-control-center-after.bundle.js',
+    'offers-v2/environment.bundle.js',
   ],
   modules: [
     'core',

@@ -22,7 +22,7 @@ function wrapLog(log) {
 
 const NEVER_EXPIRES = Number.MAX_SAFE_INTEGER;
 
-export default describeModule('human-web-lite/persisted-hashes',
+export default describeModule('hpn-lite/persisted-hashes',
   () => ({
     'platform/globals': {
       default: {}

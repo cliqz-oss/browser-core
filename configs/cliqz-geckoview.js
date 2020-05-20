@@ -84,6 +84,7 @@ module.exports = {
     'autoconsent',
     'dat',
     'human-web-lite',
+    'hpn-lite',
     'insights',
   ],
 };

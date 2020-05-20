@@ -20,6 +20,7 @@ module.exports = {
     },
     deadline(p) { return p; },
     throttle: (_w, fn) => fn,
+    debounce: fn => fn,
   },
   'core/services/pacemaker': {
     default: {
@@ -34,7 +35,9 @@ module.exports = {
     default: instantRunTimeout,
   },
   'core/timers': {
+    clearTimeout() {},
     setTimeout: instantRunTimeout,
+    clearInterval() {},
     setInterval: instantRunTimeout,
   },
   'platform/lib/moment': {

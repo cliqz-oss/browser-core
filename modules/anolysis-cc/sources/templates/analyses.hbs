@@ -1,18 +1,25 @@
 <div class="card">
   <div class="card-header">
-    <div class="card-title h5">Available Analyses</div>
+    <div class="card-title h5">Messages Sent to Backend</div>
     <div class="card-subtitle text-gray">
       An <code>analysis</code> is the way we define client side aggregation
       "tasks" or functions. Each analysis exists to learn something or verify a
       hypothesis. Concretely, an analysis is a function that accesses
-      metrics collected in the browser during a specified period of time,
+      internal metrics collected in the browser during a specified period of time,
       and creates an aggregation or summary which will be sent to the
       backend. Each analysis will be triggered automatically by Anolysis
-      once a day, using the metrics collected from the previous day.
+      once a day, using the internal metrics collected from the previous day.
+
+      <br /><br />
+
+      In addition, some <code>metrics</code> will be sent to the backend
+      in case aggregating does not add value. For example, metrics reporting the
+      on-off state of a feature are triggered once a day, therefore aggregating
+      into a daily analysis would be superfluous.
       <div class="divider"></div>
       <div class="columns">
         <div class="column">
-          Here's a list of all current analyses:
+          Here's a list of all current messages sent to the backend:
         </div>
         <div class="column">
           <ul class="status-legend text-gray">
@@ -31,7 +38,7 @@
         <summary class="accordion-header">
           <i class="icon icon-arrow-right mr-1 text-gray"></i>
           <span>{{this.name}}</span>
-          <span class={{this.class}} style="float: right">⏺</span>
+          <span class={{this.class}} style="float: right">●</span>
         </summary>
         <div class="accordion-body">
           <!-- Accordions content -->
@@ -48,7 +55,7 @@
     {{/each}}
   </div>
   <div class="card-footer">
-    Note: Each analysis is sent separately, and they cannot be linked
+    Note: Each message is sent separately, and they cannot be linked
     on the backend.
   </div>
 </div>

@@ -9,9 +9,14 @@
 export default class Cache<Value> {
   public readonly size: number;
   public readonly cache: Array<{ key: string | undefined; value: Value | undefined }> = [];
+  private bitMask: number;
 
   constructor(size: number) {
+    if (size <= 0 || size & (size - 1) !== 0) {
+      throw new Error('size must be a power of 2');
+    }
     this.size = size;
+    this.bitMask = size - 1;
     this.clear();
   }
 
@@ -23,7 +28,7 @@ export default class Cache<Value> {
   }
 
   get(key: string): Value | undefined {
-    const val = this.cache[key.length % this.size];
+    const val = this.cache[key.length & this.bitMask];
 
     if (val.key !== key) {
       return undefined;
@@ -33,7 +38,7 @@ export default class Cache<Value> {
   }
 
   set(key: string, value: Value): Value {
-    const current = this.cache[key.length % this.size];
+    const current = this.cache[key.length & this.bitMask];
     current.key = key;
     current.value = value;
     return value;

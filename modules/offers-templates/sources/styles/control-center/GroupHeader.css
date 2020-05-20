@@ -95,3 +95,7 @@
 .group-header__notification.group-header__ghostery-notification {
   background-color: var(--ghostery-primary-color, #5B005C);
 }
+
+.group-header__picture {
+  padding: 9px 12px 0px;
+}

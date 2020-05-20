@@ -15,20 +15,12 @@ import Row from './partials/row';
 class ActionButtons extends React.Component {
   state = {
     isExtReloadFinished: false,
-    isOffersReloadFinished: false,
   }
 
   reloadExtension = async () => {
     await this.props.cliqz.reloadExtension();
     this.setState({
       isExtReloadFinished: true,
-    });
-  }
-
-  reloadOffers = async () => {
-    await this.props.cliqz.reloadOffers();
-    this.setState({
-      isOffersReloadFinished: true,
     });
   }
 
@@ -43,15 +35,7 @@ class ActionButtons extends React.Component {
             />
           </Row>
 
-          <Row>
-            <Button
-              onClick={this.reloadOffers}
-              value="RELOAD OFFERS"
-            />
-          </Row>
-
-          {(this.state.isExtReloadFinished
-            || this.state.isOffersReloadFinished)
+          {this.state.isExtReloadFinished
           && (
             <Row>Reload finished</Row>
           )

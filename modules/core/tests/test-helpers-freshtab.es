@@ -104,7 +104,7 @@ export const mockMessage = {
     type: 'notification',
     title: 'It’s not only the inner values that count!',
     description: 'Now you can change the style on Cliqz Tab.',
-    icon: 'settings-icon_blue.svg',
+    icon: 'customize-icon.svg',
     cta_text: 'TRY IT NOW',
     cta_url: 'home-action:settings',
     handler: 'MESSAGE_HANDLER_FRESHTAB_MIDDLE',
@@ -920,12 +920,12 @@ export function checkTelemetry({
 }
 
 export const allBackgrounds = [
-  { name: 'dark', bgSelector: 'body.theme-bg-dark', iconSelector: 'img[data-bg="bg-dark"]', className: 'theme-bg-dark' },
-  { name: 'light', bgSelector: 'body.theme-bg-light', iconSelector: 'img[data-bg="bg-light"]', className: 'theme-bg-light' },
-  { name: 'matterhorn', bgSelector: 'body.theme-bg-matterhorn', iconSelector: 'img[data-bg="bg-matterhorn"]', className: 'theme-bg-matterhorn' },
-  { name: 'winter', bgSelector: 'body.theme-bg-winter', iconSelector: 'img[data-bg="bg-winter"]', className: 'theme-bg-winter' },
-  { name: 'spring', bgSelector: 'body.theme-bg-spring', iconSelector: 'img[data-bg="bg-spring"]', className: 'theme-bg-spring' },
-  { name: 'summer', bgSelector: 'body.theme-bg-summer', iconSelector: 'img[data-bg="bg-summer"]', className: 'theme-bg-summer' },
-  { name: 'worldcup', bgSelector: 'body.theme-bg-worldcup', iconSelector: 'img[data-bg="bg-worldcup"]', className: 'theme-bg-worldcup' },
-  { name: 'autumn', bgSelector: 'body.theme-bg-autumn', iconSelector: 'img[data-bg="bg-autumn"]', className: 'theme-bg-autumn' },
+  { name: 'dark', bgSelector: 'body.theme-bg-dark', iconSelector: 'div[data-bg="bg-dark"]', className: 'theme-bg-dark' },
+  { name: 'light', bgSelector: 'body.theme-bg-light', iconSelector: 'div[data-bg="bg-light"]', className: 'theme-bg-light' },
+  { name: 'matterhorn', bgSelector: 'body.theme-bg-matterhorn', iconSelector: 'div[data-bg="bg-matterhorn"]', className: 'theme-bg-matterhorn' },
+  { name: 'winter', bgSelector: 'body.theme-bg-winter', iconSelector: 'div[data-bg="bg-winter"]', className: 'theme-bg-winter' },
+  { name: 'spring', bgSelector: 'body.theme-bg-spring', iconSelector: 'div[data-bg="bg-spring"]', className: 'theme-bg-spring' },
+  { name: 'summer', bgSelector: 'body.theme-bg-summer', iconSelector: 'div[data-bg="bg-summer"]', className: 'theme-bg-summer' },
+  { name: 'worldcup', bgSelector: 'body.theme-bg-worldcup', iconSelector: 'div[data-bg="bg-worldcup"]', className: 'theme-bg-worldcup' },
+  { name: 'autumn', bgSelector: 'body.theme-bg-autumn', iconSelector: 'div[data-bg="bg-autumn"]', className: 'theme-bg-autumn' },
 ];
