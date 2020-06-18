@@ -91,8 +91,8 @@ const exportedActions = {
     searchModule.startSearch(query, searchOptions);
   },
 
-  stopSearch({ entryPoint }) {
-    searchModule.stopSearch({ entryPoint });
+  stopSearch() {
+    searchModule.stopSearch();
   },
 
   reportSelection(selection) {

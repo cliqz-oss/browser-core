@@ -11,7 +11,6 @@ import prefs from '../core/prefs';
 import UrlWhitelist from '../core/url-whitelist';
 import getDexie from '../platform/lib/dexie';
 import { remove } from '../platform/sqlite';
-import { removeDir } from '../platform/fs';
 
 
 async function cleanAntitrackingData() {
@@ -22,11 +21,9 @@ async function cleanAntitrackingData() {
   });
   // attrack sqlite db
   remove('cliqz.dbattrack');
-  await removeDir(['cliqz', 'antitracking']);
 }
 
 async function cleanAdblockerData() {
-  await removeDir(['cliqz', 'adblocker']);
   await getDexie().then((Dexie) => {
     const db = new Dexie('cliqz-adb');
     return db.delete();

@@ -39,3 +39,4 @@ class PermanentError extends ExtendableError {
 
 export class TooBigMsgError extends PermanentError {}
 export class TransportError extends RecoverableError {}
+export class ProtocolError extends PermanentError {}

@@ -2,8 +2,8 @@
 /* global describeModule */
 const commonMocks = require('../../utils/common');
 const { VALID_OFFER_OBJ, VALID_OFFER_SUCCESS_URL } = require('../../utils/offers/data');
+const cloneObject = require('../../utils/utils').cloneObject;
 
-const clone = obj => JSON.parse(JSON.stringify(obj));
 const getMonitor = (offer, sID) => offer.monitorData.find(({ signalID }) => signalID === sID);
 
 export default describeModule('offers-v2/offers/jobs/soft-filters',
@@ -25,7 +25,7 @@ and when the given \`url\` (string or UrlData) matches this offer's page impress
 if defined, false otherwise`,
       () => {
         const urls = ['https://another-unrelated-url.com', VALID_OFFER_SUCCESS_URL];
-        const offerObj = clone(VALID_OFFER_OBJ);
+        const offerObj = cloneObject(VALID_OFFER_OBJ);
         getMonitor(offerObj, 'success').signalID = 'page_imp';
         offerObj.trigger_on_advertiser = true;
         const offer = new Offer(offerObj);

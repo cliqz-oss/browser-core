@@ -10,7 +10,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import CustomPref from './partials/custom-pref';
-import NumericInput from './partials/numeric-input';
 import Row from './partials/row';
 import Switch from './partials/switch';
 import TableHeader from './partials/table-header';
@@ -18,20 +17,12 @@ import TextInput from './partials/text-input';
 
 const radioPrefList = [
   'developer',
-  'offersDevFlag',
-  'offersLoadSignalsFromDB',
-  'offersLogsEnabled',
   'showConsoleLogs',
 ];
 
 const textPrefList = [
   'config_location',
-  'logger.offers-v2.level',
   'triggersBE',
-];
-
-const numericPrefList = [
-  'offersTelemetryFreq',
 ];
 
 class Preferences extends React.Component {
@@ -43,10 +34,6 @@ class Preferences extends React.Component {
       developer: false,
       extensionsLegacyEnabled: false,
       loggerLevel: 'debug',
-      offersDevFlag: false,
-      offersLoadSignalsFromDB: true,
-      offersLogsEnabled: false,
-      offersTelemetryFreq: 10,
       showConsoleLogs: false,
       signaturesRequired: false,
       triggersBE: '',
@@ -116,24 +103,6 @@ class Preferences extends React.Component {
     </Row>
   ));
 
-  renderNumericPrefList = () => numericPrefList.map(pref => (
-    <Row key={pref}>
-      {`${pref}:`}
-
-      <NumericInput
-        minValue={1}
-        onNumberChange={value => this.onTextInputChange({
-          value: parseInt(value, 10),
-          name: pref,
-        })}
-        textInputValue={this.state.preferencesStatus.offersTelemetryFreq}
-      />
-
-      {this.renderErrorValue(pref)}
-
-    </Row>
-  ));
-
   renderErrorValue = prefName =>
     (this.state.preferencesStatus[prefName] === 'N/A') && 'N/A (default value used)'
 
@@ -174,7 +143,6 @@ class Preferences extends React.Component {
             />
             {this.renderRadioPrefList()}
             {this.renderTextPrefList()}
-            {this.renderNumericPrefList()}
           </tbody>
         </table>
       </div>

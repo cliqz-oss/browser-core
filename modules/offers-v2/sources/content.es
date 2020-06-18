@@ -6,6 +6,10 @@ import { serpPageDetection } from './content/profile/serp';
 import { shopPageDetection } from './content/profile/shop';
 import { classifyByOutgoingLinks } from './content/profile/outgoing-link';
 import { getPurchaseButtons } from './content/coupon/utils';
+import removeUnselectedOnboardingOffers from './content/onboarding-selection';
+import { stripUrlHash } from './content/utils';
+
+const CHIP_OFFERS_CHANNEL = 'chip';
 
 function logPurchaseButtonScript(window, chrome, CLIQZ) {
   if (window.parent !== window) {
@@ -74,3 +78,13 @@ registerContentScript({
   matches: ['https://*/*'],
   js: [amazonPrimeDetection],
 });
+
+const isChipChannel = config.settings?.OFFERS_CHANNEL === CHIP_OFFERS_CHANNEL;
+const CHIP_ONBOARDING_URL = isChipChannel && config.settings?.ONBOARDING_URL;
+if (CHIP_ONBOARDING_URL) {
+  registerContentScript({
+    module: 'offers-v2',
+    matches: [`${stripUrlHash(CHIP_ONBOARDING_URL)}*`],
+    js: [removeUnselectedOnboardingOffers]
+  });
+}

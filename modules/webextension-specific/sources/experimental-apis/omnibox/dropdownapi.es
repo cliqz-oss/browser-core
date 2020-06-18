@@ -8,6 +8,7 @@
 
 /* global ChromeUtils */
 import Defer from '../../../core/helpers/defer';
+import { debounce } from '../../../core/decorators';
 import LifeCycle from '../../../core/app/life-cycle';
 import BrowserDropdownManager from '../../../dropdown/managers/browser';
 import { PASSIVE_LISTENER_OPTIONS } from '../../../dropdown/managers/utils';
@@ -174,7 +175,6 @@ export default class Dropdown extends LifeCycle {
 
     readyPromise.then(() => this._setupBrowser(browser));
 
-    const parentElement = document.getElementById('navigator-toolbox');
     const navToolbar = document.getElementById('nav-bar');
     const container = document.createElement('div');
     container.appendChild(browser);
@@ -190,7 +190,7 @@ export default class Dropdown extends LifeCycle {
     cliqzToolbar.style.minHeight = 0;
     cliqzToolbar.style.padding = 0;
     cliqzToolbar.appendChild(container);
-    parentElement.insertBefore(cliqzToolbar, navToolbar.nextSibling);
+    this._window.gNavToolbox.insertBefore(cliqzToolbar, navToolbar.nextSibling);
 
     // Create a new stacking context around browser element (it has z-index 100000)
     // so nav-bar element gets higher above on z-axis (see EX-8720)
@@ -215,10 +215,13 @@ export default class Dropdown extends LifeCycle {
     this._cliqzToolbar.remove();
   }
 
-  _updateMaxHeight() {
-    const toolboxHeight = this._window.document.getElementById('navigator-toolbox').scrollHeight;
-    this._maxHeight = this._window.innerHeight - toolboxHeight - 50;
-  }
+  _updateMaxHeight = debounce(() => {
+    this._window.promiseDocumentFlushed(() => {
+      const toolboxHeight = this._window.gNavToolbox.scrollHeight;
+      const dropdownHeight = this._browser.scrollHeight;
+      this._maxHeight = this._window.innerHeight - (toolboxHeight - dropdownHeight) - 50;
+    });
+  }, 50)
 
   handleEvent(event) {
     switch (event.type) {
@@ -308,6 +311,6 @@ export default class Dropdown extends LifeCycle {
       command.doCommand();
     }
     URLBar.update(this._window, { value: query });
-    this._dropdownManager.onInput();
+    this._dropdownManager.onInput(null, options.options);
   }
 }

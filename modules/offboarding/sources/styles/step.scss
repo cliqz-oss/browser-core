@@ -1,0 +1,38 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+@import 'variables.scss';
+
+.step {
+    height: 0;
+    opacity: 0;
+    transition: height 400ms linear, opacity 400ms linear;
+    position: relative;
+    overflow: hidden;
+    background-color: $cliqz-blue;
+
+    &.welcome {
+        z-index: 1;
+        width: 100%;
+        background-color: $cliqz-blue;
+
+        .welcome-text {
+            margin-top: 235px;
+            color: black;
+            font-family: "SFUIDisplay-Regular", sans-serif;
+            font-weight: 100;
+            font-size: 30px;
+            text-align: center;
+        }
+    }
+
+    &.show {
+        height: 100%;
+        opacity: 1;
+    }
+}

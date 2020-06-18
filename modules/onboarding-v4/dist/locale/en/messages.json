@@ -119,12 +119,6 @@
     "welcome_ctrl": {
         "message": "Let's get started"
     },
-    "welcome_data_collection": {
-        "message": "By sending anonymized usage statistics to Cliqz, you help us improve your browsing experience."
-    },
-    "welcome_data_share": {
-        "message": "Choose what to share"
-    },
     "welcome_description": {
         "message": "We create a European independent alternative to the market-dominating US platforms. Thank you for your trust and for taking the path into the digital era with us."
     },

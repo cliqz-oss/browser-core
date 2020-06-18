@@ -1,0 +1,128 @@
+{
+    "adblocking_description_off_1": {
+        "message": "Did you know?"
+    },
+    "adblocking_description_off_2": {
+        "message": "Ads not only distract you but can also steal your precious time"
+    },
+    "adblocking_description_on_1": {
+        "message": "Now you can browse"
+    },
+    "adblocking_description_on_2": {
+        "message": "undisturbed and websites load faster"
+    },
+    "adblocking_header": {
+        "message": "Cliqz AdBlock"
+    },
+    "antiphishing_description_off_1": {
+        "message": "Did you know?"
+    },
+    "antiphishing_description_off_2": {
+        "message": "Phishing sites try to steal your passwords and credit cards info"
+    },
+    "antiphishing_description_on_1": {
+        "message": "Now you're protected"
+    },
+    "antiphishing_description_on_2": {
+        "message": "from phishing and identity theft"
+    },
+    "antiphishing_header": {
+        "message": "Cliqz Anti-Phishing"
+    },
+    "antitracking_description_off_1": {
+        "message": "Did you know?"
+    },
+    "antitracking_description_off_2": {
+        "message": "Trackers monitor everything you do on the Internet"
+    },
+    "antitracking_description_on_1": {
+        "message": "Now you're protected"
+    },
+    "antitracking_description_on_2": {
+        "message": "from the spying eyes of data collectors. Enjoy digital freedom!"
+    },
+    "antitracking_header": {
+        "message": "Cliqz Anti-Tracking"
+    },
+    "button_back": {
+        "message": "Back"
+    },
+    "button_next": {
+        "message": "Next"
+    },
+    "button_skip": {
+        "message": "Skip"
+    },
+    "enjoy_cliqz": {
+        "message": "Enjoy Cliqz"
+    },
+    "goodbye": {
+        "message": "goodbye to Cliqz!"
+    },
+    "goodbye_ctrl": {
+        "message": "Let's get started"
+    },
+    "goodbye_description": {
+        "message": "We are going away bye bye."
+    },
+    "goodbye_skip": {
+        "message": "Skip offboarding"
+    },
+    "import_data_button": {
+        "message": "Import now"
+    },
+    "import_data_description_1": {
+        "message": "Make yourself at home."
+    },
+    "import_data_description_2": {
+        "message": "You can easily import bookmarks, passwords and history"
+    },
+    "popup_button_skip": {
+        "message": "Skip"
+    },
+    "popup_button_try": {
+        "message": "Try now"
+    },
+    "popup_explanation": {
+        "message": "Here you can change your privacy and search settings at any time."
+    },
+    "popup_protection_action_button": {
+        "message": "activate"
+    },
+    "popup_protection_description": {
+        "message": "Activate all features to fully protect your privacy"
+    },
+    "popup_protection_headline": {
+        "message": "You are not fully protected yet"
+    },
+    "popup_protection_skip_button": {
+        "message": "Proceed anyway"
+    },
+    "popup_skip_action_button": {
+        "message": "Continue"
+    },
+    "popup_skip_description": {
+        "message": "Skipping will set your browser to full protection."
+    },
+    "popup_skip_headline": {
+        "message": "Skip setting up your browser?"
+    },
+    "popup_skip_skip_button": {
+        "message": "Skip"
+    },
+    "protection_explanation": {
+        "message": "Here you can change your privacy and search settings at any time"
+    },
+    "protection_full_headline": {
+        "message": "Now you are fully protected"
+    },
+    "protection_partial_headline": {
+        "message": "Setup complete"
+    },
+    "status_off": {
+        "message": "Off"
+    },
+    "status_on": {
+        "message": "On"
+    }
+}

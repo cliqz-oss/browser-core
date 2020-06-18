@@ -20,6 +20,7 @@
 /configs/common/urls-myoffrz.js @luciancor
 /configs/offers.js @luciancor
 /configs/releases/offers-chip-chrome.js @luciancor
+/configs/releases/offers-chip-edge.js @luciancor
 /configs/releases/offers-chip-firefox.js @luciancor
 /configs/releases/offers-chrome.js @luciancor
 /configs/releases/offers-edge.js @luciancor

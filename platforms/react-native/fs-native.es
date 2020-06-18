@@ -28,6 +28,11 @@ export function writeFile(filePath, data) {
   return RNFS.writeFile(`${BASEDIR}/${fileName}`, data);
 }
 
+export function deleteFile(filePath) {
+  const fileName = getFullPath(filePath);
+  return RNFS.unlink(`${BASEDIR}/${fileName}`);
+}
+
 export function mkdir() {
   return Promise.resolve();
 }

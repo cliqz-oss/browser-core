@@ -63,7 +63,7 @@ module.exports = {
       'core/logo-database.json',
       'antitracking/prob.json',
       'antitracking/config.json',
-      'antitracking/tracker_db_v2.json',
+      'core/tracker_db_v2.json',
     ]
   }
 };

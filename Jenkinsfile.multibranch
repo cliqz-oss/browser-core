@@ -84,6 +84,10 @@ if (env.BRANCH_NAME.startsWith('v12.')) {
     matrix['cliqz-geckoview'] = [
         'config': 'cliqz-geckoview.js',
     ]
+    matrix['ghostery-geckoview'] = [
+        'config': 'ghostery-geckoview.js',
+    ]
+
 }
 
 if (env.BRANCH_NAME.startsWith('v13.')) {
@@ -98,6 +102,9 @@ if (env.BRANCH_NAME.startsWith('v14.')) {
     ]
     matrix['offers-chip-chrome'] = [
         'config': 'releases/offers-chip-chrome.js',
+    ]
+    matrix['offers-chip-edge'] = [
+        'config': 'releases/offers-chip-edge.js',
     ]
 }
 
@@ -156,6 +163,10 @@ if (isIntegrationBranch) {
 
     matrix['cliqz-geckoview'] = [
         'config': 'cliqz-geckoview.js',
+    ]
+
+    matrix['ghostery-geckoview'] = [
+        'config': 'ghostery-geckoview.js',
     ]
 
     matrix['lumen-ios'] = [

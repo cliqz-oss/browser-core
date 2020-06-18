@@ -16,3 +16,17 @@ update_configs:
           #
           # But you have been warned...
           dependency_name: "systemjs"
+    default_reviewers:
+      - "remusao"
+      - "private-face"
+      - "luciancor"
+    default_labels:
+      - "chore"
+    automerged_updates:
+      # Here we indicate to dependabot that whenever a dev dependency is
+      # updated, and CI is green, and the version bump is withing version range
+      # specified in package.json, then it should be safe to merge
+      # automatically.
+      - match:
+          dependency_type: "development"
+          update_type: "in_range"

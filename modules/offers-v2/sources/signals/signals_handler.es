@@ -6,6 +6,7 @@
  */
 import { chrome } from '../../platform/globals';
 
+import prefs from '../../core/prefs';
 import { httpPost } from '../../core/http';
 import SimpleDB from '../../core/persistence/simple-db';
 import pacemaker from '../../core/services/pacemaker';
@@ -13,7 +14,7 @@ import pacemaker from '../../core/services/pacemaker';
 import logger from '../common/offers_v2_logger';
 import OffersConfigs from '../offers_configs';
 import { generateUUID } from '../utils';
-import { constructSignal, addOrCreate } from './utils';
+import { constructSignal, getSignalID, addOrCreate } from './utils';
 import Behavior from '../behavior';
 import ActionID from '../offers/actions-defs';
 
@@ -25,6 +26,13 @@ const ACTIONS_TO_SAVE = new Set([
   ActionID.AID_PAYMENT,
   ActionID.AID_SUCCESS
 ]);
+
+const MANDATORY_SIGNAL_AIDS = [
+  ActionID.AID_OFFERS_ENVIRONMENT
+];
+
+const isMutableSignal = signalPayload =>
+  !MANDATORY_SIGNAL_AIDS.includes(getSignalID(JSON.parse(signalPayload)));
 
 /**
  * [v3.0] we will not use bucket anymore so now we will have the following
@@ -245,7 +253,7 @@ export default class SignalHandler {
   }
 
   async sendEnvironmentSignal(data) {
-    const sigID = 'environment';
+    const sigID = ActionID.AID_OFFERS_ENVIRONMENT;
     const signalType = 'environment';
     const timestamp = await this.trustedClock.getMinutesSinceEpochAsync();
 
@@ -413,6 +421,11 @@ export default class SignalHandler {
   sendSingle({ payload, signalType, sigID }) {
     logger.debug('Sending signal:', payload);
     return new Promise((resolve) => {
+      const muteSignal = !prefs.get('telemetry') && isMutableSignal(payload);
+      if (muteSignal) {
+        resolve();
+        return;
+      }
       this.sender.httpPost(
         OffersConfigs.SIGNALS_HPN_BE_ADDR,
         () => {

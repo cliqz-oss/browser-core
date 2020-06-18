@@ -109,7 +109,10 @@ export default class NewsCache {
     // only required for hbasedRecommendCacheObject
     return this.updateFunction(this.parseDataFromCache())
       .then(this.putDataToCache.bind(this))
-      .catch(e => log('Error', e, `cache ${this.cacheName} is not updated.`));
+      .catch((e) => {
+        this.updateLastUpdateTime();
+        log('Error', e, `cache ${this.cacheName} is not updated.`);
+      });
   }
 
   getData() {

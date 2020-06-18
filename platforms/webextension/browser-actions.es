@@ -24,10 +24,11 @@ function sendMessageToAndroid(action, ...args) {
   });
 }
 
-export async function queryCliqz(q) {
+export async function queryCliqz(q, options = {}) {
   return chrome.omnibox2.query(q, {
     focus: true,
-    openLocation: true
+    openLocation: true,
+    options,
   });
 }
 

@@ -12,7 +12,7 @@ export function getGroupKey(offer) {
 
   if (hasPageImpPatterns) {
     /** @type number */
-    const hash = hashString(JSON.stringify(pageImpPatterns));
+    const hash = hashString(JSON.stringify(pageImpPatterns.sort()));
     return `${hash}`;
   }
 

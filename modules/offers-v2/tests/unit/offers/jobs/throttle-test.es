@@ -13,6 +13,7 @@ const {
   getSentSignalForOffer,
   visitPageWithOffer,
 } = require('../../utils/offers/integration');
+const cloneObject = require('../../utils/utils').cloneObject;
 
 const prefs = commonMocks['core/prefs'].default;
 
@@ -41,7 +42,7 @@ export default describeModule('offers-v2/offers/jobs/throttle',
       });
 
       function getOfferForRealEstate(dest) {
-        const offerObj = JSON.parse(JSON.stringify(fixture.VALID_OFFER_OBJ));
+        const offerObj = cloneObject(fixture.VALID_OFFER_OBJ);
         offerObj.rs_dest = typeof dest === 'string' ? [dest] : dest;
         return new Offer(offerObj);
       }

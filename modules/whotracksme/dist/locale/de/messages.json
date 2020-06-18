@@ -1,0 +1,53 @@
+{
+  "whotracksme_category_advertising": {
+    "message": "Werbung"
+  },
+  "whotracksme_category_audio_video_player": {
+    "message": "Audio/Video-Player"
+  },
+  "whotracksme_category_cdn": {
+    "message": "CDN"
+  },
+  "whotracksme_category_comments": {
+    "message": "Kommentare"
+  },
+  "whotracksme_category_customer_interaction": {
+    "message": "Kundeninteraktion"
+  },
+  "whotracksme_category_default": {
+    "message": "Hinweis: Auf dieser Website könnten Datensammler aktiv sein"
+  },
+  "whotracksme_category_essential": {
+    "message": "Essenziell"
+  },
+  "whotracksme_category_extensions": {
+    "message": "Erweiterungen"
+  },
+  "whotracksme_category_hosting": {
+    "message": "Hosting"
+  },
+  "whotracksme_category_misc": {
+    "message": "Sonstige"
+  },
+  "whotracksme_category_pornvertising": {
+    "message": "Erwachsenenwerbung"
+  },
+  "whotracksme_category_site_analytics": {
+    "message": "Website-Analytics"
+  },
+  "whotracksme_category_social_media": {
+    "message": "Social Media"
+  },
+  "whotracksme_category_unknown": {
+    "message": "Unbekannt"
+  },
+  "whotracksme_no_info_header": {
+    "message": "Keine Infos über Datensammler"
+  },
+  "whotracksme_statistical_report": {
+    "message": "Statistikbericht"
+  },
+  "whotracksme_trackers_seen_header": {
+    "message": "Alle gesehenen Datensammler"
+  }
+}

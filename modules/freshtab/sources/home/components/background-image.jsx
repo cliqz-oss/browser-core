@@ -26,14 +26,12 @@ export default function BackgroundImage({
     <AppContext.Consumer>
       {
         ({ config }) => (
-          <div onClick={() => selectBackground(config.product)}>
-            <img
-              alt=""
-              data-bg={bg}
-              width="71"
-              src={src}
-              className={`image ${isActive ? 'active' : ''}`}
-            />
+          <div
+            className={`bg-thumbnail ${isActive ? 'active' : ''}`}
+            onClick={() => selectBackground(config.product)}
+            style={{ backgroundImage: `url(${src})` }}
+            data-bg={bg}
+          >
             <span className="selected-img">
               <img
                 alt=""

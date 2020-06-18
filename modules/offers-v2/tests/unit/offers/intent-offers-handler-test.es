@@ -39,6 +39,7 @@ export default describeModule('offers-v2/offers/intent-offers-handler',
       shouldKeepResource: function () {
         return shouldKeepResourceRet;
       },
+      getLocation: () => ({ country: '', city: '' }),
     },
   }),
   () => {

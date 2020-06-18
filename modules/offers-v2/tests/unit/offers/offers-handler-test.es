@@ -1,4 +1,5 @@
 /* global chai */
+/* global sinon */
 /* global describeModule */
 /* eslint-disable func-names,prefer-arrow-callback,arrow-body-style, no-param-reassign */
 
@@ -7,7 +8,8 @@ const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const beMocks = require('../utils/offers/intent');
 const eventsMock = require('../utils/events');
-const { VALID_OFFER_OBJ, VALID_OOTW_OFFER_OBJ } = require('../utils/offers/data');
+const { VALID_OFFER_OBJ, VALID_OOTW_OFFER_OBJ, VALID_OFFER_LANDING_URL, VALID_OFFER_SUCCESS_URL } = require('../utils/offers/data');
+const cloneObject = require('../utils/utils').cloneObject;
 const SignalHandlerMock = require('../utils/offers/signals')['offers-v2/signals/signals_handler'].default;
 const ehMocks = require('../utils/offers/event_handler')['offers-v2/event_handler'];
 
@@ -28,8 +30,9 @@ let globalActiveCats = new Set();
 
 let enableOfferCollections = false;
 let maxGroupsInOfferCollection = Infinity;
+const HASH_STRING = 'hash-string';
+const hashString = sinon.spy(() => HASH_STRING);
 
-const cloneObject = obj => JSON.parse(JSON.stringify(obj));
 const cloneOffer = (offer = VALID_OFFER_OBJ) => cloneObject(offer);
 const tap = fn => function (...args) {
   fn(...args);
@@ -41,7 +44,6 @@ const tail = list => list.slice(1);
 
 const BLACKLIST_URL_PREFIX = 'http://global.blacklist';
 const DYNAMIC_OFFER_CLIENT_ID = 'dynamic-offer-client-id';
-const HASH_STRING = 'hash-string';
 const AB_NUMBER = 1;
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -119,7 +121,8 @@ export default describeModule('offers-v2/offers/offers-handler',
       },
       shouldKeepResource: () => 1,
       isDeveloper: () => prefs.get('developer'),
-      hashString: () => HASH_STRING
+      getLocation: () => ({ country: '', city: '' }),
+      hashString
     },
     'offers-v2/background': {
       default: {
@@ -138,6 +141,7 @@ export default describeModule('offers-v2/offers/offers-handler',
 
       beforeEach(async function () {
         persistenceMocks['core/persistence/map'].reset();
+        hashString.resetHistory();
         OffersHandler = this.module().default;
         events.clearAll();
         Offer = (await this.system.import('offers-v2/offers/offer')).default;
@@ -278,7 +282,7 @@ export default describeModule('offers-v2/offers/offers-handler',
           function incOfferActions(offerList, offerAction, count) {
             offerList.forEach((offer) => {
               offersDB.addOfferObject(offer.offer_id, offer);
-              offersDB.incOfferAction(offer.offer_id, offerAction, true, count);
+              offersDB.incOfferAction(offer.offer_id, offerAction, count);
             });
           }
 
@@ -344,11 +348,13 @@ export default describeModule('offers-v2/offers/offers-handler',
 
             function getMessagesFromOffersChannelOfType(type) {
               const msgs = events.getMessagesForChannel('offers-send-ch') || [];
-              return msgs.filter(isMsgFromOffersCoreOfType(type))
-                .map(({ data }) => data);
+              return msgs
+                .filter(isMsgFromOffersCoreOfType(type));
             }
 
-            const getPushedOffers = () => getMessagesFromOffersChannelOfType('push-offer');
+            const getPushedOffers = () =>
+              getMessagesFromOffersChannelOfType('push-offer')
+                .map(({ data }) => data);
 
             function expectSameOffer(offerA, offerB) {
               chai.expect(getOfferID(offerA), 'incorrect offer_id').to.equal(getOfferID(offerB));
@@ -366,7 +372,8 @@ export default describeModule('offers-v2/offers/offers-handler',
             }
 
             const getPushedOfferCollections = () =>
-              getMessagesFromOffersChannelOfType('push-offer-collection');
+              getMessagesFromOffersChannelOfType('push-offer-collection')
+                .map(({ data }) => data);
 
             function expectSinglePushedOfferCollection(offersList) {
               const pushedOfferCollections = getPushedOfferCollections()
@@ -636,6 +643,24 @@ export default describeModule('offers-v2/offers/offers-handler',
               chai.expect(pushedOffers.length, 'incorrect count of pushed offers').to.equal(1);
             });
 
+            it('/if any, an `offers-notification:unread-offers-count` is published excluding pushed offers',
+              async () => {
+                const storedUnreadOffers = [
+                  buildOffer('o1', 'cid1', 'client1', 0.9),
+                  buildOffer('o2', 'cid2', 'client2', 0.9),
+                ];
+                for (const unreadOffer of storedUnreadOffers) {
+                  offersDB.addOfferObject(unreadOffer.offer_id, unreadOffer);
+                }
+                const offersList = [storedUnreadOffers[0]];
+                prepareTriggerOffers(offersList);
+                await waitForBEPromise();
+
+                await triggerOffers(offersList);
+                const msgs = events.getMessagesForChannel('offers-notification:unread-offers-count') || [];
+                chai.expect(msgs.length, 'unread-offers-count notification count').to.equal(1);
+                chai.expect(msgs[0]?.count, 'unread offer count').to.equal(1);
+              });
             context('/some offer in DB is of the same campaign', () => {
               const campaignId = 'cid';
               const dboffer = buildOffer('oid', campaignId, 'client', 1);
@@ -1091,10 +1116,15 @@ as a list starting with the best offer to the "offers-cc" real-estate`, async ()
                 await triggerOffers(offersList);
 
                 expectSinglePushedOfferCollection(offersList); // browser-panel offer excluded
+
+                // EX-9759
+                const msg = head(getMessagesFromOffersChannelOfType('push-offer-collection'));
+                chai.expect(Array.isArray(msg.dest), 'message dest should be a list').to.be.true;
+                chai.expect(head(msg.dest)).to.equal('offers-cc');
               });
 
               it(`/offer of the week is not pushed in a collection,
-but are stored in the local offer database`, async () => {
+but is stored in the local offer database`, async () => {
                 const ootw = cloneOffer(VALID_OOTW_OFFER_OBJ);
                 const offersList = cloneObject(OFFERS_LIST).concat(ootw);
                 prepareTriggerOffers(offersList);
@@ -1110,6 +1140,17 @@ but are stored in the local offer database`, async () => {
                   chai.expect(hasStoredOffer).to.be.true;
                 }
                 expectSinglePushedOfferCollection(OFFERS_LIST);
+              });
+
+              it('/offer of the is pushed as single offer when no targeted offers', async () => {
+                const ootw = cloneOffer(VALID_OOTW_OFFER_OBJ);
+                const offersList = [ootw];
+                prepareTriggerOffers(offersList);
+                await waitForBEPromise();
+
+                await triggerOffers(offersList);
+
+                expectSinglePushedOffer(ootw);
               });
 
               it(`/when an offer's \`trigger_on_advertiser\` is true, 'dot', or 'tooltip',
@@ -1147,11 +1188,22 @@ as defined by its \`trigger_on_advertiser property\``, async () => {
 
               it(`/offers pushed together as a list are each supplied with a "group" key,
 for grouping them by advertiser`, async () => {
+                const setPageImpMonitorWithPatterns = (offer, patterns) => {
+                  const monitor = getOfferMonitorData(offer).find(hasMonitorSignalID('success'));
+                  setMonitorSignalID(monitor, 'page_imp');
+                  setMonitorPatterns(monitor, patterns);
+                };
+                const patterns = {
+                  landing: `||${VALID_OFFER_LANDING_URL.replace('https://', '')}$script`,
+                  success: `||${VALID_OFFER_SUCCESS_URL.replace('https://', '')}$script`
+                };
                 const offer1 = buildOffer('o1', 'cid1', 'client1', 0.9);
-                const monitor = getOfferMonitorData(offer1).find(hasMonitorSignalID('success'));
-                setMonitorSignalID(monitor, 'page_imp');
-                const offer2 = buildOffer('o2', 'cid2', 'client2', 0.8);
-                const offersList = prepareTriggerOffers([offer1, offer2]);
+                setPageImpMonitorWithPatterns(offer1, [patterns.landing, patterns.success]);
+                const offer2 = buildOffer('o2', 'cid1', 'client1', 0.9);
+                // same urls in page_imp, reverse order (EX-9753)
+                setPageImpMonitorWithPatterns(offer2, [patterns.success, patterns.landing]);
+                const offer3 = buildOffer('o3', 'cid2', 'client2', 0.8);
+                const offersList = prepareTriggerOffers([offer1, offer2, offer3]);
 
                 await waitForBEPromise();
                 await triggerOffers(offersList);
@@ -1159,7 +1211,9 @@ for grouping them by advertiser`, async () => {
                 const offerCollection = getPushedOfferCollections()
                   .flatMap(getOfferCollectionData);
                 const result = offerCollection.map(({ group }) => group);
-                chai.expect(result).to.deep.equal([HASH_STRING, 'cid2']);
+                chai.expect(result).to.deep.equal([HASH_STRING, HASH_STRING, 'cid2']);
+                chai.expect(hashString.calledTwice).to.be.true;
+                chai.expect(hashString.args[0]).to.deep.equal(hashString.args[1]);
               });
 
               describe('/when MAX_GROUPS_IN_OFFER_COLLECTIONS global config setting is defined',

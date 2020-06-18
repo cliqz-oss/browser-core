@@ -4,6 +4,7 @@ This module will be used to handle different kind of events in a more efficient
 way for the offers module.
 
 */
+import { isGhostery, isCliqzBrowser, isAMO } from '../core/platform';
 import logger from './common/offers_v2_logger';
 import events from '../core/events';
 import { parse, getName } from '../core/url';
@@ -135,8 +136,11 @@ export default class EventHandler {
   onTabLocChanged(data) {
     logger.info('onTabLocChanged:', data.url);
 
-    // private mode then we don't do anything here
-    if (data.isPrivate) {
+    // For a standalone MyOffrz extension, an user explicitly allowed it
+    // to run in private mode (otherwise this code is never executed),
+    // therefore offers are allowed and expected.
+    const areOffersAllowedInPrivateMode = !(isGhostery || isCliqzBrowser || isAMO);
+    if (data.isPrivate && !areOffersAllowedInPrivateMode) {
       logger.info('window is private skipping: onTabLocChanged');
       return;
     }

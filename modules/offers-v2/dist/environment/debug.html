@@ -1,0 +1,40 @@
+<!--
+
+this file is used exclusively for the development of offers environment page
+to use it, open this debug.html page directly from your file system
+and run the following function after the extension starts
+
+(async () => {
+  var last = (await getCurrentTab());
+  var tabId;
+  if (last.url.indexOf('debug.html') === -1){
+    tabId = await newTab('/modules/offers-v2/environment/debug.html');
+  }
+  chrome.tabs.executeScript(tabId || last.tabId, {
+    code: `document.querySelector('iframe').src='${chrome.runtime.getURL('/modules/offers-v2/environment/index.html')}?${Date.now()}';`,
+  });
+
+})();
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <style type="text/css">
+    body, html {
+      margin: 0px;
+      height: 100%;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+</body>
+</html>
+
+<iframe style="border:0;margin:0;padding:0;" scrolling="no"></iframe>

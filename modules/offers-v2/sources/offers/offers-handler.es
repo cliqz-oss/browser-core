@@ -356,7 +356,7 @@ export default class OffersHandler {
     const result = offerCollection.hasMultipleEntries()
       ? this.offersAPI.pushOfferCollection(
         offerCollection,
-        REWARD_BOX_REAL_ESTATE_TYPE,
+        [REWARD_BOX_REAL_ESTATE_TYPE],
         { displayRule, matchTraits }
       )
       : this.offersAPI.pushOffer(
@@ -432,13 +432,25 @@ export default class OffersHandler {
    * processed and pushed. `false` otherwise.
    */
   async _processEventWrapped({ urlData, catMatches }) {
-    // notification about unread offers is required in any case
-    const unreminderedOfferId = this._notifyAboutUnreadOffers(catMatches, urlData);
-    const wasChosen = await this._selectAndProcessPushableOffersIfAny(catMatches, urlData);
-    if (!wasChosen && unreminderedOfferId) {
-      this._showTooltip(unreminderedOfferId, urlData);
+    const { untouched, ignored } = this._getUntouchedOffers(catMatches, urlData);
+    const pushedOfferCollection = await this._selectAndProcessPushableOffersIfAny(
+      catMatches, urlData
+    );
+    const didPush = !pushedOfferCollection.isEmpty();
+    const shouldShowReminderTooltip = !didPush && ignored.length > 0;
+    if (shouldShowReminderTooltip) {
+      const lastIgnored = ignored[ignored.length - 1];
+      this._showTooltip(lastIgnored, urlData);
+      return false;
     }
-    return wasChosen;
+    // we want to notify the count of unread offers even when offers were pushed,
+    // but pushed offers are exluded from the count
+    const isNotPushedOffer = id => !pushedOfferCollection.has(id);
+    const unreadCount = untouched.filter(isNotPushedOffer).length;
+    if (unreadCount) {
+      this._notifyUnreadCount(urlData, unreadCount);
+    }
+    return didPush;
   }
 
   /**
@@ -447,20 +459,19 @@ export default class OffersHandler {
    *
    * @param {CategoriesMatchTraits} catMatches
    * @param {UrlData} urlData
-   * @return {Promise<Boolean>} resolves to `true` when the most relevant offer was selected,
-   * processed and pushed. `false` otherwise.
+   * @return {Promise<OfferCollection>} resolves to the pushed offer collection.
    */
   async _selectAndProcessPushableOffersIfAny(catMatches, urlData) {
     const collection = await this._getOfferCollection(catMatches, urlData);
     if (collection.isEmpty()) {
-      return false;
+      return collection;
     }
 
     await this._pushOffersToRealEstates(collection, urlData, catMatches);
 
     this._updateDomainBasedThrottling(collection, urlData);
 
-    return true;
+    return collection;
   }
 
   /**
@@ -581,8 +592,8 @@ export default class OffersHandler {
     } else if (message.evt === 'offer-removed') {
       const offerID = message.offer.offer_id;
       const campaignID = message.offer.campaign_id;
-      const erased = message.extraData && message.extraData.erased === true;
-      this.offersAPI.offerRemoved(offerID, campaignID, erased);
+      const { erased = false, expired = true } = message.extraData || {};
+      this.offersAPI.offerRemoved(offerID, campaignID, erased, expired);
       this.offersToPageRelationStats.invalidateCache();
     }
   }
@@ -606,40 +617,32 @@ export default class OffersHandler {
   }
 
   /**
-   * select and return an offer that the user might have missed,
-   * or when none, publish a notification about the count
-   * of locally-stored relevant untouched offers if any,
-   * i.e. previously triggered, relevant to the given `catMatches` and `urlData`.
-   *
-   * this method retrieves locally stored relevant untouched offers
-   * that have not yet been actioned and have not previously been reminded to the user (tooltip).
-   * If any, it selects and returns the last one.
-   *
    * @param {CategoriesMatchTraits} catMatches
    * @param {UrlData} urlData
-   * @return {void|string} offerID of the selected offer
+   * @return {object}
+   * @prop {string[]} untouched ids of locally-stored relevant untouched offers,
+   * i.e. relevant to the given `catMatches` and `urlData` and
+   * previously triggered or actioned (e.g. code_copied, offer_closed, etc.).
+   * @prop {string[]} ignored subset of `untouched` limited to offers
+   * that have not recently been reminded to the user (tooltip),
+   * and excluding offers for which the `urlData` corresponds to the advertiser's domain.
    */
-  _notifyAboutUnreadOffers(catMatches, urlData) {
+  _getUntouchedOffers(catMatches, urlData) {
     const offers = this.offersDB.getOffersByRealEstate(REWARD_BOX_REAL_ESTATE_TYPE);
     const stats = this.offersToPageRelationStats.statsCached(offers, catMatches, urlData);
 
     const relevant = Array.from(new Set(stats.related.concat(stats.owned)));
     const untouched = relevant.filter(oid => !stats.touched.includes(oid));
-    if (untouched.length === 0) { return undefined; }
-
     // (untouched & related) - tooltip - owned
-    const notRemindered = untouched.filter(
+    const ignored = untouched.filter(
       oid => stats.related.includes(oid)
         && !stats.owned.includes(oid)
         && !stats.tooltip.includes(oid)
     );
-    if (notRemindered.length !== 0) { return notRemindered.pop(); } // just last offerId
-
-    this._notifyUnreadCounts(urlData, untouched.length);
-    return undefined;
+    return { untouched, ignored };
   }
 
-  _notifyUnreadCounts(urlData, count) {
+  _notifyUnreadCount(urlData, count) {
     const tabId = urlData.getTabId();
     if (count) { events.pub('offers-notification:unread-offers-count', { count, tabId }); }
   }

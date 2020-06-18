@@ -27,7 +27,11 @@ function saveOptions() {
 
 async function saveOptionsAndClose() {
   await saveOptions();
-  window.parent.postMessage({ action: 'continue' }, '*');
+  window.parent.postMessage({
+    action: 'continue',
+    // allow web page to toggle its telemetry according to user preference
+    telemetry: document.getElementById('telemetry').checked,
+  }, '*');
   window.close();
 }
 

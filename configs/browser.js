@@ -70,8 +70,8 @@ module.exports = {
     'modules.offers-templates.enabled': false,
     'modules.cookie-monster.enabled': true,
     'friends.enable.level': 'development',
-    'modules.search.operators.addCompletion.useTitle': false,
-    'modules.freshtab.customBackground': false,
+    'modules.search.operators.addCompletion.useTitle': true,
+    'modules.freshtab.customBackground': true,
   },
   modules: [
     'core',
@@ -98,6 +98,7 @@ module.exports = {
     'adblocker',
     'https-everywhere',
     'onboarding-v4',
+    'offboarding',
     'history',
     'offers-templates',
     'video-downloader',
@@ -112,6 +113,7 @@ module.exports = {
     'dat',
     'youtube-fixer',
     'my-name-is-cliqz',
+    'whotracksme'
   ],
   bundles: [
     'anolysis-cc/dashboard/anolysis.bundle.js',
@@ -124,9 +126,11 @@ module.exports = {
     'offers-templates/offers-checkout.bundle.js',
     'offers-templates/offers-control-center.bundle.js',
     'offers-templates/offers-control-center-after.bundle.js',
+    'offers-v2/environment.bundle.js',
     'freshtab/home.bundle.js',
     'history/home.bundle.js',
     'onboarding-v4/app.bundle.js',
+    'offboarding/app.bundle.js',
     'dropdown/dropdown.bundle.js',
     'dropdown/debug.bundle.js',
     'control-center/control-center-react.bundle.js',

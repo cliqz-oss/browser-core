@@ -8,40 +8,19 @@
   </div>
   <div class="card-body">
       Anolysis is a new approach for collecting usage data
-      without relying on user profiles. The approach is inspired
-      by the principle of group anonymity; making sure that <code>K</code> users
-      are indistinguishable from each other. Users send sanitized browser
-      attributes in the form of a group identity, and usage data through
-      multiple messages, in a way that this data cannot be pieced together and
-      used as an identifier.
+      without relying on user profiles. Users send a limited set of 
+      sanitized browser attributes and usage data through multiple messages
+      to our backend. Note that many messages do not even send browser attributes
+      at all.
 
       <br /><br />
 
-      We are able to achieve privacy by design, by representing browser
-      attributes hierarchically in a tree structure and algorithmically creating
-      anonymous groups, hence moving away from the concept of a user identity,
-      and embrace a group identity instead.
-
-      <br /><br />
-
-      So here's what you can take away from this:
-      <ul>
-        <li>
-          You get a group ID, shared with users having similar
-          browser attributes. From that moment on, only groups exist.
-        </li>
-        <li>
-          We guarantee a certain minimum size of a group.
-        </li>
-        <li>
-          Cliqz is never able to link back to you the messages sent from your
-          browser (explicitly or implicitly).
-        </li>
-        <li>
-          Most messages do not even send your group ID.
-        </li>
-      </ul>
-
+      Some messages send an <code>ephemerid</code>, a
+      ephemeral, non-unique key that allows for determining rolling retention,
+      for example. Each message type has a different ephemerid so that different
+      messages types cannot be linked together. On top, each ephemerid changes
+      over time so that even messages of the same type cannot be linked together
+      infinitely.
   </div>
   <div class="card-footer">
     Drop us a line if you have any questions:

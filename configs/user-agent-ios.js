@@ -49,12 +49,11 @@ module.exports = {
   modules: [
     'core',
     'human-web-lite',
+    'hpn-lite',
     'search',
     'anolysis',
     'geolocation',
-    'news',
     'insights',
-    'autoconsent',
   ],
   bundles: [
   ],
@@ -62,7 +61,7 @@ module.exports = {
     bundling: 'assets',
     include: [
       'core/logo-database.json',
-      'autoconsent/cosmetics.json',
+      'core/tracker_db_v2.json',
     ]
   }
 };

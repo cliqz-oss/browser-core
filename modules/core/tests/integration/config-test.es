@@ -30,6 +30,7 @@ function mockConfigReponse(response) {
     result: JSON.stringify(response),
   }).then(function () {
     app.config.settings.CONFIG_PROVIDER = testServer.getBaseUrl('/api/v1/config');
+    app.settings.CONFIG_PROVIDER = app.config.settings.CONFIG_PROVIDER;
   });
 }
 
@@ -64,7 +65,7 @@ export default function () {
 
         const p = waitForPrefChange('config_backends');
         await mockConfigReponse(response);
-        await app.services['cliqz-config']._initializer();
+        await app.services['cliqz-config']._initializer(app);
         await p;
       });
 
@@ -89,7 +90,7 @@ export default function () {
     context('unexpected configs', function () {
       beforeEach(async function () {
         await mockConfigReponse({ test_configs: 'test' });
-        await app.services['cliqz-config']._initializer();
+        await app.services['cliqz-config']._initializer(app);
       });
 
       it('the prefs were not added', function () {

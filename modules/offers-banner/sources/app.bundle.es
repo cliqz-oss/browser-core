@@ -32,7 +32,8 @@ function sendEnvironmentalSignal(startup) {
     version: inject.app.version,
     channel: prefs.get('offers.distribution.channel', ''),
     subchannel: prefs.get('offers.distribution.channel.sub', ''),
-    agent: navigator.userAgent
+    agent: navigator.userAgent,
+    telemetry: prefs.get('telemetry')
   });
 }
 

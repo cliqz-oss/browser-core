@@ -24,12 +24,15 @@
   margin: 0;
   padding-left: 15px;
   font-size: 14px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .widgets-bulleted-list__bullet {
   color: #b4b4b4;
   padding-bottom: 2px;
   font-size: 14px;
+  cursor: initial;
 }
 .widgets-bulleted-list__bullet:before {
   content: "\2022";

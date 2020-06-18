@@ -15,6 +15,26 @@ import { PASSIVE_LISTENER_OPTIONS, stopEvent } from '../../../dropdown/managers/
 const { Services } = ChromeUtils.import('resource://gre/modules/Services.jsm');
 const AC_PROVIDER_NAME = 'cliqz-results';
 
+const noop = () => {};
+
+const STUB_URLBAR_PROPS = {
+  megabar: false,
+  updateLayoutBreakout: noop,
+  _updateLayoutBreakoutDimensions: noop,
+  startLayoutExtend: noop,
+};
+
+function replaceProps(obj, propsMap) {
+  const backup = {};
+  Object.entries(propsMap).forEach(([prop, value]) => {
+    backup[prop] = obj[prop];
+    // eslint-disable-next-line no-param-reassign
+    obj[prop] = value;
+  });
+
+  return backup;
+}
+
 /**
  * Represents Cliqz wrapper around original Firefox gURLBar, provides API for Dropdown
  * and BrowserDropdownManager.
@@ -77,9 +97,9 @@ export default class URLBar extends EventEmitter {
     // Creating a fake urlbar controller which proxies all the calls to the original one,
     // except the ones we want to stub.
     qbController = controller;
-    this._window.gURLBar.controller = this._createUrlbarControllerProxy(controller, {
+    this.urlbar.controller = this._createUrlbarControllerProxy(controller, {
       // Native handling of key navigation interferes with our own, disable it
-      handleKeyNavigation: () => {}
+      handleKeyNavigation: noop,
     });
 
     // For compatibility with Firefox 68-69 (which have both legacy and quantumbar),
@@ -89,11 +109,12 @@ export default class URLBar extends EventEmitter {
     }
 
     // Make sure "megabar" is disabled
-    this._megabar = this.urlbar.megabar;
-    if (this._megabar) {
+    this._urlbarPropsBackup = replaceProps(this.urlbar, STUB_URLBAR_PROPS);
+    if (this._urlbarPropsBackup.megabar !== false) {
       this.urlbar.removeAttribute('breakout');
+      this.urlbar.setAttribute('breakout-extend-disabled', 'true');
+      this.textbox.parentNode.removeAttribute('breakout');
     }
-    this.urlbar.megabar = false;
 
     this._qbController = qbController;
     this._qbProviders = qbProviders;
@@ -208,18 +229,20 @@ export default class URLBar extends EventEmitter {
     });
 
     // Restore original quantumbar
-    const controller = this.urlbar.controller;
-    if (controller && controller.manager) {
+    if (this.isQuantumbar) {
       this._reregisterQuantumBarProviders(this._qbProviders);
       this.urlbar.controller = this._qbController;
       this.urlbar.megabar = this._megabar;
-      if (this._megabar) {
+      replaceProps(this.urlbar, this._urlbarPropsBackup);
+      if (this._urlbarPropsBackup.megabar !== false) {
         this.urlbar.setAttribute('breakout', 'true');
+        this.urlbar.removeAttribute('breakout-extend-disabled');
+        this.textbox.parentNode.setAttribute('breakout', 'true');
       }
     }
 
     // Restore legacy autocomplete
-    if (this.urlbar.megabar === undefined) {
+    if (this.isLegacy) {
       this.textbox.setAttribute('autocompletesearch', this._autocompletesearch);
       this.textbox.setAttribute('autocompletepopup', this._autocompletepopup);
 
@@ -278,15 +301,20 @@ export default class URLBar extends EventEmitter {
     const el = this.textbox;
     const oldVal = el.value;
 
+    // EX-4940: We should keep current cursor position in case user already
+    // started typed something by this moment
+    const { selectionStart, selectionEnd, focused } = this.urlbar;
+
     if (el && el.parentNode) {
       el.blur();
       el.parentNode.insertBefore(el, el.nextSibling);
       el.value = oldVal;
     }
-    // EX-4940: We should keep current cursor position in case user already
-    // started typed somehting by this moment
-    const { selectionStart, selectionEnd } = this.urlbar;
-    this.urlbar.focus();
+
+    if (focused) {
+      this.urlbar.focus();
+    }
+
     this.urlbar.selectionStart = selectionStart;
     this.urlbar.selectionEnd = selectionEnd;
     // EX-9368: Reloading urlbar might break "paste and go" context menu item
@@ -333,8 +361,10 @@ export default class URLBar extends EventEmitter {
     }
   }
 
-  _updateURLBarAttributes() {
-    const urlbarRect = this.textbox.getBoundingClientRect();
+  async _updateURLBarAttributes() {
+    const urlbarRect = await this._window.promiseDocumentFlushed(
+      () => this.textbox.getBoundingClientRect()
+    );
     const urlbarLeftPos = Math.round(urlbarRect.left || urlbarRect.x || 0);
     const urlbarWidth = urlbarRect.width;
     const extraPadding = 10;

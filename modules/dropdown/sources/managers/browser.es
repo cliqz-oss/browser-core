@@ -168,6 +168,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
     if (newTab
       || this._isPrivate()
       || !url
+      || !result.query.trim()
       || isFromFirstAutocompletedURL
       || isUrl(result.query)
     ) {
@@ -214,6 +215,14 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
 
   _setUrlbarValue(value) {
     this.urlbar.value = value;
+    // Update the user interface to indicate whether the new urlbar value
+    // is different than the loaded page.
+    if (this.urlbar.setPageProxyState
+      && value !== this.urlbar._lastValidURLStr
+      && this.urlbar.getAttribute('pageproxystate') === 'valid'
+    ) {
+      this.urlbar.setPageProxyState('invalid');
+    }
   }
 
   _setUrlbarVisibleValue(value) {
@@ -225,8 +234,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
   }
 
   _setSelectionRange(selectionStart, selectionEnd) {
-    this.urlbar.selectionStart = selectionStart;
-    this.urlbar.selectionEnd = selectionEnd;
+    this.inputField.setSelectionRange(selectionStart, selectionEnd, 'backward');
   }
 
   _getSelectionRange() {
@@ -281,7 +289,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
         this.onDrop(event);
         break;
       case 'input':
-        preventDefault = this.onInput();
+        preventDefault = this.onInput(event);
         break;
       case 'keydown':
         if (event.key === 'Escape' && this.urlbar.controller.input) {
@@ -329,7 +337,7 @@ export default class BrowserDropdownManager extends BaseDropdownManager {
           this.inputField.value = value;
 
           // Update completion
-          this.inputField.setSelectionRange(selectionStart + 1, value.length);
+          this._setSelectionRange(selectionStart + 1, value.length);
         }
         break;
       }

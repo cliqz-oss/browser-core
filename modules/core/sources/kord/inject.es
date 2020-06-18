@@ -123,3 +123,10 @@ export const actionFallback = fallbackValue => (error) => {
   }
   throw error;
 };
+
+export const getModuleList = () => {
+  if (!app) {
+    return [];
+  }
+  return app.moduleList;
+};

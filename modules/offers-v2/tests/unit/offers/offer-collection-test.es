@@ -4,8 +4,8 @@
 
 const { VALID_OFFER_OBJ } = require('../utils/offers/data');
 const commonMocks = require('../utils/common');
+const cloneObject = require('../utils/utils').cloneObject;
 
-const cloneObject = obj => JSON.parse(JSON.stringify(obj));
 const cloneOffer = (offer = VALID_OFFER_OBJ) => cloneObject(offer);
 
 export default describeModule('offers-v2/offers/offer-collection',

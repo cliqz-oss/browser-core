@@ -4,6 +4,7 @@
 const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const cloneObject = require('../utils/utils').cloneObject;
 
 export default describeModule('offers-v2/offers/offers-db-observer',
   () => ({
@@ -26,7 +27,7 @@ export default describeModule('offers-v2/offers/offers-db-observer',
       });
 
       function putOfferToDb() {
-        const offerObj = JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+        const offerObj = cloneObject(VALID_OFFER_OBJ);
         odb.addOfferObject(offerObj.offer_id, offerObj);
         const offer = odb.getOffers().filter(
           o => o.offer_id === VALID_OFFER_OBJ.offer_id

@@ -7,6 +7,7 @@
  */
 
 import sleep from './helpers/sleep';
+import { clearTimeout, setTimeout } from '../core/timers';
 
 export function throttle(window, fn, threshhold) {
   let last;
@@ -24,6 +25,30 @@ export function throttle(window, fn, threshhold) {
       last = now;
       fn(...args);
     }
+  };
+}
+
+/**
+ * simple version of https://davidwalsh.name/javascript-debounce-function,
+ * without options to cancel or execute immediately.
+ *
+ * @param {Function} fn
+ * @param {number} [delay] in ms
+ * @returns {Function} the debounced function,
+ * or the given function when delay is falsy.
+ */
+export function debounce(fn, delay) {
+  let timeout = null;
+  return !delay ? fn : function debounced(...args) {
+    // https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearTimeout
+    // Passing an invalid ID to clearTimeout() silently does nothing; no exception is thrown.
+    clearTimeout(timeout);
+
+    const delayed = () => {
+      timeout = null;
+      fn(...args);
+    };
+    timeout = setTimeout(delayed, delay);
   };
 }
 

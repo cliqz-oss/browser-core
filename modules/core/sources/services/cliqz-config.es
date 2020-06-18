@@ -7,7 +7,6 @@
  */
 
 import { fetch } from '../http';
-import CONFIG from '../config';
 import events from '../events';
 import i18n from '../i18n';
 import prefs from '../prefs';
@@ -51,8 +50,8 @@ const EXPECTED_CONFIGS = new Set([
   'ts',
 ]);
 
-async function updateCliqzConfig() {
-  return fetch(CONFIG.settings.CONFIG_PROVIDER)
+async function updateCliqzConfig(CONFIG_PROVIDER_URL) {
+  return fetch(CONFIG_PROVIDER_URL)
     .then(r => r.json())
     .then((config) => {
       Object.keys(config).forEach((k) => {
@@ -82,7 +81,7 @@ async function updateCliqzConfig() {
     }).catch(e => console.log('cliqz-config update failed', e));
 }
 
-export function service() {
+export function service(app) {
   let interval = null;
   nextTick(() => {
     interval = pacemaker.everyHour(updateCliqzConfig);
@@ -95,7 +94,7 @@ export function service() {
     }
   };
 
-  return updateCliqzConfig();
+  return updateCliqzConfig(app.settings.CONFIG_PROVIDER);
 }
 
 export default inject.service('cliqz-config', []);

@@ -72,7 +72,7 @@
     }
 
     .aside {
-            flex: 0 0 map-get($base-configs, aside-width);
+        flex: 0 0 map-get($base-configs, aside-width);
     }
 
     .aside-button {

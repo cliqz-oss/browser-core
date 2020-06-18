@@ -108,7 +108,7 @@ describe('Freshtab background UI', function () {
     });
 
     it('renders with correct settings being selected', function () {
-      const activeBgImage = 'img[data-bg="bg-matterhorn"]';
+      const activeBgImage = 'div[data-bg="bg-matterhorn"]';
       expect(subject.query(activeBgImage).className).to.contain('active');
     });
 
@@ -144,7 +144,7 @@ describe('Freshtab background UI', function () {
         });
 
         it('renders with correct settings being selected', function () {
-          const activeBgImage = `img[data-bg="bg-${background}"]`;
+          const activeBgImage = `div[data-bg="bg-${background}"]`;
           expect(subject.query(activeBgImage).className).to.contain('active');
         });
 

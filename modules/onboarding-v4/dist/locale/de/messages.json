@@ -119,12 +119,6 @@
     "welcome_ctrl": {
         "message": "Los geht's"
     },
-    "welcome_data_collection": {
-        "message": "Cliqz nutzt anonymisierte Nutzungsdaten um den Browser für dich besser zu machen."
-    },
-    "welcome_data_share": {
-        "message": "Zu übermittelnde Daten festlegen"
-    },
     "welcome_description": {
         "message": "Wir schaffen eine unabhängige europäische Alternative zu den marktbeherrschenden US-Plattformen. Vielen Dank für dein Vertrauen und dass du den Weg in die digitale Ära mit uns gehst."
     },

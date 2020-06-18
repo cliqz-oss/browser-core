@@ -47,6 +47,7 @@ function signalsTests(dest) {
     let allCampaigns;
 
     beforeEach(async function () {
+      app.prefs.set('telemetry', true); // default
       tabId = await triggerOffer(dest);
       await waitFor(() => isSomeOfferShown(offers)); // wait for banner's appearance
       allCampaigns = app.modules['offers-v2'].background.signalsHandler.sigMap.campaign;
@@ -135,7 +136,6 @@ function signalsTests(dest) {
 }
 
 export default function () {
-  // skip for now
-  // signalsTests('browser-panel');
+  signalsTests('browser-panel');
   signalsTests('offers-cc');
 }

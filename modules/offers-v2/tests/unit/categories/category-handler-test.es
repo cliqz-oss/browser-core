@@ -7,6 +7,7 @@ const MockDate = require('mockdate');
 const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const waitFor = require('../utils/waitfor');
+const cloneObject = require('../utils/utils').cloneObject;
 
 const GENERIC_CAT_DATA = {
   name: 'test-cat',
@@ -70,11 +71,8 @@ export default describeModule('offers-v2/categories/category-handler',
         ThrottleError = (await this.system.import('offers-v2/common/throttle-with-rejection')).ThrottleError;
       });
 
-
-      function copyData(d) { return JSON.parse(JSON.stringify(d)); }
-
       function createCategory(d = GENERIC_CAT_DATA, overrideName = null) {
-        d = copyData(d);
+        d = cloneObject(d);
         if (overrideName) {
           d.name = overrideName;
         }
@@ -84,7 +82,7 @@ export default describeModule('offers-v2/categories/category-handler',
       function createCategories(catDataList) {
         const result = [];
         catDataList.forEach((cd) => {
-          const d = copyData(GENERIC_CAT_DATA);
+          const d = cloneObject(GENERIC_CAT_DATA);
           d.name = cd.name;
           if (cd.patterns) {
             d.patterns = cd.patterns;

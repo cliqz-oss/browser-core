@@ -9,6 +9,7 @@
 /* globals ExtensionAPI */
 
 import { hasPref, getPref } from './prefs';
+import externalProtocolHandlerExists from './protocol';
 
 global.cliqz = class extends ExtensionAPI {
   getAPI() {
@@ -16,6 +17,7 @@ global.cliqz = class extends ExtensionAPI {
       cliqz: {
         hasPref,
         getPref,
+        externalProtocolHandlerExists,
       },
     };
   }

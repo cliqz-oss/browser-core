@@ -6,10 +6,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import inject, { setGlobal as injectSetGlobal } from './kord/inject';
+import inject, { getModuleList, setGlobal as injectSetGlobal } from './kord/inject';
 
 export default {
   inject,
+  get modules() {
+    return getModuleList();
+  },
 };
 
 export function setApp(app) {

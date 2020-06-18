@@ -1,4 +1,5 @@
 /* global chai */
+/* global sinon */
 /* global describeModule */
 /* eslint no-param-reassign: off */
 
@@ -7,6 +8,7 @@ const persistenceMocks = require('../utils/persistence');
 const eventsMock = require('../utils/events');
 const signalsMock = require('../utils/offers/signals');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const cloneObject = require('../utils/utils').cloneObject;
 
 const CH = 'offers-send-ch';
 
@@ -58,7 +60,7 @@ export default describeModule('offers-v2/offers/offers-api',
           });
 
           function cloneValidOffer() {
-            return JSON.parse(JSON.stringify(VALID_OFFER_OBJ));
+            return cloneObject(VALID_OFFER_OBJ);
           }
 
           function bo(offerData) {
@@ -261,6 +263,74 @@ export default describeModule('offers-v2/offers/offers-api',
               const r = op.getStoredOffers({});
               chai.expect(removed).to.be.equal(true);
               chai.expect(r.length).to.be.equal(0);
+            });
+          });
+        });
+
+        context('#offerRemoved method', function () {
+          let signalHandlerMock;
+          let offersAPI;
+          let promise;
+
+          beforeEach(async () => {
+            promise = Promise.resolve();
+            signalHandlerMock = {
+              removeCampaignSignals: sinon.spy(),
+              sendCampaignSignalNow: sinon.spy(),
+              setCampaignSignal: sinon.spy()
+            };
+            offersAPI = new OfferProcessor(signalHandlerMock, {});
+            await promise;
+          });
+
+          afterEach(() => {
+            signalHandlerMock.removeCampaignSignals.resetHistory();
+            signalHandlerMock.sendCampaignSignalNow.resetHistory();
+            signalHandlerMock.setCampaignSignal.resetHistory();
+          });
+
+          describe('when called without a truthy `erased` parameter', () => {
+            beforeEach(async () => {
+              offersAPI.offerRemoved('oid', 'cid');
+              await Promise.resolve();
+            });
+
+            it('should not send or remove signals ', () => {
+              chai.expect(signalHandlerMock.removeCampaignSignals).not.to.have.been.called;
+              chai.expect(signalHandlerMock.sendCampaignSignalNow).not.to.have.been.called;
+              chai.expect(signalHandlerMock.setCampaignSignal).not.to.have.been.called;
+            });
+          });
+
+          describe('when called with a truthy `erased` parameter', () => {
+            beforeEach(async () => {
+              offersAPI.offerRemoved('oid', 'cid', true);
+              await Promise.resolve();
+            });
+
+            it('should force-send an offer_expired signal and remove signals for the erased offer', () => {
+              chai.expect(signalHandlerMock.removeCampaignSignals)
+                .to.have.been.calledOnceWithExactly('cid');
+              chai.expect(signalHandlerMock.sendCampaignSignalNow)
+                .to.have.been.calledOnceWithExactly('cid');
+              chai.expect(signalHandlerMock.sendCampaignSignalNow)
+                .to.have.been.calledAfter(signalHandlerMock.setCampaignSignal);
+              chai.expect(signalHandlerMock.setCampaignSignal)
+                .to.have.been.calledOnceWithExactly('cid', 'oid', 'processor', 'offer_expired');
+            });
+          });
+
+          describe('when called with a truthy `erased` and a false `expired` parameter', () => {
+            beforeEach(async () => {
+              offersAPI.offerRemoved('oid', 'cid', true, false);
+              await Promise.resolve();
+            });
+
+            it('should only remove signals for the erased offer', () => {
+              chai.expect(signalHandlerMock.removeCampaignSignals)
+                .to.have.been.calledOnceWithExactly('cid');
+              chai.expect(signalHandlerMock.sendCampaignSignalNow).not.to.have.been.called;
+              chai.expect(signalHandlerMock.setCampaignSignal).not.to.have.been.called;
             });
           });
         });

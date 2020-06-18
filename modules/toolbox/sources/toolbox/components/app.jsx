@@ -12,7 +12,6 @@ import createActionWrapper from '../../../core/helpers/action-module-wrapper';
 import AppModules from './app-modules';
 import ActionButtons from './action-buttons';
 import HumanWeb from './humanweb';
-import Offers from './offers';
 import Preferences from './preferences';
 import ResourceLoaders from './resource-loaders';
 import SearchBackendConfig from './search-backend-config';
@@ -27,7 +26,6 @@ const tabs = [
   'Set / get prefs',
   'Action buttons',
   'HumanWeb',
-  'Offers',
   'Resource loaders',
 ];
 
@@ -58,9 +56,6 @@ export default class App extends React.Component {
     }
     if (this.state.view === 'HumanWeb') {
       return <HumanWeb cliqz={this.background} />;
-    }
-    if (this.state.view === 'Offers') {
-      return <Offers cliqz={this.background} />;
     }
     if (this.state.view === 'Resource loaders') {
       return <ResourceLoaders cliqz={this.background} />;

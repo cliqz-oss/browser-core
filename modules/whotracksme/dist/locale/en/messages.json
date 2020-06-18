@@ -1,0 +1,53 @@
+{
+  "whotracksme_category_advertising": {
+    "message": "Advertising"
+  },
+  "whotracksme_category_audio_video_player": {
+    "message": "Audio Video Player"
+  },
+  "whotracksme_category_cdn": {
+    "message": "CDN"
+  },
+  "whotracksme_category_comments": {
+    "message": "Comments"
+  },
+  "whotracksme_category_customer_interaction": {
+    "message": "Customer Interaction"
+  },
+  "whotracksme_category_default": {
+    "message": "Disclaimer: There may still be trackers on this domain"
+  },
+  "whotracksme_category_essential": {
+    "message": "Essential"
+  },
+  "whotracksme_category_extensions": {
+    "message": "Extensions"
+  },
+  "whotracksme_category_hosting": {
+    "message": "Hosting"
+  },
+  "whotracksme_category_misc": {
+    "message": "Misc"
+  },
+  "whotracksme_category_pornvertising": {
+    "message": "Pornvertising"
+  },
+  "whotracksme_category_site_analytics": {
+    "message": "Site Analytics"
+  },
+  "whotracksme_category_social_media": {
+    "message": "Social Media"
+  },
+  "whotracksme_category_unknown": {
+    "message": "Unknown"
+  },
+  "whotracksme_no_info_header": {
+    "message": "No info about trackers"
+  },
+  "whotracksme_statistical_report": {
+    "message": "Statistical Report"
+  },
+  "whotracksme_trackers_seen_header": {
+    "message": "All trackers seen"
+  }
+}

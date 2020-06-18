@@ -11,6 +11,7 @@ import background from '../core/base/background';
 import HumanWebLite from './human-web-lite';
 import logger from './logger';
 import random from '../core/crypto/random';
+import inject from '../core/kord/inject';
 
 function parseBool(value, default_) {
   if (value === true) {
@@ -38,14 +39,12 @@ export default background({
   requiresServices: [
     'storage',
   ],
+  hpnLite: inject.module('hpn-lite'),
 
-  /**
-    @method init
-    @param settings
-  */
   async init(config, browser, { services }) {
     const storage = services.storage;
-    this.humanWebLite = new HumanWebLite({ config, storage });
+    const hpn = this.hpnLite;
+    this.humanWebLite = new HumanWebLite({ config, storage, hpn });
     this.autoTrigger = parseBool(config.HUMAN_WEB_LITE_AUTO_TRIGGER, false);
 
     logger.debug('Initializing HumanWebLite...');

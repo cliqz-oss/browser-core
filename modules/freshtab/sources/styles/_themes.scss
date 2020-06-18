@@ -40,8 +40,10 @@ $themes: (
             search-input-border: 0px solid rgba(0, 174, 240, 1),
             search-input-box-shadow-focus: 0px 7px 11px -4px get-color-black-opacity(0.52),
             search-input-color: #B7B7B7,
-            search-input-cliqz-bg-image: url(../images/cliqz_icon2_1024.svg),
+            search-input-cliqz-bg-image: url(../images/blue-search-icon.svg),
             search-input-ghostery-bg-image: url(../images/ghostery-tab-search-icon.svg),
+            cliqz-logo-bg: url('../images/blue-cliqz-logo.svg') no-repeat center top,
+            ghostery-tab-logo-bg: url('../images/dark-ghostery-tab-logo.svg') no-repeat center 15px,
         ),
         news: (
             news-dash-span-bg-color: get-color-black-opacity(0.3),
@@ -90,8 +92,10 @@ $themes: (
             search-input-border: 0px solid rgba(0, 174, 240, 0),
             search-input-box-shadow-focus: 0px 7px 11px -4px get-color-black-opacity(0.52),
             search-input-color: #b7b7b7,
-            search-input-cliqz-bg-image: url(../images/cliqz_icon2_1024.svg),
+            search-input-cliqz-bg-image: url(../images/blue-search-icon.svg),
             search-input-ghostery-bg-image: url(../images/ghostery-tab-search-icon.svg),
+            cliqz-logo-bg: url('../images/white-cliqz-logo.svg') no-repeat center top,
+            ghostery-tab-logo-bg: url('../images/light-ghostery-tab-logo.svg') no-repeat center top,
         ),
         news: (
             news-dash-span-bg-color: get-color-white-opacity(0.3),

@@ -1,0 +1,128 @@
+{
+    "adblocking_description_off_1": {
+        "message": "Schon gewusst?"
+    },
+    "adblocking_description_off_2": {
+        "message": "Werbung lenkt nicht nur ab, sondern stiehlt auch deine wertvolle Zeit"
+    },
+    "adblocking_description_on_1": {
+        "message": "Jetzt kannst du"
+    },
+    "adblocking_description_on_2": {
+        "message": "ungestört surfen, und Webseiten laden schneller"
+    },
+    "adblocking_header": {
+        "message": "Cliqz Werbeblocker"
+    },
+    "antiphishing_description_off_1": {
+        "message": "Schon gewusst?"
+    },
+    "antiphishing_description_off_2": {
+        "message": "Betrugswebsites versuchen, deine Passwörter und Kreditkartendaten abzufischen"
+    },
+    "antiphishing_description_on_1": {
+        "message": "Jetzt bist du"
+    },
+    "antiphishing_description_on_2": {
+        "message": "vor Phishing und Identitätsdiebstahl geschützt"
+    },
+    "antiphishing_header": {
+        "message": "Cliqz Anti-Phishing"
+    },
+    "antitracking_description_off_1": {
+        "message": "Schon gewusst?"
+    },
+    "antitracking_description_off_2": {
+        "message": "Datensammler überwachen alles, was du im Internet machst"
+    },
+    "antitracking_description_on_1": {
+        "message": "Jetzt bist du vor den"
+    },
+    "antitracking_description_on_2": {
+        "message": "neugierigen Blicken der Datensammler sicher. Genieße die digitale Freiheit!"
+    },
+    "antitracking_header": {
+        "message": "Cliqz Anti-Tracking"
+    },
+    "button_back": {
+        "message": "Zurück"
+    },
+    "button_next": {
+        "message": "Weiter"
+    },
+    "button_skip": {
+        "message": "Überspringen"
+    },
+    "enjoy_cliqz": {
+        "message": "Viel Spaß mit Cliqz!"
+    },
+    "goodbye": {
+        "message": "Willkommen bei Cliqz!"
+    },
+    "goodbye_ctrl": {
+        "message": "Los geht's"
+    },
+    "goodbye_description": {
+        "message": "Wir schaffen eine unabhängige europäische Alternative zu den marktbeherrschenden US-Plattformen. Vielen Dank für dein Vertrauen und dass du den Weg in die digitale Ära mit uns gehst."
+    },
+    "goodbye_skip": {
+        "message": "Einführung überspringen"
+    },
+    "import_data_button": {
+        "message": "Jetzt importieren"
+    },
+    "import_data_description_1": {
+        "message": "Fühl dich wie zu Hause."
+    },
+    "import_data_description_2": {
+        "message": "Du kannst einfach deine Lesezeichen, Passwörter und Chronik importieren"
+    },
+    "popup_button_skip": {
+        "message": "Überspringen"
+    },
+    "popup_button_try": {
+        "message": "Jetzt ausprobieren"
+    },
+    "popup_explanation": {
+        "message": "Hier kannst du deine Privatsphäre- und Sucheinstellungen jederzeit ändern."
+    },
+    "popup_protection_action_button": {
+        "message": "Aktivieren"
+    },
+    "popup_protection_description": {
+        "message": "Aktiviere alle Funktionen zum Schutz deiner Privatsphäre"
+    },
+    "popup_protection_headline": {
+        "message": "Du bist noch nicht vollständig geschützt"
+    },
+    "popup_protection_skip_button": {
+        "message": "Trotzdem fortfahren"
+    },
+    "popup_skip_action_button": {
+        "message": "Fortfahren"
+    },
+    "popup_skip_description": {
+        "message": "Beim Überspringen werden alle Schutzfunktionen aktiviert"
+    },
+    "popup_skip_headline": {
+        "message": "Einrichten des Browsers überspringen?"
+    },
+    "popup_skip_skip_button": {
+        "message": "Überspringen"
+    },
+    "protection_explanation": {
+        "message": "Hier kannst du deine Privatsphäre- und Sucheinstellungen jederzeit ändern"
+    },
+    "protection_full_headline": {
+        "message": "Du bist vollständig geschützt"
+    },
+    "protection_partial_headline": {
+        "message": "Browser fertig eingerichtet"
+    },
+    "status_off": {
+        "message": "Aus"
+    },
+    "status_on": {
+        "message": "An"
+    }
+}

@@ -12,7 +12,6 @@ import { getChannel } from '../platform/demographics';
 import { isBetaVersion } from '../platform/platform';
 
 import { platformName } from '../core/platform';
-import config from '../core/config';
 import { httpPost } from '../core/http';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
@@ -56,15 +55,15 @@ const isMobileConnection = async (browser) => {
   return ['wimax', '2g', '3g', '4g'].includes(connectionInfo.type);
 };
 
-export default async function (browser, demographics) {
+export default async function (browser, demographics, settings) {
   return {
     // Session ID of the users to generate ephemerid.
     session: (inject.service('session', ['getSession'])).getSession(),
 
     backend: {
       url: ((await shouldUseStaging())
-        ? config.settings.ANOLYSIS_STAGING_BACKEND_URL
-        : config.settings.ANOLYSIS_BACKEND_URL
+        ? settings.ANOLYSIS_STAGING_BACKEND_URL
+        : settings.ANOLYSIS_BACKEND_URL
       ),
       // Helper function used to send a json `payload` to `url` using a POST
       // request. This returns a promise resolving to the answer if any, or

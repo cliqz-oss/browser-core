@@ -34,6 +34,7 @@ export default function () {
     let timeout = 7;
 
     beforeEach(async function () {
+      app.prefs.set('telemetry', true); // default
       await mockOffersBackend({
         dest: 'browser-panel',
         timeout

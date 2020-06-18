@@ -50,7 +50,7 @@ describe('Freshtab search UI', function () {
     it('with a background with Q icon', function () {
       const inputSelector = '#section-url-bar .search input';
       expect(subject.getComputedStyle(subject.query(inputSelector)).backgroundImage)
-        .to.contain('cliqz_icon2_1024.svg');
+        .to.contain('blue-search-icon.svg');
     });
   });
 

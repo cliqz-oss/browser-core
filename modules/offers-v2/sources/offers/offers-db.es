@@ -199,10 +199,11 @@ class OfferDB {
    * any entry nor data associated to it.
    *
    * @method eraseOfferObject
-   * @param  offerID to be removed
+   * @param {string} offerID to be removed
+   * @prop {boolean} [expired = true] set to `false` when the offer to erase has not expired
    * @return true on success | false otherwise
    */
-  eraseOfferObject(offerID) {
+  eraseOfferObject(offerID, { expired = true } = {}) {
     const container = this.offersIndexMap.get(offerID);
     if (!container) {
       logger.warn(`eraseOfferObject: The offer id: ${offerID} is not stored`);
@@ -216,7 +217,7 @@ class OfferDB {
     this.offersIndexMap.delete(offerID);
 
     // propagate event
-    this._pushCallbackEvent('offer-removed', container, { erased: true });
+    this._pushCallbackEvent('offer-removed', container, { erased: true, expired });
 
     return true;
   }
@@ -390,13 +391,13 @@ class OfferDB {
    * @param  {string} actionID
    *   Some possible values: `offer_shown`, `offer_pushed`, `offer_notif_popup`,
    *   `offer_dsp_session`, `offer_added`, `filter_exp__*`
-   * @param  {boolean} incDisplay
-   *   if true this will also increment the signal in the display map.
    * @param {number} count
    *   Increment value, default is 1
+   * @param  {boolean} incDisplay
+   *   if true this will also increment the signal in the display map.
    * @return {boolean} true on success | false otherwise
    */
-  incOfferAction(offerID, actionID, incDisplay = true, count = 1) {
+  incOfferAction(offerID, actionID, count = 1, incDisplay = true) {
     if (!offerID || !actionID) {
       logger.warn('incOfferAction: invalid args');
       return false;

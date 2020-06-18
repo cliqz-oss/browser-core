@@ -31,6 +31,22 @@ import Pagination from './pagination';
 import AsideLeft from './aside-left';
 import AsideRight from './aside-right';
 
+/**
+ * Hardcoded components' heights depending on the browser window's width.
+ * Copied from: modules/freshtab/sources/styles/_configs.scss
+ *
+ * Format:
+ *   'component name' : [[<browser width treshold>, <component height>]...]
+ */
+const COMPONENT_SIZES = {
+  logo: [[0, 46], [920, 66], [1600, 86]],
+  search: [[0, 34 * 2], [920, 48 * 2], [1600, 63 * 2]],
+  historyDials: [[0, 110 + 12], [920, 125 + 12], [1600, 140 + 12]],
+  customDials: [[0, 110 + 20], [920, 125 + 20], [1600, 140 + 20]],
+  stats: [[0, 175 + 18], [650, 185 + 18], [920, 175 + 18], [1024, 195 + 18], [1600, 175 + 18]],
+  news: [[0, 175], [650, 185], [920, 175], [1024, 195], [1600, 175]],
+};
+
 const getVisibleComponents = ({ componentsState }) =>
   Object.keys(componentsState).filter(key => componentsState[key].visible);
 
@@ -38,6 +54,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.freshtab = cliqz.freshtab;
+    const visibleComponents = getVisibleComponents(props.config);
     this.state = {
       config: this.getConfigWithBGImage(props.config),
       dials: {
@@ -50,6 +67,7 @@ class App extends React.Component {
         version: '',
       },
       hasHistorySpeedDialsToRestore: false,
+      logoVisible: this.isLogoVisible(visibleComponents),
       isModalOpen: false,
       isOverlayOpen: false,
       isSettingsOpen: false,
@@ -58,7 +76,7 @@ class App extends React.Component {
       results: [],
       stats: {},
       tooltipShown: false,
-      visibleComponents: getVisibleComponents(props.config),
+      visibleComponents,
     };
 
     const self = this;
@@ -80,13 +98,11 @@ class App extends React.Component {
     window.addEventListener('beforeunload', () => sendHomeUnloadSignal({ tabIndex }));
     window.addEventListener('blur', () => sendHomeBlurSignal({ tabIndex }));
     window.addEventListener('focus', () => sendHomeFocusSignal({ tabIndex }));
+    window.addEventListener('resize', this.handleResize);
 
     document.body.addEventListener('dragover', event => event.preventDefault());
     document.body.addEventListener('drop', (event) => {
-      const file = event.dataTransfer.files[0];
-      if (file && file.type.split('/')[0] === 'image') {
-        this.onCustomBackgroundImageUploaded(URL.createObjectURL(file));
-      }
+      this.onCustomBackgroundImageUploaded(event.dataTransfer.files[0]);
       event.preventDefault();
     });
 
@@ -111,6 +127,7 @@ class App extends React.Component {
     window.removeEventListener('beforeunload', sendHomeUnloadSignal);
     window.removeEventListener('blur', sendHomeBlurSignal);
     window.removeEventListener('focus', sendHomeFocusSignal);
+    window.removeEventListener('resize', this.handleResize);
   }
 
   onDeveloperModulesOpen = async () => {
@@ -140,6 +157,39 @@ class App extends React.Component {
     });
   }
 
+  getActualSize(clientWidth, component) {
+    let searchHeight = 0;
+    COMPONENT_SIZES[component].some(([stopPoint, size]) => {
+      if (clientWidth < stopPoint) {
+        return true;
+      }
+      searchHeight = size;
+      return false;
+    });
+    return searchHeight;
+  }
+
+  isLogoVisible(components) {
+    const { clientHeight, clientWidth, scrollHeight } = window.document.documentElement;
+    if (scrollHeight > clientHeight) {
+      return false;
+    }
+
+    const requiredHeight = components
+      .reduce(
+        (height, component) => height + this.getActualSize(clientWidth, component),
+        this.getActualSize(clientWidth, 'logo')
+      );
+
+    return clientHeight >= requiredHeight;
+  }
+
+  handleResize = () => {
+    this.setState(({ visibleComponents }) => ({
+      logoVisible: this.isLogoVisible(visibleComponents),
+    }));
+  }
+
   onBackgroundImageChanged(bg, index) {
     cliqz.freshtab.saveBackgroundImage(bg, index);
     this.updateTheme(bg);
@@ -159,21 +209,63 @@ class App extends React.Component {
     }));
   }
 
-  async onCustomBackgroundImageUploaded(src) {
-    // add new image to the list of wallpapers and select it
-    await cliqz.freshtab.saveCustomBackgroundImage(src);
+  resizeCustomBackground(src) {
+    const MAX_WIDTH = 2500;
+    const MAX_HEIGHT = 1600;
+    const image = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    return new Promise((resolve, reject) => {
+      image.onload = () => {
+        let { width, height } = image;
+        if (width > MAX_WIDTH) {
+          height = Math.floor((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+        if (height > MAX_HEIGHT) {
+          width = Math.floor((width * MAX_HEIGHT) / height);
+          height = MAX_HEIGHT;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(image, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      image.onerror = reject;
+
+      image.src = src;
+    });
+  }
+
+  async onCustomBackgroundImageUploaded(file) {
+    let fileSrc;
+    const customWallpapers = [];
+
+    if (!file || file.type.split('/')[0] !== 'image') {
+      return;
+    }
+
+    try {
+      fileSrc = URL.createObjectURL(file);
+      const src = await this.resizeCustomBackground(fileSrc);
+      await cliqz.freshtab.saveCustomBackgroundImage(src);
+      customWallpapers.push({
+        alias: 'custom-background',
+        isDefault: false,
+        name: config.constants.CUSTOM_BG,
+        src,
+        thumbnailSrc: src,
+      });
+    } finally {
+      URL.revokeObjectURL(fileSrc);
+    }
 
     let index = 0;
     this.setState((prevState) => {
       const wallpapers = prevState.config.wallpapers
         .filter(w => w.name !== config.constants.CUSTOM_BG)
-        .concat([{
-          alias: 'custom-background',
-          isDefault: false,
-          name: config.constants.CUSTOM_BG,
-          src,
-          thumbnailSrc: src,
-        }]);
+        .concat(customWallpapers);
 
       index = wallpapers.length - 1;
       const newState = {
@@ -275,27 +367,36 @@ class App extends React.Component {
       .then(data => this.setState({ stats: data }));
   }
 
-  // TODO: come up with a better name
   setCustomBackground = (bg, freshtabConfig) => {
     const wallpapers = (freshtabConfig || this.state.config).wallpapers;
     if (bg === config.constants.CUSTOM_BG) {
       const customWallpaper = wallpapers
         .find(w => w.name === config.constants.CUSTOM_BG);
+      if (!customWallpaper) {
+        return false;
+      }
       document.body.style.backgroundImage = `url(${customWallpaper.src})`;
+      localStorage.setItem('customBgSrc', customWallpaper.src);
     } else {
       document.body.style.backgroundImage = '';
+      localStorage.removeItem('customBgSrc');
     }
+    return true;
   }
 
   /*
    * theme is also set inside of home.html
    */
   updateTheme(bg) {
-    localStorage.setItem('theme', bg);
+    const { CUSTOM_BG } = config.constants;
     const classList = document.body.classList;
 
-    if (classList.contains(`theme-${bg}`)
-      && bg !== config.constants.CUSTOM_BG) {
+    localStorage.setItem('theme', bg);
+    if (bg !== CUSTOM_BG) {
+      localStorage.removeItem('customBgSrc');
+    }
+
+    if (classList.contains(`theme-${bg}`) && bg !== CUSTOM_BG) {
       return;
     }
     this.setCustomBackground(bg);
@@ -430,6 +531,8 @@ class App extends React.Component {
         visibleComponents: getVisibleComponents(newConfigState),
       };
     });
+
+    this.handleResize();
   }
 
   toggleBlueTheme = () => {
@@ -533,6 +636,13 @@ class App extends React.Component {
     return cliqz.freshtab.isHumanWebEnabled();
   }
 
+  get classes() {
+    return `
+      product-${this.state.config.product.toLowerCase()}
+      ${this.state.logoVisible ? '' : 'no-logo'}
+    `;
+  }
+
   render() {
     const {
       config: freshtabConfig,
@@ -546,9 +656,10 @@ class App extends React.Component {
     const { data: newsData } = news;
 
     return (
-      <div>
+      <>
         <div
           id="app"
+          className={this.classes}
         >
           <AppContext.Provider value={this.state}>
             <UndoDialRemoval
@@ -592,6 +703,7 @@ class App extends React.Component {
                         ref={(c) => { this.urlbarElem = c; }}
                         results={this.state.results}
                         isHumanWebActive={this.isHumanWebActive}
+                        isAutofocusEnabled={freshtabConfig.isAutofocusEnabled}
                         isAMO={freshtabConfig.isAMO}
                         showOverlay={this.showOverlay}
                         toggleComponent={this.toggleComponent}
@@ -654,8 +766,6 @@ class App extends React.Component {
                   )}
                 </section>
 
-                <section id="section-middle-space" className="content-section" />
-
                 <section id="section-middle" className="content-section">
                   {this.shouldShowStats && (
                     <div id="section-stats">
@@ -693,7 +803,7 @@ class App extends React.Component {
 
             <AsideRight
               onBackgroundImageChanged={(bg, index) => this.onBackgroundImageChanged(bg, index)}
-              onCustomBackgroundImageUploaded={src => this.onCustomBackgroundImageUploaded(src)}
+              onCustomBackgroundImageUploaded={file => this.onCustomBackgroundImageUploaded(file)}
               onDeveloperModulesOpen={this.onDeveloperModulesOpen}
               onNewsSelectionChanged={country => this.onNewsSelectionChanged(country)}
               resetStatistics={() => this.resetStatistics()}
@@ -709,7 +819,7 @@ class App extends React.Component {
             />
           </AppContext.Provider>
         </div>
-      </div>
+      </>
     );
   }
 }

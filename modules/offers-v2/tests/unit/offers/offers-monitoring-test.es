@@ -6,6 +6,7 @@ const commonMocks = require('../utils/common');
 const persistenceMocks = require('../utils/persistence');
 const signalsMock = require('../utils/offers/signals');
 const VALID_OFFER_OBJ = require('../utils/offers/data').VALID_OFFER_OBJ;
+const cloneObject = require('../utils/utils').cloneObject;
 const ehMocks = require('../utils/offers/event_handler')['offers-v2/event_handler'];
 
 const EventHandlerMock = ehMocks.default;
@@ -1215,7 +1216,7 @@ export default describeModule('offers-v2/offers/offers-monitoring',
               patterns: [
                 '||google.de/activate_second',
               ],
-              couponInfo: JSON.parse(JSON.stringify(couponInfo)),
+              couponInfo: cloneObject(couponInfo),
             }
             ];
             buildAndAddOffer(offer, monitors);

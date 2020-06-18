@@ -16,7 +16,6 @@ import { promiseHttpHandler } from '../core/http';
 import { setDefaultSearchEngine, getSearchEnginesAsync } from '../core/search-engines';
 import ObservableProxy from '../core/helpers/observable-proxy';
 import events from '../core/events';
-import session from '../core/services/session';
 
 // providers
 import Calculator from './providers/calculator';
@@ -141,6 +140,7 @@ export default background({
       updateGeoLocation: () => this.geolocation.updateGeoLocation(),
       resetGeoLocation: () => this.geolocation.resetGeoLocation(),
     });
+    this.resetAssistantStates();
 
     addCustomSearchEngines();
     this.searchSession.setSearchSession();
@@ -165,16 +165,6 @@ export default background({
     if (performanceTelemetryEnabled) {
       // some platforms might not have webRequest
       performance.init();
-    }
-
-    // Only for a new user profile
-    if (session.isNewUser()) {
-      // We randomly pick up a number between 1 and 100;
-      // For 5 percent of new users we set Cliqz as a default search engine;
-      const randomPercent = Math.floor(Math.random() * 100 + 1);
-      if (randomPercent <= 5) {
-        setDefaultSearchEngine('Cliqz');
-      }
     }
   },
 
@@ -258,9 +248,12 @@ export default background({
       selectionEventProxy.next(selectionReport);
     },
     stopSearch(
-      { entryPoint } = {},
       { contextId, tab: { id: tabId } = {} } = { tab: {} }
     ) {
+      if (arguments.length > 1) {
+        logger.error('"stopSearch" action no longer accepts arguments.');
+        return;
+      }
       const sessionId = tabId || contextId;
       events.pub('search:session-end', {
         windowId: sessionId,
@@ -280,7 +273,7 @@ export default background({
         focusEventProxy,
       } = this.searchSessions.get(sessionId);
 
-      focusEventProxy.next({ event: 'blur', entryPoint });
+      focusEventProxy.next({ event: 'blur' });
 
       resultsSubscription.unsubscribe();
       telemetrySubscription.unsubscribe();
@@ -300,6 +293,7 @@ export default background({
         isPrivate = false,
         isTyped = true,
         keyCode,
+        entryPoint,
         forceUpdate = false,
       } = {},
       { contextId, frameId, tab: { id: tabId } = {} } = { tab: {} },
@@ -440,7 +434,7 @@ export default background({
         events.pub('search:results', response);
       });
 
-      focusEventProxy.next({ event: 'focus' });
+      focusEventProxy.next({ event: 'focus', entryPoint });
 
       queryEventProxy.next({
         isPrivate,

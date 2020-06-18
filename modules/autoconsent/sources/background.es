@@ -9,27 +9,23 @@
 import AutoConsent from '@cliqz/autoconsent';
 import background from '../core/base/background';
 import tabs from '../platform/tabs';
-import { browser } from '../platform/globals';
 import Logger from '../core/logger';
 import { parse } from '../core/url';
 import prefs from '../core/prefs';
 import inject from '../core/kord/inject';
-import config from '../core/config';
-import { fetch } from '../core/http';
 import pacemaker from '../core/services/pacemaker';
 
 import ConsentSettings from './settings';
 import { setOnboardingWasCompleted, setOnboardingWasDeferred, shouldShowOnboardingPopup, onBoardingWasDismissed } from './onboarding';
 import Cosmetics from './cosmetics';
 import Telemetry from './telemetry';
+import Loader from './loader';
 
 // Telemetry schemas
 import metrics from './telemetry/metrics';
 import analyses from './telemetry/analyses';
 
 const tabGuards = new Set();
-
-const DISABLED_CMPS_URL = `${config.settings.CDN_BASEURL}/autoconsent/disabled_cmps.json`;
 
 export const POPUP_ACTIONS = {
   ASK: 'ask',
@@ -125,15 +121,16 @@ export default background({
     @method init
     @param settings
   */
-  init() {
+  init(settings, browser) {
     inject.service('telemetry', ['register']).register(this.telemetrySchemas);
 
     this.logger = Logger.get('autoconsent', { level: 'log' });
-    this.autoconsent = new AutoConsent((tabId, msg, { frameId }) =>
+    this.autoconsent = new AutoConsent(browser, (tabId, msg, { frameId }) =>
       this.core.action('callContentAction', 'autoconsent', 'dispatchAutoconsentMessage', {
         windowId: tabId,
         frameId
       }, msg).catch(() => false));
+    this.loader = new Loader(this.autoconsent, this.logger);
     this.settings = new ConsentSettings();
     this.tabConsentManagers = new Map();
     this.cosmetics = new Cosmetics(this.settings);
@@ -141,8 +138,8 @@ export default background({
     this.disabledCmps = [];
     this.lastAction = null;
 
-    this.fetchDisabledCmps();
-    pacemaker.everyHour(this.fetchDisabledCmps.bind(this));
+    this.loader.init();
+    this.updater = pacemaker.everyHour(this.loader.checkUpdate.bind(this.loader));
 
     this.onTabUpdated = async (tabId, changeInfo, tabInfo) => {
       if (changeInfo.status === 'complete' && !tabGuards.has(tabId)) {
@@ -163,7 +160,7 @@ export default background({
           await cmp.checked;
           this.logger.log(cmp);
           const hasCmp = cmp.getCMPName() !== null
-            && this.disabledCmps.indexOf(cmp.getCMPName()) === -1;
+            && this.loader.disabledCmps.indexOf(cmp.getCMPName()) === -1;
           if (hasCmp) {
             const tabStatus = new TabConsent(url, cmp, this.settings, this.telemetry);
             this.tabConsentManagers.set(tabId, tabStatus);
@@ -237,7 +234,7 @@ export default background({
 
     tabs.onUpdated.addListener(this.onTabUpdated);
     tabs.onRemoved.addListener(this.onTabRemoved);
-    chrome.webNavigation.onDOMContentLoaded.addListener(this.onFrameLoaded, {
+    chrome.webNavigation.onCompleted.addListener(this.onFrameLoaded, {
       url: [{ schemes: ['http', 'https'] }]
     });
 
@@ -245,7 +242,11 @@ export default background({
   },
 
   unload() {
+    // stop pacemaker
+    this.updater.stop();
+    // unregister telemetry schemas
     inject.service('telemetry', ['unregister']).unregister(this.telemetrySchemas);
+    // clean up tab event listeners
     if (this.onTabRemoved || this.onTabUpdated) {
       tabs.onUpdated.removeListener(this.onTabUpdated);
       tabs.onRemoved.removeListener(this.onTabRemoved);
@@ -295,14 +296,6 @@ export default background({
 
   showConsentModal(tabId) {
     return this.core.action('callContentAction', 'autoconsent', 'showModal', { windowId: tabId });
-  },
-
-  async fetchDisabledCmps() {
-    try {
-      this.disabledCmps = await (await fetch(DISABLED_CMPS_URL)).json();
-    } catch (e) {
-      this.disabledCmps = [];
-    }
   },
 
   events: {},

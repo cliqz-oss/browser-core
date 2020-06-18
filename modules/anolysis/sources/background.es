@@ -50,9 +50,9 @@ function storeNewVersionInPrefs() {
  * This function will instantiate an Anolysis class. It will also check if the
  * internal states need to be reset (on version bump).
  */
-async function instantiateAnolysis(configTs, browser, demographics) {
+async function instantiateAnolysis(configTs, browser, demographics, settings) {
   const date = SafeDate.fromConfig(configTs);
-  const config = await createConfig(browser, demographics);
+  const config = await createConfig(browser, demographics, settings);
 
   let anolysis = new Anolysis(date, config);
 
@@ -158,6 +158,7 @@ export default background({
         getSynchronizedDateFormatted(),
         browser,
         this.demographics,
+        this.settings,
       );
 
       // Because Anolysis module can be initialized/unloaded on pref change

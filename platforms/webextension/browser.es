@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { window, chrome } from './globals';
+import { window, chrome, browser } from './globals';
 import windows from './windows';
 
 export * from './tabs';
@@ -125,19 +125,18 @@ export function getUrlForTab(tabId) {
 }
 
 export function getActiveTab() {
-  return new Promise((resolve, reject) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (result) => {
-      if (result.length !== 0) {
-        const tab = result[0];
-        resolve({
-          id: tab.id,
-          url: tab.url,
-        });
-      } else {
-        reject(new Error('Result of query for active tab is undefined'));
+  return browser.tabs.query({ active: true, currentWindow: true })
+    .then((result) => {
+      if (result.length === 0) {
+        throw new Error('Result of query for active tab is undefined');
       }
+
+      const tab = result[0];
+      return {
+        id: tab.id,
+        url: tab.url,
+      };
     });
-  });
 }
 
 let firstPartyIsolationEnabled = false;

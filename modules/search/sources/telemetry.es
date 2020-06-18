@@ -7,7 +7,7 @@
  */
 
 import { combineLatest } from 'rxjs';
-import { filter, share, switchMap, startWith, map, withLatestFrom, scan } from 'rxjs/operators';
+import { filter, share, switchMap, startWith, map, withLatestFrom, scan, first } from 'rxjs/operators';
 import { parse, getName } from '../core/url';
 import { RESULT_CLASSES } from './telemetry/helpers';
 
@@ -116,16 +116,20 @@ const telemetry = (focus$, query$, results$, selection$, highlight$) => {
   const telemetry$ = focus$
     .pipe(
       // emit telemetry on session end, which is URL bar blur
-      filter(({ event }) => event === 'blur'),
-      withLatestFrom(sessions$),
-      map(([blur, session]) => [...session, blur]),
-      // re-order and flatten params
+      first(({ event }) => event === 'blur'),
+      withLatestFrom(
+        sessions$,
+        focus$.pipe(first(({ event }) => event === 'focus')),
+        // re-order and flatten params
+        (blur, session, focus) => [...session, focus.entryPoint, blur]
+      ),
       map(([
         { results, ts: resultsTs },
         selection,
         hasUserInput,
         highlightCount,
-        { ts: blurTs, entryPoint }
+        entryPoint,
+        { ts: blurTs },
       ]) => {
         const selectedResult = selection.rawResult || {};
         const metric = {

@@ -1,0 +1,53 @@
+{
+  "whotracksme_category_advertising": {
+    "message": "Publicité"
+  },
+  "whotracksme_category_audio_video_player": {
+    "message": "Lecteurs audio et vidéo"
+  },
+  "whotracksme_category_cdn": {
+    "message": "CDN"
+  },
+  "whotracksme_category_comments": {
+    "message": "Commentaires"
+  },
+  "whotracksme_category_customer_interaction": {
+    "message": "Support"
+  },
+  "whotracksme_category_default": {
+    "message": "Avertissement : Il pourrait tout de même y avoir des traqueurs sur ce site"
+  },
+  "whotracksme_category_essential": {
+    "message": "Essentiel"
+  },
+  "whotracksme_category_extensions": {
+    "message": "Extensions"
+  },
+  "whotracksme_category_hosting": {
+    "message": "Hébergement"
+  },
+  "whotracksme_category_misc": {
+    "message": "Autre"
+  },
+  "whotracksme_category_pornvertising": {
+    "message": "Publicité pornographique"
+  },
+  "whotracksme_category_site_analytics": {
+    "message": "Analyse d'audience"
+  },
+  "whotracksme_category_social_media": {
+    "message": "Réseaux Sociaux"
+  },
+  "whotracksme_category_unknown": {
+    "message": "Inconnu"
+  },
+  "whotracksme_no_info_header": {
+    "message": "Aucune information sur les traqueurs"
+  },
+  "whotracksme_statistical_report": {
+    "message": "Rapport statistique"
+  },
+  "whotracksme_trackers_seen_header": {
+    "message": "Traqueurs détectés"
+  }
+}

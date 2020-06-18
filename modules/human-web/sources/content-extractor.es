@@ -613,6 +613,8 @@ export class ContentExtractor {
   }
 
   tryExtractCliqzSerpQuery(url) {
-    return url.startsWith('https://beta.cliqz.com/search?') && parse(url).searchParams.get('q');
+    const isCliqzSearch = url.startsWith('https://cliqz.com/search?')
+          || url.startsWith('https://beta.cliqz.com/search?');
+    return isCliqzSearch && parse(url).searchParams.get('q');
   }
 }

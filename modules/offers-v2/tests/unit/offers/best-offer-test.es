@@ -9,6 +9,7 @@ const {
   initializeBackground,
   visitPageWithOffer
 } = require('../utils/offers/integration');
+const cloneObject = require('../utils/utils').cloneObject;
 
 function p(rawPattern) {
   return [{ rawPattern, tokenCount: rawPattern.length }];
@@ -152,7 +153,7 @@ export default describeModule('offers-v2/offers/best-offer',
         });
 
         it('/use max categories weight when offer has several categories', () => {
-          const offerJson = JSON.parse(JSON.stringify(fixture.VALID_OFFER_OBJ));
+          const offerJson = cloneObject(fixture.VALID_OFFER_OBJ);
           offerJson.categories = ['c1', 'c2'];
           offerJson.displayPriority = 1000;
           const multicatOffer = addOfferByObject(offerJson);
@@ -189,12 +190,12 @@ export default describeModule('offers-v2/offers/best-offer',
           [`||some.com/${path}^$script`],
           fixture.VALID_CATEGORY.version,
           48 * 60 * 60, // timeRangeSecs: 2 days
-          JSON.parse(JSON.stringify(fixture.VALID_CATEGORY.activationData))
+          cloneObject(fixture.VALID_CATEGORY.activationData)
         );
       }
 
       function defineOffer(collection, oid, cats, rsDest) {
-        const o = JSON.parse(JSON.stringify(fixture.VALID_OFFER_OBJ));
+        const o = cloneObject(fixture.VALID_OFFER_OBJ);
         o.offer_id = oid;
         o.campaign_id = oid;
         o.display_id = oid;

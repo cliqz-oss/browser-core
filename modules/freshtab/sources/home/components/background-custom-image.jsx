@@ -4,8 +4,7 @@ import t from '../i18n';
 
 export default class BackgroundCustomImage extends React.Component {
   uploadCustomBackgroundImage = () => {
-    // TODO image validation
-    this.props.onCustomBackgroundImageUploaded(URL.createObjectURL(this.input.files[0]));
+    this.props.onCustomBackgroundImageUploaded(this.input.files[0]);
   }
 
   render() {

@@ -1,0 +1,319 @@
+/*!
+ * Copyright (c) 2014-present Cliqz GmbH. All rights reserved.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+@import 'variables.scss';
+
+.info {
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    box-shadow: 2px 2px 15px -5px #535353;
+    background-color: #fff;
+
+    .normal-box {
+        padding: 50px;
+
+        .heading {
+            width: 100%;
+            text-align: center;
+            font-family: "SFUIDisplay-Regular", sans-serif;
+            font-size: 30px;
+            color: #404040;
+            line-height: 1.2;
+            display: inline-block;
+            vertical-align: bottom;
+        }
+
+        .checkbox {
+            margin: 10px 0;
+
+            input {
+                margin-right: 10px;
+            }
+        }
+    }
+
+
+
+    &-layout {
+        position: absolute;
+        width: $info-width;
+        height: $info-height;
+        background-color: transparent;
+        z-index: 5;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -55%);
+
+        &-skip {
+            position: absolute;
+            top: 102%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #525353;
+            font-family: "SFUIDisplay-Semibold", sans-serif;
+            font-size: 14px;
+            line-height: 1.3;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+    }
+
+    &-final {
+        transform: scale(0.72);
+    }
+
+    &-headline {
+        width: 100%;
+        text-align: center;
+        font-family: "SFUIDisplay-Regular", sans-serif;
+        font-size: 30px;
+        color: #404040;
+        line-height: 1.2;
+        display: inline-block;
+        vertical-align: bottom;
+        padding-bottom: 40px;
+    }
+
+    .switch {
+        position: relative;
+        height: $toggle-height;
+        width: $toggle-width;
+
+        .toggle {
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
+
+        .slider {
+            position: absolute;
+            left: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+            border-radius: 34px;
+            background-color: $slider-bg-off;
+            transition: .2s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: $button-size;
+            width: $button-size;
+            border-radius: 50%;
+            border-width: 1px;
+            border-style: solid;
+            border-color: $slider-bg-off;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            background-color: #fff;
+            transition: .2s;
+            left: 0;
+        }
+
+        input:checked + .slider {
+            background-color: $slider-bg-on;
+        }
+
+        input:checked + .slider:before {
+            margin-left: -1px;
+            border-color: $slider-bg-on;
+            transform: translateX($toggle-width - $button-size);
+        }
+    }
+
+    &-blocks {
+        position: relative;
+        height: 100%;
+        margin-bottom: -92px;
+        white-space: nowrap;
+
+        transition: transform .3s ease-in-out;
+
+        &-offset-0 {
+            transform: translateX(0);
+        }
+        &-offset-1 {
+            transform: translateX(-100%);
+        }
+        &-offset-2 {
+            transform: translateX(-200%);
+        }
+        &-offset-3 {
+            transform: translateX(-300%);
+        }
+        &-offset-4 {
+            transform: translateX(-400%);
+        }
+        &-offset-5 {
+            transform: translateX(-500%);
+        }
+
+        &:before {
+            content: "";
+            height: 92px;
+            width: 300%;
+            background-color: #F4F7F9;
+            position: absolute;
+            bottom: 92px;
+            left: 100%;
+        }
+    }
+
+    &-block, &-block-hidden {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: inline-block;
+        white-space: normal;
+        opacity: 1;
+        vertical-align: top;
+
+        transition: opacity .3s ease-in-out;
+    }
+
+    &-block-content {
+        padding: 0 65px;
+        height: 100%;
+        margin-top: -184px;
+
+        &:before {
+            content: "";
+            display: inline-block;
+            height: 100%;
+            vertical-align: bottom;
+        }
+    }
+
+    &-block-ctrl {
+        height: 92px;
+        text-align: center;
+
+        &:before {
+            content: "";
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+        }
+
+        &-content, &-switch, &-status, &-toggled {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        &-content, &-status, &-toggled {
+            font-weight: 400;
+            font-size: 22px;
+            font-family: "SFUIDisplay-Medium", sans-serif;
+            color: #c4c4c4;
+        }
+
+        &-status, &-toggled {
+            color: $slider-bg-off;
+            font-weight: 600;
+            font-size: 14px;
+            width: 50px;
+            text-align: right;
+            margin: 4px 5px 0 0;
+            text-transform: uppercase;
+        }
+
+        &-content {
+            padding: 22px 0 20px 60px;
+        }
+
+        &-toggled {
+            color: $slider-bg-on;
+        }
+    }
+
+    &-block-hidden {
+        opacity: 0;
+    }
+
+    &-navigation {
+        height: 92px;
+        text-align: center;
+        position: relative;
+
+        &:-moz-focusring {
+            outline: none;
+        }
+
+        &:before {
+            content: "";
+            height: 100%;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        &-item, &-item-selected {
+            padding: 0;
+            margin: 5px;
+            width: 8px;
+            height: 8px;
+            border: none;
+            border-radius: 5px;
+            background-color: #c4c4c4;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        &-item-selected {
+            background-color: $cliqz-blue;
+            cursor: default;
+        }
+
+        &-next-item, &-back-item {
+            border: 1px solid #c4c4c4;
+            background-color: transparent;
+            font-size: 16px;
+            font-family: "SFUIDisplay-Semibold", sans-serif;
+            color: #74828F;
+            padding: 12px 25px;
+            padding-right: 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+
+            &:after {
+                content: "\2192";
+                font-size: 16px;
+                padding: 0 5px;
+            }
+        }
+
+        &-back-item {
+            left: 20px;
+            padding-right: 25px;
+            padding-left: 15px;
+
+            &:before {
+                content: "\2190";
+                font-size: 16px;
+                padding: 0 5px;
+            }
+            &:after {
+              display: none;
+            }
+        }
+    }
+}

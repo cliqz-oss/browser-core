@@ -78,7 +78,6 @@ export default background({
   deps: {
     core: inject.module('core'),
     humanWeb: inject.module('human-web'),
-    'offers-v2': inject.module('offers-v2'),
   },
   /**
     @method init
@@ -113,22 +112,12 @@ export default background({
         modules: await this.actions.getCliqzStatus(),
       };
     },
-    async getOffersState() {
-      return {
-        offersStatus: await this.deps['offers-v2'].action('getOffersStatus'),
-      };
-    },
     getPreferencesState(prefName) {
       return {
         preferencesStatus: {
           config_location: prefs.get('config_location', ''),
           custom: prefs.get(prefName, 'N/A'),
           developer: prefs.get('developer', 'N/A'),
-          'logger.offers-v2.level': prefs.get('logger.offers-v2.level', ''),
-          offersDevFlag: prefs.get('offersDevFlag', 'N/A'),
-          offersLoadSignalsFromDB: prefs.get('offersLoadSignalsFromDB', 'N/A'),
-          offersLogsEnabled: prefs.get('offersLogsEnabled', 'N/A'),
-          offersTelemetryFreq: prefs.get('offersTelemetryFreq', 'N/A'),
           showConsoleLogs: prefs.get('showConsoleLogs', 'N/A'),
           signaturesRequired: prefs.get('required', 'N/A', 'xpinstall.signatures.'),
           triggersBE: prefs.get('triggersBE', 'N/A'),
@@ -179,9 +168,6 @@ export default background({
     },
     reloadExtension() {
       return this.deps.core.action('restart');
-    },
-    reloadOffers() {
-      return this.deps['offers-v2'].action('softReloadOffers');
     },
 
     async getResourceLoaders() {

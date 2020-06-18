@@ -18,7 +18,7 @@
   ],
   "scrape": {
     "0": {
-      "form[action=\"/search\"] > input:first-child[name=\"q\"]": {
+      "form[action=\"/search\"] input:first-child[name=\"q\"]": {
         "q": {
           "type": "searchQuery",
           "etype": "value",
@@ -46,7 +46,7 @@
           "keyName": "ctry"
         }
       },
-      "body > table:nth-child(7)[style=\"margin-top:10px\"] > tbody > tr > td": {
+      "table.GpQGbf tbody > tr > td.e3goi > div.svla5d": {
         "u": {
           "item": "a",
           "type": "arr",
@@ -66,13 +66,13 @@
           ]
         },
         "ru": {
-          "item": "a+font > font[color=\"green\"]",
+          "item": "a > div > span.F9iS2e",
           "type": "arr",
           "etype": "textContent",
           "keyName": "ru"
         },
         "t": {
-          "item": "a+font",
+          "item": "a > div > span.x3G5ab",
           "type": "arr",
           "etype": "textContent",
           "keyName": "t"
@@ -748,13 +748,13 @@
   },
   "payloads": {
     "0": {
-      "form[action=\"/search\"] > input:first-child[name=\"q\"]": {
+      "form[action=\"/search\"] input:first-child[name=\"q\"]": {
         "type": "query",
         "results": "clustered",
         "action": "img",
         "fields": [
           [
-            "form[action=\"/search\"] > input:first-child[name=\"q\"]",
+            "form[action=\"/search\"] input:first-child[name=\"q\"]",
             "q"
           ],
           [
@@ -762,7 +762,7 @@
             "qurl"
           ],
           [
-            "body > table:nth-child(7)[style=\"margin-top:10px\"] > tbody > tr > td",
+            "table.GpQGbf tbody > tr > td.e3goi > div.svla5d",
             "r",
             "join"
           ],

@@ -65,6 +65,7 @@ export class Resource {
     this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
     this.storage = new Storage(this.filePath);
     this.remoteOnly = options.remoteOnly || platformName === 'mobile';
+    this.localOnly = options.localOnly || false;
     this.compress = options.compress || (isMobile ? false : isWebExtension);
     this.size = 0;
   }
@@ -95,9 +96,13 @@ export class Resource {
         }
       })
       .then(data => this.parseData(data))
-      .catch(() => {
+      .catch(async () => {
         if (this.remoteOnly) {
           return Promise.reject(new Error('Should update only from remote'));
+        }
+        if (this.localOnly) {
+          const data = await get(this.chromeURL);
+          return this.parseData(data);
         }
         return this.updateFromURL(this.chromeURL);
       })
@@ -284,28 +289,20 @@ export default class ResourceLoader extends UpdateCallbackHandler {
  * A Resource that is bundled with the extension and never remotely updated.
  */
 export class BundledResource {
-  constructor(name, options = {}) {
-    this.name = (typeof name === 'string') ? [name] : name;
-    this.dataType = options.dataType || 'json';
-    this.filePath = ['cliqz', ...this.name];
-    this.chromeURL = options.chromeURL || `${config.baseURL}${this.name.join('/')}`;
-
-    // delete any storage associated with this resource (this is to clean out storage
-    // for older clients who previously had this resource persisted)
-    new Storage(this.filePath).delete();
+  constructor(name) {
+    this.resource = new Resource(name, {
+      localOnly: true,
+    });
   }
 
   async load() {
-    const res = await fetch(this.chromeURL);
-    if (!res.ok) {
-      throw new Error(res.statusText);
+    // delete any storage associated with this resource (this is to clean out storage
+    // for older clients who previously had this resource persisted)
+    try {
+      await this.resource.storage.delete();
+    } catch (e) {
+      // may be deleted already
     }
-    if (this.dataType === 'json') {
-      return res.json();
-    }
-    if (this.dataType === 'binary') {
-      return res.arrayBuffer();
-    }
-    return res.text();
+    return this.resource.load();
   }
 }

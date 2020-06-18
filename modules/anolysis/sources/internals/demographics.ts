@@ -14,11 +14,6 @@ export type DemographicTrait =
   // - cliqz/mobile/cliqz-for-ios
   // - cliqz/add-on/cliqz-for-firefox
   | 'product'
-  // Contains information about the platform used. Examples:
-  // - mobile/ios/13/1
-  // - desktop/windows/10
-  // - desktop/linux/ubuntu/18/04
-  | 'platform'
   // Information about country of user (alpha2 code). Examples:
   // - de
   // - fr
@@ -26,7 +21,10 @@ export type DemographicTrait =
   // Information about distribution which led to this installation.
   | 'campaign'
   // Install date: YYYY/MM/DD
-  | 'install_date';
+  | 'install_date'
+  | 'extension'
+  | 'browser'
+  | 'os';
 
 export type Demographics = {
   [demographic in DemographicTrait]: string;

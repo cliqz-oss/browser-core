@@ -7,6 +7,8 @@ const persistenceMocks = require('../utils/persistence');
 const waitFor = require('../utils/waitfor');
 const EventEmitterMock = require('../utils/event-emitter');
 
+const prefs = commonMocks['core/prefs'].default;
+
 class SenderMock {
   constructor() {
     this.signals = [];
@@ -661,6 +663,32 @@ export default describeModule('offers-v2/signals/signals_handler',
             sh.setCampaignSignal('cid', 'oid', 'z', 'success');
 
             await waitFor(() => chai.expect(sendMock).to.be.calledOnce);
+          });
+        });
+
+        context('telemetry is disabled', function () {
+          beforeEach(() => {
+            prefs.set('telemetry', false);
+            sm.clear();
+          });
+
+          afterEach(() => {
+            prefs.reset();
+          });
+
+          it('environment signal is not muted', async () => {
+            await sh.sendEnvironmentSignal({});
+            chai.expect(sm.signals.length).eql(1);
+          });
+
+          it('other signals are muted', async () => {
+            sh.setCampaignSignal('x', 'y', 'z', 'w');
+            await sh._sendSignalsToBE();
+            chai.expect(sm.errSignals.length).eql(0);
+            chai.expect(sm.signals.length).eql(0);
+            sh.removeCampaignSignals('x');
+            sh.setCampaignSignal('x', 'y', 'z', 'w');
+            await sh.sendCampaignSignalNow('x');
           });
         });
       });

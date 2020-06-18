@@ -21,7 +21,7 @@ module.exports = Object.assign({}, configBase, {
     channel: 'MC00', // CHIP Sparalarm Firefox Release
     OFFERS_CHANNEL: 'chip',
     OFFERS_BRAND: 'chip',
-    ONBOARDING_URL: 'https://sparalarm.chip.de/onboarding#step-0',
+    ONBOARDING_URL: 'https://sparalarm.chip.de/welcome/#step-0',
     OFFBOARDING_URL: 'https://sparalarm.chip.de/offboarding',
     SUPPORTED_LANGS: ['de'],
     'dynamic-offers.enabled': false,

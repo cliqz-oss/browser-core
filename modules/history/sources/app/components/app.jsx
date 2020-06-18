@@ -255,7 +255,7 @@ export default class App extends React.Component {
   }
 
   handleVisitKeywordClick = (event, keyword, url) => {
-    if (url && url.indexOf('https://cliqz.com') === 0) {
+    if (url && keyword && url.indexOf('https://cliqz.com') === 0) {
       event.preventDefault();
       cliqz.core.queryCliqz(keyword);
     }

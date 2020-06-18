@@ -16,17 +16,28 @@
     $search-input-height,
     $search-font-size,
     $search-text-indent,
+    $search-logo-size,
 
     $search-input-box-shadow,
     $search-input-border,
     $search-input-box-shadow-focus,
     $search-input-color,
     $search-input-cliqz-bg-image,
-    $search-input-ghostery-bg-image
+    $search-input-ghostery-bg-image,
+    $cliqz-logo-bg,
+    $ghostery-tab-logo-bg,
 ){
+
+    #section-top {
+        padding-top: $search-logo-size;
+        background: $cliqz-logo-bg;
+        background-size: auto $search-logo-size;
+    }
+
     .search {
         margin: 0 auto;
         position: relative;
+        margin-top: $search-input-height;
 
         ::placeholder {
             font-size: $search-font-size;
@@ -48,6 +59,9 @@
         transition: box-shadow 180ms cubic-bezier(0.4, 0.0, 0.2, 1);
         overflow: hidden;
         text-overflow: ellipsis;
+        background-size: auto 50%;
+        background-position: 2% 52%;
+        background-image: $search-input-cliqz-bg-image;
 
         &:focus, &:hover {
             box-shadow: $search-input-box-shadow-focus;
@@ -58,22 +72,15 @@
         border-radius: 4px 4px 0 0;
     }
 
-    .ghostery-search, .cliqz-search {
-        .urlbarSearch {
-            background-size: auto 50%;
-            background-position: 2% center;
+    .product-ghostery {
+        #section-top {
+            background: $ghostery-tab-logo-bg;
+            background-size: auto $search-logo-size;
         }
     }
 
-    .ghostery-search .urlbarSearch {
-        background-image: $search-input-ghostery-bg-image;
-    }
-
-    .cliqz-search .urlbarSearch {
-            background-image: $search-input-cliqz-bg-image;
-    }
-
-    .search:not(.with-results) {
-        margin-top: $search-input-height;
+    .no-logo #section-top {
+        padding-top: 0;
+        background-image: none;
     }
 }

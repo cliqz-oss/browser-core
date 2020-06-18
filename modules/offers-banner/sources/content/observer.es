@@ -129,7 +129,7 @@ export default class Observer {
       },
       'offers-checkout': {
         resize: this.view.resize.bind(this.view),
-        injectCode: (payload = {}) => injectCode(window, payload),
+        injectCode: (payload = {}) => injectCode(window, { ...this.payload.back, ...payload }),
         newView: (payload = {}) => {
           if (!this.config.products?.chip) { return; } // only for chip guys
           this._restyleTimeout(payload);

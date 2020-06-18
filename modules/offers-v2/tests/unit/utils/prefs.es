@@ -1,4 +1,4 @@
-const defaultPrefs = new Map([['developer', true]]);
+const defaultPrefs = new Map([['developer', true], ['telemetry', true]]);
 const prefs = new Map(defaultPrefs);
 
 const defaultSettings = {

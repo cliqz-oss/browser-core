@@ -65,8 +65,11 @@ const constructSignal = (signalID, signalType, signalData, gid, timestamp) => {
   };
 };
 
+const getSignalID = signalPayload => signalPayload?.['signal_id'];
+
 export {
   addOrCreate,
   constructSignal,
-  getHpnTimeStamp
+  getHpnTimeStamp,
+  getSignalID
 };

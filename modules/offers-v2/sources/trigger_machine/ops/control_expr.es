@@ -80,7 +80,7 @@ class IfPrefExpr extends Expression {
   }
 
   getExprValue(/* ctx */) {
-    const prefVal = prefs.get(this.prefName, undefined);
+    const prefVal = prefs.get(`${this.prefName}.override`, prefs.get(this.prefName, undefined));
     return Promise.resolve(String(prefVal) === this.expectedVal);
   }
 }
@@ -786,7 +786,7 @@ class LangIsExpr extends Expression {
   }
 
   getExprValue(/* ctx */) {
-    const preferredLanguage = i18n.PLATFORM_LANGUAGE;
+    const preferredLanguage = prefs.get('offers-v2.language.override', i18n.PLATFORM_LANGUAGE);
     if (this.allowedLangs.indexOf(preferredLanguage) < 0) {
       return Promise.resolve(false);
     }

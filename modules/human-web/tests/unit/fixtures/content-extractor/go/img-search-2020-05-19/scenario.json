@@ -1,0 +1,118 @@
+{
+  "url": "https://www.google.de/search?tbm=isch&gbv=1&q=konrad zuse bilder",
+
+  "mustContain": [{
+      "type": "humanweb",
+      "action": "img",
+      "payload": {
+        "r": {
+          "0": {
+            "u": "https://www.bilder-fuchs.de/konrad-zuse-grosse-auswahl-an-original-gemaelden-aus-den-jahren-1963-1976/",
+            "ru": "  bilder-fuchs.de  ",
+            "t": "  KONRAD ZUSE | Grosse...  "
+          },
+          "1": {
+            "u": "https://www.hnf.de/ausstellungen/rueckblick/showroom/zuse-extra-der-computererfinder-und-seine-ideen.html",
+            "ru": "  hnf.de  ",
+            "t": "  HNF - Zuse Extra: Der...  "
+          },
+          "2": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/malerei.html",
+            "ru": "  horst-zuse.homepage.t-onlin...  ",
+            "t": "  Kunstdrucke von Ölbildern...  "
+          },
+          "3": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/malerei.html",
+            "ru": "  horst-zuse.homepage.t-onlin...  ",
+            "t": "  Kunstdrucke von Ölbildern...  "
+          },
+          "4": {
+            "u": "http://www.artnet.de/artists/konrad-zuse/",
+            "ru": "  artnet.de  ",
+            "t": "  Konrad Zuse | artnet  "
+          },
+          "5": {
+            "u": "https://www.bilder-fuchs.de/produkt/konrad-zuse-explosion-und-dynamik-oelgemaeldeleinwand-format-55x80-cm-jahr-1963/",
+            "ru": "  bilder-fuchs.de  ",
+            "t": "  Konrad Zuse | Explosion und...  "
+          },
+          "6": {
+            "u": "http://www.artnet.de/artists/konrad-zuse/",
+            "ru": "  artnet.de  ",
+            "t": "  Konrad Zuse | artnet  "
+          },
+          "7": {
+            "u": "https://www.invaluable.com/artist/zuse-konrad-smxqcw2o4n/sold-at-auction-prices/",
+            "ru": "  invaluable.com  ",
+            "t": "  Konrad Zuse Paintings &...  "
+          },
+          "8": {
+            "u": "https://www.pinterest.de/pin/509117932854431711/",
+            "ru": "  pinterest.de  ",
+            "t": "  Stadtlandschaft\" von Konrad...  "
+          },
+          "9": {
+            "u": "http://www.artnet.de/artists/konrad-zuse/",
+            "ru": "  artnet.de  ",
+            "t": "  Konrad Zuse | artnet  "
+          },
+          "10": {
+            "u": "http://www.horst-zuse.homepage.t-online.de/malerei.html",
+            "ru": "  horst-zuse.homepage.t-onlin...  ",
+            "t": "  Kunstdrucke von Ölbildern...  "
+          },
+          "11": {
+            "u": "https://zuse-computer-museum.com/2015/06/01/kunst-des-zuse/",
+            "ru": "  zuse-computer-museum.com  ",
+            "t": "  Die Kunst des Konrad Zuse –...  "
+          },
+          "12": {
+            "u": "https://www.invaluable.com/artist/zuse-konrad-smxqcw2o4n/sold-at-auction-prices/",
+            "ru": "  invaluable.com  ",
+            "t": "  Konrad Zuse Paintings &...  "
+          },
+          "13": {
+            "u": "https://www.ebay.de/itm/KONRAD-ZUSE-original-signiert-6-10-/293020417057",
+            "ru": "  ebay.de  ",
+            "t": "  KONRAD ZUSE --- original...  "
+          },
+          "14": {
+            "u": "https://zuse-computer-museum.com/2015/06/01/kunst-des-zuse/",
+            "ru": "  zuse-computer-museum.com  ",
+            "t": "  Die Kunst des Konrad Zuse –...  "
+          },
+          "15": {
+            "u": "https://www.if-blog.de/en/rd/konrad-zuse-it-and-skyscrapers/",
+            "ru": "  if-blog.de  ",
+            "t": "  Konrad Zuse – IT and...  "
+          },
+          "16": {
+            "u": "https://de.wikipedia.org/wiki/Konrad_Zuse",
+            "ru": "  de.wikipedia.org  ",
+            "t": "  Konrad Zuse – Wikipedia  "
+          },
+          "17": {
+            "u": "https://www.wut.de/zuse",
+            "ru": "  wut.de  ",
+            "t": "  WuT: Bilder von Konrad Zuse...  "
+          },
+          "18": {
+            "u": "https://www.zib.de/de/institute/konrad_zuse",
+            "ru": "  zib.de  ",
+            "t": "  Konrad Zuse | Zuse...  "
+          },
+          "19": {
+            "u": "http://www.konrad-zuse.de/",
+            "ru": "  konrad-zuse.de  ",
+            "t": "  konrad-zuse.de  "
+          }
+        },
+        "q": "konrad zuse bilder",
+        "qurl": "https://www.google.de/search?tbm=isch&gbv=1&q=konrad zuse bilder",
+        "ctry": "de"
+      }
+    }    
+  ],
+
+  "mustNotContain": [{ "action": "query" }]
+}

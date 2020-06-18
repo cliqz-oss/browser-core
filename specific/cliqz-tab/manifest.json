@@ -69,6 +69,6 @@
   "web_accessible_resources": [
     "modules/dropdown/dropdown.html",
     "modules/overlay/styles/overlay.css",
-    "modules/freshtab/images/cliqz_icon2_1024.svg"
+    "modules/freshtab/images/blue-search-icon.svg"
   ]
 }

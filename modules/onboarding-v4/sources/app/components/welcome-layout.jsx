@@ -7,22 +7,13 @@
  */
 
 import React from 'react';
-import t from '../../i18n';
 
 const getClassName = visible => (visible ? 'welcome-layout visible' : 'welcome-layout');
 
 export default function WelcomeLayout({
   visible,
-  handleShareDataClick,
 }) {
   return (
-    <div className={getClassName(visible)}>
-      <div className="data_collection_container">
-        <div className="footer-wrapper">
-          <span>{t('welcome_data_collection')}</span>
-          <button type="button" onClick={handleShareDataClick}>{t('welcome_data_share')}</button>
-        </div>
-      </div>
-    </div>
+    <div className={getClassName(visible)} />
   );
 }

@@ -1,0 +1,14 @@
+{
+  "name": "browser-core-benchmarks",
+  "version": "0.0.1",
+  "description": "Benchmarks for browser-core",
+  "main": "run_benchmarks.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MPL-2.0",
+  "dependencies": {
+    "@cliqz/webextension-emulator": "^0.2.1"
+  }
+}

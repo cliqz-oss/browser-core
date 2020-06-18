@@ -92,6 +92,14 @@ const createBlueThemeManager = (hostPrefs) => {
   };
 };
 
+async function getBlobAsDataURL(blob) {
+  const reader = new FileReader();
+  return new Promise((resolve) => {
+    reader.addEventListener('load', () => resolve(reader.result));
+    reader.readAsDataURL(blob);
+  });
+}
+
 /**
  * @module freshtab
  * @namespace freshtab
@@ -169,6 +177,7 @@ export default background({
       this.db.close();
       this.db = null;
     }
+    URL.revokeObjectURL(this._customBackgroundURL);
   },
 
   status() {
@@ -273,11 +282,11 @@ export default background({
     return activeTooltip;
   },
 
-  async getComponentsState() {
+  async getComponentsState(sender) {
     const freshtabConfig = prefs.getObject(FRESHTAB_CONFIG_PREF);
     const backgroundName = (freshtabConfig.background && freshtabConfig.background.image)
       || getDefaultWallpaper(product);
-    const wallpapers = await getWallpapers();
+    const wallpapers = await this.getWallpapers(sender.tab.incognito);
     return {
       historyDials: { ...COMPONENT_STATE_VISIBLE, ...freshtabConfig.historyDials },
       customDials: {
@@ -299,26 +308,47 @@ export default background({
         image: backgroundName,
         index: wallpapers.findIndex(bg => bg.name === backgroundName),
       },
-      stats: { ...COMPONENT_STATE_VISIBLE, ...freshtabConfig.stats },
+      stats: {
+        ...(isAMO ? COMPONENT_STATE_INVISIBLE : COMPONENT_STATE_VISIBLE),
+        ...freshtabConfig.stats,
+      },
     };
   },
 
-  async getWallpapers() {
+  async getWallpapers(isPrivate = false) {
     const wallpapers = getWallpapers(product);
-    if (this.isCustomBackgroundSupported) {
-      const customWp = await this.db.wallpapers.get('1');
-      if (customWp) {
-        const src = URL.createObjectURL(customWp.blob);
-        const wp = {
-          alias: 'custom-background',
-          isDefault: false,
-          name: config.constants.CUSTOM_BG,
-          src,
-          thumbnailSrc: src,
-        };
-        wallpapers.push(wp);
+    if (!this.isCustomBackgroundSupported) {
+      return wallpapers;
+    }
+
+    let src = (isPrivate && this._customBackgroundDataURL)
+      || (!isPrivate && this._customBackgroundURL);
+
+    if (!src) {
+      try {
+        const { blob } = await this.db.wallpapers.get('1');
+        if (isPrivate) {
+          this._customBackgroundDataURL = await getBlobAsDataURL(blob);
+          src = this._customBackgroundDataURL;
+        } else {
+          URL.revokeObjectURL(this._customBackgroundURL);
+          this._customBackgroundURL = URL.createObjectURL(blob);
+          src = this._customBackgroundURL;
+        }
+      } catch (e) {
+        console.error('Could not get custom wallpaper', e);
+        return wallpapers;
       }
     }
+
+    wallpapers.push({
+      alias: 'custom-background',
+      isDefault: false,
+      name: config.constants.CUSTOM_BG,
+      src,
+      thumbnailSrc: src,
+    });
+
     return wallpapers;
   },
 
@@ -413,19 +443,21 @@ export default background({
       });
     },
 
-    async saveCustomBackgroundImage(src) {
-      // TODO: we could skip fetching resource here if we stored
-      // the image directly on the freshtab page
+    async saveCustomBackgroundImage(src, sender) {
       const response = await fetch(src);
       if (!response.ok) {
-        console.error('Could not load custom background:', response.statusText);
-        return;
+        throw new Error(`Could not load custom background: ${response.statusText}`);
       }
       try {
         const blob = await response.blob();
         await this.db.wallpapers.put({ id: '1', blob });
+        URL.revokeObjectURL(this._customBackgroundURL);
+        this._customBackgroundURL = URL.createObjectURL(blob);
+        if (sender.tab?.incognito) {
+          this._customBackgroundDataURL = src;
+        }
       } catch (e) {
-        console.error('Could not save custom background:', e);
+        throw new Error(`Could not save custom background: ${e.message}`);
       }
     },
 
@@ -672,7 +704,7 @@ export default background({
     * @method getConfig
     */
     async getConfig(sender) {
-      const tabIndex = sender.tab.id;
+      const { id: tabIndex, incognito } = sender.tab;
 
       // delete import bookmarks top notification in case of onboarding v4
       if (this.onboardingVersion() === 4) {
@@ -687,7 +719,8 @@ export default background({
         isBrowserThemeSupported: this.isBrowserThemeSupported,
         isAllPrefsLinkSupported: this.isAllPreferencesLinkSupported,
         isCustomBackgroundSupported: this.isCustomBackgroundSupported,
-        wallpapers: await this.getWallpapers(product),
+        isAutofocusEnabled: prefs.get(FRESHTAB_AUTOFOCUS_PREF, false),
+        wallpapers: await this.getWallpapers(incognito),
         product,
         tabIndex,
         messages: this.messages,
@@ -695,7 +728,7 @@ export default background({
           this.history.isEnabled()
           && config.settings.HISTORY_URL !== undefined
         ),
-        componentsState: await this.getComponentsState(),
+        componentsState: await this.getComponentsState(sender),
         developer: prefs.get('developer', false),
         cliqzPostPosition: 'bottom-left', // bottom-right, top-right
         isStatsSupported: this.settings.freshTabStats,
@@ -761,8 +794,8 @@ export default background({
       return this.browserTheme();
     },
 
-    getComponentsState() {
-      return this.getComponentsState();
+    getComponentsState(sender) {
+      return this.getComponentsState(sender);
     },
 
     isHumanWebEnabled() {
