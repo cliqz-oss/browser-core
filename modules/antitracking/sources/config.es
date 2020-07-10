@@ -16,9 +16,9 @@ import { fetch } from '../core/http';
 import pacemaker from '../core/services/pacemaker';
 
 const SETTINGS = config.settings;
-const VERSIONCHECK_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/versioncheck.json`;
-const CONFIG_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/config.json`;
-const WHITELIST2_URL = `${SETTINGS.CDN_BASEURL}/anti-tracking/whitelist/2`;
+const VERSIONCHECK_URL = `${SETTINGS.ANTITRACKING_BASE_URL}/whitelist/versioncheck.json`;
+const CONFIG_URL = `${SETTINGS.ANTITRACKING_BASE_URL}/config.json`;
+const WHITELIST2_URL = `${SETTINGS.ANTITRACKING_BASE_URL}/whitelist/2`;
 const PROTECTION = 'antitrackingProtectionEnabled';
 
 

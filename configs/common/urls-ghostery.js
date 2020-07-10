@@ -17,4 +17,10 @@ module.exports = Object.assign(urls('ghostery.net'), {
   ENDPOINT_HUMAN_WEB_PATTERNS: 'https://cdn2.ghostery.com/human-web-chromium/hw-patterns.gz',
   ENDPOINT_PATTERNSURL: 'https://cdn2.ghostery.com/human-web-chromium/patterns.gz',
   ENDPOINT_ANONPATTERNSURL: 'https://cdn2.ghostery.com/human-web-chromium/patterns-anon.gz',
+
+  // override anti-tracking to ghostery CDN
+  ANTITRACKING_BASE_URL: 'https://cdn.ghostery.com/antitracking',
+
+  // adblocker assets
+  ADBLOCKER_BASE_URL: 'https://cdn.ghostery.com/adblocker/configs',
 });

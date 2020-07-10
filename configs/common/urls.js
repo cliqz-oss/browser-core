@@ -14,6 +14,7 @@ module.exports = (base, cdn = 'cdn') => ({
   BW_URL: `https://antiphishing.${base}/api/v1/`, // anti-phishing/sources/anti-phishing.es
   CDN_BASEURL: `https://${cdn}.${base}`,
   ADBLOCKER_BASE_URL: `https://${cdn}.${base}/adblocker/configs`,
+  ANTITRACKING_BASE_URL: `https://${cdn}.${base}/anti-tracking`,
   CONFIG_PROVIDER: `https://api.${base}/api/v1/config`,
   ENDPOINT_ANONPATTERNSURL: `https://${cdn}.${base}/human-web/patterns-anon`,
   ENDPOINT_HPNV2_DIRECT: `https://collector-hpn.${base}`, // hpnv2/sources/endpoints.es
