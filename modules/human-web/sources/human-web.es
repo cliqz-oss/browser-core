@@ -2324,7 +2324,7 @@ const CliqzHumanWeb = {
                   _log(`Dropping message for query ${msg.payload.q}, as there are too few search results.`);
                   return null;
                 }
-                cleanR.slice(0,8).forEach( (each, idx) => {
+                cleanR.forEach((each, idx) => {
                     newR[idx] = each;
                 });
 
