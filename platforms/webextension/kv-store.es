@@ -11,7 +11,11 @@
 import Dexie from '@cliqz-oss/dexie';
 import { chrome } from './globals';
 import console from '../core/console';
+import { toBase64, fromBase64 } from '../core/encoding';
+import platform from './platform';
 
+// can we write binary data directly to chrome.storage?
+const binaryStorageSupported = platform.isFirefox;
 let storage = {};
 
 try {
@@ -40,7 +44,13 @@ try {
             console.error(chrome.runtime.lastError);
             reject(chrome.runtime.lastError);
           } else if (res[key]) {
-            resolve(res[key]);
+            try {
+              // perform a base64 decode for values we encoded before write (see `set`)
+              const value = !binaryStorageSupported && key.endsWith('.bin') ? fromBase64(res[key]) : res[key];
+              resolve(value);
+            } catch (decodeError) {
+              reject(decodeError);
+            }
           } else {
             reject(new Error(`storage has no value for ${key}`));
           }
@@ -49,8 +59,11 @@ try {
     },
     set(key, value) {
       return new Promise((resolve, reject) => {
+        // a storage key ending with '.bin' indicates we should treat this as an ArrayBuffer.
+        // Only Firefox supports directly writing an ArrayBuffer to chrome.storage, so for other
+        // platforms we use base 64 encoding to safely storage it.
         chrome.storage.local.set(
-          { [key]: value },
+          { [key]: !binaryStorageSupported && key.endsWith('.bin') ? toBase64(value) : value },
           () => {
             if (chrome.runtime.lastError) {
               console.error(chrome.runtime.lastError);
