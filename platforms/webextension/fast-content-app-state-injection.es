@@ -201,8 +201,19 @@ export default class FastContentAppStateInjecter {
   }
 
   shareAppState(app) {
-    app.ready().then(() => {
-      this.scriptInjector.setCliqzGlobal(createCliqzObject(app));
-    });
+    // The function `setCliqzGlobal` isn't concurrency safe.
+    // Use `_sharingQueue` to make calls one by one.
+    if (!this._sharingQueue) {
+      this._sharingQueue = app.ready();
+    }
+    const thisInstance = this._sharingQueue
+      .then(() => this.scriptInjector.setCliqzGlobal(createCliqzObject(app)))
+      .catch(e => window.console.error('ERROR in shareAppState to content scripts:', e))
+      .then(() => {
+        if (this._sharingQueue === thisInstance) {
+          this._sharingQueue = null;
+        }
+      });
+    this._sharingQueue = thisInstance; // concurrently overwritten
   }
 }

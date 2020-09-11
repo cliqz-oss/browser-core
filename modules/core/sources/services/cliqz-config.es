@@ -82,9 +82,10 @@ async function updateCliqzConfig(CONFIG_PROVIDER_URL) {
 }
 
 export function service(app) {
+  const cliqzConfigUpdater = () => updateCliqzConfig(app.settings.CONFIG_PROVIDER);
   let interval = null;
   nextTick(() => {
-    interval = pacemaker.everyHour(updateCliqzConfig);
+    interval = pacemaker.everyHour(cliqzConfigUpdater);
   });
 
   service.unload = () => {
@@ -94,7 +95,7 @@ export function service(app) {
     }
   };
 
-  return updateCliqzConfig(app.settings.CONFIG_PROVIDER);
+  return cliqzConfigUpdater();
 }
 
 export default inject.service('cliqz-config', []);

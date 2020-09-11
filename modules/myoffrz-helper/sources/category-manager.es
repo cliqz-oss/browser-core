@@ -13,7 +13,41 @@ const ONE_DAY = 24 * ONE_HOUR;
 
 export default class ContentCategoryManager {
   constructor() {
+    // The cache contains two types of entries:
+    //
+    // 1) key: `linkId`, also known as `productId` in the code: ASIN
+    //    value: list of categories
+    // 2) key: page title
+    //    value: linkId
+    //
+    // An example:
+    //
+    // {
+    //   "B01KSX374E": {
+    //     "value": [
+    //       "Sport & Freizeit > Sportelektronik > Aktivitätstracker",
+    //       "Aktivitätstracker"
+    //     ],
+    //     "ts": 1593598665346
+    //   },
+    //   "Fitbit Standard Charge 2 Unisex Armband Zur Herzfrequenz Und Fitnessaufzeichnung": {
+    //     "value": "B01KSX374E",
+    //     "ts": 1593598665346
+    //   },
+    //   "B01LXL8K55": {
+    //     "value": [
+    //       "Uhren > Damen > Armbanduhren",
+    //       "in Armbanduhren für Damen"
+    //     ],
+    //     "ts": 1593683029740
+    //   },
+    //   "S.Oliver Damen Armbanduhr": {
+    //     "value": "B01LXL8K55",
+    //     "ts": 1593683029740
+    //   }
+    // }
     this.cache = {};
+
     this.storage = new CachedMap('category');
     this.filtersData = {};
 
@@ -86,6 +120,11 @@ export default class ContentCategoryManager {
     return this.storage.set('cache', this.cache);
   }
 
+  /**
+   * @param url
+   * @returns RuleApplication1
+   * Calculate `productId` and get cached `categories`
+   */
   getRules(url) {
     logger.debug(`check rules for ${url}`);
     const result = { styles: null, productId: null };
@@ -94,6 +133,7 @@ export default class ContentCategoryManager {
     ));
     if (match.match) {
       // Get the matching filter
+      /** type WrappedRule */
       const filterData = this.filtersData[this.id2pattern.get(match.filter.getId())];
       logger.log(`found rules for ${url}`, match.filter, filterData);
       if (filterData) {
@@ -122,6 +162,12 @@ export default class ContentCategoryManager {
     return result;
   }
 
+  /**
+   *
+   * @param titles
+   * @param linkIds
+   * @returns {[]}
+   */
   getCategory({ titles, linkIds }) {
     let categories = [];
     if (titles) {
@@ -150,7 +196,7 @@ export default class ContentCategoryManager {
   }
 
   cacheCategories({ categories, titles, productId /* , url */ }) {
-    // TODO: Prefix with hostname to eleminiate potential collision
+    // TODO: Prefix with hostname to eliminate potential collision
     if (productId && categories.length > 0) {
       this.cache[productId] = {
         value: categories,

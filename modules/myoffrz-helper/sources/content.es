@@ -121,6 +121,14 @@ class CategoryHelper {
     return null;
   }
 
+  /**
+   * The entry point.
+   * Rule:
+   * rules
+   * @param rules
+   * @param productId
+   * @param prefix
+   */
   handleRules({ rules, productId, prefix }) {
     /* eslint no-param-reassign: off */
     const _handleRules = () => {

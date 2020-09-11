@@ -30,6 +30,7 @@ import ResourceLoader from './resource-loader';
 import { getResourceUrl } from './platform';
 import { isUrl, fixURL } from '../core/url';
 import { getEngineByQuery } from '../core/search-engines';
+import MyOffrzWatchdog from './myoffrz-watchdog';
 
 // Telemetry schemas
 import TelemetryOptMetric from './telemetry/metrics/telemetry';
@@ -88,9 +89,14 @@ export default background({
       timeout: 1000 * 60 * 60,
       startImmediately: true,
     });
+
+    this.myOffrzWatchdog = new MyOffrzWatchdog(this);
+    this.myOffrzWatchdog.init();
   },
 
   unload() {
+    this.myOffrzWatchdog.unload();
+
     telemetry.unregister(this.telemetrySchemas);
     disableRequestSanitizer();
 

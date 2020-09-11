@@ -5,6 +5,7 @@
  * is reached from the last modification time.
  */
 import { chrome } from '../../platform/globals';
+import { isGhostery } from '../../core/platform';
 
 import prefs from '../../core/prefs';
 import { httpPost } from '../../core/http';
@@ -31,8 +32,16 @@ const MANDATORY_SIGNAL_AIDS = [
   ActionID.AID_OFFERS_ENVIRONMENT
 ];
 
-const isMutableSignal = signalPayload =>
-  !MANDATORY_SIGNAL_AIDS.includes(getSignalID(JSON.parse(signalPayload)));
+const shouldMuteSignal = (signalPayload) => {
+  if (isGhostery) {
+    // in ghostery Rewards is off by default and no signals are created
+    // unless the user explicitly enables the whole feature
+    return false;
+  }
+
+  return !prefs.get('telemetry', true)
+    && !MANDATORY_SIGNAL_AIDS.includes(getSignalID(JSON.parse(signalPayload)));
+};
 
 /**
  * [v3.0] we will not use bucket anymore so now we will have the following
@@ -421,8 +430,7 @@ export default class SignalHandler {
   sendSingle({ payload, signalType, sigID }) {
     logger.debug('Sending signal:', payload);
     return new Promise((resolve) => {
-      const muteSignal = !prefs.get('telemetry') && isMutableSignal(payload);
-      if (muteSignal) {
+      if (shouldMuteSignal(payload)) {
         resolve();
         return;
       }

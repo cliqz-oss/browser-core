@@ -4,7 +4,6 @@
  * @module offers-v2
  * @main offers-v2
  */
-import { chrome } from '../platform/globals';
 import inject from '../core/kord/inject';
 import { getGeneralDomain, extractHostname } from '../core/tlds';
 import prefs from '../core/prefs';
@@ -12,7 +11,6 @@ import config from '../core/config';
 import events from '../core/events';
 import i18n from '../core/i18n';
 import pacemaker from '../core/services/pacemaker';
-import { isCliqzBrowser } from '../core/platform';
 import background from '../core/base/background';
 import Database from '../core/database-migrate';
 import EventEmitter from '../core/event-emitter';
@@ -44,6 +42,9 @@ import { PatternsStat } from './patterns_stat';
 import ChipdeHandler from './whitelabel/chipde/handler';
 import ImageDownloader from './offers/image-downloader';
 
+// Cross-module runtime dependency:
+// The livecycle of this module is affected by `MyOffrzWatchdog` from `core`.
+
 // /////////////////////////////////////////////////////////////////////////////
 // consts
 const DEBUG_DEXIE_MIGRATION = false;
@@ -57,13 +58,6 @@ const URL_CHANGED_EVENT_DEBOUNCE = 500;
  * @type {number}
  */
 const MOUNT_ONBOARDING_MAX_RETRIES = 10;
-// If the offers are toggled on/off, the real estate modules should
-// be activated or deactivated.
-function touchManagedRealEstateModules(isEnabled) {
-  const managedRealEstateModules = ['offers-banner', 'myoffrz-helper'];
-  managedRealEstateModules.forEach(moduleName =>
-    prefs.set(`modules.${moduleName}.enabled`, isEnabled));
-}
 
 /**
  * @class Background
@@ -98,13 +92,6 @@ export default background({
 
   // ////////
   async softInit() {
-    // check if we need to do something or not
-    if (!prefs.get('offers2UserEnabled', true)) {
-      this.initialized = false;
-      if (isCliqzBrowser) { chrome.browserAction.disable(); }
-      return;
-    }
-
     if (DEBUG_DEXIE_MIGRATION) {
       this.patternsStatMigrationCheck = patternsStatMigrationCheck;
     }
@@ -257,10 +244,6 @@ export default background({
       telemetry: inject.service('telemetry', ['push']),
     };
     this.triggerMachineExecutor = new TriggerMachineExecutor(this.globObjects);
-
-    if (prefs.get('offers2UserEnabled', true) && isCliqzBrowser) {
-      chrome.browserAction.enable();
-    }
 
     this.initialized = true;
 
@@ -559,19 +542,6 @@ export default background({
     'offers-recv-ch': function onRealEstateMessage(message) {
       if (this.offersAPI) {
         this.offersAPI.processRealEstateMessage(message);
-      }
-    },
-    prefchange: async function onPrefChange(pref) {
-      if (pref !== 'offers2UserEnabled') { return; }
-      const offers2UserEnabled = prefs.get('offers2UserEnabled', true);
-      if (offers2UserEnabled) {
-        await this.softInit();
-        touchManagedRealEstateModules(true);
-      } else {
-        // The next two unload processes run at the same time,
-        // beware of race conditions
-        touchManagedRealEstateModules(false);
-        await this.softUnload();
       }
     },
     // we need it here because we want listen events on page reload too

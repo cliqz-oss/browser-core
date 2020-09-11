@@ -3,7 +3,6 @@ import ContentCategoryManager from './category-manager';
 import logger from './logger';
 import inject from '../core/kord/inject';
 import LRU from '../core/LRU';
-import getDocument from '../platform/myoffrz-helper/document';
 
 export default background({
   offersModule: inject.module('offers-v2'),
@@ -24,12 +23,13 @@ export default background({
   events: {
     'content:dom-ready': function onDomReady(url, sender) {
       // Now the page is almost ready, check if we need to push a message
-      // to extract the cateogry info from the page content
+      // to extract the category info from the page content
       logger.debug(`Encounter url ${url}`);
+      /** type RuleApplication2 */
       const { payload } = this.actions.getRules({ url });
       logger.debug('payload from getRules', payload);
       if (payload.categories) {
-        logger.debug('Found cateories from cache', url, payload);
+        logger.debug('Found categories from cache', url, payload);
         // We have category information from cache,
         // no need to ask content script
         this.actions.handleCategories(
@@ -47,31 +47,17 @@ export default background({
           { windowId: sender.tab.id },
           payload,
         );
+        // execution continues:
+        // - in the content script, then
+        // - in `this.actions.handleCategories`
       }
     },
   },
 
-  extractCategroyFromElement(e) {
-    if (!e) {
-      return [];
-    }
-
-    const separator = new RegExp(`[${String.fromCharCode(8250)}|>|\n]`); // Something looks like a '>'
-    const goBack = String.fromCharCode(8249); // Something looks like a '<'
-    const text = e.textContent.trim();
-    // Should not happen since we're refetching the page
-    if (text.indexOf(goBack) > -1) {
-      logger.warn('Unexpected symbol in page refetch');
-      return [];
-    }
-    let categroy = text.split(separator).map(part => part.trim()).filter(part => part !== '').join(' > ');
-    if (categroy.startsWith('in ')) {
-      categroy = categroy.slice(3);
-    }
-    return [categroy];
-  },
-
   actions: {
+    /**
+     * @returns { payload: RuleApplication2 }
+     */
     getRules({ url }) {
       const { styles, productId, categories, prefix } = this.contentCategoryManager.getRules(url);
       const payload = {
@@ -83,6 +69,18 @@ export default background({
       return { payload };
     },
 
+    /**
+     * @param categories {string[]}
+     * @param fromContent {boolean}
+     * @param titles {string}
+     * @param linkIds {string[]}
+     * @param productId {string}
+     * @param prefix {string}
+     * @param fetchUrl {string}
+     * @param rules
+     * @param price
+     * @param sender
+     */
     async handleCategories(
       { categories, fromContent, titles, linkIds, productId, prefix, fetchUrl, rules, price },
       sender
@@ -90,19 +88,7 @@ export default background({
       /* eslint no-param-reassign: off */
       logger.debug('handleCategories', categories, fromContent, titles, linkIds, productId, sender.url);
       if (fetchUrl && fromContent && (!categories || categories.length === 0) && rules) {
-        // No categories from the page and Content script message provides a refetch url
-        const fetchedDom = getDocument().createHTMLDocument('New Document').createElement('html');
-
-        const resp = await fetch(fetchUrl);
-        fetchedDom.innerHTML = await resp.text();
-        await Promise.all(rules.map(async (rule) => {
-          const newEl = fetchedDom.querySelector(rule);
-          const newCategories = await this.extractCategroyFromElement(newEl);
-          categories = categories.concat(newCategories);
-        }));
-
-        categories = [...new Set(categories)];
-        logger.debug('Categoires after refetch', categories);
+        logger.warn(`Categories where not found in the page ${sender.url}`);
       }
       if (fromContent) {
         logger.log(`Extracted from page ${sender.url}`, categories, titles, linkIds);
