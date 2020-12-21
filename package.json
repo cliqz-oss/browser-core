@@ -141,7 +141,7 @@
     "mocha": "^7.1.2",
     "mock-browser": "^0.92.14",
     "mockdate": "^2.0.2",
-    "node-notifier": "^7.0.0",
+    "node-notifier": "^8.0.1",
     "node-webcrypto-ossl": "^2.0.7",
     "prom-client": "^12.0.0",
     "puppeteer-core": "^3.0.2",
