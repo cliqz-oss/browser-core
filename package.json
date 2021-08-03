@@ -167,7 +167,7 @@
     "web-ext": "^4.2.0",
     "webpack": "^4.43.0",
     "ws": "^7.2.5",
-    "xmldom": "^0.3.0"
+    "xmldom": "^0.6.0"
   },
   "homepage": "https://github.com/cliqz/navigation-extension#readme",
   "repository": {
