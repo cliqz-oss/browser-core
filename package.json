@@ -30,7 +30,7 @@
     "jsep": "^0.3.0",
     "jsonschema": "^1.2.6",
     "math-expression-evaluator": "^1.2.22",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "node-fetch": "^2.6.0",
     "node-forge": "^0.9.1",
     "node-persist": "^3.0.5",
